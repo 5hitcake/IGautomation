@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Unit tests
+        run: pytest tests/ -q
+
+      - name: Smoke-Test - Zitat-Bild generieren
+        run: |
+          python scripts/generate_quote_card.py
+          test -f assets/generated/next_post.json
+
+      - name: Smoke-Test - Reel generieren
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python scripts/generate_reel.py
+          test -f assets/generated/next_post.json
+
+      - name: Dry-Run Publish (kein echter API-Call)
+        run: python scripts/publish.py --dry-run

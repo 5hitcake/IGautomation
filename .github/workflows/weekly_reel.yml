@@ -1,0 +1,44 @@
+name: Weekly Reel Post
+
+on:
+  schedule:
+    - cron: "30 16 * * 0"  # jeden Sonntag 16:30 UTC (~17-18 Uhr MEZ/MESZ)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          pip install -r requirements.txt
+
+      - name: Generate reel
+        run: python scripts/generate_reel.py
+
+      - name: Commit generated asset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/generated posted_log.json
+          git commit -m "Neuer Reel-Post: $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: Wait for raw.githubusercontent.com propagation
+        run: sleep 15
+
+      - name: Publish to Instagram
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.IG_ACCOUNT_ID }}
+        run: python scripts/publish.py

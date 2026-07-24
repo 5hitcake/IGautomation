@@ -1,0 +1,26 @@
+{
+  "_comment": "Reel-Texte: generate_reel.py kombiniert einen dieser Texte zur Laufzeit mit einem noch nicht kuerzlich benutzten Hintergrundvideo aus assets/bg_videos, und optional mit Musik aus assets/music.",
+  "bg_video_dir": "assets/bg_videos",
+  "bg_videos": [
+    "reel_01_mountain_drone.mp4",
+    "reel_02_ocean_waves.mp4",
+    "reel_03_city_timelapse.mp4",
+    "reel_04_mountain_walk.mp4",
+    "reel_05_rain_window.mp4",
+    "reel_06_clouds_dawn.mp4",
+    "reel_07_rooftop.mp4",
+    "reel_08_night_road.mp4"
+  ],
+  "reels": [
+    {"id": 1, "quote_id": 1, "category": "Disziplin", "text": "Disziplin ist die Brücke zwischen deinen Zielen und deren Erreichen."},
+    {"id": 2, "quote_id": 6, "category": "Disziplin", "text": "Du wirst nicht jeden Tag motiviert sein. Also musst du diszipliniert sein."},
+    {"id": 3, "quote_id": 13, "category": "Erfolg", "text": "Erfolg ist die Summe kleiner Anstrengungen, die Tag für Tag wiederholt werden."},
+    {"id": 4, "quote_id": 25, "category": "Resilienz", "text": "Du bist nicht kaputt gegangen. Du bist gewachsen."},
+    {"id": 5, "quote_id": 37, "category": "Fokus", "text": "Wo deine Aufmerksamkeit hingeht, wächst dein Leben."},
+    {"id": 6, "quote_id": 49, "category": "Wachstum", "text": "Du bist nicht dazu bestimmt, für immer derselbe zu bleiben."},
+    {"id": 7, "quote_id": 62, "category": "Mut", "text": "Das Leben beginnt am Ende deiner Komfortzone."},
+    {"id": 8, "quote_id": 97, "category": "Mindset", "text": "Deine Gedanken formen deine Realität, wähle sie bewusst."},
+    {"id": 9, "quote_id": 85, "category": "Selbstliebe", "text": "Du darfst stolz auf dich sein, auch wenn niemand applaudiert."},
+    {"id": 10, "quote_id": 73, "category": "Gewohnheiten", "text": "Du wirst nicht zu deinen Zielen, du wirst zu deinem System."}
+  ]
+}

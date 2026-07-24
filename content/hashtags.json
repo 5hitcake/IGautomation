@@ -1,0 +1,17 @@
+{
+  "general": [
+    "#mindset", "#motivation", "#mindsetiseverything", "#selbstliebe", "#persönlichkeitsentwicklung",
+    "#erfolgsmindset", "#mentalstärke", "#motivationdeutsch", "#lebensweisheiten", "#zitatedestages"
+  ],
+  "by_category": {
+    "Disziplin": ["#disziplin", "#selbstdisziplin", "#nopainnogain", "#dranbleiben", "#konsequenz"],
+    "Erfolg": ["#erfolg", "#erfolgreich", "#zielerreichen", "#businessmindset", "#erfolgsgeschichte"],
+    "Resilienz": ["#resilienz", "#innerestärke", "#niemalsaufgeben", "#mentalhealth", "#stärkerwerden"],
+    "Fokus": ["#fokus", "#konzentration", "#deepwork", "#klareziele", "#produktivität"],
+    "Wachstum": ["#persönlichesWachstum", "#selfimprovement", "#weiterentwicklung", "#growthmindset", "#bessergehen"],
+    "Mut": ["#mut", "#komfortzoneverlassen", "#risikoeingehen", "#traudich", "#neuanfang"],
+    "Gewohnheiten": ["#gewohnheiten", "#habits", "#routine", "#morgenroutine", "#atomichabits"],
+    "Selbstliebe": ["#selbstliebe", "#selfcare", "#selbstakzeptanz", "#seibrav", "#selbstwert"],
+    "Mindset": ["#mindsetgrind", "#positivesdenken", "#gedankenkraft", "#mentaltraining", "#mindsetcoach"]
+  }
+}
