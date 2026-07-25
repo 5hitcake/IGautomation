@@ -1,9 +1,10 @@
 """Veroeffentlicht den zuletzt generierten Post (assets/generated/next_post.json)
-ueber die offizielle Instagram Graph API.
+ueber die "Instagram API with Instagram Login" (graph.instagram.com) - funktioniert
+mit einem Instagram Business/Creator-Konto ohne Verknuepfung zu einer Facebook-Seite.
 
 Benoetigte Umgebungsvariablen:
-  IG_ACCESS_TOKEN   - Long-Lived Access Token mit instagram_content_publish Scope
-  IG_ACCOUNT_ID     - Instagram Business Account ID
+  IG_ACCESS_TOKEN   - Long-Lived Access Token mit instagram_business_content_publish Scope
+  IG_ACCOUNT_ID     - Instagram Business Account ID (aus GET /me?fields=user_id)
   GITHUB_REPOSITORY - wird von GitHub Actions automatisch gesetzt (owner/repo),
                        dient zur Bildung der oeffentlichen raw.githubusercontent.com URL
 
@@ -23,7 +24,9 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 GRAPH_API_VERSION = "v21.0"
-GRAPH_API_BASE = f"https://graph.facebook.com/{GRAPH_API_VERSION}"
+# graph.instagram.com = "Instagram API with Instagram Login": funktioniert direkt mit einem
+# Instagram Business/Creator-Konto, OHNE Verknuepfung zu einer Facebook-Seite.
+GRAPH_API_BASE = f"https://graph.instagram.com/{GRAPH_API_VERSION}"
 POLL_INTERVAL_SECONDS = 10
 MAX_POLL_ATTEMPTS = 30
 

@@ -36,29 +36,33 @@ landet also nie im sichtbaren Repo-Inhalt.
 
 ---
 
-## Schritt 2: Instagram Graph API einrichten
+## Schritt 2: Instagram API einrichten (ohne Facebook-Seite)
 
 Das ist der einzige Teil, den ich nicht für dich automatisieren kann (erfordert deinen
-Login bei Meta/Facebook).
+Login bei Meta). Genutzt wird die neuere **"Instagram API with Instagram Login"** -
+dafür brauchst du **keine Facebook-Seite** und dein privates Facebook-Profil bleibt
+komplett unberührt. Ein Facebook-Konto ist nur nötig, um dich am Meta-Developer-Portal
+anzumelden (reiner Login-Zweck, keine Verknüpfung/Veröffentlichung).
 
 1. **Professionelles Konto**: In der Instagram-App → Einstellungen → Konto →
    "Zu professionellem Konto wechseln" → Creator oder Business auswählen.
-2. **Facebook-Seite verknüpfen**: Falls noch keine Facebook-Seite existiert, eine
-   anlegen (kann ein simpler Seitenname sein) und im Instagram-Profil unter
-   Einstellungen → Verknüpfte Konten mit ihr verbinden.
-3. **Meta Developer App anlegen**: Auf [developers.facebook.com/apps](https://developers.facebook.com/apps)
+2. **Meta Developer App anlegen**: Auf [developers.facebook.com/apps](https://developers.facebook.com/apps)
    → "App erstellen" → Typ **"Business"** wählen.
-4. In der App das Produkt **"Instagram Graph API"** hinzufügen.
-5. Da nur dein eigenes Konto automatisiert wird, ist **kein App Review** nötig – füge
-   dich selbst unter App-Rollen als Admin/Tester hinzu.
-6. Über den [Graph API Explorer](https://developers.facebook.com/tools/explorer/)
-   (App oben auswählen) ein User-Token mit folgenden Scopes generieren:
-   `instagram_basic`, `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`.
-7. Dieses Token über den Explorer (Werkzeug-Symbol → "Access Token Debugger" →
-   "Extend Access Token") in ein **Long-Lived Token** umwandeln (gültig ~60 Tage).
-8. Instagram-Business-Account-ID ermitteln:
-   `GET /me/accounts` → in der Antwort die passende Seite suchen → Feld
-   `instagram_business_account.id`.
+3. In der App das Produkt **"Instagram"** hinzufügen und dort **"API setup with
+   Instagram login"** auswählen (nicht die alte "Instagram Graph API", die eine
+   Facebook-Seite verlangt).
+4. Im Setup-Assistenten: dein eigenes Instagram-Konto als "Instagram tester"
+   hinzufügen. Im Instagram-Account unter Einstellungen → Apps und Websites →
+   Tester-Einladungen die Einladung annehmen.
+5. Im Abschnitt **"Generate access token"**: Button **"Generate token"** neben deinem
+   Konto klicken → mit deinen Instagram-Zugangsdaten einloggen → Berechtigungen
+   bestätigen (u.a. `instagram_business_content_publish`). Der Access Token wird
+   danach direkt im Dashboard angezeigt.
+6. Instagram-Business-Account-ID ermitteln: entweder direkt im Dashboard ablesen,
+   oder abrufen über
+   `GET https://graph.instagram.com/v21.0/me?fields=user_id&access_token=<TOKEN>`.
+7. Das generierte Token ist bereits langlebig (~60 Tage). Erneuerung siehe
+   "Wartung" weiter unten.
 
 ---
 
@@ -124,7 +128,8 @@ die genaue Fehlermeldung.
 ## Wartung: Token-Erneuerung
 
 Der Long-Lived Token läuft nach **~60 Tagen** ab. Alle **50 Tage**:
-1. Graph API Explorer öffnen → Token neu generieren + verlängern (Schritt 2.6-2.7).
+1. Im Meta Developer Dashboard → App → Instagram → "API setup with Instagram login"
+   → im Abschnitt "Generate access token" erneut "Generate token" klicken (Schritt 2.5).
 2. `IG_ACCESS_TOKEN` Secret in GitHub mit dem neuen Wert überschreiben.
 
 Ohne diesen Schritt schlagen die Posts irgendwann mit einem Auth-Fehler fehl (sichtbar
