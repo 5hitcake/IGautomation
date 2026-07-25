@@ -1,12 +1,14 @@
 {
   "posted_quote_ids": [
     19,
-    69
+    69,
+    5
   ],
   "posted_reel_ids": [],
   "recent_backgrounds": [
     "bg_09_starry_sky.png",
-    "bg_15_night_road.png"
+    "bg_15_night_road.png",
+    "bg_12_rain_window.png"
   ],
   "recent_bg_videos": []
 }
