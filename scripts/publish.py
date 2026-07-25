@@ -74,7 +74,11 @@ def public_asset_url(relative_path, dry_run=False):
     return f"https://raw.githubusercontent.com/{repo}/main/{relative_path}"
 
 
-def wait_for_video_ready(creation_id, access_token, dry_run):
+def wait_for_media_ready(creation_id, access_token, dry_run):
+    """Pollt den Media-Container, bis Instagram ihn fertig verarbeitet hat
+    (status_code=FINISHED). Noetig sowohl fuer Reels als auch fuer Bilder -
+    media_publish schlaegt sonst mit "Media ID is not available" fehl, wenn
+    zu frueh aufgerufen wird."""
     if dry_run:
         print(f"[dry-run] wuerde auf status_code=FINISHED fuer {creation_id} pollen")
         return
@@ -90,9 +94,9 @@ def wait_for_video_ready(creation_id, access_token, dry_run):
         if status == "FINISHED":
             return
         if status == "ERROR":
-            raise RuntimeError(f"Video-Verarbeitung fehlgeschlagen: {resp.json()}")
+            raise RuntimeError(f"Media-Verarbeitung fehlgeschlagen: {resp.json()}")
         time.sleep(POLL_INTERVAL_SECONDS)
-    raise TimeoutError("Video wurde nicht rechtzeitig verarbeitet (status_code != FINISHED)")
+    raise TimeoutError("Media wurde nicht rechtzeitig verarbeitet (status_code != FINISHED)")
 
 
 def create_media_container(ig_account_id, access_token, post, dry_run):
@@ -152,8 +156,7 @@ def main():
         sys.exit(1)
 
     creation_id = create_media_container(ig_account_id, access_token, post, args.dry_run)
-    if post["type"] == "reel":
-        wait_for_video_ready(creation_id, access_token, args.dry_run)
+    wait_for_media_ready(creation_id, access_token, args.dry_run)
     publish_media(ig_account_id, access_token, creation_id, args.dry_run)
 
 
