@@ -14,7 +14,7 @@ ui_restart,ui,restart button icon,assets/ui_restart.png,shipped,sheet:df655d7a-4
 ui_settings,ui,settings gear icon,assets/ui_settings.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r1c2,sliced / 128px
 ui_scrubber_handle,ui,scrub bar handle,assets/ui_scrubber_handle.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c0,sliced / 128px / now wired into STATIC_ASSETS (was generated but never loaded before)
 ui_pan,ui,pan tool icon,assets/ui_pan.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c1,added beyond original manifest (pan tool)
-ui_ruler,ui,straight-line (ruler) tool icon,-,missing,-,booster/accelerator lines removed per user request; ruler tool added in its place but has no generated icon yet - falls back to a text glyph (no ui_booster asset or tool left in the game)
+ui_ruler,ui,straight-line (ruler) tool icon,assets/ui_ruler.png,shipped,image:a432d66c-d216-4fb7-bb39-9ef0ac3d263c,gpt_image_2 / green-keyed / 128px / added in v3 - replaces the emoji fallback (no ui_booster asset or tool left in the game)
 ui_start_marker,ui,start point flag decal,assets/ui_start_marker.png,shipped,image:639197e6-fc67-4e59-8993-1b96eb5aa078,world decal / 256px / green-keyed
 thumbnail,card,16:9 marketplace cover,-,shipped,image:f37f727b-5786-4e21-82b0-187bfee0f154,gpt_image_2 with hand-lettered title
 favicon,card,1:1 icon,-,shipped,image:c56e4a11-5fcd-4881-bc3c-bd5b6dd33f3e,nano_banana
@@ -36,4 +36,10 @@ music_bg_loop,audio,background music,-,cut,-,audio deferred
 # v2 ships the SAME 16 image assets as v1 - no new generation. ui_booster.png was dropped from the zip; only index.html and strings.js changed (source commit 4ff1013).,,,,,,
 # v2 redeployed in place with game_id ad886e8e-81db-4b4b-a95e-af2aff07f0da so the play URL is unchanged: https://plucky-koi-148.higgsfield.gg/,,,,,,
 # KNOWN: assets/ui_booster.png still returns HTTP 200 on the live host - a stale leftover from the v1 deploy. The platform overlays new files but does not delete removed ones. Nothing references it so it never loads.,,,,,,
-# KNOWN: the ruler tool has no generated icon and falls back to the emoji glyph 0x1F4CF in the toolbar, which breaks style consistency next to the four hand-drawn sketch icons. Generating a ui_ruler.png in the approved style would need one image generation plus a repackage/redeploy.,,,,,,
+# KNOWN (RESOLVED in v3): the ruler tool had no generated icon and fell back to the emoji glyph 0x1F4CF in the toolbar. Fixed by generating ui_ruler.png in the approved style.,,,,,,
+# --- v3 (ruler icon added) ---,,,,,,
+# v3 new asset: ui_ruler.png from job a432d66c-d216-4fb7-bb39-9ef0ac3d263c (gpt_image_2 / 1:1 / green 00FF00 key / STYLE FORMULA embedded byte-identical),,,,,,
+# v3 deployed game zip: https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/3588724f-1a14-4959-8cbe-e56c444e181a.zip  (md5 139a90e97075f64d98b0cfa6741a4959 / 21 entries / 17 assets),,,,,,
+# v3 = v2's 16 assets + ui_ruler.png. Source commit 85a6820 (index.html wires ui_ruler into STATIC_ASSETS); strings.js and logic.js unchanged. Asset-only change otherwise.,,,,,,
+# v3 redeployed in place with game_id ad886e8e-81db-4b4b-a95e-af2aff07f0da so the play URL is unchanged: https://plucky-koi-148.higgsfield.gg/,,,,,,
+# v3 QC: ui_ruler ink 25.3% (siblings 19.3-52.0%) / green leak 0.000% / subject not clipped at any frame edge / 10.5% poppy-red accent over 24.7% graphite - matches the other toolbar icons.,,,,,,
