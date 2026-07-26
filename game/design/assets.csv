@@ -1,18 +1,33 @@
-id,kind,role,file,model,ar,key_color,status,notes
-char_idle,sprite,hero idle pose at start marker,assets/char_idle.png,nano_banana_2,1:1,#00FF00,planned,static sprite
-char_move,animation,hero gliding/banking loop,assets/char_move_*_loop.png,flux_2+seedance_1_5,1:1,#00FF00,planned,looping spritesheet
-char_airborne,sprite,hero mid-air freefall pose,assets/char_airborne.png,nano_banana_2,1:1,#00FF00,planned,static sprite
-char_impact,animation,hero crash crumple burst,assets/char_impact_*_once.png,flux_2+seedance_1_5,1:1,#00FF00,planned,one-shot spritesheet
-char_celebrate,sprite,hero milestone celebration,assets/char_celebrate.png,nano_banana_2,1:1,#00FF00,planned,optional
-bg_sky_far,background,farthest parallax layer,assets/bg_sky_far.png,nano_banana_2,16:9,none,planned,opaque full-frame
-bg_mid,background,mid parallax hill band,assets/bg_mid.png,nano_banana_2,16:9,#00FF00,planned,keyed for alpha parallax
-ui_pencil,ui,draw tool icon,assets/ui_pencil.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
-ui_eraser,ui,erase tool icon,assets/ui_eraser.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
-ui_play,ui,play button icon,assets/ui_play.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
-ui_pause,ui,pause button icon,assets/ui_pause.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
-ui_restart,ui,restart button icon,assets/ui_restart.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
-ui_settings,ui,settings gear icon,assets/ui_settings.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
-ui_scrubber_handle,ui,scrub bar handle,assets/ui_scrubber_handle.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
-ui_booster,ui,booster line tool icon,assets/ui_booster.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet (added: booster tool)
-ui_start_marker,ui,start point flag decal,assets/ui_start_marker.png,nano_banana_2,1:1,#00FF00,planned,world decal
-tex_canvas_ground,texture,paper surface,-,procedural,-,-,substituted,drawn in canvas/CSS per brief allowance
+id,kind,role,file,status,source,notes
+char_idle,sprite,hero idle pose at start marker,assets/char_idle.png,shipped,image:17b1c5cc-e192-4a1e-8e77-e0348793c663,nano_banana / 448px / green-keyed
+char_move,animation,hero gliding-banking loop,assets/char_move_f12_288x288_g4x3_fps12_loop.png,shipped,keypose:35d73336-76fb-4dc5-8cad-fe9d3bfbcc3b + video:af033b8c-65ea-4d4a-b758-597fad1feced,seedance1_5 4s loop -> 97 frames -> 13 sampled -> last dropped -> 12-cell 4x3 sheet
+char_airborne,sprite,hero mid-air freefall pose,assets/char_airborne.png,shipped,image:861088d4-7286-494c-88da-96332705d29c,nano_banana / 448px / green-keyed
+char_impact,animation,hero crash crumple burst,assets/char_impact_f12_288x288_g4x3_fps14_once.png,shipped,keypose:c0ff3b1d-7b2f-4344-9806-a03917e4c3b8 + video:bec89f6c-15bc-4b7e-b803-b593419ff980,seedance1_5 4s one-shot -> 12-cell 4x3 sheet
+char_celebrate,sprite,hero milestone celebration,assets/char_celebrate.png,shipped,image:d1c1bfcb-4069-4bee-a567-115e9c41f4fe,nano_banana / 448px / green-keyed
+bg_sky_far,background,farthest parallax layer,assets/bg_sky_far.jpg,shipped,image:b81d23b9-a43f-4ec2-8d78-120147d0ced1,1280x720 jpeg q80 (opaque - no alpha needed)
+bg_mid,background,mid parallax hill band,assets/bg_mid.png,shipped,image:85ca2da2-468f-4edc-9f6f-0fa2be3b1575,green-keyed for alpha / 1024 wide / tiled in code
+ui_pencil,ui,draw tool icon,assets/ui_pencil.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r0c0,sliced from 3x3 gpt_image_2 icon sheet / 128px
+ui_eraser,ui,erase tool icon,assets/ui_eraser.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r0c1,sliced / 128px
+ui_play,ui,play button icon,assets/ui_play.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r0c2,sliced / 128px
+ui_pause,ui,pause button icon,assets/ui_pause.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r1c0,sliced / 128px
+ui_restart,ui,restart button icon,assets/ui_restart.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r1c1,sliced / 128px
+ui_settings,ui,settings gear icon,assets/ui_settings.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r1c2,sliced / 128px
+ui_scrubber_handle,ui,scrub bar handle,assets/ui_scrubber_handle.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c0,sliced / 128px / used as CSS range thumb
+ui_pan,ui,pan tool icon,assets/ui_pan.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c1,added beyond original manifest (pan tool)
+ui_booster,ui,booster line tool icon,assets/ui_booster.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c2,added beyond original manifest (accelerator lines)
+ui_start_marker,ui,start point flag decal,assets/ui_start_marker.png,shipped,image:639197e6-fc67-4e59-8993-1b96eb5aa078,world decal / 256px / green-keyed
+thumbnail,card,16:9 marketplace cover,-,shipped,image:f37f727b-5786-4e21-82b0-187bfee0f154,gpt_image_2 with hand-lettered title
+favicon,card,1:1 icon,-,shipped,image:c56e4a11-5fcd-4881-bc3c-bd5b6dd33f3e,nano_banana
+tex_canvas_ground,texture,paper surface,-,substituted,procedural,drawn in canvas (cream paper grain + blue rule lines + red margin) per brief allowance
+sfx_draw,audio,draw feedback,-,cut,-,audio deferred - visual game prioritised
+sfx_whoosh_roll,audio,glide loop,-,cut,-,audio deferred
+sfx_impact,audio,crash,-,cut,-,audio deferred
+sfx_milestone,audio,distance milestone,-,cut,-,audio deferred
+sfx_ui_tap,audio,button tap,-,cut,-,audio deferred
+music_bg_loop,audio,background music,-,cut,-,audio deferred
+# STYLE FORMULA embedded byte-identical in every generation prompt: Loose ballpoint-and-pencil sketch linework on cream notebook paper / hand-wobbly charcoal-grey outlines / muted graphite and sepia washes / hero in poppy red / hazards acid-yellow / flat schoolroom daylight / consistent side-view,,,,,,
+# Key colour for transparency: bright green 00FF00 (hero is poppy red so magenta would bleed into it),,,,,,
+# Packaged assets zip: https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/f83635bc-247a-4f13-863b-1ed1cd2e2dde.zip,,,,,,
+# Deployed game zip: https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/a222e396-9cb9-4497-b05f-0fa2d125d8ea.zip,,,,,,
+# Live URL: https://plucky-koi-148.higgsfield.gg/ and game_id: ad886e8e-81db-4b4b-a95e-af2aff07f0da,,,,,,
+# NOTE: binary assets are not committed in this repo - this workspace's egress policy blocks the asset CDN with 403 so they could not be downloaded locally. All 17 are packaged inside the deployed zip above and verified serving 200 from the live site.,,,,,,
