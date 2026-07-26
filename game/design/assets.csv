@@ -1,0 +1,18 @@
+id,kind,role,file,model,ar,key_color,status,notes
+char_idle,sprite,hero idle pose at start marker,assets/char_idle.png,nano_banana_2,1:1,#00FF00,planned,static sprite
+char_move,animation,hero gliding/banking loop,assets/char_move_*_loop.png,flux_2+seedance_1_5,1:1,#00FF00,planned,looping spritesheet
+char_airborne,sprite,hero mid-air freefall pose,assets/char_airborne.png,nano_banana_2,1:1,#00FF00,planned,static sprite
+char_impact,animation,hero crash crumple burst,assets/char_impact_*_once.png,flux_2+seedance_1_5,1:1,#00FF00,planned,one-shot spritesheet
+char_celebrate,sprite,hero milestone celebration,assets/char_celebrate.png,nano_banana_2,1:1,#00FF00,planned,optional
+bg_sky_far,background,farthest parallax layer,assets/bg_sky_far.png,nano_banana_2,16:9,none,planned,opaque full-frame
+bg_mid,background,mid parallax hill band,assets/bg_mid.png,nano_banana_2,16:9,#00FF00,planned,keyed for alpha parallax
+ui_pencil,ui,draw tool icon,assets/ui_pencil.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
+ui_eraser,ui,erase tool icon,assets/ui_eraser.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
+ui_play,ui,play button icon,assets/ui_play.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
+ui_pause,ui,pause button icon,assets/ui_pause.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
+ui_restart,ui,restart button icon,assets/ui_restart.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
+ui_settings,ui,settings gear icon,assets/ui_settings.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
+ui_scrubber_handle,ui,scrub bar handle,assets/ui_scrubber_handle.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet
+ui_booster,ui,booster line tool icon,assets/ui_booster.png,gpt_image_2,1:1,#00FF00,planned,sliced from 3x3 icon sheet (added: booster tool)
+ui_start_marker,ui,start point flag decal,assets/ui_start_marker.png,nano_banana_2,1:1,#00FF00,planned,world decal
+tex_canvas_ground,texture,paper surface,-,procedural,-,-,substituted,drawn in canvas/CSS per brief allowance

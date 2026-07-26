@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f3ead6">
+<title>Kritzeldrache</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#f3ead6;
+    -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;
+    font-family:"Bradley Hand","Segoe Print","Comic Sans MS",system-ui,sans-serif;color:#3a3733;overscroll-behavior:none}
+  canvas{display:block;position:fixed;inset:0;touch-action:none}
+  #dev{position:fixed;top:4px;left:50%;transform:translateX(-50%);color:#2b7;font:12px monospace;display:none;z-index:99}
+
+  #ui{position:fixed;inset:0;pointer-events:none;z-index:10;
+      padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right))
+              calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+
+  .btn{pointer-events:auto;width:54px;height:54px;border:2px solid #4a4640;border-radius:14px;
+       background:rgba(253,249,238,.92);display:flex;align-items:center;justify-content:center;
+       box-shadow:1px 2px 0 rgba(74,70,64,.35);cursor:pointer;padding:0;position:relative;
+       transition:transform .08s ease, background .12s ease}
+  .btn:active{transform:translate(1px,2px);box-shadow:0 0 0 rgba(0,0,0,0)}
+  .btn img{width:74%;height:74%;object-fit:contain;pointer-events:none;display:block}
+  .btn .fb{font-size:22px;font-weight:700;color:#3a3733;line-height:1}
+  .btn.on{background:#fff4d2;border-color:#c8302a;box-shadow:1px 2px 0 rgba(200,48,42,.45)}
+  .btn.on::after{content:"";position:absolute;inset:-5px;border:2px dashed #c8302a;border-radius:18px;opacity:.55}
+
+  #tools{position:absolute;left:calc(10px + env(safe-area-inset-left));top:50%;transform:translateY(-50%);
+         display:flex;flex-direction:column;gap:10px}
+  #transport{position:absolute;right:calc(10px + env(safe-area-inset-right));top:50%;transform:translateY(-50%);
+         display:flex;flex-direction:column;gap:10px}
+  #hud{position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);
+       background:rgba(253,249,238,.85);border:2px solid #4a4640;border-radius:12px;padding:4px 14px;
+       font-size:17px;white-space:nowrap;letter-spacing:.3px}
+  #hint{position:absolute;left:50%;bottom:calc(64px + env(safe-area-inset-bottom));transform:translateX(-50%);
+        background:rgba(253,249,238,.9);border:2px dashed #8a8378;border-radius:12px;padding:5px 14px;
+        font-size:15px;white-space:nowrap;opacity:0;transition:opacity .35s ease;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
+  #hint.show{opacity:1}
+
+  #scrubwrap{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));
+             width:min(62vw,520px);pointer-events:auto;display:none;
+             background:rgba(253,249,238,.9);border:2px solid #4a4640;border-radius:14px;padding:7px 14px 5px}
+  #scrubwrap.show{display:block}
+  #scrub{width:100%;-webkit-appearance:none;appearance:none;background:transparent;height:26px;margin:0;display:block}
+  #scrub::-webkit-slider-runnable-track{height:6px;background:#d8cdb4;border:2px solid #4a4640;border-radius:6px}
+  #scrub::-moz-range-track{height:6px;background:#d8cdb4;border:2px solid #4a4640;border-radius:6px}
+  #scrub::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:-14px;
+      border-radius:50%;background:#c8302a center/86% no-repeat;border:2px solid #4a4640;cursor:pointer}
+  #scrub::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:#c8302a center/86% no-repeat;
+      border:2px solid #4a4640;cursor:pointer}
+  #scrub.hasthumb::-webkit-slider-thumb{background-color:transparent;border-color:transparent}
+  #scrub.hasthumb::-moz-range-thumb{background-color:transparent;border-color:transparent}
+
+  .sheet{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+         background:rgba(58,55,51,.42);padding:14px;pointer-events:auto}
+  .sheet.show{display:flex}
+  .card{background:#fdf9ee;border:2px solid #4a4640;border-radius:18px;box-shadow:3px 4px 0 rgba(74,70,64,.35);
+        padding:16px 18px;max-width:520px;width:100%;max-height:88vh;overflow:auto}
+  .card h2{margin:0 0 8px;font-size:22px}
+  .card h3{margin:12px 0 4px;font-size:16px}
+  .card ul{margin:4px 0 0;padding-left:18px;font-size:14px;line-height:1.5}
+  .card p{font-size:14px;line-height:1.45;margin:6px 0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;font-size:16px;
+       border-bottom:1px dashed #ccc1a8}
+  .row:last-of-type{border-bottom:0}
+  .sw{width:52px;height:29px;border:2px solid #4a4640;border-radius:15px;background:#e6dcc4;position:relative;
+      cursor:pointer;flex:none}
+  .sw i{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:#8a8378;
+        transition:left .14s ease,background .14s ease}
+  .sw.on{background:#ffe9a8}.sw.on i{left:25px;background:#c8302a}
+  .txtbtn{pointer-events:auto;font:inherit;font-size:16px;border:2px solid #4a4640;border-radius:12px;
+          background:#fdf9ee;padding:8px 16px;cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35)}
+  .txtbtn:active{transform:translate(1px,2px);box-shadow:none}
+  .txtbtn.danger{border-color:#c8302a;color:#c8302a}
+  .cardfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+
+  #rotate{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:40;
+          background:#fff4d2;border:2px solid #c8302a;border-radius:14px;padding:8px 16px;text-align:center;
+          box-shadow:2px 3px 0 rgba(74,70,64,.3);display:none;max-width:92vw}
+  #rotate.show{display:block}
+  #rotate b{display:block;font-size:16px}#rotate span{font-size:13px;color:#6b665e}
+
+  #welcome .card{text-align:center}
+  #welcome .card p{font-size:16px}
+  @media (max-height:430px){ .btn{width:46px;height:46px;border-radius:12px} #tools,#transport{gap:7px} #hud{font-size:15px;padding:3px 11px} }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="dev"></div>
+
+<div id="ui">
+  <div id="tools"></div>
+  <div id="transport"></div>
+  <div id="hud"></div>
+  <div id="hint"></div>
+  <div id="scrubwrap"><input id="scrub" type="range" min="0" max="1" value="0" step="1"></div>
+</div>
+
+<div id="rotate"><b></b><span></span></div>
+
+<div id="settings" class="sheet"><div class="card">
+  <h2 id="stTitle"></h2>
+  <div class="row"><label id="lbGrid"></label><div class="sw" id="swGrid"><i></i></div></div>
+  <div class="row"><label id="lbTrail"></label><div class="sw" id="swTrail"><i></i></div></div>
+  <h3 id="lbHelpTitle"></h3><ul id="helpList"></ul>
+  <p id="credits" style="color:#8a8378"></p>
+  <div class="cardfoot">
+    <button class="txtbtn danger" id="btnClear"></button>
+    <button class="txtbtn" id="btnCloseSettings"></button>
+  </div>
+</div></div>
+
+<div id="welcome" class="sheet show"><div class="card">
+  <h2 id="wTitle"></h2><p id="wBody"></p>
+  <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="wStart"></button></div>
+</div></div>
+
+<script type="module">
+import { STR } from "./strings.js";
+
+/* ============================ assets ============================ */
+const IMG = {}, MISSING = [];
+const STATIC_ASSETS = {
+  bg_sky_far:      "./assets/bg_sky_far.jpg",
+  bg_mid:          "./assets/bg_mid.png",
+  char_idle:       "./assets/char_idle.png",
+  char_airborne:   "./assets/char_airborne.png",
+  char_celebrate:  "./assets/char_celebrate.png",
+  ui_start_marker: "./assets/ui_start_marker.png",
+  ui_pencil:       "./assets/ui_pencil.png",
+  ui_eraser:       "./assets/ui_eraser.png",
+  ui_booster:      "./assets/ui_booster.png",
+  ui_pan:          "./assets/ui_pan.png",
+  ui_play:         "./assets/ui_play.png",
+  ui_pause:        "./assets/ui_pause.png",
+  ui_restart:      "./assets/ui_restart.png",
+  ui_settings:     "./assets/ui_settings.png",
+};
+// spritesheets — all playback metadata is parsed out of the filename
+const SHEET_FILES = {
+  char_move:   "./assets/char_move_f12_288x288_g4x3_fps12_loop.png",
+  char_impact: "./assets/char_impact_f12_288x288_g4x3_fps14_once.png",
+};
+const SHEETS = {};
+function parseSheet(url){
+  const m = /_f(\d+)_(\d+)x(\d+)_g(\d+)x(\d+)_fps(\d+)_(loop|once)\.png$/.exec(url);
+  if(!m) return null;
+  return { frames:+m[1], cw:+m[2], ch:+m[3], cols:+m[4], rows:+m[5], fps:+m[6], loop:m[7]==="loop" };
+}
+function loadImg(url){
+  return new Promise(res=>{
+    const im = new Image();
+    im.onload  = ()=>res(im);
+    im.onerror = ()=>{ MISSING.push(url); res(null); };
+    im.src = url;
+  });
+}
+const assetsReady = (async ()=>{
+  await Promise.all(Object.entries(STATIC_ASSETS).map(async ([k,u])=>{ const i=await loadImg(u); if(i) IMG[k]=i; }));
+  await Promise.all(Object.entries(SHEET_FILES).map(async ([k,u])=>{
+    const i = await loadImg(u); const meta = parseSheet(u);
+    if(i && meta) SHEETS[k] = { img:i, ...meta };
+  }));
+  if(MISSING.length) console.warn("[assets] missing:", MISSING);
+  buildUI();
+})();
+
+/* ============================ canvas ============================ */
+const canvas = document.getElementById("c"), ctx = canvas.getContext("2d", { alpha:false });
+const DPR_CAP = 1.5;
+let W = 1, H = 1, DPR = 1;
+function resize(){
+  DPR = Math.min(devicePixelRatio || 1, DPR_CAP);
+  W = innerWidth; H = innerHeight;
+  canvas.width = Math.round(W*DPR); canvas.height = Math.round(H*DPR);
+  canvas.style.width = W+"px"; canvas.style.height = H+"px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  buildPaper();
+  checkOrientation();
+}
+addEventListener("resize", resize);
+addEventListener("orientationchange", ()=>setTimeout(resize,120));
+
+/* ============================ world / camera ============================ */
+const PPM = 30;                     // world px per displayed metre
+const START = { x: 0, y: 0 };
+const cam = { x: 0, y: -60, z: 1, tx: 0, ty: -60, auto:true };
+const w2sx = wx => (wx - cam.x)*cam.z + W/2;
+const w2sy = wy => (wy - cam.y)*cam.z + H/2;
+const s2wx = sx => (sx - W/2)/cam.z + cam.x;
+const s2wy = sy => (sy - H/2)/cam.z + cam.y;
+
+/* ============================ track ============================ */
+const T_LINE = 0, T_BOOST = 1;
+let strokes = [];                    // [{type, segs:[seg,...]}] — for undo
+let segs = [];                       // flat live list
+const CELL = 140;
+let grid = new Map();
+function gkey(cx,cy){ return cx + "|" + cy; }
+function gridAdd(s){
+  const x0=Math.floor(Math.min(s.x1,s.x2)/CELL), x1=Math.floor(Math.max(s.x1,s.x2)/CELL);
+  const y0=Math.floor(Math.min(s.y1,s.y2)/CELL), y1=Math.floor(Math.max(s.y1,s.y2)/CELL);
+  for(let cx=x0;cx<=x1;cx++) for(let cy=y0;cy<=y1;cy++){
+    const k=gkey(cx,cy); let a=grid.get(k); if(!a){a=[];grid.set(k,a);} a.push(s);
+  }
+}
+function rebuildGrid(){
+  grid = new Map(); segs = [];
+  for(const st of strokes) for(const s of st.segs){ segs.push(s); gridAdd(s); }
+}
+function queryNear(x,y,r){
+  const out=[], seen=new Set();
+  const x0=Math.floor((x-r)/CELL), x1=Math.floor((x+r)/CELL);
+  const y0=Math.floor((y-r)/CELL), y1=Math.floor((y+r)/CELL);
+  for(let cx=x0;cx<=x1;cx++) for(let cy=y0;cy<=y1;cy++){
+    const a=grid.get(gkey(cx,cy)); if(!a) continue;
+    for(const s of a) if(!seen.has(s)){ seen.add(s); out.push(s); }
+  }
+  return out;
+}
+function segDist2(s,x,y){
+  const dx=s.x2-s.x1, dy=s.y2-s.y1, L2=dx*dx+dy*dy;
+  let t = L2>1e-9 ? ((x-s.x1)*dx+(y-s.y1)*dy)/L2 : 0;
+  t = t<0?0:t>1?1:t;
+  const px=s.x1+dx*t-x, py=s.y1+dy*t-y;
+  return px*px+py*py;
+}
+
+/* ============================ rider physics ============================ */
+const GRAV = 1500, RAD = 13, FRICTION = 0.030, BOOST = 900, VMAX = 4200, CRASH_V = 1650;
+const rider = { x:0, y:0, vx:0, vy:0, ang:0, contact:false, crashed:false, wob:0 };
+function resetRider(){
+  rider.x = START.x; rider.y = START.y - RAD;
+  rider.vx = 0; rider.vy = 0; rider.ang = 0;
+  rider.contact = false; rider.crashed = false; rider.wob = 0;
+  animT = 0; crashT = 0; celebrateT = 0; nextMilestone = 250; maxDist = 0;
+}
+function substep(h){
+  rider.vy += GRAV*h;
+  rider.x += rider.vx*h; rider.y += rider.vy*h;
+  let hit = false, worstImpact = 0;
+  const near = queryNear(rider.x, rider.y, RAD + 6);
+  for(let pass=0; pass<2; pass++){
+    for(const s of near){
+      const dx=s.x2-s.x1, dy=s.y2-s.y1, L2=dx*dx+dy*dy;
+      if(L2 < 1e-9) continue;
+      let t = ((rider.x-s.x1)*dx + (rider.y-s.y1)*dy)/L2;
+      t = t<0?0:t>1?1:t;
+      const cx = s.x1+dx*t, cy = s.y1+dy*t;
+      let nx = rider.x-cx, ny = rider.y-cy, d = Math.hypot(nx,ny);
+      if(d >= RAD) continue;
+      if(d < 1e-6){ const L=Math.sqrt(L2); nx=-dy/L; ny=dx/L; d=1e-6; } else { nx/=d; ny/=d; }
+      rider.x += nx*(RAD-d); rider.y += ny*(RAD-d);
+      let vn = rider.vx*nx + rider.vy*ny;
+      if(vn < 0){ if(-vn > worstImpact) worstImpact = -vn; rider.vx -= vn*nx; rider.vy -= vn*ny; vn = 0; }
+      const tx=-ny, ty=nx;
+      let vt = rider.vx*tx + rider.vy*ty;
+      vt *= (1 - (s.type===T_BOOST ? 0 : FRICTION));
+      rider.vx = tx*vt + nx*vn; rider.vy = ty*vt + ny*vn;
+      if(s.type === T_BOOST){
+        const L=Math.sqrt(L2), ux=dx/L, uy=dy/L;
+        const sg = (rider.vx*ux + rider.vy*uy) >= 0 ? 1 : -1;
+        rider.vx += ux*sg*BOOST*h; rider.vy += uy*sg*BOOST*h;
+      }
+      hit = true;
+    }
+  }
+  const sp = Math.hypot(rider.vx, rider.vy);
+  if(sp > VMAX){ rider.vx = rider.vx/sp*VMAX; rider.vy = rider.vy/sp*VMAX; }
+  rider.contact = hit;
+  return worstImpact;
+}
+function physStep(dt){
+  const sp = Math.hypot(rider.vx, rider.vy);
+  const n = Math.max(1, Math.min(10, Math.ceil(sp*dt/(RAD*0.5))));
+  let worst = 0;
+  for(let i=0;i<n;i++) worst = Math.max(worst, substep(dt/n));
+  return worst;
+}
+
+/* ============================ run state ============================ */
+let playing = false, hasPlayed = false;
+let rec = [], recMax = 60*150, scrubbing = false;
+let animT = 0, crashT = 0, celebrateT = 0, nextMilestone = 250, maxDist = 0;
+let trail = [];
+const dist = () => Math.max(0, (rider.x - START.x)/PPM);
+
+function snapshot(){ return { x:rider.x, y:rider.y, vx:rider.vx, vy:rider.vy, a:rider.ang, c:rider.contact?1:0, k:rider.crashed?1:0 }; }
+function restore(f){
+  rider.x=f.x; rider.y=f.y; rider.vx=f.vx; rider.vy=f.vy; rider.ang=f.a;
+  rider.contact=!!f.c; rider.crashed=!!f.k;
+}
+function setPlaying(on){
+  if(on){
+    if(rider.crashed) return;
+    if(scrubbing || rec.length > 0){
+      const i = +scrub.value;
+      if(rec.length && i < rec.length-1){ rec.length = i+1; restore(rec[i]); trail.length = 0; }
+    }
+    if(!rec.length) rec.push(snapshot());
+    playing = true; hasPlayed = true; cam.auto = true; hideWelcome();
+  } else {
+    playing = false;
+  }
+  syncTransport();
+}
+function restart(){
+  playing = false; hasPlayed = false;
+  rec = []; trail = []; scrubbing = false;
+  resetRider();
+  cam.tx = START.x; cam.ty = START.y - 60; cam.x = cam.tx; cam.y = cam.ty; cam.auto = true;
+  updateScrub(); syncTransport();
+}
+
+/* ============================ input ============================ */
+const TOOL = { PEN:"pen", BOOST:"boost", ERASE:"erase", PAN:"pan" };
+let tool = TOOL.PEN;
+const pointers = new Map();
+let stroke = null, pinch = null, panning = null;
+const MIN_PT = 5, ERASE_R = 26;
+
+canvas.addEventListener("pointerdown", e=>{
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  hideWelcome();
+  if(pointers.size === 2){
+    stroke = null; panning = null;
+    const [a,b] = [...pointers.values()];
+    pinch = { d:Math.hypot(a.x-b.x,a.y-b.y), mx:(a.x+b.x)/2, my:(a.y+b.y)/2,
+              wx:s2wx((a.x+b.x)/2), wy:s2wy((a.y+b.y)/2), z:cam.z };
+    cam.auto = false;
+    return;
+  }
+  if(pointers.size !== 1) return;
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
+  const mousePan = e.pointerType === "mouse" && (e.button === 1 || e.button === 2);
+  if(tool === TOOL.PAN || mousePan){ panning = { sx:e.clientX, sy:e.clientY, cx:cam.x, cy:cam.y }; cam.auto=false; }
+  else if(tool === TOOL.ERASE){ stroke = { erase:true }; eraseAt(wx,wy); }
+  else { stroke = { type: tool===TOOL.BOOST ? T_BOOST : T_LINE, pts:[{x:wx,y:wy}] }; }
+}, { passive:false });
+
+canvas.addEventListener("pointermove", e=>{
+  if(!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if(pinch && pointers.size >= 2){
+    const [a,b] = [...pointers.values()];
+    const d = Math.hypot(a.x-b.x, a.y-b.y), mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    if(pinch.d > 8) cam.z = Math.max(0.3, Math.min(2.6, pinch.z * (d/pinch.d)));
+    cam.x = pinch.wx - (mx - W/2)/cam.z;
+    cam.y = pinch.wy - (my - H/2)/cam.z;
+    cam.tx = cam.x; cam.ty = cam.y;
+    return;
+  }
+  if(panning){
+    cam.x = panning.cx - (e.clientX - panning.sx)/cam.z;
+    cam.y = panning.cy - (e.clientY - panning.sy)/cam.z;
+    cam.tx = cam.x; cam.ty = cam.y;
+    return;
+  }
+  if(!stroke) return;
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
+  if(stroke.erase){ eraseAt(wx,wy); return; }
+  const p = stroke.pts[stroke.pts.length-1];
+  if(Math.hypot(wx-p.x, wy-p.y) >= MIN_PT/cam.z) stroke.pts.push({ x:wx, y:wy });
+}, { passive:false });
+
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size < 2) pinch = null;
+  if(pointers.size === 0){
+    panning = null;
+    if(stroke && !stroke.erase) commitStroke(stroke);
+    stroke = null;
+  }
+}
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("contextmenu", e=>e.preventDefault());
+canvas.addEventListener("wheel", e=>{
+  e.preventDefault();
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
+  cam.z = Math.max(0.3, Math.min(2.6, cam.z * (e.deltaY < 0 ? 1.12 : 1/1.12)));
+  cam.x = wx - (e.clientX - W/2)/cam.z; cam.y = wy - (e.clientY - H/2)/cam.z;
+  cam.tx = cam.x; cam.ty = cam.y; cam.auto = false;
+}, { passive:false });
+
+function commitStroke(st){
+  const pts = st.pts;
+  if(pts.length < 2) return;
+  const out = [];
+  for(let i=1;i<pts.length;i++){
+    const a=pts[i-1], b=pts[i];
+    if(Math.hypot(b.x-a.x, b.y-a.y) < 0.6) continue;
+    out.push({ x1:a.x, y1:a.y, x2:b.x, y2:b.y, type:st.type });
+  }
+  if(!out.length) return;
+  strokes.push({ type:st.type, segs:out });
+  for(const s of out){ segs.push(s); gridAdd(s); }
+}
+function eraseAt(x,y){
+  const r2 = ERASE_R*ERASE_R;
+  let changed = false;
+  for(const st of strokes){
+    const keep = st.segs.filter(s => segDist2(s,x,y) > r2);
+    if(keep.length !== st.segs.length){ st.segs = keep; changed = true; }
+  }
+  if(changed){ strokes = strokes.filter(st => st.segs.length); rebuildGrid(); }
+}
+function undo(){ if(strokes.length){ strokes.pop(); rebuildGrid(); } }
+function clearAll(){ strokes = []; rebuildGrid(); restart(); }
+
+/* keyboard — physical key codes only */
+const heldPan = new Set();
+addEventListener("keydown", e=>{
+  switch(e.code){
+    case "Space":      setPlaying(!playing); e.preventDefault(); break;
+    case "KeyR":       restart(); break;
+    case "KeyP": case "Digit1": setTool(TOOL.PEN);   break;
+    case "KeyB": case "Digit2": setTool(TOOL.BOOST); break;
+    case "KeyE": case "Digit3": setTool(TOOL.ERASE); break;
+    case "KeyH": case "Digit4": setTool(TOOL.PAN);   break;
+    case "KeyZ":       undo(); break;
+    case "Equal": case "NumpadAdd":      cam.z=Math.min(2.6,cam.z*1.15); cam.auto=false; break;
+    case "Minus": case "NumpadSubtract": cam.z=Math.max(0.3,cam.z/1.15); cam.auto=false; break;
+    case "ArrowUp": case "KeyW":    heldPan.add("u"); cam.auto=false; e.preventDefault(); break;
+    case "ArrowDown": case "KeyS":  heldPan.add("d"); cam.auto=false; e.preventDefault(); break;
+    case "ArrowLeft": case "KeyA":  heldPan.add("l"); cam.auto=false; e.preventDefault(); break;
+    case "ArrowRight": case "KeyD": heldPan.add("r"); cam.auto=false; e.preventDefault(); break;
+    case "Escape":     closeSettings(); break;
+    default: return;
+  }
+  hideWelcome();
+});
+addEventListener("keyup", e=>{
+  if(e.code==="ArrowUp"||e.code==="KeyW") heldPan.delete("u");
+  if(e.code==="ArrowDown"||e.code==="KeyS") heldPan.delete("d");
+  if(e.code==="ArrowLeft"||e.code==="KeyA") heldPan.delete("l");
+  if(e.code==="ArrowRight"||e.code==="KeyD") heldPan.delete("r");
+});
+
+/* gamepad: A = play/pause, B = restart, d-pad pans */
+let padPrev = {};
+function pollPad(){
+  for(const gp of (navigator.getGamepads?.() ?? [])){
+    if(!gp) continue;
+    const b = gp.buttons;
+    const press = i => b[i]?.pressed && !padPrev[i];
+    if(press(0)) setPlaying(!playing);
+    if(press(1)) restart();
+    if(b[12]?.pressed) { heldPan.add("u"); cam.auto=false; } else heldPan.delete("u");
+    if(b[13]?.pressed) { heldPan.add("d"); cam.auto=false; } else heldPan.delete("d");
+    if(b[14]?.pressed) { heldPan.add("l"); cam.auto=false; } else heldPan.delete("l");
+    if(b[15]?.pressed) { heldPan.add("r"); cam.auto=false; } else heldPan.delete("r");
+    padPrev = {}; b.forEach((bt,i)=>padPrev[i]=bt.pressed);
+    return;
+  }
+}
+
+/* ============================ UI ============================ */
+const elTools = document.getElementById("tools"), elTransport = document.getElementById("transport");
+const elHud = document.getElementById("hud"), elHint = document.getElementById("hint");
+const scrubWrap = document.getElementById("scrubwrap"), scrub = document.getElementById("scrub");
+const settingsSheet = document.getElementById("settings"), welcomeSheet = document.getElementById("welcome");
+const opts = { grid:true, trail:true };
+const btns = {};
+
+function mkBtn(id, imgKey, label, fallback){
+  const b = document.createElement("button");
+  b.className = "btn"; b.setAttribute("aria-label", label); b.title = label;
+  if(IMG[imgKey]){ const im=document.createElement("img"); im.src=IMG[imgKey].src; im.alt=""; b.appendChild(im); }
+  else { const s=document.createElement("span"); s.className="fb"; s.textContent=fallback; b.appendChild(s); }
+  btns[id] = b; return b;
+}
+function buildUI(){
+  elTools.textContent = ""; elTransport.textContent = "";
+  const bPen   = mkBtn("pen",   "ui_pencil",  STR.toolPencil,  "✎");
+  const bBoost = mkBtn("boost", "ui_booster", STR.toolBooster, "⚡");
+  const bEr    = mkBtn("erase", "ui_eraser",  STR.toolEraser,  "⌧");
+  const bPan   = mkBtn("pan",   "ui_pan",     STR.hintPan,     "✋");
+  elTools.append(bPen, bBoost, bEr, bPan);
+  bPen.onclick  = ()=>setTool(TOOL.PEN);
+  bBoost.onclick= ()=>setTool(TOOL.BOOST);
+  bEr.onclick   = ()=>setTool(TOOL.ERASE);
+  bPan.onclick  = ()=>setTool(TOOL.PAN);
+
+  const bPlay = mkBtn("play", "ui_play", STR.actionPlay, "▶");
+  const bRe   = mkBtn("restart", "ui_restart", STR.actionRestart, "↺");
+  const bSet  = mkBtn("settings", "ui_settings", STR.actionSettings, "⚙");
+  elTransport.append(bPlay, bRe, bSet);
+  bPlay.onclick = ()=>setPlaying(!playing);
+  bRe.onclick   = ()=>restart();
+  bSet.onclick  = ()=>openSettings();
+
+  if(IMG.ui_scrubber_handle || IMG.ui_pan){}
+  setTool(tool); syncTransport();
+}
+function setTool(t){
+  tool = t;
+  for(const k of ["pen","boost","erase","pan"]) btns[k]?.classList.toggle("on", k===t);
+  if(t===TOOL.PEN) showHint(STR.hintDraw);
+  if(t===TOOL.ERASE) showHint(STR.toolEraser);
+  if(t===TOOL.PAN) showHint(STR.hintPan);
+  if(t===TOOL.BOOST) showHint(STR.toolBooster);
+}
+function syncTransport(){
+  const b = btns.play; if(!b) return;
+  const key = playing ? "ui_pause" : "ui_play";
+  const lab = playing ? STR.actionPause : STR.actionPlay;
+  b.setAttribute("aria-label", lab); b.title = lab;
+  const im = b.querySelector("img"), sp = b.querySelector(".fb");
+  if(im && IMG[key]) im.src = IMG[key].src;
+  if(sp) sp.textContent = playing ? "⏸" : "▶";
+}
+let hintT = 0;
+function showHint(txt){ elHint.textContent = txt; elHint.classList.add("show"); hintT = 2600; }
+
+function updateScrub(){
+  const n = rec.length;
+  scrubWrap.classList.toggle("show", n > 8);
+  scrub.max = Math.max(1, n-1);
+  if(!scrubbing) scrub.value = Math.max(0, n-1);
+}
+scrub.addEventListener("input", ()=>{
+  scrubbing = true; playing = false; syncTransport();
+  const f = rec[Math.min(rec.length-1, Math.max(0, +scrub.value))];
+  if(f){ restore(f); cam.auto = true; }
+});
+scrub.addEventListener("change", ()=>{ scrubbing = false; });
+
+/* settings */
+document.getElementById("stTitle").textContent = STR.settingsTitle;
+document.getElementById("lbGrid").textContent = STR.settingsGrid;
+document.getElementById("lbTrail").textContent = STR.settingsTrail;
+document.getElementById("lbHelpTitle").textContent = STR.settingsHelpTitle;
+document.getElementById("credits").textContent = STR.settingsCredits;
+document.getElementById("btnClear").textContent = STR.settingsClear;
+document.getElementById("btnCloseSettings").textContent = STR.settingsClose;
+const helpList = document.getElementById("helpList");
+for(const line of STR.settingsHelp){ const li=document.createElement("li"); li.textContent=line; helpList.appendChild(li); }
+const swGrid = document.getElementById("swGrid"), swTrail = document.getElementById("swTrail");
+function syncSw(){ swGrid.classList.toggle("on", opts.grid); swTrail.classList.toggle("on", opts.trail); }
+swGrid.onclick = ()=>{ opts.grid=!opts.grid; syncSw(); };
+swTrail.onclick= ()=>{ opts.trail=!opts.trail; if(!opts.trail) trail.length=0; syncSw(); };
+syncSw();
+document.getElementById("btnClear").onclick = ()=>{ if(confirm(STR.settingsClearConfirm)){ clearAll(); closeSettings(); } };
+document.getElementById("btnCloseSettings").onclick = closeSettings;
+settingsSheet.addEventListener("pointerdown", e=>{ if(e.target===settingsSheet) closeSettings(); });
+function openSettings(){ playing=false; syncTransport(); settingsSheet.classList.add("show"); }
+function closeSettings(){ settingsSheet.classList.remove("show"); }
+
+/* welcome */
+document.getElementById("wTitle").textContent = STR.welcomeTitle;
+document.getElementById("wBody").textContent  = STR.welcomeBody;
+const wStart = document.getElementById("wStart"); wStart.textContent = STR.welcomeStart;
+let welcomeGone = false;
+function hideWelcome(){ if(!welcomeGone){ welcomeGone = true; welcomeSheet.classList.remove("show"); showHint(STR.hintDraw); } }
+wStart.onclick = hideWelcome;
+
+/* orientation hint */
+const rot = document.getElementById("rotate");
+rot.querySelector("b").textContent = STR.hintRotate;
+rot.querySelector("span").textContent = STR.hintRotateSub;
+let rotT = 0;
+function checkOrientation(){
+  const portrait = innerHeight > innerWidth * 1.05 && Math.min(innerWidth, innerHeight) < 900;
+  if(portrait){ rot.classList.add("show"); rotT = 4500; } else { rot.classList.remove("show"); rotT = 0; }
+}
+
+/* ============================ paper texture (procedural, substitutes tex_canvas_ground) ============================ */
+let paperPat = null;
+function buildPaper(){
+  const t = document.createElement("canvas"); t.width = t.height = 128;
+  const g = t.getContext("2d");
+  g.fillStyle = "#f3ead6"; g.fillRect(0,0,128,128);
+  let seed = 1337;
+  const rnd = ()=> (seed = (seed*1664525 + 1013904223) >>> 0) / 4294967296;
+  for(let i=0;i<1400;i++){
+    const x=rnd()*128, y=rnd()*128, a=0.03+rnd()*0.06;
+    g.fillStyle = rnd() < 0.5 ? `rgba(160,146,116,${a})` : `rgba(255,252,240,${a})`;
+    g.fillRect(x, y, 1+rnd()*1.6, 1+rnd()*1.6);
+  }
+  paperPat = ctx.createPattern(t, "repeat");
+}
+
+/* ============================ render ============================ */
+function jitter(x,y){ const n = Math.sin(x*12.9898 + y*78.233)*43758.5453; return (n - Math.floor(n)) - 0.5; }
+
+function drawBackground(){
+  ctx.fillStyle = "#f3ead6"; ctx.fillRect(0,0,W,H);
+  if(paperPat){ ctx.fillStyle = paperPat; ctx.fillRect(0,0,W,H); }
+
+  // farthest parallax layer
+  const sky = IMG.bg_sky_far;
+  if(sky){
+    const f = 0.04, sw = Math.max(W, H*(sky.width/sky.height)) * 1.35, sh = sw*sky.height/sky.width;
+    const ox = -((cam.x*f) % sw), oy = H*0.5 - sh*0.62 - cam.y*f*0.6;
+    ctx.globalAlpha = 0.9;
+    for(let i=-1;i<=Math.ceil(W/sw)+1;i++) ctx.drawImage(sky, ox + i*sw, oy, sw, sh);
+    ctx.globalAlpha = 1;
+  }
+  // notebook rule lines in world space
+  if(opts.grid){
+    const step = 48, y0 = Math.floor(s2wy(0)/step)*step, y1 = s2wy(H);
+    ctx.strokeStyle = "rgba(120,150,180,0.34)"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let wy=y0; wy<=y1; wy+=step){ const sy=Math.round(w2sy(wy))+0.5; ctx.moveTo(0,sy); ctx.lineTo(W,sy); }
+    ctx.stroke();
+    const mx = w2sx(START.x - 90);
+    if(mx > -4 && mx < W+4){ ctx.strokeStyle="rgba(200,80,70,0.34)"; ctx.beginPath();
+      ctx.moveTo(Math.round(mx)+0.5,0); ctx.lineTo(Math.round(mx)+0.5,H); ctx.stroke(); }
+  }
+  // mid parallax layer (keyed, sits on the horizon)
+  const mid = IMG.bg_mid;
+  if(mid){
+    const f = 0.22, sw = Math.max(W*1.1, 900), sh = sw*mid.height/mid.width;
+    const ox = -(((cam.x*f) % sw) + sw) % sw;
+    const oy = w2sy(START.y + 210) - sh*0.86;
+    ctx.globalAlpha = 0.72;
+    for(let i=0;i<Math.ceil(W/sw)+2;i++) ctx.drawImage(mid, ox + i*sw, oy, sw, sh);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function strokeSegs(list, color, width, alpha){
+  if(!list.length) return;
+  ctx.strokeStyle = color; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.globalAlpha = alpha;
+  for(let pass=0; pass<2; pass++){
+    ctx.lineWidth = width * (pass ? 0.55 : 1);
+    ctx.beginPath();
+    for(const s of list){
+      const j = pass ? 0.9 : 0;
+      ctx.moveTo(w2sx(s.x1) + jitter(s.x1,s.y1)*j, w2sy(s.y1) + jitter(s.y1,s.x1)*j);
+      ctx.lineTo(w2sx(s.x2) + jitter(s.x2,s.y2)*j, w2sy(s.y2) + jitter(s.y2,s.x2)*j);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawTrack(){
+  const pad = 60;
+  const minX=s2wx(-pad), maxX=s2wx(W+pad), minY=s2wy(-pad), maxY=s2wy(H+pad);
+  const lines=[], boosts=[];
+  for(const s of segs){
+    if(Math.max(s.x1,s.x2)<minX || Math.min(s.x1,s.x2)>maxX) continue;
+    if(Math.max(s.y1,s.y2)<minY || Math.min(s.y1,s.y2)>maxY) continue;
+    (s.type===T_BOOST ? boosts : lines).push(s);
+  }
+  const w = Math.max(1.6, 3.4*Math.min(1.6, cam.z));
+  strokeSegs(boosts, "#e8e02a", w*1.7, 0.85);
+  strokeSegs(boosts, "#8a8a10", w*0.7, 0.9);
+  strokeSegs(lines,  "#3f3b35", w, 0.92);
+  if(stroke && stroke.pts && stroke.pts.length > 1){
+    const prev=[];
+    for(let i=1;i<stroke.pts.length;i++){
+      const a=stroke.pts[i-1], b=stroke.pts[i];
+      prev.push({x1:a.x,y1:a.y,x2:b.x,y2:b.y});
+    }
+    strokeSegs(prev, stroke.type===T_BOOST ? "#e8e02a" : "#3f3b35", w, 0.55);
+  }
+}
+
+function drawStartMarker(){
+  const m = IMG.ui_start_marker;
+  const sx = w2sx(START.x), sy = w2sy(START.y);
+  if(m){
+    const h = 86*cam.z, wd = h*m.width/m.height;
+    ctx.globalAlpha = 0.95;
+    ctx.drawImage(m, sx - wd*0.5, sy - h, wd, h);
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.strokeStyle="#3f3b35"; ctx.lineWidth=2.4*cam.z; ctx.beginPath();
+    ctx.moveTo(sx, sy); ctx.lineTo(sx, sy-70*cam.z); ctx.stroke();
+    ctx.fillStyle="#c8302a"; ctx.beginPath();
+    ctx.moveTo(sx, sy-70*cam.z); ctx.lineTo(sx+38*cam.z, sy-56*cam.z); ctx.lineTo(sx, sy-42*cam.z);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
+function drawTrail(){
+  if(!opts.trail || trail.length < 2) return;
+  ctx.strokeStyle = "rgba(90,86,78,0.45)"; ctx.lineWidth = 1.6; ctx.lineCap="round";
+  ctx.beginPath();
+  for(let i=1;i<trail.length;i++){
+    const a=trail[i-1], b=trail[i];
+    ctx.moveTo(w2sx(a.x), w2sy(a.y)); ctx.lineTo(w2sx(b.x), w2sy(b.y));
+  }
+  ctx.stroke();
+}
+
+function drawSheet(sheet, t, sx, sy, size, ang){
+  const idx = sheet.loop
+    ? Math.floor(t*sheet.fps) % sheet.frames
+    : Math.min(sheet.frames-1, Math.floor(t*sheet.fps));
+  const col = idx % sheet.cols, row = Math.floor(idx / sheet.cols);
+  const ar = sheet.cw/sheet.ch;
+  ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.drawImage(sheet.img, col*sheet.cw, row*sheet.ch, sheet.cw, sheet.ch,
+                -size*ar/2, -size/2, size*ar, size);
+  ctx.restore();
+}
+function drawSprite(im, sx, sy, size, ang){
+  const ar = im.width/im.height;
+  ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.drawImage(im, -size*ar/2, -size/2, size*ar, size);
+  ctx.restore();
+}
+function drawRiderFallback(sx, sy, size, ang){
+  ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.fillStyle = "#c8302a"; ctx.strokeStyle="#3f3b35"; ctx.lineWidth = Math.max(1.4, size*0.05);
+  ctx.beginPath();
+  ctx.moveTo(size*0.55, 0); ctx.lineTo(-size*0.45, -size*0.30);
+  ctx.lineTo(-size*0.22, 0); ctx.lineTo(-size*0.45, size*0.30);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawRider(){
+  const sx = w2sx(rider.x), sy = w2sy(rider.y);
+  const size = 74*cam.z;
+  const ang = rider.ang + rider.wob;
+  if(rider.crashed && SHEETS.char_impact){ drawSheet(SHEETS.char_impact, crashT, sx, sy, size, ang); return; }
+  if(celebrateT > 0 && IMG.char_celebrate){ drawSprite(IMG.char_celebrate, sx, sy, size, ang*0.3); return; }
+  if(!hasPlayed && IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, 0); return; }
+  if(rider.contact && SHEETS.char_move){ drawSheet(SHEETS.char_move, animT, sx, sy, size, ang); return; }
+  if(!rider.contact && IMG.char_airborne){ drawSprite(IMG.char_airborne, sx, sy, size, ang); return; }
+  if(IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, ang); return; }
+  drawRiderFallback(sx, sy, size, ang);
+}
+
+function drawCrashBurst(){
+  if(!rider.crashed || SHEETS.char_impact) return;
+  const sx = w2sx(rider.x), sy = w2sy(rider.y), r = 26*cam.z*(1+crashT*2);
+  ctx.strokeStyle = `rgba(200,48,42,${Math.max(0, 0.8 - crashT)})`; ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  for(let i=0;i<7;i++){ const a=i*0.9; ctx.moveTo(sx,sy); ctx.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); }
+  ctx.stroke();
+}
+function drawCelebrateFallback(){
+  if(celebrateT <= 0 || IMG.char_celebrate) return;
+  const sx = w2sx(rider.x), sy = w2sy(rider.y), k = 1 - celebrateT;
+  ctx.strokeStyle = `rgba(232,224,42,${Math.max(0,celebrateT)})`; ctx.lineWidth = 2.2;
+  for(let i=0;i<6;i++){
+    const a = i*1.05 + k*2, r = (18 + k*46)*cam.z;
+    const x = sx+Math.cos(a)*r, y = sy+Math.sin(a)*r, s = 7*cam.z;
+    ctx.beginPath(); ctx.moveTo(x-s,y); ctx.lineTo(x+s,y); ctx.moveTo(x,y-s); ctx.lineTo(x,y+s); ctx.stroke();
+  }
+}
+
+function render(){
+  drawBackground();
+  drawTrack();
+  drawStartMarker();
+  drawTrail();
+  drawRider();
+  drawCrashBurst();
+  drawCelebrateFallback();
+}
+
+/* ============================ loop ============================ */
+const STEP = 1000/60;
+let acc = 0, last = performance.now(), blurred = false, frames = 0, fpsAt = last;
+addEventListener("blur", ()=>{ blurred = true; playing = false; syncTransport(); });
+addEventListener("focus", ()=>{ blurred = false; last = performance.now(); acc = 0; });
+
+function update(ms){
+  const dt = ms/1000;
+  animT += dt;
+  if(rider.crashed) crashT += dt;
+  if(celebrateT > 0) celebrateT -= dt;
+  if(hintT > 0){ hintT -= ms; if(hintT <= 0) elHint.classList.remove("show"); }
+  if(rotT > 0){ rotT -= ms; if(rotT <= 0) rot.classList.remove("show"); }
+
+  if(playing && !rider.crashed){
+    const impact = physStep(dt);
+    if(impact > CRASH_V){ rider.crashed = true; playing = false; crashT = 0; showHint(STR.statusCrash); syncTransport(); }
+    if(rider.y > START.y + 24000){ playing = false; showHint(STR.statusLost); syncTransport(); }
+    if(rec.length < recMax) rec.push(snapshot()); else playing = false;
+    updateScrub();
+    const d = dist();
+    if(d > maxDist) maxDist = d;
+    if(maxDist >= nextMilestone){ nextMilestone += 250; celebrateT = 1.0; showHint(STR.statusMilestone); }
+    if(opts.trail){ trail.push({x:rider.x,y:rider.y}); if(trail.length > 900) trail.shift(); }
+  }
+
+  // cosmetic banking + glide wobble
+  const sp = Math.hypot(rider.vx, rider.vy);
+  if(sp > 22){
+    let target = Math.atan2(rider.vy, rider.vx);
+    let d = target - rider.ang;
+    while(d > Math.PI) d -= Math.PI*2;
+    while(d < -Math.PI) d += Math.PI*2;
+    rider.ang += d * Math.min(1, dt*9);
+  }
+  rider.wob = rider.contact ? 0 : Math.sin(animT*7.5)*0.05;
+
+  // camera
+  const panSp = 420/cam.z*dt;
+  if(heldPan.size){
+    if(heldPan.has("u")) cam.ty -= panSp; if(heldPan.has("d")) cam.ty += panSp;
+    if(heldPan.has("l")) cam.tx -= panSp; if(heldPan.has("r")) cam.tx += panSp;
+    cam.x = cam.tx; cam.y = cam.ty;
+  }
+  if(hasPlayed){
+    const offX = Math.abs(w2sx(rider.x) - W/2), offY = Math.abs(w2sy(rider.y) - H/2);
+    if(!cam.auto && (offX > W*0.55 || offY > H*0.55)) cam.auto = true;
+    if(cam.auto){
+      cam.tx = rider.x + rider.vx*0.16;
+      cam.ty = rider.y + rider.vy*0.10 - 30;
+      const k = Math.min(1, dt*(playing ? 4.2 : 8));
+      cam.x += (cam.tx - cam.x)*k; cam.y += (cam.ty - cam.y)*k;
+    }
+  }
+  elHud.textContent = STR.labelDistance + " " + Math.round(maxDist) + " " + STR.unitMeters;
+}
+
+const dev = new URLSearchParams(location.search).has("dev");
+const devEl = document.getElementById("dev");
+if(dev) devEl.style.display = "block";
+
+function frame(now){
+  requestAnimationFrame(frame);
+  if(blurred) return;
+  let delta = now - last; last = now;
+  if(delta > 250) delta = 250;
+  acc += delta;
+  pollPad();
+  let n = 0;
+  while(acc >= STEP && n < 6){ update(STEP); acc -= STEP; n++; }
+  if(acc > STEP*6) acc = 0;
+  render();
+  if(dev){
+    frames++;
+    if(now - fpsAt >= 500){
+      devEl.textContent = Math.round(frames*1000/(now-fpsAt)) + " fps | " + segs.length + " seg | " + rec.length + " f";
+      frames = 0; fpsAt = now;
+    }
+  }
+}
+
+resize();
+restart();
+requestAnimationFrame(frame);
+assetsReady.then(()=>{
+  const h = IMG.ui_scrubber_handle;
+  if(h){ scrub.classList.add("hasthumb");
+    const st = document.createElement("style");
+    st.textContent = `#scrub::-webkit-slider-thumb{background-image:url("${h.src}")}#scrub::-moz-range-thumb{background-image:url("${h.src}")}`;
+    document.head.appendChild(st);
+  }
+});
+</script>
+</body>
+</html>
