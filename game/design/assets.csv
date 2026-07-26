@@ -12,9 +12,9 @@ ui_play,ui,play button icon,assets/ui_play.png,shipped,sheet:df655d7a-4ae3-4849-
 ui_pause,ui,pause button icon,assets/ui_pause.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r1c0,sliced / 128px
 ui_restart,ui,restart button icon,assets/ui_restart.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r1c1,sliced / 128px
 ui_settings,ui,settings gear icon,assets/ui_settings.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r1c2,sliced / 128px
-ui_scrubber_handle,ui,scrub bar handle,assets/ui_scrubber_handle.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c0,sliced / 128px / used as CSS range thumb
+ui_scrubber_handle,ui,scrub bar handle,assets/ui_scrubber_handle.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c0,sliced / 128px / now wired into STATIC_ASSETS (was generated but never loaded before)
 ui_pan,ui,pan tool icon,assets/ui_pan.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c1,added beyond original manifest (pan tool)
-ui_booster,ui,booster line tool icon,assets/ui_booster.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c2,added beyond original manifest (accelerator lines)
+ui_ruler,ui,straight-line (ruler) tool icon,-,missing,-,booster/accelerator lines removed per user request; ruler tool added in its place but has no generated icon yet - falls back to a text glyph (no ui_booster asset or tool left in the game)
 ui_start_marker,ui,start point flag decal,assets/ui_start_marker.png,shipped,image:639197e6-fc67-4e59-8993-1b96eb5aa078,world decal / 256px / green-keyed
 thumbnail,card,16:9 marketplace cover,-,shipped,image:f37f727b-5786-4e21-82b0-187bfee0f154,gpt_image_2 with hand-lettered title
 favicon,card,1:1 icon,-,shipped,image:c56e4a11-5fcd-4881-bc3c-bd5b6dd33f3e,nano_banana

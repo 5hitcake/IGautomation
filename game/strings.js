@@ -4,7 +4,7 @@ export const STR = {
 
   // Tools / toolbar (used as accessible labels + tooltips)
   toolPencil: "Stift",
-  toolBooster: "Schwung",
+  toolRuler: "Lineal",
   toolEraser: "Radierer",
   actionPlay: "Los",
   actionPause: "Pause",
@@ -13,6 +13,7 @@ export const STR = {
 
   // Hints
   hintDraw: "Zeichne eine Linie mit dem Finger",
+  hintRuler: "Ziehe für eine gerade Linie",
   hintPlay: "Tippe auf Los und lass den Drachen gleiten",
   hintPan: "Zwei Finger: schieben und zoomen",
   hintRotate: "Dreh dein Gerät quer",
@@ -38,7 +39,8 @@ export const STR = {
   settingsHelp: [
     "Ein Finger zeichnet eine Linie.",
     "Zwei Finger schieben und zoomen die Seite.",
-    "Der Stift macht normale Linien, Schwung gibt Tempo.",
+    "Der Stift zeichnet frei, das Lineal zieht gerade Linien.",
+    "Start nah am Ende der letzten Linie, um anzuknüpfen.",
     "Mit dem Radierer wischst du Linien weg.",
     "Leertaste = Los / Pause, R = Neu (Tastatur).",
   ],
