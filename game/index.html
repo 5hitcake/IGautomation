@@ -226,6 +226,9 @@ const s2wy = sy => (sy - H/2)/cam.z + cam.y;
 let strokes = [];                    // [{segs:[seg,...]}] — for undo
 let segs = [];                       // flat live list
 let lastEnd = null;                  // endpoint of the most recently drawn line, for snapping
+let freePads = [];                   // player-placed boost pads in free-draw mode ({x,y,r})
+const FREE_PAD_R = 50;
+function activeBoostPads(){ return LEVEL ? LEVEL.boostPads : freePads; }
 const CELL = 140;
 let grid = new Map();
 function gkey(cx,cy){ return cx + "|" + cy; }
@@ -267,31 +270,37 @@ function segDist2(s,x,y){
 
 /* ============================ campaign levels ============================ */
 const PAD_BOOST = 900, GOAL_R = 46, ARROW_SPEED = 700, ARROW_R = 11;
+// Difficulty ramp: L1 is a bare-bones tutorial (one rock, short hop to the
+// goal); each level after it adds exactly one new element type, and L5-L6
+// escalate mainly through more instances and a longer track rather than
+// brand-new mechanics, so the curve steepens instead of staying flat.
 const LEVELS = [
-  { obstacles: [{x:560,  y:-40, r:46}],
+  { obstacles: [{x:400, y:100, r:44}],           // L1 - tutorial: one rock, straight shot
     boostPads: [], enemies: [], archers: [],
-    goal: {x:1500, y:280} },
-  { obstacles: [{x:520,  y:-30, r:46}],
-    boostPads: [{x:940, y:190, r:50}, {x:1360, y:70, r:50}],
+    goal: {x:820, y:240}, goalR: 90 },           // generous hitbox - a tutorial should forgive an imprecise first line
+  { obstacles: [{x:450, y:-20, r:44}],            // L2 - + boost pad
+    boostPads: [{x:850, y:150, r:50}],
     enemies: [], archers: [],
-    goal: {x:2000, y:340} },
-  { obstacles: [{x:480, y:-20, r:44}, {x:1120, y:280, r:42}],
-    boostPads: [{x:880, y:150, r:50}, {x:1650, y:440, r:50}],
-    enemies: [{x0:1320, y0:70, range:170, speed:1.3, r:34}], archers: [],
-    goal: {x:2320, y:520} },
-  { obstacles: [], boostPads: [], enemies: [],
-    archers: [{x:700, y:380, tx:700, ty:20, period:2.2}],
-    goal: {x:1600, y:300} },
-  { obstacles: [{x:500, y:-20, r:44}],
-    boostPads: [{x:900, y:150, r:50}],
-    enemies: [],
-    archers: [{x:1350, y:440, tx:1350, ty:60, period:2.0}],
-    goal: {x:2150, y:380} },
-  { obstacles: [{x:480, y:-20, r:42}, {x:1050, y:260, r:40}],
-    boostPads: [{x:820, y:140, r:50}, {x:1800, y:490, r:50}],
-    enemies: [{x0:1400, y0:60, range:180, speed:1.2, r:32}],
-    archers: [{x:2100, y:460, tx:2100, ty:60, period:1.8}],
-    goal: {x:2650, y:560} },
+    goal: {x:1300, y:280} },
+  { obstacles: [{x:430, y:-20, r:42}],            // L3 - + patrolling bat
+    boostPads: [{x:800, y:130, r:50}],
+    enemies: [{x0:1150, y0:60, range:150, speed:1.3, r:32}], archers: [],
+    goal: {x:1600, y:320} },
+  { obstacles: [{x:420, y:-20, r:42}],            // L4 - + archer: all 4 element types now in play
+    boostPads: [{x:780, y:120, r:50}],
+    enemies: [{x0:1100, y0:60, range:150, speed:1.3, r:32}],
+    archers: [{x:1450, y:420, tx:1450, ty:40, period:2.0}],
+    goal: {x:1900, y:360} },
+  { obstacles: [{x:420, y:-20, r:40}, {x:1300, y:300, r:40}],   // L5 - more of everything, longer
+    boostPads: [{x:760, y:110, r:50}, {x:1650, y:480, r:50}],
+    enemies: [{x0:1050, y0:60, range:160, speed:1.3, r:32}],
+    archers: [{x:1950, y:440, tx:1950, ty:50, period:1.9}],
+    goal: {x:2400, y:500} },
+  { obstacles: [{x:420, y:-20, r:40}, {x:1150, y:280, r:38}],   // L6 - finale: doubled up, longest
+    boostPads: [{x:750, y:110, r:48}, {x:1500, y:420, r:48}],
+    enemies: [{x0:1000, y0:60, range:170, speed:1.3, r:30}, {x0:2200, y0:80, range:180, speed:1.1, r:30}],
+    archers: [{x:1850, y:460, tx:1850, ty:50, period:1.8}, {x:2650, y:500, tx:2650, ty:50, period:1.6}],
+    goal: {x:3100, y:560} },
 ];
 const SAVE_KEY = "kritzeldrache_progress_v1";
 function loadProgress(){
@@ -423,14 +432,14 @@ function substep(h, dynamicHazards){
     for(const e of dynamicHazards){
       if(Math.hypot(rider.x-e.x, rider.y-e.y) < RAD+e.r) hazardHit = true;
     }
-    for(const p of LEVEL.boostPads){
-      if(Math.hypot(rider.x-p.x, rider.y-p.y) < RAD+p.r){
-        const sp2 = Math.hypot(rider.vx, rider.vy);
-        if(sp2 > 1){ rider.vx += rider.vx/sp2*PAD_BOOST*h; rider.vy += rider.vy/sp2*PAD_BOOST*h; }
-        else { rider.vx += PAD_BOOST*h; }
-      }
+    if(!won && Math.hypot(rider.x-LEVEL.goal.x, rider.y-LEVEL.goal.y) < (LEVEL.goalR || GOAL_R)) goalHit = true;
+  }
+  for(const p of activeBoostPads()){
+    if(Math.hypot(rider.x-p.x, rider.y-p.y) < RAD+p.r){
+      const sp2 = Math.hypot(rider.vx, rider.vy);
+      if(sp2 > 1){ rider.vx += rider.vx/sp2*PAD_BOOST*h; rider.vy += rider.vy/sp2*PAD_BOOST*h; }
+      else { rider.vx += PAD_BOOST*h; }
     }
-    if(!won && Math.hypot(rider.x-LEVEL.goal.x, rider.y-LEVEL.goal.y) < GOAL_R) goalHit = true;
   }
   const sp = Math.hypot(rider.vx, rider.vy);
   if(sp > VMAX){ rider.vx = rider.vx/sp*VMAX; rider.vy = rider.vy/sp*VMAX; }
@@ -495,15 +504,17 @@ function loadLevel(n){
   mode = "campaign"; levelIdx = n; LEVEL = LEVELS[n];
   strokes = []; rebuildGrid();
   restart(true);
+  syncToolAvailability();
 }
 function enterFreeDraw(){
   mode = "free"; levelIdx = -1; LEVEL = null;
-  strokes = []; rebuildGrid();
+  strokes = []; rebuildGrid(); freePads = [];
   restart(false);
+  syncToolAvailability();
 }
 
 /* ============================ input ============================ */
-const TOOL = { PEN:"pen", RULER:"ruler", ERASE:"erase", PAN:"pan" };
+const TOOL = { PEN:"pen", RULER:"ruler", ERASE:"erase", PAN:"pan", BOOST_PAD:"boostpad" };
 let tool = TOOL.PEN;
 const pointers = new Map();
 let stroke = null, pinch = null, panning = null;
@@ -526,6 +537,9 @@ canvas.addEventListener("pointerdown", e=>{
   const mousePan = e.pointerType === "mouse" && (e.button === 1 || e.button === 2);
   if(tool === TOOL.PAN || mousePan){ panning = { sx:e.clientX, sy:e.clientY, cx:cam.x, cy:cam.y }; cam.auto=false; }
   else if(tool === TOOL.ERASE){ stroke = { erase:true }; eraseAt(wx,wy); }
+  else if(tool === TOOL.BOOST_PAD){
+    if(mode === "free") freePads.push({ x:wx, y:wy, r:FREE_PAD_R });
+  }
   else {
     let px = wx, py = wy;
     if(opts.snap && lastEnd && Math.hypot(px-lastEnd.x, py-lastEnd.y) <= SNAP_R/cam.z){
@@ -603,9 +617,14 @@ function eraseAt(x,y){
     if(keep.length !== st.segs.length){ st.segs = keep; changed = true; }
   }
   if(changed){ strokes = strokes.filter(st => st.segs.length); rebuildGrid(); }
+  if(mode === "free" && freePads.length){
+    const before = freePads.length;
+    freePads = freePads.filter(p => Math.hypot(p.x-x, p.y-y) > ERASE_R);
+    if(freePads.length !== before) changed = true;
+  }
 }
 function undo(){ if(strokes.length){ strokes.pop(); rebuildGrid(); } }
-function clearAll(){ strokes = []; rebuildGrid(); restart(); }
+function clearAll(){ strokes = []; rebuildGrid(); if(mode === "free") freePads = []; restart(); }
 
 /* keyboard — physical key codes only */
 const heldPan = new Set();
@@ -613,10 +632,11 @@ addEventListener("keydown", e=>{
   switch(e.code){
     case "Space":      setPlaying(!playing); e.preventDefault(); break;
     case "KeyR":       restart(); break;
-    case "KeyP": case "Digit1": setTool(TOOL.PEN);   break;
-    case "KeyL": case "Digit2": setTool(TOOL.RULER); break;
-    case "KeyE": case "Digit3": setTool(TOOL.ERASE); break;
-    case "KeyH": case "Digit4": setTool(TOOL.PAN);   break;
+    case "KeyP": case "Digit1": setTool(TOOL.PEN);       break;
+    case "KeyL": case "Digit2": setTool(TOOL.RULER);     break;
+    case "KeyE": case "Digit3": setTool(TOOL.ERASE);     break;
+    case "KeyB": case "Digit4": setTool(TOOL.BOOST_PAD); break;
+    case "KeyH": case "Digit5": setTool(TOOL.PAN);       break;
     case "KeyZ":       undo(); break;
     case "Equal": case "NumpadAdd":      cam.z=Math.min(2.6,cam.z*1.15); cam.auto=false; break;
     case "Minus": case "NumpadSubtract": cam.z=Math.max(0.3,cam.z/1.15); cam.auto=false; break;
@@ -671,14 +691,16 @@ function mkBtn(id, imgKey, label, fallback){
 }
 function buildUI(){
   elTools.textContent = ""; elTransport.textContent = "";
-  const bPen   = mkBtn("pen",   "ui_pencil", STR.toolPencil, "✎");
-  const bRuler = mkBtn("ruler", "ui_ruler",  STR.toolRuler,  "📏");
-  const bEr    = mkBtn("erase", "ui_eraser", STR.toolEraser, "⌧");
-  const bPan   = mkBtn("pan",   "ui_pan",    STR.hintPan,    "✋");
-  elTools.append(bPen, bRuler, bEr, bPan);
+  const bPen   = mkBtn("pen",   "ui_pencil",    STR.toolPencil,   "✎");
+  const bRuler = mkBtn("ruler", "ui_ruler",     STR.toolRuler,    "📏");
+  const bEr    = mkBtn("erase", "ui_eraser",    STR.toolEraser,   "⌧");
+  const bPad   = mkBtn("boostpad", "ui_boost_pad", STR.toolBoostPad, "🌀");
+  const bPan   = mkBtn("pan",   "ui_pan",       STR.hintPan,      "✋");
+  elTools.append(bPen, bRuler, bEr, bPad, bPan);
   bPen.onclick  = ()=>setTool(TOOL.PEN);
   bRuler.onclick= ()=>setTool(TOOL.RULER);
   bEr.onclick   = ()=>setTool(TOOL.ERASE);
+  bPad.onclick  = ()=>setTool(TOOL.BOOST_PAD);
   bPan.onclick  = ()=>setTool(TOOL.PAN);
 
   const bPlay = mkBtn("play", "ui_play", STR.actionPlay, "▶");
@@ -689,15 +711,24 @@ function buildUI(){
   bRe.onclick   = ()=>restart();
   bSet.onclick  = ()=>openSettings();
 
-  setTool(tool); syncTransport();
+  setTool(tool); syncTransport(); syncToolAvailability();
 }
 function setTool(t){
+  if(t === TOOL.BOOST_PAD && mode !== "free") t = TOOL.PEN;
   tool = t;
-  for(const k of ["pen","ruler","erase","pan"]) btns[k]?.classList.toggle("on", k===t);
+  for(const k of ["pen","ruler","erase","boostpad","pan"]) btns[k]?.classList.toggle("on", k===t);
   if(t===TOOL.PEN) showHint(STR.hintDraw);
   if(t===TOOL.RULER) showHint(STR.hintRuler);
   if(t===TOOL.ERASE) showHint(STR.toolEraser);
+  if(t===TOOL.BOOST_PAD) showHint(STR.hintBoostPad);
   if(t===TOOL.PAN) showHint(STR.hintPan);
+}
+// The boost-pad placement tool only makes sense in free-draw mode (campaign
+// levels have their own fixed pads) - hide it and bail out of it in campaign.
+function syncToolAvailability(){
+  const showPad = mode === "free";
+  if(btns.boostpad) btns.boostpad.style.display = showPad ? "" : "none";
+  if(!showPad && tool === TOOL.BOOST_PAD) setTool(TOOL.PEN);
 }
 function syncTransport(){
   const b = btns.play; if(!b) return;
@@ -949,9 +980,8 @@ function drawObstacles(){
   }
 }
 function drawBoostPads(){
-  if(!LEVEL) return;
   const pulse = 0.75 + Math.sin(performance.now()/280)*0.25;
-  for(const p of LEVEL.boostPads){
+  for(const p of activeBoostPads()){
     const sx = w2sx(p.x), sy = w2sy(p.y), r = p.r*cam.z;
     const img = IMG.ui_boost_pad;
     if(img){ ctx.globalAlpha = pulse; const h=r*2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); ctx.globalAlpha=1; continue; }

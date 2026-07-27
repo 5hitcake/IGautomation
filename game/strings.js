@@ -6,6 +6,7 @@ export const STR = {
   toolPencil: "Stift",
   toolRuler: "Lineal",
   toolEraser: "Radierer",
+  toolBoostPad: "Boost-Feld",
   actionPlay: "Los",
   actionPause: "Pause",
   actionRestart: "Neu",
@@ -14,6 +15,7 @@ export const STR = {
   // Hints
   hintDraw: "Zeichne eine Linie mit dem Finger",
   hintRuler: "Ziehe für eine gerade Linie",
+  hintBoostPad: "Tippe, um ein Boost-Feld zu setzen",
   hintPlay: "Tippe auf Los und lass den Drachen gleiten",
   hintPan: "Zwei Finger: schieben und zoomen",
   hintRotate: "Dreh dein Gerät quer",
@@ -42,6 +44,7 @@ export const STR = {
     "Der Stift zeichnet frei, das Lineal zieht gerade Linien.",
     "Start nah am Ende der letzten Linie, um anzuknüpfen.",
     "Mit dem Radierer wischst du Linien weg.",
+    "Im freien Kritzeln: mit dem Boost-Feld-Werkzeug eigene Boost-Felder setzen, der Radierer entfernt sie wieder.",
     "In der Kampagne: Hindernissen ausweichen, Boost-Felder mitnehmen, goldenes Ei erreichen.",
     "Leertaste = Los / Pause, R = Neu (Tastatur).",
   ],
