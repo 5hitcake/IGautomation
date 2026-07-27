@@ -163,7 +163,8 @@ const STATIC_ASSETS = {
   ui_settings:     "./assets/ui_settings.png",
   ui_scrubber_handle: "./assets/ui_scrubber_handle.png",
   obs_rock:        "./assets/obs_rock.png",
-  enemy_patrol:    "./assets/enemy_patrol.png",
+  enemy_bat:       "./assets/enemy_bat.png",
+  enemy_archer:    "./assets/enemy_archer.png",
   ui_boost_pad:    "./assets/ui_boost_pad.png",
   ui_goal_egg:     "./assets/ui_goal_egg.png",
 };
@@ -265,20 +266,32 @@ function segDist2(s,x,y){
 }
 
 /* ============================ campaign levels ============================ */
-const PAD_BOOST = 900, GOAL_R = 46;
+const PAD_BOOST = 900, GOAL_R = 46, ARROW_SPEED = 700, ARROW_R = 11;
 const LEVELS = [
   { obstacles: [{x:560,  y:-40, r:46}],
-    boostPads: [],
-    enemies: [],
+    boostPads: [], enemies: [], archers: [],
     goal: {x:1500, y:280} },
   { obstacles: [{x:520,  y:-30, r:46}],
     boostPads: [{x:940, y:190, r:50}, {x:1360, y:70, r:50}],
-    enemies: [],
+    enemies: [], archers: [],
     goal: {x:2000, y:340} },
   { obstacles: [{x:480, y:-20, r:44}, {x:1120, y:280, r:42}],
     boostPads: [{x:880, y:150, r:50}, {x:1650, y:440, r:50}],
-    enemies: [{x0:1320, y0:70, range:170, speed:1.3, r:34}],
+    enemies: [{x0:1320, y0:70, range:170, speed:1.3, r:34}], archers: [],
     goal: {x:2320, y:520} },
+  { obstacles: [], boostPads: [], enemies: [],
+    archers: [{x:700, y:380, tx:700, ty:20, period:2.2}],
+    goal: {x:1600, y:300} },
+  { obstacles: [{x:500, y:-20, r:44}],
+    boostPads: [{x:900, y:150, r:50}],
+    enemies: [],
+    archers: [{x:1350, y:440, tx:1350, ty:60, period:2.0}],
+    goal: {x:2150, y:380} },
+  { obstacles: [{x:480, y:-20, r:42}, {x:1050, y:260, r:40}],
+    boostPads: [{x:820, y:140, r:50}, {x:1800, y:490, r:50}],
+    enemies: [{x0:1400, y0:60, range:180, speed:1.2, r:32}],
+    archers: [{x:2100, y:460, tx:2100, ty:60, period:1.8}],
+    goal: {x:2650, y:560} },
 ];
 const SAVE_KEY = "kritzeldrache_progress_v1";
 function loadProgress(){
@@ -288,11 +301,78 @@ function loadProgress(){
 function saveProgress(p){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(p)); }catch{} }
 function levelUnlocked(n, progress){ return n === 0 || progress.completed.includes(n-1); }
 function enemyPosAt(e, t){ return { x: e.x0 + Math.sin(t*e.speed)*e.range, y: e.y0, r: e.r }; }
+// An archer fires on a fixed period at a fixed target point; the arrow travels
+// at a constant speed and only exists (as a hazard) while in flight. Pure
+// function of elapsed sim time, like enemyPosAt, so scrubbing stays exact.
+function archerArrowAt(a, t){
+  const dist = Math.hypot(a.tx-a.x, a.ty-a.y);
+  const travelT = dist/ARROW_SPEED;
+  const phase = ((t % a.period) + a.period) % a.period;
+  if(phase > travelT) return null;
+  const f = phase/travelT;
+  return { x: a.x+(a.tx-a.x)*f, y: a.y+(a.ty-a.y)*f, r: ARROW_R, ang: Math.atan2(a.ty-a.y, a.tx-a.x) };
+}
 
 let mode = "free";          // "free" | "campaign"
 let levelIdx = -1;
 let LEVEL = null;            // current level def, or null in free mode
 let won = false;
+
+/* ============================ level intro (overview -> zoom to start) ============================ */
+const INTRO_HOLD = 1.1, INTRO_PAN = 1.3, INTRO_TOTAL = INTRO_HOLD + INTRO_PAN;
+let introT = 0;              // seconds remaining in the intro (0 = not playing / finished)
+let introFrom = null, introTo = null;
+function levelBounds(lvl){
+  const xs = [START.x], ys = [START.y];
+  const add = (x,y) => { xs.push(x); ys.push(y); };
+  for(const o of lvl.obstacles) add(o.x, o.y);
+  for(const p of lvl.boostPads) add(p.x, p.y);
+  for(const e of lvl.enemies){ add(e.x0-e.range, e.y0); add(e.x0+e.range, e.y0); }
+  for(const a of lvl.archers){ add(a.x, a.y); add(a.tx, a.ty); }
+  add(lvl.goal.x, lvl.goal.y);
+  return { minX:Math.min(...xs), maxX:Math.max(...xs), minY:Math.min(...ys), maxY:Math.max(...ys) };
+}
+function startLevelIntro(){
+  if(!LEVEL){ introT = 0; return; }
+  const b = levelBounds(LEVEL);
+  const pad = 90;
+  const bw = (b.maxX-b.minX) + pad*2, bh = (b.maxY-b.minY) + pad*2;
+  const z = Math.max(0.22, Math.min(1, Math.min(W/bw, H/bh)));
+  introFrom = { x:(b.minX+b.maxX)/2, y:(b.minY+b.maxY)/2, z };
+  introTo   = { x:START.x, y:START.y-60, z:1 };
+  cam.x = introFrom.x; cam.y = introFrom.y; cam.z = introFrom.z; cam.auto = false;
+  introT = INTRO_TOTAL;
+}
+function tickIntro(dt){
+  if(introT <= 0) return;
+  introT = Math.max(0, introT - dt);
+  const panElapsed = INTRO_TOTAL - introT - INTRO_HOLD;
+  if(panElapsed <= 0){
+    cam.x = introFrom.x; cam.y = introFrom.y; cam.z = introFrom.z;
+  } else {
+    let f = Math.min(1, panElapsed / INTRO_PAN);
+    f = f*f*(3 - 2*f); // smoothstep easing
+    cam.x = introFrom.x + (introTo.x-introFrom.x)*f;
+    cam.y = introFrom.y + (introTo.y-introFrom.y)*f;
+    cam.z = introFrom.z + (introTo.z-introFrom.z)*f;
+  }
+  if(introT <= 0){ cam.x = introTo.x; cam.y = introTo.y; cam.z = introTo.z; }
+  cam.tx = cam.x; cam.ty = cam.y;
+}
+function skipIntro(){
+  if(introT <= 0) return;
+  introT = 0; cam.x = introTo.x; cam.y = introTo.y; cam.z = introTo.z; cam.tx = cam.x; cam.ty = cam.y;
+}
+function drawIntroOverlay(){
+  if(introT <= 0 || !LEVEL) return;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, introT); // fades out over the last ~1s as introT counts down to 0
+  ctx.fillStyle = "#3a3733";
+  ctx.font = "600 22px \"Bradley Hand\",\"Segoe Print\",\"Comic Sans MS\",system-ui,sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(STR.levelWord + " " + (levelIdx+1), W/2, 46);
+  ctx.restore();
+}
 
 /* ============================ rider physics ============================ */
 const GRAV = 1500, RAD = 13, FRICTION = 0.030, VMAX = 4200, CRASH_V = 1650;
@@ -304,7 +384,7 @@ function resetRider(){
   animT = 0; crashT = 0; celebrateT = 0; nextMilestone = 250; maxDist = 0;
 }
 let hazardHit = false, goalHit = false;
-function substep(h, enemyPositions){
+function substep(h, dynamicHazards){
   rider.vy += GRAV*h;
   rider.x += rider.vx*h; rider.y += rider.vy*h;
   let hit = false, worstImpact = 0, frictionApplied = false;
@@ -340,7 +420,7 @@ function substep(h, enemyPositions){
     for(const o of LEVEL.obstacles){
       if(Math.hypot(rider.x-o.x, rider.y-o.y) < RAD+o.r) hazardHit = true;
     }
-    for(const e of enemyPositions){
+    for(const e of dynamicHazards){
       if(Math.hypot(rider.x-e.x, rider.y-e.y) < RAD+e.r) hazardHit = true;
     }
     for(const p of LEVEL.boostPads){
@@ -359,11 +439,16 @@ function substep(h, enemyPositions){
 }
 function physStep(dt){
   hazardHit = false; goalHit = false;
-  const enemyPositions = LEVEL ? LEVEL.enemies.map(e => enemyPosAt(e, simFrame*(STEP/1000))) : [];
+  let dynamicHazards = [];
+  if(LEVEL){
+    const t = simFrame*(STEP/1000);
+    dynamicHazards = LEVEL.enemies.map(e => enemyPosAt(e, t))
+      .concat(LEVEL.archers.map(a => archerArrowAt(a, t)).filter(Boolean));
+  }
   const sp = Math.hypot(rider.vx, rider.vy);
   const n = Math.max(1, Math.min(10, Math.ceil(sp*dt/(RAD*0.5))));
   let worst = 0;
-  for(let i=0;i<n;i++) worst = Math.max(worst, substep(dt/n, enemyPositions));
+  for(let i=0;i<n;i++) worst = Math.max(worst, substep(dt/n, dynamicHazards));
   return worst;
 }
 
@@ -394,22 +479,27 @@ function setPlaying(on){
   }
   syncTransport();
 }
-function restart(){
+function restart(showIntro){
   playing = false; hasPlayed = false;
   rec = []; trail = []; scrubbing = false; simFrame = 0; won = false;
   resetRider();
-  cam.tx = START.x; cam.ty = START.y - 60; cam.x = cam.tx; cam.y = cam.ty; cam.auto = true;
+  introT = 0;
+  if(showIntro && LEVEL){
+    startLevelIntro();
+  } else {
+    cam.tx = START.x; cam.ty = START.y - 60; cam.x = cam.tx; cam.y = cam.ty; cam.auto = true;
+  }
   updateScrub(); syncTransport();
 }
 function loadLevel(n){
   mode = "campaign"; levelIdx = n; LEVEL = LEVELS[n];
   strokes = []; rebuildGrid();
-  restart();
+  restart(true);
 }
 function enterFreeDraw(){
   mode = "free"; levelIdx = -1; LEVEL = null;
   strokes = []; rebuildGrid();
-  restart();
+  restart(false);
 }
 
 /* ============================ input ============================ */
@@ -422,6 +512,7 @@ const MIN_PT = 5, ERASE_R = 26, SNAP_R = 26;
 canvas.addEventListener("pointerdown", e=>{
   canvas.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  skipIntro();
   if(pointers.size === 2){
     stroke = null; panning = null;
     const [a,b] = [...pointers.values()];
@@ -827,10 +918,27 @@ function drawSnapHint(){
   ctx.restore();
 }
 
+// Hazards get a warm halo + a soft ground shadow so they read as "danger" and
+// pop off the sepia/graphite background regardless of the sprite art itself.
+function drawHazardHalo(sx, sy, r){
+  ctx.save();
+  const g = ctx.createRadialGradient(sx, sy, r*0.3, sx, sy, r*1.35);
+  g.addColorStop(0, "rgba(232,224,42,0.32)"); g.addColorStop(1, "rgba(232,224,42,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r*1.35, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawGroundShadow(sx, sy, r){
+  ctx.save();
+  ctx.fillStyle = "rgba(58,55,51,0.22)";
+  ctx.beginPath(); ctx.ellipse(sx, sy+r*0.78, r*0.9, r*0.28, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
 function drawObstacles(){
   if(!LEVEL) return;
   for(const o of LEVEL.obstacles){
     const sx = w2sx(o.x), sy = w2sy(o.y), r = o.r*cam.z;
+    drawHazardHalo(sx, sy, r); drawGroundShadow(sx, sy, r);
     const img = IMG.obs_rock;
     if(img){ const h=r*2.1, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h*0.62, wd, h); continue; }
     ctx.fillStyle = "#6b6558"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
@@ -862,27 +970,65 @@ function drawEnemies(enemyPositions){
   if(!LEVEL) return;
   for(const e of enemyPositions){
     const sx = w2sx(e.x), sy = w2sy(e.y), r = e.r*cam.z;
-    const img = IMG.enemy_patrol;
+    drawHazardHalo(sx, sy, r);
+    const img = IMG.enemy_bat;
     const bob = Math.sin(performance.now()/220 + e.x)*3*cam.z;
     if(img){ const h=r*2.2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2+bob, wd, h); continue; }
     ctx.fillStyle = "#e8e02a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
     ctx.beginPath(); ctx.arc(sx, sy+bob, r*0.82, 0, Math.PI*2); ctx.fill(); ctx.stroke();
   }
 }
+function drawArrow(sx, sy, ang, r){
+  ctx.save();
+  ctx.translate(sx, sy); ctx.rotate(ang);
+  ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = Math.max(1.6, r*0.16);
+  ctx.beginPath(); ctx.moveTo(-r*1.6, 0); ctx.lineTo(r*1.1, 0); ctx.stroke();
+  ctx.fillStyle = "#e8e02a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(r*1.6, 0); ctx.lineTo(r*0.5, -r*0.6); ctx.lineTo(r*0.5, r*0.6);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawArchers(){
+  if(!LEVEL || !LEVEL.archers.length) return;
+  const t = simFrame*(STEP/1000);
+  for(const a of LEVEL.archers){
+    const sx = w2sx(a.x), sy = w2sy(a.y), r = 30*cam.z;
+    const img = IMG.enemy_archer;
+    if(img){ const h=r*2.3, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h*0.85, wd, h); }
+    else {
+      ctx.fillStyle = "#7a746a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.ellipse(sx, sy-r*0.5, r*0.5, r*0.9, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    }
+    const arrow = archerArrowAt(a, t);
+    if(arrow){
+      const asx = w2sx(arrow.x), asy = w2sy(arrow.y);
+      drawHazardHalo(asx, asy, arrow.r*cam.z*1.4);
+      drawArrow(asx, asy, arrow.ang, arrow.r*cam.z);
+    }
+  }
+}
 function drawGoal(){
   if(!LEVEL) return;
   const sx = w2sx(LEVEL.goal.x), sy = w2sy(LEVEL.goal.y);
-  const glow = 0.5 + Math.sin(performance.now()/260)*0.5;
+  const now = performance.now();
+  const glow = 0.55 + Math.sin(now/260)*0.45;
+  const ringT = (now/1400) % 1;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, 0.5 - ringT*0.5); ctx.strokeStyle = "#d4a017"; ctx.lineWidth = 2.2*cam.z;
+  ctx.beginPath(); ctx.arc(sx, sy, (18+ringT*30)*cam.z, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
   const img = IMG.ui_goal_egg;
   if(img){
     const h=64*cam.z, wd=h*img.width/img.height;
-    ctx.save(); ctx.shadowColor = `rgba(212,160,23,${0.55*glow})`; ctx.shadowBlur = 18*cam.z;
+    ctx.save(); ctx.shadowColor = `rgba(212,160,23,${0.8*glow})`; ctx.shadowBlur = 30*cam.z;
     ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h);
+    ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); // second pass deepens the glow without a second light source
     ctx.restore();
     return;
   }
   ctx.save();
-  ctx.shadowColor = `rgba(212,160,23,${0.55*glow})`; ctx.shadowBlur = 18*cam.z;
+  ctx.shadowColor = `rgba(212,160,23,${0.8*glow})`; ctx.shadowBlur = 30*cam.z;
   ctx.fillStyle = "#d4a017"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.4;
   ctx.beginPath(); ctx.ellipse(sx, sy, 15*cam.z, 20*cam.z, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.restore();
@@ -980,6 +1126,7 @@ function render(){
   drawTrack();
   drawSnapHint();
   drawObstacles();
+  drawArchers();
   drawBoostPads();
   drawGoal();
   drawStartMarker();
@@ -988,6 +1135,7 @@ function render(){
   drawRider();
   drawCrashBurst();
   drawCelebrateFallback();
+  drawIntroOverlay();
 }
 
 /* ============================ loop ============================ */
@@ -1003,6 +1151,7 @@ function update(ms){
   if(celebrateT > 0) celebrateT -= dt;
   if(hintT > 0){ hintT -= ms; if(hintT <= 0) elHint.classList.remove("show"); }
   if(rotT > 0){ rotT -= ms; if(rotT <= 0) rot.classList.remove("show"); }
+  tickIntro(dt);
 
   if(playing && !rider.crashed){
     const impact = physStep(dt);
