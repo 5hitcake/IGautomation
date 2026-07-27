@@ -236,11 +236,22 @@ function loadAudio(){
 }
 loadAudio();
 function unlockAudio(){
-  if(audioUnlocked) return;
   audioUnlocked = true;
-  if(!muted) SND.music_bg_loop.play().catch(()=>{});
+  tryStartMusic();
 }
-addEventListener("pointerdown", unlockAudio, { once:true, passive:true });
+// Not a one-shot: if the very first play() attempt is rejected by the
+// browser's autoplay policy (timing-dependent, not something we control),
+// a single {once:true} listener would give up on background music for the
+// rest of the session. Retrying on every subsequent interaction - cheap and
+// harmless since it no-ops once the track is actually playing - means it
+// recovers on the very next tap instead of staying silent forever.
+function tryStartMusic(){
+  if(muted || !audioUnlocked) return;
+  if(SND.music_bg_loop.paused){
+    SND.music_bg_loop.play().catch(()=>console.warn("[audio] music_bg_loop play() rejected"));
+  }
+}
+addEventListener("pointerdown", unlockAudio, { passive:true });
 function playOneShot(key, vol){
   if(muted || !audioUnlocked) return;
   const src = SND[key];
@@ -846,6 +857,7 @@ const opts = { grid:true, trail:true, snap:true };
 // menus, level list) instead of wiring a tap sound into each handler.
 document.addEventListener("click", e=>{
   if(e.target.closest(".btn, .txtbtn, .lvlgrid, .sw")) playOneShot("sfx_ui_tap", 0.6);
+  tryStartMusic();
 });
 const btns = {};
 
