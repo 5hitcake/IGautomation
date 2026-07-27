@@ -307,7 +307,7 @@ let hazardHit = false, goalHit = false;
 function substep(h, enemyPositions){
   rider.vy += GRAV*h;
   rider.x += rider.vx*h; rider.y += rider.vy*h;
-  let hit = false, worstImpact = 0;
+  let hit = false, worstImpact = 0, frictionApplied = false;
   const near = queryNear(rider.x, rider.y, RAD + 6);
   for(let pass=0; pass<2; pass++){
     for(const s of near){
@@ -322,10 +322,17 @@ function substep(h, enemyPositions){
       rider.x += nx*(RAD-d); rider.y += ny*(RAD-d);
       let vn = rider.vx*nx + rider.vy*ny;
       if(vn < 0){ if(-vn > worstImpact) worstImpact = -vn; rider.vx -= vn*nx; rider.vy -= vn*ny; vn = 0; }
-      const tx=-ny, ty=nx;
-      let vt = rider.vx*tx + rider.vy*ty;
-      vt *= (1 - FRICTION);
-      rider.vx = tx*vt + nx*vn; rider.vy = ty*vt + ny*vn;
+      // Friction (tangential damping) is applied once per substep, not once per
+      // overlapping segment — a hand-drawn line can have several tiny segments
+      // under the rider at once, and damping speed per-segment made freehand
+      // track feel far grabbier than ruler-drawn (single-segment) track.
+      if(!frictionApplied){
+        const tx=-ny, ty=nx;
+        let vt = rider.vx*tx + rider.vy*ty;
+        vt *= (1 - FRICTION);
+        rider.vx = tx*vt + nx*vn; rider.vy = ty*vt + ny*vn;
+        frictionApplied = true;
+      }
       hit = true;
     }
   }
