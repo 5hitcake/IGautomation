@@ -35,6 +35,7 @@ export const STR = {
   settingsGrid: "Raster anzeigen",
   settingsTrail: "Kritzelspur",
   settingsSnap: "Linien einrasten",
+  settingsSound: "Sound",
   settingsClear: "Alles löschen",
   settingsClearConfirm: "Wirklich alles löschen?",
   settingsHelpTitle: "So geht's",

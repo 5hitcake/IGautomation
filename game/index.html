@@ -113,6 +113,7 @@
   <div class="row"><label id="lbGrid"></label><div class="sw" id="swGrid"><i></i></div></div>
   <div class="row"><label id="lbTrail"></label><div class="sw" id="swTrail"><i></i></div></div>
   <div class="row"><label id="lbSnap"></label><div class="sw" id="swSnap"><i></i></div></div>
+  <div class="row"><label id="lbSound"></label><div class="sw" id="swSound"><i></i></div></div>
   <h3 id="lbHelpTitle"></h3><ul id="helpList"></ul>
   <p id="credits" style="color:#8a8378"></p>
   <div class="cardfoot">
@@ -196,6 +197,68 @@ const assetsReady = (async ()=>{
   if(MISSING.length) console.warn("[assets] missing:", MISSING);
   buildUI();
 })();
+
+/* ============================ audio ============================ */
+const AUDIO_FILES = {
+  sfx_draw:        "./assets/sfx_draw.mp3",
+  sfx_whoosh_roll: "./assets/sfx_whoosh_roll.mp3",
+  sfx_impact:      "./assets/sfx_impact.mp3",
+  sfx_milestone:   "./assets/sfx_milestone.mp3",
+  sfx_ui_tap:      "./assets/sfx_ui_tap.mp3",
+  music_bg_loop:   "./assets/music_bg_loop.mp3",
+};
+const SND = {};
+const MUTE_KEY = "kritzeldrache_muted";
+let muted = false;
+try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
+let audioUnlocked = false;
+function loadAudio(){
+  for(const [k,u] of Object.entries(AUDIO_FILES)){
+    const a = new Audio(u);
+    a.preload = "auto";
+    a.onerror = () => {}; // missing/blocked audio degrades to silence, same as a missing image falls back visually
+    SND[k] = a;
+  }
+  SND.sfx_draw.loop = true;
+  SND.sfx_whoosh_roll.loop = true;
+  SND.music_bg_loop.loop = true;
+  SND.music_bg_loop.volume = 0.32;
+  SND.sfx_whoosh_roll.volume = 0;
+}
+loadAudio();
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  if(!muted) SND.music_bg_loop.play().catch(()=>{});
+}
+addEventListener("pointerdown", unlockAudio, { once:true, passive:true });
+function playOneShot(key, vol){
+  if(muted || !audioUnlocked) return;
+  const src = SND[key];
+  if(!src) return;
+  const node = src.cloneNode(); // clone so overlapping plays don't cut each other off
+  node.volume = vol ?? 1;
+  node.play().catch(()=>{});
+}
+const loopState = {};
+function setLoopPlaying(key, on){
+  const a = SND[key];
+  if(!a || loopState[key] === on) return;
+  loopState[key] = on;
+  if(on){ if(!muted && audioUnlocked) a.play().catch(()=>{}); }
+  else { a.pause(); }
+}
+function setMuted(m){
+  muted = m;
+  try { localStorage.setItem(MUTE_KEY, m ? "1" : "0"); } catch {}
+  for(const a of Object.values(SND)){
+    if(m) a.pause();
+  }
+  if(!m && audioUnlocked){
+    SND.music_bg_loop.play().catch(()=>{});
+    for(const [k,on] of Object.entries(loopState)) if(on) SND[k]?.play().catch(()=>{});
+  }
+}
 
 /* ============================ canvas ============================ */
 const canvas = document.getElementById("c"), ctx = canvas.getContext("2d", { alpha:false });
@@ -546,6 +609,7 @@ canvas.addEventListener("pointerdown", e=>{
       px = lastEnd.x; py = lastEnd.y;
     }
     stroke = { pts:[{x:px,y:py}], ruler: tool===TOOL.RULER };
+    setLoopPlaying("sfx_draw", true);
   }
 }, { passive:false });
 
@@ -582,6 +646,7 @@ function endPointer(e){
     panning = null;
     if(stroke && !stroke.erase) commitStroke(stroke);
     stroke = null;
+    setLoopPlaying("sfx_draw", false);
   }
 }
 canvas.addEventListener("pointerup", endPointer);
@@ -680,6 +745,11 @@ const scrubWrap = document.getElementById("scrubwrap"), scrub = document.getElem
 const settingsSheet = document.getElementById("settings");
 const mainmenuSheet = document.getElementById("mainmenu"), levelselectSheet = document.getElementById("levelselect"), winSheet = document.getElementById("winsheet");
 const opts = { grid:true, trail:true, snap:true };
+// One delegated listener covers every button (toolbar, transport, settings,
+// menus, level list) instead of wiring a tap sound into each handler.
+document.addEventListener("click", e=>{
+  if(e.target.closest(".btn, .txtbtn, .lvlbtn, .sw")) playOneShot("sfx_ui_tap", 0.6);
+});
 const btns = {};
 
 function mkBtn(id, imgKey, label, fallback){
@@ -761,6 +831,7 @@ document.getElementById("stTitle").textContent = STR.settingsTitle;
 document.getElementById("lbGrid").textContent = STR.settingsGrid;
 document.getElementById("lbTrail").textContent = STR.settingsTrail;
 document.getElementById("lbSnap").textContent = STR.settingsSnap;
+document.getElementById("lbSound").textContent = STR.settingsSound;
 document.getElementById("lbHelpTitle").textContent = STR.settingsHelpTitle;
 document.getElementById("credits").textContent = STR.settingsCredits;
 document.getElementById("btnClear").textContent = STR.settingsClear;
@@ -770,10 +841,15 @@ document.getElementById("btnMenu").onclick = ()=>{ closeSettings(); playing=fals
 const helpList = document.getElementById("helpList");
 for(const line of STR.settingsHelp){ const li=document.createElement("li"); li.textContent=line; helpList.appendChild(li); }
 const swGrid = document.getElementById("swGrid"), swTrail = document.getElementById("swTrail"), swSnap = document.getElementById("swSnap");
-function syncSw(){ swGrid.classList.toggle("on", opts.grid); swTrail.classList.toggle("on", opts.trail); swSnap.classList.toggle("on", opts.snap); }
+const swSound = document.getElementById("swSound");
+function syncSw(){
+  swGrid.classList.toggle("on", opts.grid); swTrail.classList.toggle("on", opts.trail); swSnap.classList.toggle("on", opts.snap);
+  swSound.classList.toggle("on", !muted);
+}
 swGrid.onclick = ()=>{ opts.grid=!opts.grid; syncSw(); };
 swTrail.onclick= ()=>{ opts.trail=!opts.trail; if(!opts.trail) trail.length=0; syncSw(); };
 swSnap.onclick = ()=>{ opts.snap=!opts.snap; syncSw(); };
+swSound.onclick = ()=>{ setMuted(!muted); syncSw(); };
 syncSw();
 document.getElementById("btnClear").onclick = ()=>{ if(confirm(STR.settingsClearConfirm)){ clearAll(); closeSettings(); } };
 document.getElementById("btnCloseSettings").onclick = closeSettings;
@@ -1185,16 +1261,26 @@ function update(ms){
 
   if(playing && !rider.crashed){
     const impact = physStep(dt);
-    if(impact > CRASH_V || hazardHit){ rider.crashed = true; playing = false; crashT = 0; showHint(STR.statusCrash); syncTransport(); }
+    if(impact > CRASH_V || hazardHit){
+      rider.crashed = true; playing = false; crashT = 0; showHint(STR.statusCrash); syncTransport();
+      playOneShot("sfx_impact");
+    }
     if(rider.y > START.y + 24000){ playing = false; showHint(STR.statusLost); syncTransport(); }
     if(rec.length < recMax) rec.push(snapshot()); else playing = false;
     simFrame = rec.length - 1;
     updateScrub();
-    if(goalHit && !won){ won = true; playing = false; onLevelWon(); syncTransport(); }
+    if(goalHit && !won){ won = true; playing = false; onLevelWon(); syncTransport(); playOneShot("sfx_milestone"); }
     const d = dist();
     if(d > maxDist) maxDist = d;
-    if(maxDist >= nextMilestone){ nextMilestone += 250; celebrateT = 1.0; showHint(STR.statusMilestone); }
+    if(maxDist >= nextMilestone){ nextMilestone += 250; celebrateT = 1.0; showHint(STR.statusMilestone); playOneShot("sfx_milestone", 0.8); }
     if(opts.trail){ trail.push({x:rider.x,y:rider.y}); if(trail.length > 900) trail.shift(); }
+  }
+
+  setLoopPlaying("sfx_whoosh_roll", playing && !rider.crashed);
+  if(playing && !rider.crashed){
+    const spNow = Math.hypot(rider.vx, rider.vy);
+    SND.sfx_whoosh_roll.volume = Math.min(1, spNow/1800) * 0.55;
+    SND.sfx_whoosh_roll.playbackRate = 0.85 + Math.min(1, spNow/2200)*0.5;
   }
 
   // cosmetic banking + glide wobble
