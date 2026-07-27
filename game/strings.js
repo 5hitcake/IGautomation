@@ -42,12 +42,29 @@ export const STR = {
     "Der Stift zeichnet frei, das Lineal zieht gerade Linien.",
     "Start nah am Ende der letzten Linie, um anzuknüpfen.",
     "Mit dem Radierer wischst du Linien weg.",
+    "In der Kampagne: Hindernissen ausweichen, Boost-Felder mitnehmen, goldenes Ei erreichen.",
     "Leertaste = Los / Pause, R = Neu (Tastatur).",
   ],
   settingsCredits: "Ein Kritzel-Abenteuer auf kariertem Papier",
+  settingsMenu: "Hauptmenü",
 
-  // Onboarding
+  // Main menu
   welcomeTitle: "Kritzeldrache",
   welcomeBody: "Zeichne eine Bahn und schick den Papierdrachen los.",
-  welcomeStart: "Los geht's",
+  btnFreeDraw: "Freies Kritzeln",
+  btnCampaign: "Kampagne",
+
+  // Level select
+  levelSelectTitle: "Kampagne",
+  levelWord: "Level",
+  lockedLabel: "Gesperrt",
+  completedBadge: "✓ Geschafft",
+  btnBackToMenu: "Zurück",
+
+  // Win screen
+  winTitle: "Level geschafft!",
+  winBody: "Der Drache hat das goldene Ei erreicht!",
+  btnNextLevel: "Nächstes Level",
+  btnLevelSelect: "Level-Auswahl",
+  btnRetryLevel: "Nochmal",
 };

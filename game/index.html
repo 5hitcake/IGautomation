@@ -81,8 +81,16 @@
   #rotate.show{display:block}
   #rotate b{display:block;font-size:16px}#rotate span{font-size:13px;color:#6b665e}
 
-  #welcome .card{text-align:center}
-  #welcome .card p{font-size:16px}
+  #mainmenu .card{text-align:center}
+  #mainmenu .card p{font-size:16px}
+  #winsheet .card{text-align:center}
+  #levelList{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .lvlbtn{pointer-events:auto;font:inherit;font-size:16px;text-align:left;border:2px solid #4a4640;border-radius:12px;
+          background:#fdf9ee;padding:10px 16px;cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35);
+          display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .lvlbtn:active{transform:translate(1px,2px);box-shadow:none}
+  .lvlbtn.locked{opacity:.5;cursor:default}
+  .lvlbtn .badge{color:#3a8a4a;font-weight:700}
   @media (max-height:430px){ .btn{width:46px;height:46px;border-radius:12px} #tools,#transport{gap:7px} #hud{font-size:15px;padding:3px 11px} }
 </style>
 </head>
@@ -108,14 +116,29 @@
   <h3 id="lbHelpTitle"></h3><ul id="helpList"></ul>
   <p id="credits" style="color:#8a8378"></p>
   <div class="cardfoot">
+    <button class="txtbtn" id="btnMenu"></button>
     <button class="txtbtn danger" id="btnClear"></button>
     <button class="txtbtn" id="btnCloseSettings"></button>
   </div>
 </div></div>
 
-<div id="welcome" class="sheet show"><div class="card">
+<div id="mainmenu" class="sheet show"><div class="card">
   <h2 id="wTitle"></h2><p id="wBody"></p>
-  <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="wStart"></button></div>
+  <div class="cardfoot" style="justify-content:center">
+    <button class="txtbtn" id="btnFreeDraw"></button>
+    <button class="txtbtn" id="btnCampaign"></button>
+  </div>
+</div></div>
+
+<div id="levelselect" class="sheet"><div class="card">
+  <h2 id="lsTitle"></h2>
+  <div id="levelList"></div>
+  <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="btnLsBack"></button></div>
+</div></div>
+
+<div id="winsheet" class="sheet"><div class="card">
+  <h2 id="winTitle"></h2><p id="winBody"></p>
+  <div class="cardfoot" id="winButtons" style="justify-content:center"></div>
 </div></div>
 
 <script type="module">
@@ -139,6 +162,10 @@ const STATIC_ASSETS = {
   ui_restart:      "./assets/ui_restart.png",
   ui_settings:     "./assets/ui_settings.png",
   ui_scrubber_handle: "./assets/ui_scrubber_handle.png",
+  obs_rock:        "./assets/obs_rock.png",
+  enemy_patrol:    "./assets/enemy_patrol.png",
+  ui_boost_pad:    "./assets/ui_boost_pad.png",
+  ui_goal_egg:     "./assets/ui_goal_egg.png",
 };
 // spritesheets — all playback metadata is parsed out of the filename
 const SHEET_FILES = {
@@ -237,6 +264,36 @@ function segDist2(s,x,y){
   return px*px+py*py;
 }
 
+/* ============================ campaign levels ============================ */
+const PAD_BOOST = 900, GOAL_R = 46;
+const LEVELS = [
+  { obstacles: [{x:560,  y:-40, r:46}],
+    boostPads: [],
+    enemies: [],
+    goal: {x:1500, y:280} },
+  { obstacles: [{x:520,  y:-30, r:46}],
+    boostPads: [{x:940, y:190, r:50}, {x:1360, y:70, r:50}],
+    enemies: [],
+    goal: {x:2000, y:340} },
+  { obstacles: [{x:480, y:-20, r:44}, {x:1120, y:280, r:42}],
+    boostPads: [{x:880, y:150, r:50}, {x:1650, y:440, r:50}],
+    enemies: [{x0:1320, y0:70, range:170, speed:1.3, r:34}],
+    goal: {x:2320, y:520} },
+];
+const SAVE_KEY = "kritzeldrache_progress_v1";
+function loadProgress(){
+  try{ const p = JSON.parse(localStorage.getItem(SAVE_KEY)); return (p && Array.isArray(p.completed)) ? p : {completed:[]}; }
+  catch{ return {completed:[]}; }
+}
+function saveProgress(p){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(p)); }catch{} }
+function levelUnlocked(n, progress){ return n === 0 || progress.completed.includes(n-1); }
+function enemyPosAt(e, t){ return { x: e.x0 + Math.sin(t*e.speed)*e.range, y: e.y0, r: e.r }; }
+
+let mode = "free";          // "free" | "campaign"
+let levelIdx = -1;
+let LEVEL = null;            // current level def, or null in free mode
+let won = false;
+
 /* ============================ rider physics ============================ */
 const GRAV = 1500, RAD = 13, FRICTION = 0.030, VMAX = 4200, CRASH_V = 1650;
 const rider = { x:0, y:0, vx:0, vy:0, ang:0, contact:false, crashed:false, wob:0 };
@@ -246,7 +303,8 @@ function resetRider(){
   rider.contact = false; rider.crashed = false; rider.wob = 0;
   animT = 0; crashT = 0; celebrateT = 0; nextMilestone = 250; maxDist = 0;
 }
-function substep(h){
+let hazardHit = false, goalHit = false;
+function substep(h, enemyPositions){
   rider.vy += GRAV*h;
   rider.x += rider.vx*h; rider.y += rider.vy*h;
   let hit = false, worstImpact = 0;
@@ -271,22 +329,41 @@ function substep(h){
       hit = true;
     }
   }
+  if(LEVEL){
+    for(const o of LEVEL.obstacles){
+      if(Math.hypot(rider.x-o.x, rider.y-o.y) < RAD+o.r) hazardHit = true;
+    }
+    for(const e of enemyPositions){
+      if(Math.hypot(rider.x-e.x, rider.y-e.y) < RAD+e.r) hazardHit = true;
+    }
+    for(const p of LEVEL.boostPads){
+      if(Math.hypot(rider.x-p.x, rider.y-p.y) < RAD+p.r){
+        const sp2 = Math.hypot(rider.vx, rider.vy);
+        if(sp2 > 1){ rider.vx += rider.vx/sp2*PAD_BOOST*h; rider.vy += rider.vy/sp2*PAD_BOOST*h; }
+        else { rider.vx += PAD_BOOST*h; }
+      }
+    }
+    if(!won && Math.hypot(rider.x-LEVEL.goal.x, rider.y-LEVEL.goal.y) < GOAL_R) goalHit = true;
+  }
   const sp = Math.hypot(rider.vx, rider.vy);
   if(sp > VMAX){ rider.vx = rider.vx/sp*VMAX; rider.vy = rider.vy/sp*VMAX; }
   rider.contact = hit;
   return worstImpact;
 }
 function physStep(dt){
+  hazardHit = false; goalHit = false;
+  const enemyPositions = LEVEL ? LEVEL.enemies.map(e => enemyPosAt(e, simFrame*(STEP/1000))) : [];
   const sp = Math.hypot(rider.vx, rider.vy);
   const n = Math.max(1, Math.min(10, Math.ceil(sp*dt/(RAD*0.5))));
   let worst = 0;
-  for(let i=0;i<n;i++) worst = Math.max(worst, substep(dt/n));
+  for(let i=0;i<n;i++) worst = Math.max(worst, substep(dt/n, enemyPositions));
   return worst;
 }
 
 /* ============================ run state ============================ */
 let playing = false, hasPlayed = false;
 let rec = [], recMax = 60*150, scrubbing = false;
+let simFrame = 0;            // frame index driving deterministic level-object motion (enemies) — stays in sync with scrubbing
 let animT = 0, crashT = 0, celebrateT = 0, nextMilestone = 250, maxDist = 0;
 let trail = [];
 const dist = () => Math.max(0, (rider.x - START.x)/PPM);
@@ -301,10 +378,10 @@ function setPlaying(on){
     if(rider.crashed) return;
     if(scrubbing || rec.length > 0){
       const i = +scrub.value;
-      if(rec.length && i < rec.length-1){ rec.length = i+1; restore(rec[i]); trail.length = 0; }
+      if(rec.length && i < rec.length-1){ rec.length = i+1; restore(rec[i]); trail.length = 0; simFrame = i; }
     }
     if(!rec.length) rec.push(snapshot());
-    playing = true; hasPlayed = true; cam.auto = true; hideWelcome();
+    playing = true; hasPlayed = true; cam.auto = true;
   } else {
     playing = false;
   }
@@ -312,10 +389,20 @@ function setPlaying(on){
 }
 function restart(){
   playing = false; hasPlayed = false;
-  rec = []; trail = []; scrubbing = false;
+  rec = []; trail = []; scrubbing = false; simFrame = 0; won = false;
   resetRider();
   cam.tx = START.x; cam.ty = START.y - 60; cam.x = cam.tx; cam.y = cam.ty; cam.auto = true;
   updateScrub(); syncTransport();
+}
+function loadLevel(n){
+  mode = "campaign"; levelIdx = n; LEVEL = LEVELS[n];
+  strokes = []; rebuildGrid();
+  restart();
+}
+function enterFreeDraw(){
+  mode = "free"; levelIdx = -1; LEVEL = null;
+  strokes = []; rebuildGrid();
+  restart();
 }
 
 /* ============================ input ============================ */
@@ -328,7 +415,6 @@ const MIN_PT = 5, ERASE_R = 26, SNAP_R = 26;
 canvas.addEventListener("pointerdown", e=>{
   canvas.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
-  hideWelcome();
   if(pointers.size === 2){
     stroke = null; panning = null;
     const [a,b] = [...pointers.values()];
@@ -443,7 +529,6 @@ addEventListener("keydown", e=>{
     case "Escape":     closeSettings(); break;
     default: return;
   }
-  hideWelcome();
 });
 addEventListener("keyup", e=>{
   if(e.code==="ArrowUp"||e.code==="KeyW") heldPan.delete("u");
@@ -474,7 +559,8 @@ function pollPad(){
 const elTools = document.getElementById("tools"), elTransport = document.getElementById("transport");
 const elHud = document.getElementById("hud"), elHint = document.getElementById("hint");
 const scrubWrap = document.getElementById("scrubwrap"), scrub = document.getElementById("scrub");
-const settingsSheet = document.getElementById("settings"), welcomeSheet = document.getElementById("welcome");
+const settingsSheet = document.getElementById("settings");
+const mainmenuSheet = document.getElementById("mainmenu"), levelselectSheet = document.getElementById("levelselect"), winSheet = document.getElementById("winsheet");
 const opts = { grid:true, trail:true, snap:true };
 const btns = {};
 
@@ -535,8 +621,9 @@ function updateScrub(){
 }
 scrub.addEventListener("input", ()=>{
   scrubbing = true; playing = false; syncTransport();
-  const f = rec[Math.min(rec.length-1, Math.max(0, +scrub.value))];
-  if(f){ restore(f); cam.auto = true; }
+  const i = Math.min(rec.length-1, Math.max(0, +scrub.value));
+  const f = rec[i];
+  if(f){ restore(f); cam.auto = true; simFrame = i; }
 });
 scrub.addEventListener("change", ()=>{ scrubbing = false; });
 
@@ -549,6 +636,8 @@ document.getElementById("lbHelpTitle").textContent = STR.settingsHelpTitle;
 document.getElementById("credits").textContent = STR.settingsCredits;
 document.getElementById("btnClear").textContent = STR.settingsClear;
 document.getElementById("btnCloseSettings").textContent = STR.settingsClose;
+document.getElementById("btnMenu").textContent = STR.settingsMenu;
+document.getElementById("btnMenu").onclick = ()=>{ closeSettings(); playing=false; syncTransport(); showSheet(mainmenuSheet); };
 const helpList = document.getElementById("helpList");
 for(const line of STR.settingsHelp){ const li=document.createElement("li"); li.textContent=line; helpList.appendChild(li); }
 const swGrid = document.getElementById("swGrid"), swTrail = document.getElementById("swTrail"), swSnap = document.getElementById("swSnap");
@@ -563,13 +652,60 @@ settingsSheet.addEventListener("pointerdown", e=>{ if(e.target===settingsSheet) 
 function openSettings(){ playing=false; syncTransport(); settingsSheet.classList.add("show"); }
 function closeSettings(){ settingsSheet.classList.remove("show"); }
 
-/* welcome */
+/* menus */
+function showSheet(el){ el.classList.add("show"); }
+function hideSheet(el){ el.classList.remove("show"); }
+
 document.getElementById("wTitle").textContent = STR.welcomeTitle;
 document.getElementById("wBody").textContent  = STR.welcomeBody;
-const wStart = document.getElementById("wStart"); wStart.textContent = STR.welcomeStart;
-let welcomeGone = false;
-function hideWelcome(){ if(!welcomeGone){ welcomeGone = true; welcomeSheet.classList.remove("show"); showHint(STR.hintDraw); } }
-wStart.onclick = hideWelcome;
+const btnFreeDraw = document.getElementById("btnFreeDraw"), btnCampaign = document.getElementById("btnCampaign");
+btnFreeDraw.textContent = STR.btnFreeDraw;
+btnCampaign.textContent = STR.btnCampaign;
+btnFreeDraw.onclick = ()=>{ hideSheet(mainmenuSheet); enterFreeDraw(); showHint(STR.hintDraw); };
+btnCampaign.onclick = ()=>{ hideSheet(mainmenuSheet); openLevelSelect(); };
+
+document.getElementById("lsTitle").textContent = STR.levelSelectTitle;
+const levelList = document.getElementById("levelList");
+const btnLsBack = document.getElementById("btnLsBack"); btnLsBack.textContent = STR.btnBackToMenu;
+btnLsBack.onclick = ()=>{ hideSheet(levelselectSheet); showSheet(mainmenuSheet); };
+function openLevelSelect(){
+  const progress = loadProgress();
+  levelList.textContent = "";
+  LEVELS.forEach((lvl, n)=>{
+    const unlocked = levelUnlocked(n, progress);
+    const done = progress.completed.includes(n);
+    const b = document.createElement("button");
+    b.className = "lvlbtn" + (unlocked ? "" : " locked");
+    b.innerHTML = `<span>${STR.levelWord} ${n+1}</span><span class="badge">${done ? STR.completedBadge : (unlocked ? "" : STR.lockedLabel)}</span>`;
+    if(unlocked) b.onclick = ()=>{ hideSheet(levelselectSheet); loadLevel(n); showHint(STR.hintDraw); };
+    levelList.appendChild(b);
+  });
+  showSheet(levelselectSheet);
+}
+
+document.getElementById("winTitle").textContent = STR.winTitle;
+document.getElementById("winBody").textContent = STR.winBody;
+const winButtons = document.getElementById("winButtons");
+function onLevelWon(){
+  const p = loadProgress();
+  if(!p.completed.includes(levelIdx)) p.completed.push(levelIdx);
+  saveProgress(p);
+  winButtons.textContent = "";
+  if(levelIdx < LEVELS.length-1){
+    const bNext = document.createElement("button");
+    bNext.className = "txtbtn"; bNext.textContent = STR.btnNextLevel;
+    bNext.onclick = ()=>{ hideSheet(winSheet); loadLevel(levelIdx+1); showHint(STR.hintDraw); };
+    winButtons.appendChild(bNext);
+  }
+  const bSelect = document.createElement("button");
+  bSelect.className = "txtbtn"; bSelect.textContent = STR.btnLevelSelect;
+  bSelect.onclick = ()=>{ hideSheet(winSheet); openLevelSelect(); };
+  const bRetry = document.createElement("button");
+  bRetry.className = "txtbtn"; bRetry.textContent = STR.btnRetryLevel;
+  bRetry.onclick = ()=>{ hideSheet(winSheet); loadLevel(levelIdx); showHint(STR.hintDraw); };
+  winButtons.append(bSelect, bRetry);
+  showSheet(winSheet);
+}
 
 /* orientation hint */
 const rot = document.getElementById("rotate");
@@ -684,6 +820,67 @@ function drawSnapHint(){
   ctx.restore();
 }
 
+function drawObstacles(){
+  if(!LEVEL) return;
+  for(const o of LEVEL.obstacles){
+    const sx = w2sx(o.x), sy = w2sy(o.y), r = o.r*cam.z;
+    const img = IMG.obs_rock;
+    if(img){ const h=r*2.1, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h*0.62, wd, h); continue; }
+    ctx.fillStyle = "#6b6558"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for(let i=0;i<=10;i++){ const a=i/10*Math.PI*2, rr=r*(0.86+jitter(o.x+i,o.y)*0.22);
+      const x=sx+Math.cos(a)*rr, y=sy+Math.sin(a)*rr; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+}
+function drawBoostPads(){
+  if(!LEVEL) return;
+  const pulse = 0.75 + Math.sin(performance.now()/280)*0.25;
+  for(const p of LEVEL.boostPads){
+    const sx = w2sx(p.x), sy = w2sy(p.y), r = p.r*cam.z;
+    const img = IMG.ui_boost_pad;
+    if(img){ ctx.globalAlpha = pulse; const h=r*2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); ctx.globalAlpha=1; continue; }
+    ctx.save();
+    ctx.globalAlpha = pulse; ctx.strokeStyle = "#3a6ea8"; ctx.lineWidth = 2.4; ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.arc(sx, sy, r*0.8, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#3a6ea8";
+    ctx.beginPath();
+    ctx.moveTo(sx-r*0.22, sy+r*0.32); ctx.lineTo(sx+r*0.22, sy+r*0.32); ctx.lineTo(sx, sy-r*0.42);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+}
+function drawEnemies(enemyPositions){
+  if(!LEVEL) return;
+  for(const e of enemyPositions){
+    const sx = w2sx(e.x), sy = w2sy(e.y), r = e.r*cam.z;
+    const img = IMG.enemy_patrol;
+    const bob = Math.sin(performance.now()/220 + e.x)*3*cam.z;
+    if(img){ const h=r*2.2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2+bob, wd, h); continue; }
+    ctx.fillStyle = "#e8e02a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(sx, sy+bob, r*0.82, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  }
+}
+function drawGoal(){
+  if(!LEVEL) return;
+  const sx = w2sx(LEVEL.goal.x), sy = w2sy(LEVEL.goal.y);
+  const glow = 0.5 + Math.sin(performance.now()/260)*0.5;
+  const img = IMG.ui_goal_egg;
+  if(img){
+    const h=64*cam.z, wd=h*img.width/img.height;
+    ctx.save(); ctx.shadowColor = `rgba(212,160,23,${0.55*glow})`; ctx.shadowBlur = 18*cam.z;
+    ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h);
+    ctx.restore();
+    return;
+  }
+  ctx.save();
+  ctx.shadowColor = `rgba(212,160,23,${0.55*glow})`; ctx.shadowBlur = 18*cam.z;
+  ctx.fillStyle = "#d4a017"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.ellipse(sx, sy, 15*cam.z, 20*cam.z, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
 function drawStartMarker(){
   const m = IMG.ui_start_marker;
   const sx = w2sx(START.x), sy = w2sy(START.y);
@@ -775,8 +972,12 @@ function render(){
   drawBackground();
   drawTrack();
   drawSnapHint();
+  drawObstacles();
+  drawBoostPads();
+  drawGoal();
   drawStartMarker();
   drawTrail();
+  if(LEVEL) drawEnemies(LEVEL.enemies.map(e => enemyPosAt(e, simFrame*(STEP/1000))));
   drawRider();
   drawCrashBurst();
   drawCelebrateFallback();
@@ -798,10 +999,12 @@ function update(ms){
 
   if(playing && !rider.crashed){
     const impact = physStep(dt);
-    if(impact > CRASH_V){ rider.crashed = true; playing = false; crashT = 0; showHint(STR.statusCrash); syncTransport(); }
+    if(impact > CRASH_V || hazardHit){ rider.crashed = true; playing = false; crashT = 0; showHint(STR.statusCrash); syncTransport(); }
     if(rider.y > START.y + 24000){ playing = false; showHint(STR.statusLost); syncTransport(); }
     if(rec.length < recMax) rec.push(snapshot()); else playing = false;
+    simFrame = rec.length - 1;
     updateScrub();
+    if(goalHit && !won){ won = true; playing = false; onLevelWon(); syncTransport(); }
     const d = dist();
     if(d > maxDist) maxDist = d;
     if(maxDist >= nextMilestone){ nextMilestone += 250; celebrateT = 1.0; showHint(STR.statusMilestone); }
