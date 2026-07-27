@@ -26,12 +26,12 @@ ui_goal_egg,ui,campaign level-complete goal marker,assets/ui_goal_egg.png,shippe
 thumbnail,card,16:9 marketplace cover,-,shipped,image:f37f727b-5786-4e21-82b0-187bfee0f154,gpt_image_2 with hand-lettered title
 favicon,card,1:1 icon,-,shipped,image:c56e4a11-5fcd-4881-bc3c-bd5b6dd33f3e,nano_banana
 tex_canvas_ground,texture,paper surface,-,substituted,procedural,drawn in canvas (cream paper grain + blue rule lines + red margin) per brief allowance
-sfx_draw,audio,draw feedback,-,cut,-,audio deferred - visual game prioritised
-sfx_whoosh_roll,audio,glide loop,-,cut,-,audio deferred
-sfx_impact,audio,crash,-,cut,-,audio deferred
-sfx_milestone,audio,distance milestone,-,cut,-,audio deferred
-sfx_ui_tap,audio,button tap,-,cut,-,audio deferred
-music_bg_loop,audio,background music,-,cut,-,audio deferred
+sfx_draw,audio,pencil-scribble loop while drawing,assets/sfx_draw.mp3,shipped,audio:e86e71d7-3936-4778-ac21-3ea4b2c77989,v8 / mirelo_text_to_audio 4s / loop-seam crossfaded to 3.76s / gentle compression then mean -16.7 dBFS peak -3.4
+sfx_whoosh_roll,audio,glide loop (code scales volume+pitch by speed),assets/sfx_whoosh_roll.mp3,shipped,audio:181591ba-0a4e-4e8f-baa9-edb99b1a0907,v8 / mirelo_text_to_audio 4s / loop-seam crossfaded to 3.76s / compressed / peak -3.5 - retains wide dynamics by nature
+sfx_impact,audio,crash / paper-crumple one-shot,assets/sfx_impact.mp3,shipped,audio:5819d385-1b50-4c22-970e-c6ead217ba01,v8 / mirelo_text_to_audio 2s / one-shot peak-normalised to -4.0 dBFS
+sfx_milestone,audio,distance milestone + campaign goal chime,assets/sfx_milestone.mp3,shipped,audio:c100af11-40c4-45f5-9bfb-a89d9df25729,v8 / mirelo_text_to_audio 2s / one-shot peak-normalised to -4.0 dBFS
+sfx_ui_tap,audio,button tap,assets/sfx_ui_tap.mp3,shipped,audio:1bb96801-f6ae-440d-9246-d27625797a5e,v8 / mirelo_text_to_audio 1s / one-shot peak-normalised to -4.4 dBFS
+music_bg_loop,audio,background music bed,assets/music_bg_loop.mp3,shipped,audio:83cf59d5-c9ac-4f07-960c-0fc9d9d6822c,v8 / sonilo_music 40s / loop-seam crossfaded to 39.47s / mean -19.5 dBFS peak -5.0 - sits in the reference's -18..-20 music band
 # STYLE FORMULA embedded byte-identical in every generation prompt: Loose ballpoint-and-pencil sketch linework on cream notebook paper / hand-wobbly charcoal-grey outlines / muted graphite and sepia washes / hero in poppy red / hazards acid-yellow / flat schoolroom daylight / consistent side-view,,,,,,
 # Key colour for transparency: bright green 00FF00 (hero is poppy red so magenta would bleed into it),,,,,,
 # Packaged assets zip: https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/f83635bc-247a-4f13-863b-1ed1cd2e2dde.zip,,,,,,
@@ -79,3 +79,13 @@ music_bg_loop,audio,background music,-,cut,-,audio deferred
 # v7 source commit 57849a0 (index.html + strings.js changed; logic.js still byte-identical to v4 at 134f1f6e8cb9792be9717da06de731e0).,,,,,,
 # v7 redeployed in place with game_id ad886e8e-81db-4b4b-a95e-af2aff07f0da so the play URL is unchanged: https://plucky-koi-148.higgsfield.gg/,,,,,,
 # v7 verified live: served build contains freePads (9x) and goalR (2x) proving this version shipped; Level 1 reads obstacles:[one rock] boostPads:[] enemies:[] archers:[] goalR:90 as intended for a tutorial; L2 adds a boost pad and L3 the bat confirming the ramp; 22/22 assets return 200.,,,,,,
+# --- v8 (first audio pass - the 6 rows above move from cut to shipped) ---,,,,,,
+# v8 AUDIO DIRECTION derived from references/audio.md (three-layer routing) rather than invented: the papery hand-sketched doodle world translates to small close desk-scale sounds - real paper/pencil foley for action, soft toylike mallets and ukulele for melody, major key, gentle tempo, nothing epic or aggressive.,,,,,,
+# v8 layer budget respected: audio.md allows at most 5 SFX plus music - this game uses exactly 5 SFX (mirelo_text_to_audio) plus 1 music track (sonilo_music). No voice layer - nothing in the game speaks.,,,,,,
+# v8 mastering per audio.md's mix section: continuous beds normalised by mean level; one-shots normalised by peak (their mean is meaningless because they are sparse transients); music to the -18..-20 dBFS band; ear-safety true-peak <= -3 dBFS enforced on every clip and always allowed to override the level target.,,,,,,
+# v8 format note: 5 SFX arrived as mp3 and the music as m4a; all six were transcoded/encoded to mp3 44.1kHz so the filenames match what index.html requests. No code change was needed.,,,,,,
+# v8 deployed game zip: https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/fe86a81a-b06c-4429-88fa-05c6e766beb7.zip  (md5 fc0a7f1e9bf4cbad80597e1f55172175 / 32 entries / 28 assets),,,,,,
+# v8 = v7's 22 image assets + the 6 audio files. Source commit b8e6c23; logic.js still byte-identical to v4.,,,,,,
+# v8 redeployed in place with game_id ad886e8e-81db-4b4b-a95e-af2aff07f0da so the play URL is unchanged: https://plucky-koi-148.higgsfield.gg/,,,,,,
+# v8 verified live in a real browser against the deployed CDN - not just HTTP 200: all 6 files were fetched, decoded via Web Audio decodeAudioData, and actually play() -ed successfully. Decoded PCM peaks measured -3.9/-3.9/-7.9/-6.8/-4.4/-5.4 dBFS (all within the ear-safety limit), all 44.1kHz, durations 3.72/3.72/2.02/2.02/1.02/39.42s. Zero console errors and zero failed requests.,,,,,,
+# v8 NOTE: sfx_whoosh_roll keeps a wide crest factor (peak -3.5 against a much lower mean) - the generated glide bed is gusty rather than a flat hiss. Audible and correct, but if it ever sounds uneven under the speed-scaling code it is the one clip worth regenerating.,,,,,,
