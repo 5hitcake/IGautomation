@@ -9,12 +9,14 @@ export const STR = {
   toolBoostPad: "Boost-Feld",
   actionPlay: "Los",
   actionPause: "Pause",
+  actionFastForward: "Doppeltes Tempo",
   actionRestart: "Neu",
   actionSettings: "Einstellungen",
 
   // Hints
   hintDraw: "Zeichne eine Linie mit dem Finger",
   hintRuler: "Ziehe für eine gerade Linie",
+  hintRulerGone: "Keine Lineale mehr übrig – weiter mit dem Stift",
   hintBoostPad: "Tippe, um ein Boost-Feld zu setzen",
   hintPlay: "Tippe auf Los und lass den Drachen gleiten",
   hintPan: "Zwei Finger: schieben und zoomen",
@@ -47,6 +49,8 @@ export const STR = {
     "Mit dem Radierer wischst du Linien weg.",
     "Im freien Kritzeln: mit dem Boost-Feld-Werkzeug eigene Boost-Felder setzen, der Radierer entfernt sie wieder.",
     "In der Kampagne: Hindernissen ausweichen, Boost-Felder mitnehmen, goldenes Ei erreichen.",
+    "Das Lineal ist in der Kampagne begrenzt - je nach Levellänge stehen dir ein paar gerade Linien zur Verfügung.",
+    "Doppeltes Tempo lässt den Drachen beim Gleiten schneller fliegen.",
     "Leertaste = Los / Pause, R = Neu (Tastatur).",
   ],
   settingsCredits: "Ein Kritzel-Abenteuer auf kariertem Papier",
