@@ -88,13 +88,16 @@
   #mainmenu .card{text-align:center}
   #mainmenu .card p{font-size:16px}
   #winsheet .card{text-align:center}
-  #levelList{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-  .lvlbtn{pointer-events:auto;font:inherit;font-size:16px;text-align:left;border:2px solid #4a4640;border-radius:12px;
-          background:#fdf9ee;padding:10px 16px;cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35);
-          display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .lvlbtn:active{transform:translate(1px,2px);box-shadow:none}
-  .lvlbtn.locked{opacity:.5;cursor:default}
-  .lvlbtn .badge{color:#3a8a4a;font-weight:700}
+  #levelList{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:7px;margin-top:6px;
+             max-height:52vh;overflow-y:auto;padding-right:2px}
+  .lvlgrid{pointer-events:auto;font:inherit;font-size:15px;font-weight:700;text-align:center;border:2px solid #4a4640;
+           border-radius:10px;background:#fdf9ee;padding:9px 2px;cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35);
+           position:relative}
+  .lvlgrid:active{transform:translate(1px,2px);box-shadow:none}
+  .lvlgrid.locked{opacity:.4;cursor:default}
+  .lvlgrid.done{background:#eaf6ea;border-color:#3a8a4a}
+  .lvlgrid.done::after{content:"✓";position:absolute;top:-6px;right:-4px;background:#3a8a4a;color:#fdf9ee;
+           font-size:10px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center}
   @media (max-height:430px){ .btn{width:46px;height:46px;border-radius:12px} #tools,#transport{gap:7px} #hud{font-size:15px;padding:3px 11px} }
 </style>
 </head>
@@ -384,6 +387,77 @@ const LEVELS = [
     archers: [{x:1850, y:460, tx:1850, ty:50, period:1.8}, {x:2650, y:500, tx:2650, ty:50, period:1.6}],
     goal: {x:3100, y:560} },
 ];
+const HANDCRAFTED_COUNT = LEVELS.length; // levels 1-6 stay hand-authored and untouched
+const LEVEL_COUNT = 100;                  // total campaign length, levels 7+ are procedural
+
+// Small deterministic PRNG (mulberry32) - same level number always yields the
+// same layout, so e.g. level 47 looks identical every time it's (re)loaded.
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// Difficulty scales with d = (level number - hand-crafted levels), continuing
+// smoothly from where level 6 leaves off rather than jumping. Track length
+// grows with sqrt(d) (fast early, tapering off so level 100 stays a similar
+// order of magnitude rather than absurdly long); hazard counts and archer
+// firing speed grow step-wise and are capped so late levels stay hard but
+// still fair. Every hazard type is scattered along evenly-spaced x "slots"
+// from just past the start to just before the goal (shuffled order, jittered
+// position) so nothing lines up in a predictable grid.
+function generateLevel(n){
+  const d = n - HANDCRAFTED_COUNT + 1;
+  const rnd = mulberry32(1000 + n*7919);
+  const lengthM = 100 + 25*Math.sqrt(d);
+  const goalX = lengthM * PPM;
+  const slope = 0.18 + rnd()*0.10; // matches the 0.18-0.29 range the hand-crafted levels use
+  const goalY = goalX * slope;
+
+  const nObstacles = Math.min(6, 1 + Math.floor(d/4));
+  const nPads      = Math.min(5, 1 + Math.floor(d/8));
+  const nBats      = Math.min(3, 1 + Math.floor(d/15));
+  const nArchers   = Math.min(4, 1 + Math.floor(d/10));
+
+  const items = [];
+  for(let i=0;i<nObstacles;i++) items.push("obstacle");
+  for(let i=0;i<nPads;i++) items.push("pad");
+  for(let i=0;i<nBats;i++) items.push("bat");
+  for(let i=0;i<nArchers;i++) items.push("archer");
+  for(let i=items.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [items[i],items[j]]=[items[j],items[i]]; }
+
+  const obstacles=[], boostPads=[], enemies=[], archers=[];
+  const marginStart = 260, marginEnd = 260;
+  const usableX = Math.max(400, goalX - marginStart - marginEnd);
+  const slotW = usableX / Math.max(1, items.length);
+  items.forEach((kind, i)=>{
+    const slotX = marginStart + slotW*i + slotW*(0.25 + rnd()*0.5);
+    const y = slotX*slope + (rnd()-0.5)*140;
+    if(kind === "obstacle") obstacles.push({ x:slotX, y, r: 38+rnd()*10 });
+    else if(kind === "pad") boostPads.push({ x:slotX, y, r: 48+rnd()*6 });
+    else if(kind === "bat"){
+      const speed = 1.1 + Math.min(0.7, d*0.01);
+      const range = 130 + rnd()*70;
+      enemies.push({ x0:slotX, y0:y, range, speed, r:30+rnd()*6 });
+    } else {
+      const period = Math.max(1.1, 2.1 - d*0.012);
+      const ty = y - (260 + rnd()*160);
+      archers.push({ x:slotX, y, tx:slotX, ty, period });
+    }
+  });
+
+  return { obstacles, boostPads, enemies, archers, goal: { x:goalX, y:goalY } };
+}
+const levelCache = {};
+function getLevel(n){
+  if(levelCache[n]) return levelCache[n];
+  const lvl = n < HANDCRAFTED_COUNT ? LEVELS[n] : generateLevel(n);
+  levelCache[n] = lvl;
+  return lvl;
+}
+
 const SAVE_KEY = "kritzeldrache_progress_v1";
 function loadProgress(){
   try{ const p = JSON.parse(localStorage.getItem(SAVE_KEY)); return (p && Array.isArray(p.completed)) ? p : {completed:[]}; }
@@ -584,7 +658,7 @@ function restart(showIntro){
   updateScrub(); syncTransport();
 }
 function loadLevel(n){
-  mode = "campaign"; levelIdx = n; LEVEL = LEVELS[n];
+  mode = "campaign"; levelIdx = n; LEVEL = getLevel(n);
   strokes = []; rebuildGrid();
   restart(true);
   syncToolAvailability(); syncRulerBadge();
@@ -771,7 +845,7 @@ const opts = { grid:true, trail:true, snap:true };
 // One delegated listener covers every button (toolbar, transport, settings,
 // menus, level list) instead of wiring a tap sound into each handler.
 document.addEventListener("click", e=>{
-  if(e.target.closest(".btn, .txtbtn, .lvlbtn, .sw")) playOneShot("sfx_ui_tap", 0.6);
+  if(e.target.closest(".btn, .txtbtn, .lvlgrid, .sw")) playOneShot("sfx_ui_tap", 0.6);
 });
 const btns = {};
 
@@ -914,15 +988,16 @@ btnLsBack.onclick = ()=>{ hideSheet(levelselectSheet); showSheet(mainmenuSheet);
 function openLevelSelect(){
   const progress = loadProgress();
   levelList.textContent = "";
-  LEVELS.forEach((lvl, n)=>{
+  for(let n=0; n<LEVEL_COUNT; n++){
     const unlocked = levelUnlocked(n, progress);
     const done = progress.completed.includes(n);
     const b = document.createElement("button");
-    b.className = "lvlbtn" + (unlocked ? "" : " locked");
-    b.innerHTML = `<span>${STR.levelWord} ${n+1}</span><span class="badge">${done ? STR.completedBadge : (unlocked ? "" : STR.lockedLabel)}</span>`;
+    b.className = "lvlgrid" + (unlocked ? "" : " locked") + (done ? " done" : "");
+    b.textContent = n+1;
+    b.title = STR.levelWord + " " + (n+1) + (done ? " - " + STR.completedBadge : (unlocked ? "" : " - " + STR.lockedLabel));
     if(unlocked) b.onclick = ()=>{ hideSheet(levelselectSheet); loadLevel(n); showHint(STR.hintDraw); };
     levelList.appendChild(b);
-  });
+  }
   showSheet(levelselectSheet);
 }
 
@@ -934,7 +1009,7 @@ function onLevelWon(){
   if(!p.completed.includes(levelIdx)) p.completed.push(levelIdx);
   saveProgress(p);
   winButtons.textContent = "";
-  if(levelIdx < LEVELS.length-1){
+  if(levelIdx < LEVEL_COUNT-1){
     const bNext = document.createElement("button");
     bNext.className = "txtbtn"; bNext.textContent = STR.btnNextLevel;
     bNext.onclick = ()=>{ hideSheet(winSheet); loadLevel(levelIdx+1); showHint(STR.hintDraw); };
