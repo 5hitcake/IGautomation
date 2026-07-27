@@ -16,6 +16,10 @@ ui_scrubber_handle,ui,scrub bar handle,assets/ui_scrubber_handle.png,shipped,she
 ui_pan,ui,pan tool icon,assets/ui_pan.png,shipped,sheet:df655d7a-4ae3-4849-9032-c921d7616b14 cell r2c1,added beyond original manifest (pan tool)
 ui_ruler,ui,straight-line (ruler) tool icon,assets/ui_ruler.png,shipped,image:a432d66c-d216-4fb7-bb39-9ef0ac3d263c,gpt_image_2 / green-keyed / 128px / added in v3 - replaces the emoji fallback (no ui_booster asset or tool left in the game)
 ui_start_marker,ui,start point flag decal,assets/ui_start_marker.png,shipped,image:639197e6-fc67-4e59-8993-1b96eb5aa078,world decal / 256px / green-keyed
+obs_rock,sprite,campaign obstacle (hazard),assets/obs_rock.png,shipped,image:842e90ed-6fab-4460-b815-c01b19ff1e76,v4 / nano_banana / 256px / green-keyed / carries the acid-yellow hazard accent per the formula
+enemy_patrol,sprite,campaign patrolling enemy (hazard),assets/enemy_patrol.png,shipped,image:5a99ee26-32c6-4377-96ef-e4b7b8bbbf92,v4 / nano_banana / 256px / green-keyed / spiky critter with acid-yellow spike tips / static sprite - code adds the bobbing motion
+ui_boost_pad,ui,campaign boost pad ground decal (pickup),assets/ui_boost_pad.png,shipped,image:e223e50b-810d-449b-b251-8c3faaa5b623,v4 / nano_banana / 256px / green-keyed / cobalt blue swirl+chevron - deliberately no red and no yellow so it never reads as hero or hazard
+ui_goal_egg,ui,campaign level-complete goal marker,assets/ui_goal_egg.png,shipped,image:3b511fb3-da39-45ef-b154-4ce8433b4994,v4 / nano_banana / 256px / green-keyed / gold-amber egg with sparkle doodles
 thumbnail,card,16:9 marketplace cover,-,shipped,image:f37f727b-5786-4e21-82b0-187bfee0f154,gpt_image_2 with hand-lettered title
 favicon,card,1:1 icon,-,shipped,image:c56e4a11-5fcd-4881-bc3c-bd5b6dd33f3e,nano_banana
 tex_canvas_ground,texture,paper surface,-,substituted,procedural,drawn in canvas (cream paper grain + blue rule lines + red margin) per brief allowance
@@ -43,3 +47,11 @@ music_bg_loop,audio,background music,-,cut,-,audio deferred
 # v3 = v2's 16 assets + ui_ruler.png. Source commit 85a6820 (index.html wires ui_ruler into STATIC_ASSETS); strings.js and logic.js unchanged. Asset-only change otherwise.,,,,,,
 # v3 redeployed in place with game_id ad886e8e-81db-4b4b-a95e-af2aff07f0da so the play URL is unchanged: https://plucky-koi-148.higgsfield.gg/,,,,,,
 # v3 QC: ui_ruler ink 25.3% (siblings 19.3-52.0%) / green leak 0.000% / subject not clipped at any frame edge / 10.5% poppy-red accent over 24.7% graphite - matches the other toolbar icons.,,,,,,
+# --- v4 (campaign mode: 3 levels, obstacles, patrolling enemy, boost pads, golden-egg goal) ---,,,,,,
+# v4 new assets (4): obs_rock 842e90ed-6fab-4460-b815-c01b19ff1e76 / enemy_patrol 5a99ee26-32c6-4377-96ef-e4b7b8bbbf92 / ui_boost_pad e223e50b-810d-449b-b251-8c3faaa5b623 / ui_goal_egg 3b511fb3-da39-45ef-b154-4ce8433b4994. All nano_banana_2 / 1:1 / green 00FF00 key / STYLE FORMULA embedded byte-identical. All 4 landed on the first attempt.,,,,,,
+# v4 deployed game zip: https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/de1fd8ee-2fa1-4147-8448-5361ddd1b449.zip  (md5 cc9e91a9a801410ceb4a90eec16b0f7d / 25 entries / 21 assets),,,,,,
+# v4 = v3's 17 assets + the 4 above. Source commit 441d755 (campaign code); logic.js unchanged. Asset-only work on my side.,,,,,,
+# v4 redeployed in place with game_id ad886e8e-81db-4b4b-a95e-af2aff07f0da so the play URL is unchanged: https://plucky-koi-148.higgsfield.gg/,,,,,,
+# v4 QC (green leak 0.000% on all four): obs_rock ink 65.4% yellow 1.4% / enemy_patrol ink 58.7% yellow 5.5% / ui_boost_pad ink 64.9% blue 7.7% yellow 0.2% red 1.2% / ui_goal_egg ink 51.9% gold. Verified live in a real browser: all 21 assets loaded incl. all 4 new ones, zero console errors, zero failed requests - so none fell back to procedural rendering.,,,,,,
+# v4 NOTE: ui_boost_pad's artwork touches the frame edge, which is expected and harmless for a square ground decal (it is a filled patch, not a free-standing subject).,,,,,,
+# v4 NOTE: the gold-amber goal egg sits between the formula's hero-red and hazard-yellow roles. It reads as distinct in play because its shape and context differ, but it is the one asset that does not occupy a clean palette role.,,,,,,
