@@ -313,16 +313,18 @@ let lastEnd = null;                  // endpoint of the most recently drawn line
 let freePads = [];                   // player-placed boost pads in free-draw mode ({x,y,r})
 const FREE_PAD_R = 50;
 function activeBoostPads(){ return LEVEL ? LEVEL.boostPads : freePads; }
-// Ruler (straight-line) lines are a limited assist in campaign levels, scaled
-// to how far the goal is so longer levels allow proportionally more; free
-// draw always has an unlimited ruler. Computed from the strokes actually on
-// the canvas right now (rather than a decrementing counter) so erasing or
-// undoing a ruler line correctly gives that use back.
-const RULER_PER_METERS = 20, RULER_MIN = 2;
+// Ruler (straight-line) lines are a limited assist in campaign levels: short
+// levels allow only the minimum, longer levels scale up but are capped hard
+// at RULER_MAX so it never becomes a generous "draw the whole track straight"
+// crutch, however long the level gets. Free draw always has an unlimited
+// ruler. Computed from the strokes actually on the canvas right now (rather
+// than a decrementing counter) so erasing or undoing a ruler line correctly
+// gives that use back.
+const RULER_PER_METERS = 20, RULER_MIN = 2, RULER_MAX = 3;
 function rulerBudget(){
   if(!LEVEL) return Infinity;
   const d = Math.hypot(LEVEL.goal.x-START.x, LEVEL.goal.y-START.y)/PPM;
-  return Math.max(RULER_MIN, Math.ceil(d/RULER_PER_METERS));
+  return Math.min(RULER_MAX, Math.max(RULER_MIN, Math.ceil(d/RULER_PER_METERS)));
 }
 function rulerStrokesUsed(){ return strokes.filter(s => s.ruler).length; }
 function rulerUsesLeft(){ return LEVEL ? Math.max(0, rulerBudget()-rulerStrokesUsed()) : Infinity; }
