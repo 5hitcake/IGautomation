@@ -784,12 +784,42 @@ function commitStroke(st){
   updateLastEnd();
   syncRulerBadge();
 }
+// Clips a segment against a circular eraser: returns the sub-segment(s) that
+// survive outside the circle. A long ruler-drawn line is a single segment, so
+// erasing a spot in its middle must cut out just that piece and keep both
+// remaining ends, rather than deleting the whole segment like a filter would.
+function clipSegmentByCircle(s, ex, ey, r){
+  const dx = s.x2-s.x1, dy = s.y2-s.y1;
+  const a = dx*dx+dy*dy;
+  if(a < 1e-9) return [s];
+  const fx = s.x1-ex, fy = s.y1-ey;
+  const b = 2*(fx*dx+fy*dy);
+  const c = fx*fx+fy*fy - r*r;
+  const disc = b*b - 4*a*c;
+  if(disc < 0) return [s];
+  const sq = Math.sqrt(disc);
+  let t1 = (-b-sq)/(2*a), t2 = (-b+sq)/(2*a);
+  if(t1>t2){ const tmp=t1; t1=t2; t2=tmp; }
+  t1 = Math.max(0, t1); t2 = Math.min(1, t2);
+  if(t1 >= t2) return [s];
+  const out = [];
+  const MIN_T = 0.02;
+  if(t1 > MIN_T) out.push({ x1:s.x1, y1:s.y1, x2:s.x1+dx*t1, y2:s.y1+dy*t1 });
+  if(t2 < 1-MIN_T) out.push({ x1:s.x1+dx*t2, y1:s.y1+dy*t2, x2:s.x2, y2:s.y2 });
+  return out;
+}
 function eraseAt(x,y){
   const r2 = ERASE_R*ERASE_R;
   let changed = false;
   for(const st of strokes){
-    const keep = st.segs.filter(s => segDist2(s,x,y) > r2);
-    if(keep.length !== st.segs.length){ st.segs = keep; changed = true; }
+    let touched = false;
+    const keep = [];
+    for(const s of st.segs){
+      if(segDist2(s,x,y) > r2){ keep.push(s); continue; }
+      touched = true;
+      keep.push(...clipSegmentByCircle(s, x, y, ERASE_R));
+    }
+    if(touched){ st.segs = keep; changed = true; }
   }
   if(changed){ strokes = strokes.filter(st => st.segs.length); rebuildGrid(); }
   if(mode === "free" && freePads.length){
