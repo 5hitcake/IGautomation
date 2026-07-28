@@ -51,6 +51,7 @@ export const STR = {
     "In der Kampagne: Hindernissen ausweichen, Boost-Felder mitnehmen, goldenes Ei erreichen.",
     "Das Lineal ist in der Kampagne begrenzt - je nach Levellänge stehen dir ein paar gerade Linien zur Verfügung.",
     "Doppeltes Tempo lässt den Drachen beim Gleiten schneller fliegen.",
+    "Münzen und Truhen unterwegs sind freiwillig - im Shop gegen Farben, Muster und Outfits eintauschbar.",
     "Leertaste = Los / Pause, R = Neu (Tastatur).",
   ],
   settingsCredits: "Ein Kritzel-Abenteuer auf kariertem Papier",
@@ -61,6 +62,22 @@ export const STR = {
   welcomeBody: "Zeichne eine Bahn und schick den Papierdrachen los.",
   btnFreeDraw: "Freies Kritzeln",
   btnCampaign: "Kampagne",
+  btnShop: "Shop",
+
+  // Shop (cosmetics bought with coins collected in campaign levels)
+  shopTitle: "Shop",
+  shopCoinsLabel: "Münzen",
+  shopSectionColors: "Drachenfarbe",
+  shopSectionPatterns: "Muster",
+  shopSectionPenColor: "Stiftfarbe",
+  shopSectionOutfits: "Outfit",
+  shopHintLocked: "Zu wenig Münzen",
+  colorNames: { red:"Rot", blue:"Blau", green:"Grün", purple:"Lila", gold:"Gold" },
+  patternNames: { none:"Ohne", stripes:"Streifen", stars:"Sterne" },
+  outfitNames: {
+    none:"Kein Outfit", goggles:"Fliegerbrille", scarf:"Schal", flower:"Blume",
+    partyhat:"Partyhut", pilotcap:"Pilotenmütze", tophat:"Zylinder", cape:"Umhang", crown:"Krone",
+  },
 
   // Level select
   levelSelectTitle: "Kampagne",

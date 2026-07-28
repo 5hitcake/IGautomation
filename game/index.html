@@ -98,6 +98,18 @@
   .lvlgrid.done{background:#eaf6ea;border-color:#3a8a4a}
   .lvlgrid.done::after{content:"✓";position:absolute;top:-6px;right:-4px;background:#3a8a4a;color:#fdf9ee;
            font-size:10px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+  .swatchgrid{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 14px}
+  .swatch{pointer-events:auto;font:inherit;border:2px solid #4a4640;border-radius:12px;background:#fdf9ee;
+          cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35);padding:6px 8px;display:flex;flex-direction:column;
+          align-items:center;gap:4px;width:74px;position:relative}
+  .swatch:active{transform:translate(1px,2px);box-shadow:none}
+  .swatch .dot{width:26px;height:26px;border-radius:50%;border:2px solid #3f3b35}
+  .swatch .lbl{font-size:11px;line-height:1.15;text-align:center}
+  .swatch .price{font-size:10px;color:#8a8378}
+  .swatch.selected{border-color:#c8302a;background:#fff4d2}
+  .swatch.locked{opacity:.55}
+  .swatch img{width:30px;height:30px;object-fit:contain}
   @media (max-height:430px){ .btn{width:46px;height:46px;border-radius:12px} #tools,#transport{gap:7px} #hud{font-size:15px;padding:3px 11px} }
 </style>
 </head>
@@ -135,6 +147,7 @@
   <div class="cardfoot" style="justify-content:center">
     <button class="txtbtn" id="btnFreeDraw"></button>
     <button class="txtbtn" id="btnCampaign"></button>
+    <button class="txtbtn" id="btnShop"></button>
   </div>
 </div></div>
 
@@ -142,6 +155,16 @@
   <h2 id="lsTitle"></h2>
   <div id="levelList"></div>
   <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="btnLsBack"></button></div>
+</div></div>
+
+<div id="shop" class="sheet"><div class="card">
+  <h2 id="shopTitle"></h2>
+  <p id="shopCoins" style="font-weight:700"></p>
+  <h3 id="shopHColors"></h3><div class="swatchgrid" id="shopColors"></div>
+  <h3 id="shopHPatterns"></h3><div class="swatchgrid" id="shopPatterns"></div>
+  <h3 id="shopHPen"></h3><div class="swatchgrid" id="shopPen"></div>
+  <h3 id="shopHOutfits"></h3><div class="swatchgrid" id="shopOutfits"></div>
+  <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="btnShopBack"></button></div>
 </div></div>
 
 <div id="winsheet" class="sheet"><div class="card">
@@ -177,6 +200,16 @@ const STATIC_ASSETS = {
   ui_boost_pad:    "./assets/ui_boost_pad.png",
   ui_goal_egg:     "./assets/ui_goal_egg.png",
   ui_fastforward:  "./assets/ui_fastforward.png",
+  ui_coin:         "./assets/ui_coin.png",
+  ui_chest:        "./assets/ui_chest.png",
+  acc_goggles:     "./assets/acc_goggles.png",
+  acc_scarf:       "./assets/acc_scarf.png",
+  acc_pilotcap:    "./assets/acc_pilotcap.png",
+  acc_tophat:      "./assets/acc_tophat.png",
+  acc_partyhat:    "./assets/acc_partyhat.png",
+  acc_flower:      "./assets/acc_flower.png",
+  acc_cape:        "./assets/acc_cape.png",
+  acc_crown:       "./assets/acc_crown.png",
 };
 // spritesheets — all playback metadata is parsed out of the filename
 const SHEET_FILES = {
@@ -371,6 +404,69 @@ function segDist2(s,x,y){
 /* ============================ campaign levels ============================ */
 const PAD_BOOST = 900, GOAL_R = 46, ARROW_SPEED = 700, ARROW_R = 11;
 const CATAPULT_SPEED = 260, CATAPULT_R = 20; // a lobbed rock: much slower and bigger than an arrow
+const COIN_R = 22, COIN_VALUE = 1, CHEST_VALUE = 8; // optional pickups - purely cosmetic currency, never required
+
+/* ============================ cosmetics (coins buy purely visual customization) ============================ */
+// Colors are applied as a canvas hue-rotate filter on the existing dragon
+// sprites - no new art needed per color. Patterns are a second procedural
+// pass drawn with globalCompositeOperation "source-atop" so they're clipped
+// to the sprite's own silhouette, again with no new art. Outfits are the
+// only cosmetic that needs real new art (small accessory decals).
+const SKIN_COLORS = [
+  { id:"red",    cost:0,   filter:"none",                                        hex:"#c8302a" }, // default hero red - always unlocked
+  { id:"blue",   cost:30,  filter:"hue-rotate(205deg) saturate(1.1)",             hex:"#2a5ea8" },
+  { id:"green",  cost:30,  filter:"hue-rotate(110deg) saturate(1.15)",            hex:"#2a8a4a" },
+  { id:"purple", cost:50,  filter:"hue-rotate(275deg) saturate(1.15)",            hex:"#7a3aa8" },
+  { id:"gold",   cost:80,  filter:"hue-rotate(40deg) saturate(1.6) brightness(1.15)", hex:"#c8962a" },
+];
+const PATTERNS = [
+  { id:"none",    cost:0 },
+  { id:"stripes", cost:150 },
+  { id:"stars",   cost:150 },
+];
+const OUTFITS = [
+  { id:"none",     cost:0 },
+  { id:"goggles",  cost:40,  asset:"acc_goggles" },
+  { id:"scarf",    cost:40,  asset:"acc_scarf" },
+  { id:"flower",   cost:35,  asset:"acc_flower" },
+  { id:"partyhat", cost:50,  asset:"acc_partyhat" },
+  { id:"pilotcap", cost:60,  asset:"acc_pilotcap" },
+  { id:"tophat",   cost:70,  asset:"acc_tophat" },
+  { id:"cape",     cost:120, asset:"acc_cape" },
+  { id:"crown",    cost:150, asset:"acc_crown" },
+];
+// The pen/line color shares the same unlock list as the dragon's skin
+// colors (unlocking "blue" unlocks it for both), but maps to its own hex
+// values since a hue-rotate filter doesn't apply to vector line strokes -
+// "red" (the default, always-unlocked option) keeps the original charcoal
+// look rather than an actual red line.
+const PEN_COLOR_HEX = { red:"#3f3b35", blue:"#2a5ea8", green:"#2a8a4a", purple:"#7a3aa8", gold:"#a8790a" };
+function penColorHex(){ return PEN_COLOR_HEX[cosmetics.penColor] || "#3f3b35"; }
+const COINS_KEY = "kritzeldrache_coins";
+let coinTotal = 0;
+try{ coinTotal = parseInt(localStorage.getItem(COINS_KEY), 10) || 0; }catch{}
+function saveCoins(){ try{ localStorage.setItem(COINS_KEY, String(coinTotal)); }catch{} }
+
+const COSMETICS_KEY = "kritzeldrache_cosmetics_v1";
+function loadCosmetics(){
+  try{
+    const c = JSON.parse(localStorage.getItem(COSMETICS_KEY));
+    if(c && Array.isArray(c.colors) && Array.isArray(c.patterns) && Array.isArray(c.outfits)) return c;
+  }catch{}
+  return { colors:["red"], patterns:["none"], outfits:["none"], skin:"red", pattern:"none", outfit:"none", penColor:"red" };
+}
+let cosmetics = loadCosmetics();
+function saveCosmetics(){ try{ localStorage.setItem(COSMETICS_KEY, JSON.stringify(cosmetics)); }catch{} }
+function findById(list, id){ return list.find(x => x.id === id) || list[0]; }
+// Scatters a few coins (and optionally one bigger chest) along the straight
+// line from the start to a level's goal - a rough approximation of "near the
+// path most players draw", not a guarantee. That's fine: coins are entirely
+// optional, so an occasional awkward or unreachable one costs nothing.
+function scatterCoins(goal, fractions, chestAt){
+  const pts = fractions.map(t => ({ x: goal.x*t, y: goal.y*t, big:false }));
+  if(chestAt != null) pts.push({ x: goal.x*chestAt, y: goal.y*chestAt, big:true });
+  return pts;
+}
 // Difficulty ramp: L1 is a bare-bones tutorial (one rock, short hop to the
 // goal); each level after it adds exactly one new element type, and L5-L6
 // escalate mainly through more instances and a longer track rather than
@@ -378,29 +474,35 @@ const CATAPULT_SPEED = 260, CATAPULT_R = 20; // a lobbed rock: much slower and b
 const LEVELS = [
   { obstacles: [{x:400, y:100, r:44}],           // L1 - tutorial: one rock, straight shot
     boostPads: [], enemies: [], archers: [], catapults: [],
+    coins: scatterCoins({x:820,y:240}, [0.3,0.6], 0.85),
     goal: {x:820, y:240}, goalR: 90 },           // generous hitbox - a tutorial should forgive an imprecise first line
   { obstacles: [{x:450, y:-20, r:44}],            // L2 - + boost pad
     boostPads: [{x:850, y:150, r:50}],
     enemies: [], archers: [], catapults: [],
+    coins: scatterCoins({x:1300,y:280}, [0.2,0.45,0.7], 0.9),
     goal: {x:1300, y:280} },
   { obstacles: [{x:430, y:-20, r:42}],            // L3 - + patrolling bat
     boostPads: [{x:800, y:130, r:50}],
     enemies: [{x0:1150, y0:60, range:150, speed:1.3, r:32}], archers: [], catapults: [],
+    coins: scatterCoins({x:1600,y:320}, [0.2,0.4,0.65], 0.88),
     goal: {x:1600, y:320} },
   { obstacles: [{x:420, y:-20, r:42}],            // L4 - + archer: all 4 element types now in play
     boostPads: [{x:780, y:120, r:50}],
     enemies: [{x0:1100, y0:60, range:150, speed:1.3, r:32}],
     archers: [{x:1450, y:420, tx:1450, ty:40, period:2.0}], catapults: [],
+    coins: scatterCoins({x:1900,y:360}, [0.15,0.35,0.55,0.75], 0.92),
     goal: {x:1900, y:360} },
   { obstacles: [{x:420, y:-20, r:40}, {x:1300, y:300, r:40}],   // L5 - more of everything, longer
     boostPads: [{x:760, y:110, r:50}, {x:1650, y:480, r:50}],
     enemies: [{x0:1050, y0:60, range:160, speed:1.3, r:32}],
     archers: [{x:1950, y:440, tx:1950, ty:50, period:1.9}], catapults: [],
+    coins: scatterCoins({x:2400,y:500}, [0.15,0.35,0.55,0.75], 0.92),
     goal: {x:2400, y:500} },
   { obstacles: [{x:420, y:-20, r:40}, {x:1150, y:280, r:38}],   // L6 - finale: doubled up, longest
     boostPads: [{x:750, y:110, r:48}, {x:1500, y:420, r:48}],
     enemies: [{x0:1000, y0:60, range:170, speed:1.3, r:30}, {x0:2200, y0:80, range:180, speed:1.1, r:30}],
     archers: [{x:1850, y:460, tx:1850, ty:50, period:1.8}, {x:2650, y:500, tx:2650, ty:50, period:1.6}], catapults: [],
+    coins: scatterCoins({x:3100,y:560}, [0.12,0.3,0.48,0.66,0.84], 0.94),
     goal: {x:3100, y:560} },
 ];
 const HANDCRAFTED_COUNT = LEVELS.length; // levels 1-6 stay hand-authored and untouched
@@ -470,7 +572,19 @@ function generateLevel(n){
     }
   });
 
-  return { obstacles, boostPads, enemies, archers, catapults, goal: { x:goalX, y:goalY } };
+  // Coins are a flavor layer scattered evenly along the same start->goal
+  // baseline, independent of the shuffled hazard slots - purely optional, so
+  // no clearance logic needed against obstacles.
+  const nCoins = Math.min(8, 4 + Math.floor(d/6));
+  const coins = [];
+  for(let i=0;i<nCoins;i++){
+    const t = (i+0.5)/nCoins + (rnd()-0.5)*0.06;
+    const x = goalX*t, y = x*slope + (rnd()-0.5)*90;
+    coins.push({ x, y, big:false });
+  }
+  coins.push({ x: goalX*0.92, y: goalX*0.92*slope, big:true }); // one chest, near the end
+
+  return { obstacles, boostPads, enemies, archers, catapults, coins, goal: { x:goalX, y:goalY } };
 }
 const levelCache = {};
 function getLevel(n){
@@ -585,6 +699,9 @@ function resetRider(){
   animT = 0; crashT = 0; celebrateT = 0; nextMilestone = 250; maxDist = 0;
 }
 let hazardHit = false, goalHit = false;
+// Coins collected during the CURRENT attempt - reset on every restart() so a
+// retry offers them again, matching how boost pads are never "used up".
+let collectedCoins = new Set();
 function substep(h, dynamicHazards){
   rider.vy += GRAV*h;
   rider.x += rider.vx*h; rider.y += rider.vy*h;
@@ -625,6 +742,14 @@ function substep(h, dynamicHazards){
       if(Math.hypot(rider.x-e.x, rider.y-e.y) < RAD+e.r) hazardHit = true;
     }
     if(!won && Math.hypot(rider.x-LEVEL.goal.x, rider.y-LEVEL.goal.y) < (LEVEL.goalR || GOAL_R)) goalHit = true;
+    for(const co of LEVEL.coins){
+      if(collectedCoins.has(co)) continue;
+      if(Math.hypot(rider.x-co.x, rider.y-co.y) < RAD+COIN_R){
+        collectedCoins.add(co);
+        coinTotal += co.big ? CHEST_VALUE : COIN_VALUE;
+        saveCoins();
+      }
+    }
   }
   for(const p of activeBoostPads()){
     if(Math.hypot(rider.x-p.x, rider.y-p.y) < RAD+p.r){
@@ -685,6 +810,7 @@ function setPlaying(on){
 function restart(showIntro){
   playing = false; hasPlayed = false;
   rec = []; trail = []; scrubbing = false; simFrame = 0; won = false;
+  collectedCoins = new Set();
   resetRider();
   introT = 0;
   if(showIntro && LEVEL){
@@ -908,6 +1034,7 @@ const elHud = document.getElementById("hud"), elHint = document.getElementById("
 const scrubWrap = document.getElementById("scrubwrap"), scrub = document.getElementById("scrub");
 const settingsSheet = document.getElementById("settings");
 const mainmenuSheet = document.getElementById("mainmenu"), levelselectSheet = document.getElementById("levelselect"), winSheet = document.getElementById("winsheet");
+const shopSheet = document.getElementById("shop");
 const opts = { grid:true, trail:true, snap:true };
 // One delegated listener covers every button (toolbar, transport, settings,
 // menus, level list) instead of wiring a tap sound into each handler.
@@ -1069,6 +1196,68 @@ function openLevelSelect(){
   showSheet(levelselectSheet);
 }
 
+/* shop - coins collected in campaign levels buy purely cosmetic customization */
+const btnShop = document.getElementById("btnShop"); btnShop.textContent = STR.btnShop;
+btnShop.onclick = ()=>{ hideSheet(mainmenuSheet); openShop(); };
+document.getElementById("shopTitle").textContent = STR.shopTitle;
+document.getElementById("shopHColors").textContent = STR.shopSectionColors;
+document.getElementById("shopHPatterns").textContent = STR.shopSectionPatterns;
+document.getElementById("shopHPen").textContent = STR.shopSectionPenColor;
+document.getElementById("shopHOutfits").textContent = STR.shopSectionOutfits;
+const btnShopBack = document.getElementById("btnShopBack"); btnShopBack.textContent = STR.btnBackToMenu;
+btnShopBack.onclick = ()=>{ hideSheet(shopSheet); showSheet(mainmenuSheet); };
+const shopCoinsEl = document.getElementById("shopCoins");
+// One shared builder for all four swatch rows (colors, patterns, pen color,
+// outfits) - each item is either: not yet unlocked (tap spends coins to
+// unlock it), unlocked-but-not-selected (tap selects it), or selected
+// (shown highlighted). `unlockedKey`/`selectedKey` name which `cosmetics`
+// field this row reads/writes.
+function buildSwatchRow(container, items, names, unlockedKey, selectedKey, opts){
+  container.textContent = "";
+  for(const item of items){
+    const unlocked = cosmetics[unlockedKey].includes(item.id);
+    const selected = cosmetics[selectedKey] === item.id;
+    const b = document.createElement("button");
+    b.className = "swatch" + (selected ? " selected" : "") + (!unlocked ? " locked" : "");
+    if(opts && opts.dot){
+      const dot = document.createElement("div"); dot.className = "dot";
+      dot.style.background = opts.dotColor(item.id);
+      b.appendChild(dot);
+    } else if(opts && opts.asset){
+      const img = IMG[opts.asset(item)];
+      if(img){ const im = document.createElement("img"); im.src = img.src; b.appendChild(im); }
+    }
+    const lbl = document.createElement("div"); lbl.className = "lbl"; lbl.textContent = names[item.id] || item.id;
+    b.appendChild(lbl);
+    if(!unlocked){
+      const price = document.createElement("div"); price.className = "price"; price.textContent = "🪙 " + item.cost;
+      b.appendChild(price);
+    }
+    b.onclick = ()=>{
+      if(!unlocked){
+        if(coinTotal < item.cost){ showHint(STR.shopHintLocked); return; }
+        coinTotal -= item.cost; saveCoins();
+        cosmetics[unlockedKey] = [...cosmetics[unlockedKey], item.id];
+      }
+      cosmetics[selectedKey] = item.id;
+      saveCosmetics();
+      refreshShop();
+    };
+    container.appendChild(b);
+  }
+}
+function refreshShop(){
+  shopCoinsEl.textContent = "🪙 " + coinTotal + " " + STR.shopCoinsLabel;
+  buildSwatchRow(document.getElementById("shopColors"), SKIN_COLORS, STR.colorNames, "colors", "skin",
+    { dot:true, dotColor:id => findById(SKIN_COLORS,id).hex });
+  buildSwatchRow(document.getElementById("shopPatterns"), PATTERNS, STR.patternNames, "patterns", "pattern", {});
+  buildSwatchRow(document.getElementById("shopPen"), SKIN_COLORS, STR.colorNames, "colors", "penColor",
+    { dot:true, dotColor:id => PEN_COLOR_HEX[id] });
+  buildSwatchRow(document.getElementById("shopOutfits"), OUTFITS, STR.outfitNames, "outfits", "outfit",
+    { asset:o => o.asset });
+}
+function openShop(){ refreshShop(); showSheet(shopSheet); }
+
 document.getElementById("winTitle").textContent = STR.winTitle;
 document.getElementById("winBody").textContent = STR.winBody;
 const winButtons = document.getElementById("winButtons");
@@ -1188,14 +1377,15 @@ function drawTrack(){
     lines.push(s);
   }
   const w = Math.max(1.6, 3.4*Math.min(1.6, cam.z));
-  strokeSegs(lines, "#3f3b35", w, 0.92);
+  const penColor = penColorHex();
+  strokeSegs(lines, penColor, w, 0.92);
   if(stroke && stroke.pts && stroke.pts.length > 1){
     const prev=[];
     for(let i=1;i<stroke.pts.length;i++){
       const a=stroke.pts[i-1], b=stroke.pts[i];
       prev.push({x1:a.x,y1:a.y,x2:b.x,y2:b.y});
     }
-    strokeSegs(prev, "#3f3b35", w, 0.55);
+    strokeSegs(prev, penColor, w, 0.55);
   }
 }
 
@@ -1254,6 +1444,20 @@ function drawBoostPads(){
     ctx.moveTo(sx-r*0.22, sy+r*0.32); ctx.lineTo(sx+r*0.22, sy+r*0.32); ctx.lineTo(sx, sy-r*0.42);
     ctx.closePath(); ctx.fill();
     ctx.restore();
+  }
+}
+function drawCoins(){
+  if(!LEVEL || !LEVEL.coins.length) return;
+  const pulse = 0.8 + Math.sin(performance.now()/240)*0.2;
+  for(const co of LEVEL.coins){
+    if(collectedCoins.has(co)) continue; // picked up already this attempt - just hide it
+    const sx = w2sx(co.x), sy = w2sy(co.y), r = (co.big ? COIN_R*1.3 : COIN_R) * cam.z;
+    const img = co.big ? IMG.ui_chest : IMG.ui_coin;
+    ctx.globalAlpha = pulse;
+    if(img){ const h=r*2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); ctx.globalAlpha=1; continue; }
+    ctx.fillStyle = co.big ? "#a86a2a" : "#e0b83a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(sx, sy, r*0.7, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 }
 function drawEnemies(enemyPositions){
@@ -1381,6 +1585,39 @@ function drawTrail(){
   ctx.stroke();
 }
 
+// Cosmetic color/pattern/outfit are applied to every rider draw uniformly
+// (idle, moving, airborne, crashed, celebrating) rather than per-branch, so
+// drawSheet/drawSprite/drawRiderFallback are the only three places this
+// needs to be wired in. Colors are a canvas hue-rotate filter on the
+// existing art (no new art); patterns are a second "source-atop" pass
+// clipped to the sprite's own silhouette (also no new art); outfits are a
+// small accessory image drawn on top.
+function drawPatternOverlay(size, ar){
+  const pat = cosmetics.pattern;
+  if(pat === "none") return;
+  const w = size*ar, h = size;
+  ctx.globalCompositeOperation = "source-atop";
+  ctx.globalAlpha = 0.32;
+  if(pat === "stripes"){
+    ctx.strokeStyle = "#fdf9ee"; ctx.lineWidth = Math.max(2, size*0.07);
+    for(let x=-w; x<w*1.5; x+=size*0.18){ ctx.beginPath(); ctx.moveTo(x,-h); ctx.lineTo(x-h,h); ctx.stroke(); }
+  } else if(pat === "stars"){
+    ctx.fillStyle = "#fdf9ee";
+    for(let i=0;i<14;i++){
+      const px = -w/2 + ((i*0.371)%1)*w, py = -h/2 + ((i*0.617)%1)*h;
+      ctx.beginPath(); ctx.arc(px, py, size*0.032, 0, Math.PI*2); ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+}
+function drawOutfit(size, ar){
+  if(cosmetics.outfit === "none") return;
+  const o = findById(OUTFITS, cosmetics.outfit);
+  const img = IMG[o.asset];
+  if(!img) return;
+  const oh = size*0.5, ow = oh*img.width/img.height;
+  ctx.drawImage(img, size*ar*0.05, -size*0.42, ow, oh);
+}
 function drawSheet(sheet, t, sx, sy, size, ang){
   const idx = sheet.loop
     ? Math.floor(t*sheet.fps) % sheet.frames
@@ -1388,19 +1625,27 @@ function drawSheet(sheet, t, sx, sy, size, ang){
   const col = idx % sheet.cols, row = Math.floor(idx / sheet.cols);
   const ar = sheet.cw/sheet.ch;
   ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.filter = findById(SKIN_COLORS, cosmetics.skin).filter;
   ctx.drawImage(sheet.img, col*sheet.cw, row*sheet.ch, sheet.cw, sheet.ch,
                 -size*ar/2, -size/2, size*ar, size);
+  ctx.filter = "none";
+  drawPatternOverlay(size, ar);
+  drawOutfit(size, ar);
   ctx.restore();
 }
 function drawSprite(im, sx, sy, size, ang){
   const ar = im.width/im.height;
   ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.filter = findById(SKIN_COLORS, cosmetics.skin).filter;
   ctx.drawImage(im, -size*ar/2, -size/2, size*ar, size);
+  ctx.filter = "none";
+  drawPatternOverlay(size, ar);
+  drawOutfit(size, ar);
   ctx.restore();
 }
 function drawRiderFallback(sx, sy, size, ang){
   ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
-  ctx.fillStyle = "#c8302a"; ctx.strokeStyle="#3f3b35"; ctx.lineWidth = Math.max(1.4, size*0.05);
+  ctx.fillStyle = findById(SKIN_COLORS, cosmetics.skin).hex; ctx.strokeStyle="#3f3b35"; ctx.lineWidth = Math.max(1.4, size*0.05);
   ctx.beginPath();
   ctx.moveTo(size*0.55, 0); ctx.lineTo(-size*0.45, -size*0.30);
   ctx.lineTo(-size*0.22, 0); ctx.lineTo(-size*0.45, size*0.30);
@@ -1447,6 +1692,7 @@ function render(){
   drawObstacles();
   drawArchers();
   drawCatapults();
+  drawCoins();
   drawBoostPads();
   drawGoal();
   drawStartMarker();
