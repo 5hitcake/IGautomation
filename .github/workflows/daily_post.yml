@@ -13,7 +13,11 @@ jobs:
   post:
     runs-on: ubuntu-latest
     steps:
-      - name: Nur bei 16 Uhr deutscher Zeit fortfahren
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nur einmal taeglich ab 16 Uhr deutscher Zeit posten
         id: gate
         run: |
           if [ "${{ github.event_name }}" != "schedule" ]; then
@@ -21,15 +25,18 @@ jobs:
             exit 0
           fi
           hour="$(TZ="Europe/Berlin" date +%H)"
-          if [ "$hour" = "16" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
+          if [ "$hour" -lt 16 ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Ueberspringe: aktuell $hour Uhr deutscher Zeit, nicht 16 Uhr (redundanter Cron-Trigger wegen Zeitumstellung)."
+            echo "Ueberspringe: erst $hour Uhr deutscher Zeit, noch vor 16 Uhr."
+            exit 0
           fi
-
-      - uses: actions/checkout@v4
-        if: steps.gate.outputs.run == 'true'
+          today="$(date -u +%Y-%m-%d)"
+          if git log --grep="Neuer Zitat-Post: $today" --oneline | grep -q .; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Ueberspringe: heute ($today) wurde bereits gepostet (redundanter, verspaeteter Cron-Trigger)."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-python@v5
         if: steps.gate.outputs.run == 'true'
