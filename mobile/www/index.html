@@ -478,15 +478,58 @@ const OUTFITS = [
 // yet and default to scale 1. `rot` (radians) applies an extra rotation to
 // just that decal, for accessories whose art needs tilting independent of
 // the sprite's own rotation.
+// idle values are either measured directly (goggles, confirmed correct by
+// the user) or estimated from the same measured head landmarks (the rest).
+// moving/airborne values are NOT independently measured - they're each
+// idle's anchor shifted by that pose's measured head_center delta from
+// idle's head_center (mobile/debug/outfit-check/char_move-geometry.json):
+//   moving delta   = (+0.015, +0.115)  -- head sits lower & slightly forward while gliding
+//   airborne delta = (+0.132, +0.420)  -- steep nose-down dive, head far lower still
+// This assumes an accessory's offset from the head stays roughly constant
+// across poses, which is a reasonable approximation, not a measurement -
+// goggles is the only entry with real per-pose confidence for "moving" too
+// (delta applied on top of its user-confirmed idle value).
 const OUTFIT_ANCHOR = {
-  goggles:  { idle: { dx:0.26, dy:-0.36, scale:0.85 } }, // over the eyes
-  flower:   { idle: { dx:0.20, dy:-0.35 } }, // near the head, upper/back of it
-  scarf:    { idle: { dx:0.12, dy: 0.08 } }, // neck/collar, where head meets body
-  partyhat: { idle: { dx:0.25, dy:-0.46 } }, // on top of the head
-  pilotcap: { idle: { dx:0.25, dy:-0.44 } }, // on top of the head
-  tophat:   { idle: { dx:0.25, dy:-0.48 } }, // on top of the head
-  crown:    { idle: { dx:0.25, dy:-0.48 } }, // on top of the head
-  cape:     { idle: { dx:-0.15, dy:-0.20 } }, // upper back, opposite the head
+  goggles:  {
+    idle:     { dx:0.26,  dy:-0.36,  scale:0.85 }, // over the eyes - user-confirmed
+    moving:   { dx:0.275, dy:-0.245, scale:0.85 },
+    airborne: { dx:0.392, dy: 0.060, scale:0.85 },
+  },
+  flower: {
+    idle:     { dx:0.20,  dy:-0.35 },
+    moving:   { dx:0.215, dy:-0.235 },
+    airborne: { dx:0.332, dy: 0.070 },
+  },
+  scarf: {
+    idle:     { dx:0.14,  dy: 0.06,  scale:0.78 }, // neck/collar
+    moving:   { dx:0.155, dy: 0.175, scale:0.78 },
+    airborne: { dx:0.272, dy: 0.480, scale:0.78 },
+  },
+  partyhat: {
+    idle:     { dx:0.25,  dy:-0.46,  scale:0.78 }, // top of the head
+    moving:   { dx:0.265, dy:-0.345, scale:0.78 },
+    airborne: { dx:0.382, dy:-0.040, scale:0.78 },
+  },
+  pilotcap: {
+    idle:     { dx:0.25,  dy:-0.44,  scale:0.78 },
+    moving:   { dx:0.265, dy:-0.325, scale:0.78 },
+    airborne: { dx:0.382, dy:-0.020, scale:0.78 },
+  },
+  tophat: {
+    idle:     { dx:0.25,  dy:-0.48 },
+    moving:   { dx:0.265, dy:-0.365 },
+    airborne: { dx:0.382, dy:-0.060 },
+  },
+  crown: {
+    idle:     { dx:0.25,  dy:-0.48 },
+    moving:   { dx:0.265, dy:-0.365 },
+    airborne: { dx:0.382, dy:-0.060 },
+  },
+  cape: {
+    idle:     { dx:-0.10, dy:-0.15,  scale:1.12 }, // upper back
+    moving:   { dx:-0.085,dy:-0.035, scale:1.12 },
+    airborne: { dx:0.032, dy: 0.270, scale:1.12 },
+  },
 };
 function getOutfitAnchor(outfitId, pose){
   const byPose = OUTFIT_ANCHOR[outfitId];
