@@ -501,13 +501,14 @@ const OUTFIT_ANCHOR = {
     airborne: { dx:0.332, dy: 0.070 },
   },
   scarf: {
-    // Moved up substantially from the first pass, which the user's screenshot
-    // showed sitting at the front leg/chest, nowhere near the neck - pulled
-    // in to sit right at the head/body junction instead (near head_bbox's
-    // left edge, dx 0.179 in the idle geometry).
-    idle:     { dx:0.18,  dy:-0.12,  scale:0.78 }, // neck/collar
-    moving:   { dx:0.195, dy: 0.00,  scale:0.78 },
-    airborne: { dx:0.312, dy: 0.30,  scale:0.78 },
+    // Position confirmed correct by the user (right at the neck). But the
+    // art reads as a ring viewed face-on (its opening pointed at the
+    // viewer, showing the "inside"), not wrapped around the neck in
+    // profile - rotating it 90 degrees presents its band edge-on instead,
+    // which is what the user asked for and needs no new art.
+    idle:     { dx:0.18,  dy:-0.12,  scale:0.78, rot:Math.PI/2 }, // neck/collar
+    moving:   { dx:0.195, dy: 0.00,  scale:0.78, rot:Math.PI/2 },
+    airborne: { dx:0.312, dy: 0.30,  scale:0.78, rot:Math.PI/2 },
   },
   partyhat: {
     idle:     { dx:0.25,  dy:-0.46,  scale:0.78 }, // top of the head
