@@ -1,0 +1,1820 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f3ead6">
+<title>Kritzeldrache</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#f3ead6;
+    -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;
+    font-family:"Bradley Hand","Segoe Print","Comic Sans MS",system-ui,sans-serif;color:#3a3733;overscroll-behavior:none}
+  canvas{display:block;position:fixed;inset:0;touch-action:none}
+  #dev{position:fixed;top:4px;left:50%;transform:translateX(-50%);color:#2b7;font:12px monospace;display:none;z-index:99}
+
+  #ui{position:fixed;inset:0;pointer-events:none;z-index:10;
+      padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right))
+              calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+
+  .btn{pointer-events:auto;width:54px;height:54px;border:2px solid #4a4640;border-radius:14px;
+       background:rgba(253,249,238,.92);display:flex;align-items:center;justify-content:center;
+       box-shadow:1px 2px 0 rgba(74,70,64,.35);cursor:pointer;padding:0;position:relative;
+       transition:transform .08s ease, background .12s ease}
+  .btn:active{transform:translate(1px,2px);box-shadow:0 0 0 rgba(0,0,0,0)}
+  .btn img{width:74%;height:74%;object-fit:contain;pointer-events:none;display:block}
+  .btn .fb{font-size:22px;font-weight:700;color:#3a3733;line-height:1}
+  .btn.on{background:#fff4d2;border-color:#c8302a;box-shadow:1px 2px 0 rgba(200,48,42,.45)}
+  .btn.on::after{content:"";position:absolute;inset:-5px;border:2px dashed #c8302a;border-radius:18px;opacity:.55}
+  .btn .count{position:absolute;bottom:-5px;right:-5px;background:#c8302a;color:#fdf9ee;font-size:11px;font-weight:700;
+              min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+              padding:0 3px;border:1.5px solid #fdf9ee;line-height:1}
+  .btn.depleted .count{background:#8a8378}
+
+  #tools{position:absolute;left:calc(10px + env(safe-area-inset-left));top:50%;transform:translateY(-50%);
+         display:flex;flex-direction:column;gap:10px}
+  #transport{position:absolute;right:calc(10px + env(safe-area-inset-right));top:50%;transform:translateY(-50%);
+         display:flex;flex-direction:column;gap:10px}
+  #hud{position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);
+       background:rgba(253,249,238,.85);border:2px solid #4a4640;border-radius:12px;padding:4px 14px;
+       font-size:17px;white-space:nowrap;letter-spacing:.3px}
+  #hint{position:absolute;left:50%;bottom:calc(64px + env(safe-area-inset-bottom));transform:translateX(-50%);
+        background:rgba(253,249,238,.9);border:2px dashed #8a8378;border-radius:12px;padding:5px 14px;
+        font-size:15px;white-space:nowrap;opacity:0;transition:opacity .35s ease;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
+  #hint.show{opacity:1}
+
+  #scrubwrap{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));
+             width:min(62vw,520px);pointer-events:auto;display:none;
+             background:rgba(253,249,238,.9);border:2px solid #4a4640;border-radius:14px;padding:7px 14px 5px}
+  #scrubwrap.show{display:block}
+  #scrub{width:100%;-webkit-appearance:none;appearance:none;background:transparent;height:26px;margin:0;display:block}
+  #scrub::-webkit-slider-runnable-track{height:6px;background:#d8cdb4;border:2px solid #4a4640;border-radius:6px}
+  #scrub::-moz-range-track{height:6px;background:#d8cdb4;border:2px solid #4a4640;border-radius:6px}
+  #scrub::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:-14px;
+      border-radius:50%;background:#c8302a center/86% no-repeat;border:2px solid #4a4640;cursor:pointer}
+  #scrub::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:#c8302a center/86% no-repeat;
+      border:2px solid #4a4640;cursor:pointer}
+  #scrub.hasthumb::-webkit-slider-thumb{background-color:transparent;border-color:transparent}
+  #scrub.hasthumb::-moz-range-thumb{background-color:transparent;border-color:transparent}
+
+  .sheet{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+         background:rgba(58,55,51,.42);padding:14px;pointer-events:auto}
+  .sheet.show{display:flex}
+  .card{background:#fdf9ee;border:2px solid #4a4640;border-radius:18px;box-shadow:3px 4px 0 rgba(74,70,64,.35);
+        padding:16px 18px;max-width:520px;width:100%;max-height:88vh;overflow:auto}
+  .card h2{margin:0 0 8px;font-size:22px}
+  .card h3{margin:12px 0 4px;font-size:16px}
+  .card ul{margin:4px 0 0;padding-left:18px;font-size:14px;line-height:1.5}
+  .card p{font-size:14px;line-height:1.45;margin:6px 0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;font-size:16px;
+       border-bottom:1px dashed #ccc1a8}
+  .row:last-of-type{border-bottom:0}
+  .sw{width:52px;height:29px;border:2px solid #4a4640;border-radius:15px;background:#e6dcc4;position:relative;
+      cursor:pointer;flex:none}
+  .sw i{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:#8a8378;
+        transition:left .14s ease,background .14s ease}
+  .sw.on{background:#ffe9a8}.sw.on i{left:25px;background:#c8302a}
+  .txtbtn{pointer-events:auto;font:inherit;font-size:16px;border:2px solid #4a4640;border-radius:12px;
+          background:#fdf9ee;padding:8px 16px;cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35)}
+  .txtbtn:active{transform:translate(1px,2px);box-shadow:none}
+  .txtbtn.danger{border-color:#c8302a;color:#c8302a}
+  .cardfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+
+  #rotate{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:40;
+          background:#fff4d2;border:2px solid #c8302a;border-radius:14px;padding:8px 16px;text-align:center;
+          box-shadow:2px 3px 0 rgba(74,70,64,.3);display:none;max-width:92vw}
+  #rotate.show{display:block}
+  #rotate b{display:block;font-size:16px}#rotate span{font-size:13px;color:#6b665e}
+
+  #mainmenu .card{text-align:center}
+  #mainmenu .card p{font-size:16px}
+  #winsheet .card{text-align:center}
+  #levelList{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:7px;margin-top:6px;
+             max-height:52vh;overflow-y:auto;padding-right:2px}
+  .lvlgrid{pointer-events:auto;font:inherit;font-size:15px;font-weight:700;text-align:center;border:2px solid #4a4640;
+           border-radius:10px;background:#fdf9ee;padding:9px 2px;cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35);
+           position:relative}
+  .lvlgrid:active{transform:translate(1px,2px);box-shadow:none}
+  .lvlgrid.locked{opacity:.4;cursor:default}
+  .lvlgrid.done{background:#eaf6ea;border-color:#3a8a4a}
+  .lvlgrid.done::after{content:"✓";position:absolute;top:-6px;right:-4px;background:#3a8a4a;color:#fdf9ee;
+           font-size:10px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+  .swatchgrid{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 14px}
+  .swatch{pointer-events:auto;font:inherit;border:2px solid #4a4640;border-radius:12px;background:#fdf9ee;
+          cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35);padding:6px 8px;display:flex;flex-direction:column;
+          align-items:center;gap:4px;width:74px;position:relative}
+  .swatch:active{transform:translate(1px,2px);box-shadow:none}
+  .swatch .dot{width:26px;height:26px;border-radius:50%;border:2px solid #3f3b35}
+  .swatch .lbl{font-size:11px;line-height:1.15;text-align:center}
+  .swatch .price{font-size:10px;color:#8a8378}
+  .swatch.selected{border-color:#c8302a;background:#fff4d2}
+  .swatch.locked{opacity:.55}
+  .swatch img{width:30px;height:30px;object-fit:contain}
+  @media (max-height:430px){ .btn{width:46px;height:46px;border-radius:12px} #tools,#transport{gap:7px} #hud{font-size:15px;padding:3px 11px} }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="dev"></div>
+
+<div id="ui">
+  <div id="tools"></div>
+  <div id="transport"></div>
+  <div id="hud"></div>
+  <div id="hint"></div>
+  <div id="scrubwrap"><input id="scrub" type="range" min="0" max="1" value="0" step="1"></div>
+</div>
+
+<div id="rotate"><b></b><span></span></div>
+
+<div id="settings" class="sheet"><div class="card">
+  <h2 id="stTitle"></h2>
+  <div class="row"><label id="lbGrid"></label><div class="sw" id="swGrid"><i></i></div></div>
+  <div class="row"><label id="lbTrail"></label><div class="sw" id="swTrail"><i></i></div></div>
+  <div class="row"><label id="lbSnap"></label><div class="sw" id="swSnap"><i></i></div></div>
+  <div class="row"><label id="lbSound"></label><div class="sw" id="swSound"><i></i></div></div>
+  <h3 id="lbHelpTitle"></h3><ul id="helpList"></ul>
+  <p id="credits" style="color:#8a8378"></p>
+  <div class="cardfoot">
+    <button class="txtbtn" id="btnMenu"></button>
+    <button class="txtbtn danger" id="btnClear"></button>
+    <button class="txtbtn" id="btnCloseSettings"></button>
+  </div>
+</div></div>
+
+<div id="mainmenu" class="sheet show"><div class="card">
+  <h2 id="wTitle"></h2><p id="wBody"></p>
+  <div class="cardfoot" style="justify-content:center">
+    <button class="txtbtn" id="btnFreeDraw"></button>
+    <button class="txtbtn" id="btnCampaign"></button>
+    <button class="txtbtn" id="btnShop"></button>
+  </div>
+</div></div>
+
+<div id="levelselect" class="sheet"><div class="card">
+  <h2 id="lsTitle"></h2>
+  <div id="levelList"></div>
+  <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="btnLsBack"></button></div>
+</div></div>
+
+<div id="shop" class="sheet"><div class="card">
+  <h2 id="shopTitle"></h2>
+  <p id="shopCoins" style="font-weight:700"></p>
+  <h3 id="shopHColors"></h3><div class="swatchgrid" id="shopColors"></div>
+  <h3 id="shopHPatterns"></h3><div class="swatchgrid" id="shopPatterns"></div>
+  <h3 id="shopHPen"></h3><div class="swatchgrid" id="shopPen"></div>
+  <h3 id="shopHOutfits"></h3><div class="swatchgrid" id="shopOutfits"></div>
+  <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="btnShopBack"></button></div>
+</div></div>
+
+<div id="winsheet" class="sheet"><div class="card">
+  <h2 id="winTitle"></h2><p id="winBody"></p>
+  <div class="cardfoot" id="winButtons" style="justify-content:center"></div>
+</div></div>
+
+<script type="module">
+import { STR } from "./strings.js";
+
+/* ============================ assets ============================ */
+const IMG = {}, MISSING = [];
+const STATIC_ASSETS = {
+  bg_sky_far:      "./assets/bg_sky_far.jpg",
+  bg_mid:          "./assets/bg_mid.png",
+  char_idle:       "./assets/char_idle.png",
+  char_airborne:   "./assets/char_airborne.png",
+  char_celebrate:  "./assets/char_celebrate.png",
+  ui_start_marker: "./assets/ui_start_marker.png",
+  ui_pencil:       "./assets/ui_pencil.png",
+  ui_ruler:        "./assets/ui_ruler.png",
+  ui_eraser:       "./assets/ui_eraser.png",
+  ui_pan:          "./assets/ui_pan.png",
+  ui_play:         "./assets/ui_play.png",
+  ui_pause:        "./assets/ui_pause.png",
+  ui_restart:      "./assets/ui_restart.png",
+  ui_settings:     "./assets/ui_settings.png",
+  ui_scrubber_handle: "./assets/ui_scrubber_handle.png",
+  obs_rock:        "./assets/obs_rock.png",
+  enemy_bat:       "./assets/enemy_bat.png",
+  enemy_archer:    "./assets/enemy_archer.png",
+  obs_catapult:    "./assets/obs_catapult.png",
+  ui_boost_pad:    "./assets/ui_boost_pad.png",
+  ui_goal_egg:     "./assets/ui_goal_egg.png",
+  ui_fastforward:  "./assets/ui_fastforward.png",
+  ui_coin:         "./assets/ui_coin.png",
+  ui_chest:        "./assets/ui_chest.png",
+  acc_goggles:     "./assets/acc_goggles.png",
+  acc_scarf:       "./assets/acc_scarf.png",
+  acc_pilotcap:    "./assets/acc_pilotcap.png",
+  acc_tophat:      "./assets/acc_tophat.png",
+  acc_partyhat:    "./assets/acc_partyhat.png",
+  acc_flower:      "./assets/acc_flower.png",
+  acc_cape:        "./assets/acc_cape.png",
+  acc_crown:       "./assets/acc_crown.png",
+};
+// spritesheets — all playback metadata is parsed out of the filename
+const SHEET_FILES = {
+  char_move:   "./assets/char_move_f12_288x288_g4x3_fps12_loop.png",
+  char_impact: "./assets/char_impact_f12_288x288_g4x3_fps14_once.png",
+};
+const SHEETS = {};
+function parseSheet(url){
+  const m = /_f(\d+)_(\d+)x(\d+)_g(\d+)x(\d+)_fps(\d+)_(loop|once)\.png$/.exec(url);
+  if(!m) return null;
+  return { frames:+m[1], cw:+m[2], ch:+m[3], cols:+m[4], rows:+m[5], fps:+m[6], loop:m[7]==="loop" };
+}
+function loadImg(url){
+  return new Promise(res=>{
+    const im = new Image();
+    im.onload  = ()=>res(im);
+    im.onerror = ()=>{ MISSING.push(url); res(null); };
+    im.src = url;
+  });
+}
+const assetsReady = (async ()=>{
+  await Promise.all(Object.entries(STATIC_ASSETS).map(async ([k,u])=>{ const i=await loadImg(u); if(i) IMG[k]=i; }));
+  await Promise.all(Object.entries(SHEET_FILES).map(async ([k,u])=>{
+    const i = await loadImg(u); const meta = parseSheet(u);
+    if(i && meta) SHEETS[k] = { img:i, ...meta };
+  }));
+  if(MISSING.length) console.warn("[assets] missing:", MISSING);
+  buildUI();
+})();
+
+/* ============================ audio ============================ */
+const AUDIO_FILES = {
+  sfx_draw:        "./assets/sfx_draw.mp3",
+  sfx_whoosh_roll: "./assets/sfx_whoosh_roll.mp3",
+  sfx_impact:      "./assets/sfx_impact.mp3",
+  sfx_lose_jingle: "./assets/sfx_lose_jingle.mp3",
+  sfx_milestone:   "./assets/sfx_milestone.mp3",
+  sfx_ui_tap:      "./assets/sfx_ui_tap.mp3",
+  music_bg_loop:   "./assets/music_bg_loop.mp3",
+};
+const SND = {};
+const MUTE_KEY = "kritzeldrache_muted";
+let muted = false;
+try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
+let audioUnlocked = false;
+function loadAudio(){
+  for(const [k,u] of Object.entries(AUDIO_FILES)){
+    const a = new Audio(u);
+    a.preload = "auto";
+    a.onerror = () => {}; // missing/blocked audio degrades to silence, same as a missing image falls back visually
+    SND[k] = a;
+  }
+  SND.sfx_draw.loop = true;
+  SND.sfx_whoosh_roll.loop = true;
+  SND.music_bg_loop.loop = true;
+  SND.music_bg_loop.volume = 0.55; // was 0.32 - combined with the track's quiet intro that read as barely audible
+  SND.sfx_draw.volume = 0.42; // ~58% quieter than the previous default (1.0), per user request
+  SND.sfx_whoosh_roll.volume = 0;
+}
+loadAudio();
+function unlockAudio(){
+  audioUnlocked = true;
+  tryStartMusic();
+}
+// Not a one-shot: if the very first play() attempt is rejected by the
+// browser's autoplay policy (timing-dependent, not something we control),
+// a single {once:true} listener would give up on background music for the
+// rest of the session. Retrying on every subsequent interaction - cheap and
+// harmless since it no-ops once the track is actually playing - means it
+// recovers on the very next tap instead of staying silent forever.
+function tryStartMusic(){
+  if(muted || !audioUnlocked) return;
+  if(SND.music_bg_loop.paused){
+    SND.music_bg_loop.play().catch(()=>console.warn("[audio] music_bg_loop play() rejected"));
+  }
+}
+addEventListener("pointerdown", unlockAudio, { passive:true });
+function playOneShot(key, vol){
+  if(muted || !audioUnlocked) return;
+  const src = SND[key];
+  if(!src) return;
+  const node = src.cloneNode(); // clone so overlapping plays don't cut each other off
+  node.volume = vol ?? 1;
+  node.play().catch(()=>{});
+}
+const loopState = {};
+function setLoopPlaying(key, on){
+  const a = SND[key];
+  if(!a || loopState[key] === on) return;
+  loopState[key] = on;
+  if(on){ if(!muted && audioUnlocked) a.play().catch(()=>{}); }
+  else { a.pause(); }
+}
+function setMuted(m){
+  muted = m;
+  try { localStorage.setItem(MUTE_KEY, m ? "1" : "0"); } catch {}
+  for(const a of Object.values(SND)){
+    if(m) a.pause();
+  }
+  if(!m && audioUnlocked){
+    SND.music_bg_loop.play().catch(()=>{});
+    for(const [k,on] of Object.entries(loopState)) if(on) SND[k]?.play().catch(()=>{});
+  }
+}
+
+/* ============================ canvas ============================ */
+const canvas = document.getElementById("c"), ctx = canvas.getContext("2d", { alpha:false });
+const DPR_CAP = 1.5;
+let W = 1, H = 1, DPR = 1;
+function resize(){
+  DPR = Math.min(devicePixelRatio || 1, DPR_CAP);
+  W = innerWidth; H = innerHeight;
+  canvas.width = Math.round(W*DPR); canvas.height = Math.round(H*DPR);
+  canvas.style.width = W+"px"; canvas.style.height = H+"px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  buildPaper();
+  checkOrientation();
+}
+addEventListener("resize", resize);
+addEventListener("orientationchange", ()=>setTimeout(resize,120));
+
+/* ============================ world / camera ============================ */
+const PPM = 30;                     // world px per displayed metre
+const START = { x: 0, y: 0 };
+const cam = { x: 0, y: -60, z: 1, tx: 0, ty: -60, auto:true };
+const w2sx = wx => (wx - cam.x)*cam.z + W/2;
+const w2sy = wy => (wy - cam.y)*cam.z + H/2;
+const s2wx = sx => (sx - W/2)/cam.z + cam.x;
+const s2wy = sy => (sy - H/2)/cam.z + cam.y;
+
+/* ============================ track ============================ */
+let strokes = [];                    // [{segs:[seg,...]}] — for undo
+let segs = [];                       // flat live list
+let lastEnd = null;                  // endpoint of the most recently drawn line, for snapping
+let freePads = [];                   // player-placed boost pads in free-draw mode ({x,y,r})
+const FREE_PAD_R = 50;
+function activeBoostPads(){ return LEVEL ? LEVEL.boostPads : freePads; }
+// Ruler (straight-line) lines are a limited assist in campaign levels: short
+// levels allow only the minimum, longer levels scale up but are capped hard
+// at RULER_MAX so it never becomes a generous "draw the whole track straight"
+// crutch, however long the level gets. Free draw always has an unlimited
+// ruler. Computed from the strokes actually on the canvas right now (rather
+// than a decrementing counter) so erasing or undoing a ruler line correctly
+// gives that use back.
+const RULER_PER_METERS = 20, RULER_MIN = 2, RULER_MAX = 3;
+function rulerBudget(){
+  if(!LEVEL) return Infinity;
+  const d = Math.hypot(LEVEL.goal.x-START.x, LEVEL.goal.y-START.y)/PPM;
+  return Math.min(RULER_MAX, Math.max(RULER_MIN, Math.ceil(d/RULER_PER_METERS)));
+}
+function rulerStrokesUsed(){ return strokes.filter(s => s.ruler).length; }
+function rulerUsesLeft(){ return LEVEL ? Math.max(0, rulerBudget()-rulerStrokesUsed()) : Infinity; }
+const CELL = 140;
+let grid = new Map();
+function gkey(cx,cy){ return cx + "|" + cy; }
+function gridAdd(s){
+  const x0=Math.floor(Math.min(s.x1,s.x2)/CELL), x1=Math.floor(Math.max(s.x1,s.x2)/CELL);
+  const y0=Math.floor(Math.min(s.y1,s.y2)/CELL), y1=Math.floor(Math.max(s.y1,s.y2)/CELL);
+  for(let cx=x0;cx<=x1;cx++) for(let cy=y0;cy<=y1;cy++){
+    const k=gkey(cx,cy); let a=grid.get(k); if(!a){a=[];grid.set(k,a);} a.push(s);
+  }
+}
+function rebuildGrid(){
+  grid = new Map(); segs = [];
+  for(const st of strokes) for(const s of st.segs){ segs.push(s); gridAdd(s); }
+  updateLastEnd();
+}
+function updateLastEnd(){
+  if(strokes.length){
+    const st = strokes[strokes.length-1], s = st.segs[st.segs.length-1];
+    lastEnd = { x:s.x2, y:s.y2 };
+  } else lastEnd = null;
+}
+function queryNear(x,y,r){
+  const out=[], seen=new Set();
+  const x0=Math.floor((x-r)/CELL), x1=Math.floor((x+r)/CELL);
+  const y0=Math.floor((y-r)/CELL), y1=Math.floor((y+r)/CELL);
+  for(let cx=x0;cx<=x1;cx++) for(let cy=y0;cy<=y1;cy++){
+    const a=grid.get(gkey(cx,cy)); if(!a) continue;
+    for(const s of a) if(!seen.has(s)){ seen.add(s); out.push(s); }
+  }
+  return out;
+}
+function segDist2(s,x,y){
+  const dx=s.x2-s.x1, dy=s.y2-s.y1, L2=dx*dx+dy*dy;
+  let t = L2>1e-9 ? ((x-s.x1)*dx+(y-s.y1)*dy)/L2 : 0;
+  t = t<0?0:t>1?1:t;
+  const px=s.x1+dx*t-x, py=s.y1+dy*t-y;
+  return px*px+py*py;
+}
+
+/* ============================ campaign levels ============================ */
+const PAD_BOOST = 900, GOAL_R = 46, ARROW_SPEED = 700, ARROW_R = 11;
+const CATAPULT_SPEED = 260, CATAPULT_R = 20; // a lobbed rock: much slower and bigger than an arrow
+const COIN_R = 22, COIN_VALUE = 1, CHEST_VALUE = 8; // optional pickups - purely cosmetic currency, never required
+
+/* ============================ cosmetics (coins buy purely visual customization) ============================ */
+// Colors are applied as a canvas hue-rotate filter on the existing dragon
+// sprites - no new art needed per color. Patterns are a second procedural
+// pass drawn with globalCompositeOperation "source-atop" so they're clipped
+// to the sprite's own silhouette, again with no new art. Outfits are the
+// only cosmetic that needs real new art (small accessory decals).
+const SKIN_COLORS = [
+  { id:"red",    cost:0,   filter:"none",                                        hex:"#c8302a" }, // default hero red - always unlocked
+  { id:"blue",   cost:30,  filter:"hue-rotate(205deg) saturate(1.1)",             hex:"#2a5ea8" },
+  { id:"green",  cost:30,  filter:"hue-rotate(110deg) saturate(1.15)",            hex:"#2a8a4a" },
+  { id:"purple", cost:50,  filter:"hue-rotate(275deg) saturate(1.15)",            hex:"#7a3aa8" },
+  { id:"gold",   cost:80,  filter:"hue-rotate(40deg) saturate(1.6) brightness(1.15)", hex:"#c8962a" },
+];
+const PATTERNS = [
+  { id:"none",    cost:0 },
+  { id:"stripes", cost:150 },
+  { id:"stars",   cost:150 },
+];
+const OUTFITS = [
+  { id:"none",     cost:0 },
+  { id:"goggles",  cost:40,  asset:"acc_goggles" },
+  { id:"scarf",    cost:40,  asset:"acc_scarf" },
+  { id:"flower",   cost:35,  asset:"acc_flower" },
+  { id:"partyhat", cost:50,  asset:"acc_partyhat" },
+  { id:"pilotcap", cost:60,  asset:"acc_pilotcap" },
+  { id:"tophat",   cost:70,  asset:"acc_tophat" },
+  { id:"cape",     cost:120, asset:"acc_cape" },
+  { id:"crown",    cost:150, asset:"acc_crown" },
+];
+// The pen/line color shares the same unlock list as the dragon's skin
+// colors (unlocking "blue" unlocks it for both), but maps to its own hex
+// values since a hue-rotate filter doesn't apply to vector line strokes -
+// "red" (the default, always-unlocked option) keeps the original charcoal
+// look rather than an actual red line.
+const PEN_COLOR_HEX = { red:"#3f3b35", blue:"#2a5ea8", green:"#2a8a4a", purple:"#7a3aa8", gold:"#a8790a" };
+function penColorHex(){ return PEN_COLOR_HEX[cosmetics.penColor] || "#3f3b35"; }
+const COINS_KEY = "kritzeldrache_coins";
+let coinTotal = 0;
+try{ coinTotal = parseInt(localStorage.getItem(COINS_KEY), 10) || 0; }catch{}
+function saveCoins(){ try{ localStorage.setItem(COINS_KEY, String(coinTotal)); }catch{} }
+
+const COSMETICS_KEY = "kritzeldrache_cosmetics_v1";
+function loadCosmetics(){
+  try{
+    const c = JSON.parse(localStorage.getItem(COSMETICS_KEY));
+    if(c && Array.isArray(c.colors) && Array.isArray(c.patterns) && Array.isArray(c.outfits)) return c;
+  }catch{}
+  return { colors:["red"], patterns:["none"], outfits:["none"], skin:"red", pattern:"none", outfit:"none", penColor:"red" };
+}
+let cosmetics = loadCosmetics();
+function saveCosmetics(){ try{ localStorage.setItem(COSMETICS_KEY, JSON.stringify(cosmetics)); }catch{} }
+function findById(list, id){ return list.find(x => x.id === id) || list[0]; }
+// Scatters a few coins (and optionally one bigger chest) along the straight
+// line from the start to a level's goal - a rough approximation of "near the
+// path most players draw", not a guarantee. That's fine: coins are entirely
+// optional, so an occasional awkward or unreachable one costs nothing.
+function scatterCoins(goal, fractions, chestAt){
+  const pts = fractions.map(t => ({ x: goal.x*t, y: goal.y*t, big:false }));
+  if(chestAt != null) pts.push({ x: goal.x*chestAt, y: goal.y*chestAt, big:true });
+  return pts;
+}
+// Difficulty ramp: L1 is a bare-bones tutorial (one rock, short hop to the
+// goal); each level after it adds exactly one new element type, and L5-L6
+// escalate mainly through more instances and a longer track rather than
+// brand-new mechanics, so the curve steepens instead of staying flat.
+const LEVELS = [
+  { obstacles: [{x:400, y:100, r:44}],           // L1 - tutorial: one rock, straight shot
+    boostPads: [], enemies: [], archers: [], catapults: [],
+    coins: scatterCoins({x:820,y:240}, [0.3,0.6], 0.85),
+    goal: {x:820, y:240}, goalR: 90 },           // generous hitbox - a tutorial should forgive an imprecise first line
+  { obstacles: [{x:450, y:-20, r:44}],            // L2 - + boost pad
+    boostPads: [{x:850, y:150, r:50}],
+    enemies: [], archers: [], catapults: [],
+    coins: scatterCoins({x:1300,y:280}, [0.2,0.45,0.7], 0.9),
+    goal: {x:1300, y:280} },
+  { obstacles: [{x:430, y:-20, r:42}],            // L3 - + patrolling bat
+    boostPads: [{x:800, y:130, r:50}],
+    enemies: [{x0:1150, y0:60, range:150, speed:1.3, r:32}], archers: [], catapults: [],
+    coins: scatterCoins({x:1600,y:320}, [0.2,0.4,0.65], 0.88),
+    goal: {x:1600, y:320} },
+  { obstacles: [{x:420, y:-20, r:42}],            // L4 - + archer: all 4 element types now in play
+    boostPads: [{x:780, y:120, r:50}],
+    enemies: [{x0:1100, y0:60, range:150, speed:1.3, r:32}],
+    archers: [{x:1450, y:420, tx:1450, ty:40, period:2.0}], catapults: [],
+    coins: scatterCoins({x:1900,y:360}, [0.15,0.35,0.55,0.75], 0.92),
+    goal: {x:1900, y:360} },
+  { obstacles: [{x:420, y:-20, r:40}, {x:1300, y:300, r:40}],   // L5 - more of everything, longer
+    boostPads: [{x:760, y:110, r:50}, {x:1650, y:480, r:50}],
+    enemies: [{x0:1050, y0:60, range:160, speed:1.3, r:32}],
+    archers: [{x:1950, y:440, tx:1950, ty:50, period:1.9}], catapults: [],
+    coins: scatterCoins({x:2400,y:500}, [0.15,0.35,0.55,0.75], 0.92),
+    goal: {x:2400, y:500} },
+  { obstacles: [{x:420, y:-20, r:40}, {x:1150, y:280, r:38}],   // L6 - finale: doubled up, longest
+    boostPads: [{x:750, y:110, r:48}, {x:1500, y:420, r:48}],
+    enemies: [{x0:1000, y0:60, range:170, speed:1.3, r:30}, {x0:2200, y0:80, range:180, speed:1.1, r:30}],
+    archers: [{x:1850, y:460, tx:1850, ty:50, period:1.8}, {x:2650, y:500, tx:2650, ty:50, period:1.6}], catapults: [],
+    coins: scatterCoins({x:3100,y:560}, [0.12,0.3,0.48,0.66,0.84], 0.94),
+    goal: {x:3100, y:560} },
+];
+const HANDCRAFTED_COUNT = LEVELS.length; // levels 1-6 stay hand-authored and untouched
+const LEVEL_COUNT = 100;                  // total campaign length, levels 7+ are procedural
+
+// Small deterministic PRNG (mulberry32) - same level number always yields the
+// same layout, so e.g. level 47 looks identical every time it's (re)loaded.
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// Difficulty scales with d = (level number - hand-crafted levels), continuing
+// smoothly from where level 6 leaves off rather than jumping. Track length
+// grows with sqrt(d) (fast early, tapering off so level 100 stays a similar
+// order of magnitude rather than absurdly long); hazard counts and archer
+// firing speed grow step-wise and are capped so late levels stay hard but
+// still fair. Every hazard type is scattered along evenly-spaced x "slots"
+// from just past the start to just before the goal (shuffled order, jittered
+// position) so nothing lines up in a predictable grid.
+function generateLevel(n){
+  const d = n - HANDCRAFTED_COUNT + 1;
+  const rnd = mulberry32(1000 + n*7919);
+  const lengthM = 100 + 25*Math.sqrt(d);
+  const goalX = lengthM * PPM;
+  const slope = 0.18 + rnd()*0.10; // matches the 0.18-0.29 range the hand-crafted levels use
+  const goalY = goalX * slope;
+
+  const nObstacles = Math.min(6, 1 + Math.floor(d/4));
+  const nPads      = Math.min(5, 1 + Math.floor(d/8));
+  const nBats      = Math.min(3, 1 + Math.floor(d/15));
+  const nArchers   = Math.min(4, 1 + Math.floor(d/10));
+  const nCatapults = Math.min(3, Math.floor(Math.max(0, d-15)/12)); // a later-game addition - starts appearing well after archers
+
+  const items = [];
+  for(let i=0;i<nObstacles;i++) items.push("obstacle");
+  for(let i=0;i<nPads;i++) items.push("pad");
+  for(let i=0;i<nBats;i++) items.push("bat");
+  for(let i=0;i<nArchers;i++) items.push("archer");
+  for(let i=0;i<nCatapults;i++) items.push("catapult");
+  for(let i=items.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [items[i],items[j]]=[items[j],items[i]]; }
+
+  const obstacles=[], boostPads=[], enemies=[], archers=[], catapults=[];
+  const marginStart = 260, marginEnd = 260;
+  const usableX = Math.max(400, goalX - marginStart - marginEnd);
+  const slotW = usableX / Math.max(1, items.length);
+  items.forEach((kind, i)=>{
+    const slotX = marginStart + slotW*i + slotW*(0.25 + rnd()*0.5);
+    const y = slotX*slope + (rnd()-0.5)*140;
+    if(kind === "obstacle") obstacles.push({ x:slotX, y, r: 38+rnd()*10 });
+    else if(kind === "pad") boostPads.push({ x:slotX, y, r: 48+rnd()*6 });
+    else if(kind === "bat"){
+      const speed = 1.1 + Math.min(0.7, d*0.01);
+      const range = 130 + rnd()*70;
+      enemies.push({ x0:slotX, y0:y, range, speed, r:30+rnd()*6 });
+    } else if(kind === "archer"){
+      const period = Math.max(1.1, 2.1 - d*0.012);
+      const ty = y - (260 + rnd()*160);
+      archers.push({ x:slotX, y, tx:slotX, ty, period });
+    } else {
+      const period = Math.max(1.6, 2.6 - d*0.01); // slower cadence than archers - it's a heavier, slower threat
+      const tx = slotX + (rnd()<0.5 ? -1 : 1) * (220 + rnd()*140);
+      catapults.push({ x:slotX, y, tx, ty: y, period });
+    }
+  });
+
+  // Coins are a flavor layer scattered evenly along the same start->goal
+  // baseline, independent of the shuffled hazard slots - purely optional, so
+  // no clearance logic needed against obstacles.
+  const nCoins = Math.min(8, 4 + Math.floor(d/6));
+  const coins = [];
+  for(let i=0;i<nCoins;i++){
+    const t = (i+0.5)/nCoins + (rnd()-0.5)*0.06;
+    const x = goalX*t, y = x*slope + (rnd()-0.5)*90;
+    coins.push({ x, y, big:false });
+  }
+  coins.push({ x: goalX*0.92, y: goalX*0.92*slope, big:true }); // one chest, near the end
+
+  return { obstacles, boostPads, enemies, archers, catapults, coins, goal: { x:goalX, y:goalY } };
+}
+const levelCache = {};
+function getLevel(n){
+  if(levelCache[n]) return levelCache[n];
+  const lvl = n < HANDCRAFTED_COUNT ? LEVELS[n] : generateLevel(n);
+  levelCache[n] = lvl;
+  return lvl;
+}
+
+const SAVE_KEY = "kritzeldrache_progress_v1";
+function loadProgress(){
+  try{ const p = JSON.parse(localStorage.getItem(SAVE_KEY)); return (p && Array.isArray(p.completed)) ? p : {completed:[]}; }
+  catch{ return {completed:[]}; }
+}
+function saveProgress(p){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(p)); }catch{} }
+function levelUnlocked(n, progress){ return n === 0 || progress.completed.includes(n-1); }
+function enemyPosAt(e, t){ return { x: e.x0 + Math.sin(t*e.speed)*e.range, y: e.y0, r: e.r }; }
+// An archer fires on a fixed period at a fixed target point; the arrow travels
+// at a constant speed and only exists (as a hazard) while in flight. Pure
+// function of elapsed sim time, like enemyPosAt, so scrubbing stays exact.
+function archerArrowAt(a, t){
+  const dist = Math.hypot(a.tx-a.x, a.ty-a.y);
+  const travelT = dist/ARROW_SPEED;
+  const phase = ((t % a.period) + a.period) % a.period;
+  if(phase > travelT) return null;
+  const f = phase/travelT;
+  return { x: a.x+(a.tx-a.x)*f, y: a.y+(a.ty-a.y)*f, r: ARROW_R, ang: Math.atan2(a.ty-a.y, a.tx-a.x) };
+}
+// A catapult lobs a heavy rock across the track on a fixed period, much
+// slower than an arrow - it arcs (a sine bulge in y over the flight) rather
+// than flying straight, purely as a function of elapsed sim time like the
+// archer's arrow so scrubbing stays exact.
+function catapultRockAt(c, t){
+  const dist = Math.hypot(c.tx-c.x, c.ty-c.y);
+  const travelT = dist/CATAPULT_SPEED;
+  const phase = ((t % c.period) + c.period) % c.period;
+  if(phase > travelT) return null;
+  const f = phase/travelT;
+  const arc = -Math.sin(Math.PI*f) * dist*0.18;
+  return { x: c.x+(c.tx-c.x)*f, y: c.y+(c.ty-c.y)*f+arc, r: CATAPULT_R };
+}
+
+let mode = "free";          // "free" | "campaign"
+let levelIdx = -1;
+let LEVEL = null;            // current level def, or null in free mode
+let won = false;
+
+/* ============================ level intro (overview -> zoom to start) ============================ */
+const INTRO_HOLD = 1.1, INTRO_PAN = 1.3, INTRO_TOTAL = INTRO_HOLD + INTRO_PAN;
+let introT = 0;              // seconds remaining in the intro (0 = not playing / finished)
+let introFrom = null, introTo = null;
+function levelBounds(lvl){
+  const xs = [START.x], ys = [START.y];
+  const add = (x,y) => { xs.push(x); ys.push(y); };
+  for(const o of lvl.obstacles) add(o.x, o.y);
+  for(const p of lvl.boostPads) add(p.x, p.y);
+  for(const e of lvl.enemies){ add(e.x0-e.range, e.y0); add(e.x0+e.range, e.y0); }
+  for(const a of lvl.archers){ add(a.x, a.y); add(a.tx, a.ty); }
+  for(const c of lvl.catapults){ add(c.x, c.y); add(c.tx, c.ty); }
+  add(lvl.goal.x, lvl.goal.y);
+  return { minX:Math.min(...xs), maxX:Math.max(...xs), minY:Math.min(...ys), maxY:Math.max(...ys) };
+}
+function startLevelIntro(){
+  if(!LEVEL){ introT = 0; return; }
+  const b = levelBounds(LEVEL);
+  const pad = 90;
+  const bw = (b.maxX-b.minX) + pad*2, bh = (b.maxY-b.minY) + pad*2;
+  const z = Math.max(0.22, Math.min(1, Math.min(W/bw, H/bh)));
+  introFrom = { x:(b.minX+b.maxX)/2, y:(b.minY+b.maxY)/2, z };
+  introTo   = { x:START.x, y:START.y-60, z:1 };
+  cam.x = introFrom.x; cam.y = introFrom.y; cam.z = introFrom.z; cam.auto = false;
+  introT = INTRO_TOTAL;
+}
+function tickIntro(dt){
+  if(introT <= 0) return;
+  introT = Math.max(0, introT - dt);
+  const panElapsed = INTRO_TOTAL - introT - INTRO_HOLD;
+  if(panElapsed <= 0){
+    cam.x = introFrom.x; cam.y = introFrom.y; cam.z = introFrom.z;
+  } else {
+    let f = Math.min(1, panElapsed / INTRO_PAN);
+    f = f*f*(3 - 2*f); // smoothstep easing
+    cam.x = introFrom.x + (introTo.x-introFrom.x)*f;
+    cam.y = introFrom.y + (introTo.y-introFrom.y)*f;
+    cam.z = introFrom.z + (introTo.z-introFrom.z)*f;
+  }
+  if(introT <= 0){ cam.x = introTo.x; cam.y = introTo.y; cam.z = introTo.z; }
+  cam.tx = cam.x; cam.ty = cam.y;
+}
+function skipIntro(){
+  if(introT <= 0) return;
+  introT = 0; cam.x = introTo.x; cam.y = introTo.y; cam.z = introTo.z; cam.tx = cam.x; cam.ty = cam.y;
+}
+function drawIntroOverlay(){
+  if(introT <= 0 || !LEVEL) return;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, introT); // fades out over the last ~1s as introT counts down to 0
+  ctx.fillStyle = "#3a3733";
+  ctx.font = "600 22px \"Bradley Hand\",\"Segoe Print\",\"Comic Sans MS\",system-ui,sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(STR.levelWord + " " + (levelIdx+1), W/2, 46);
+  ctx.restore();
+}
+
+/* ============================ rider physics ============================ */
+const GRAV = 1500, RAD = 13, FRICTION = 0.030, VMAX = 4200, CRASH_V = 1650;
+const rider = { x:0, y:0, vx:0, vy:0, ang:0, contact:false, crashed:false, wob:0 };
+function resetRider(){
+  rider.x = START.x; rider.y = START.y - RAD;
+  rider.vx = 0; rider.vy = 0; rider.ang = 0;
+  rider.contact = false; rider.crashed = false; rider.wob = 0;
+  animT = 0; crashT = 0; celebrateT = 0; nextMilestone = 250; maxDist = 0;
+}
+let hazardHit = false, goalHit = false;
+// Coins collected during the CURRENT attempt - reset on every restart() so a
+// retry offers them again, matching how boost pads are never "used up".
+let collectedCoins = new Set();
+function substep(h, dynamicHazards){
+  rider.vy += GRAV*h;
+  rider.x += rider.vx*h; rider.y += rider.vy*h;
+  let hit = false, worstImpact = 0, frictionApplied = false;
+  const near = queryNear(rider.x, rider.y, RAD + 6);
+  for(let pass=0; pass<2; pass++){
+    for(const s of near){
+      const dx=s.x2-s.x1, dy=s.y2-s.y1, L2=dx*dx+dy*dy;
+      if(L2 < 1e-9) continue;
+      let t = ((rider.x-s.x1)*dx + (rider.y-s.y1)*dy)/L2;
+      t = t<0?0:t>1?1:t;
+      const cx = s.x1+dx*t, cy = s.y1+dy*t;
+      let nx = rider.x-cx, ny = rider.y-cy, d = Math.hypot(nx,ny);
+      if(d >= RAD) continue;
+      if(d < 1e-6){ const L=Math.sqrt(L2); nx=-dy/L; ny=dx/L; d=1e-6; } else { nx/=d; ny/=d; }
+      rider.x += nx*(RAD-d); rider.y += ny*(RAD-d);
+      let vn = rider.vx*nx + rider.vy*ny;
+      if(vn < 0){ if(-vn > worstImpact) worstImpact = -vn; rider.vx -= vn*nx; rider.vy -= vn*ny; vn = 0; }
+      // Friction (tangential damping) is applied once per substep, not once per
+      // overlapping segment — a hand-drawn line can have several tiny segments
+      // under the rider at once, and damping speed per-segment made freehand
+      // track feel far grabbier than ruler-drawn (single-segment) track.
+      if(!frictionApplied){
+        const tx=-ny, ty=nx;
+        let vt = rider.vx*tx + rider.vy*ty;
+        vt *= (1 - FRICTION);
+        rider.vx = tx*vt + nx*vn; rider.vy = ty*vt + ny*vn;
+        frictionApplied = true;
+      }
+      hit = true;
+    }
+  }
+  if(LEVEL){
+    for(const o of LEVEL.obstacles){
+      if(Math.hypot(rider.x-o.x, rider.y-o.y) < RAD+o.r) hazardHit = true;
+    }
+    for(const e of dynamicHazards){
+      if(Math.hypot(rider.x-e.x, rider.y-e.y) < RAD+e.r) hazardHit = true;
+    }
+    if(!won && Math.hypot(rider.x-LEVEL.goal.x, rider.y-LEVEL.goal.y) < (LEVEL.goalR || GOAL_R)) goalHit = true;
+    for(const co of LEVEL.coins){
+      if(collectedCoins.has(co)) continue;
+      if(Math.hypot(rider.x-co.x, rider.y-co.y) < RAD+COIN_R){
+        collectedCoins.add(co);
+        coinTotal += co.big ? CHEST_VALUE : COIN_VALUE;
+        saveCoins();
+      }
+    }
+  }
+  for(const p of activeBoostPads()){
+    if(Math.hypot(rider.x-p.x, rider.y-p.y) < RAD+p.r){
+      const sp2 = Math.hypot(rider.vx, rider.vy);
+      if(sp2 > 1){ rider.vx += rider.vx/sp2*PAD_BOOST*h; rider.vy += rider.vy/sp2*PAD_BOOST*h; }
+      else { rider.vx += PAD_BOOST*h; }
+    }
+  }
+  const sp = Math.hypot(rider.vx, rider.vy);
+  if(sp > VMAX){ rider.vx = rider.vx/sp*VMAX; rider.vy = rider.vy/sp*VMAX; }
+  rider.contact = hit;
+  return worstImpact;
+}
+function physStep(dt){
+  hazardHit = false; goalHit = false;
+  let dynamicHazards = [];
+  if(LEVEL){
+    const t = simFrame*(STEP/1000);
+    dynamicHazards = LEVEL.enemies.map(e => enemyPosAt(e, t))
+      .concat(LEVEL.archers.map(a => archerArrowAt(a, t)).filter(Boolean))
+      .concat(LEVEL.catapults.map(c => catapultRockAt(c, t)).filter(Boolean));
+  }
+  const sp = Math.hypot(rider.vx, rider.vy);
+  const n = Math.max(1, Math.min(10, Math.ceil(sp*dt/(RAD*0.5))));
+  let worst = 0;
+  for(let i=0;i<n;i++) worst = Math.max(worst, substep(dt/n, dynamicHazards));
+  return worst;
+}
+
+/* ============================ run state ============================ */
+let playing = false, hasPlayed = false;
+let speedMul = 1; // 1 or 2 - fast-forward while gliding, toggled by the transport button
+let rec = [], recMax = 60*150, scrubbing = false;
+let simFrame = 0;            // frame index driving deterministic level-object motion (enemies) — stays in sync with scrubbing
+let animT = 0, crashT = 0, celebrateT = 0, nextMilestone = 250, maxDist = 0;
+let trail = [];
+const dist = () => Math.max(0, (rider.x - START.x)/PPM);
+
+function snapshot(){ return { x:rider.x, y:rider.y, vx:rider.vx, vy:rider.vy, a:rider.ang, c:rider.contact?1:0, k:rider.crashed?1:0 }; }
+function restore(f){
+  rider.x=f.x; rider.y=f.y; rider.vx=f.vx; rider.vy=f.vy; rider.ang=f.a;
+  rider.contact=!!f.c; rider.crashed=!!f.k;
+}
+function setPlaying(on){
+  if(on){
+    if(rider.crashed) return;
+    if(scrubbing || rec.length > 0){
+      const i = +scrub.value;
+      if(rec.length && i < rec.length-1){ rec.length = i+1; restore(rec[i]); trail.length = 0; simFrame = i; }
+    }
+    if(!rec.length) rec.push(snapshot());
+    playing = true; hasPlayed = true; cam.auto = true;
+  } else {
+    playing = false;
+  }
+  syncTransport();
+}
+function restart(showIntro){
+  playing = false; hasPlayed = false;
+  rec = []; trail = []; scrubbing = false; simFrame = 0; won = false;
+  collectedCoins = new Set();
+  resetRider();
+  introT = 0;
+  if(showIntro && LEVEL){
+    startLevelIntro();
+  } else {
+    cam.tx = START.x; cam.ty = START.y - 60; cam.x = cam.tx; cam.y = cam.ty; cam.auto = true;
+  }
+  updateScrub(); syncTransport();
+}
+function loadLevel(n){
+  mode = "campaign"; levelIdx = n; LEVEL = getLevel(n);
+  strokes = []; rebuildGrid();
+  restart(true);
+  syncToolAvailability(); syncRulerBadge();
+}
+function enterFreeDraw(){
+  mode = "free"; levelIdx = -1; LEVEL = null;
+  strokes = []; rebuildGrid(); freePads = [];
+  restart(false);
+  syncToolAvailability(); syncRulerBadge();
+}
+
+/* ============================ input ============================ */
+const TOOL = { PEN:"pen", RULER:"ruler", ERASE:"erase", PAN:"pan", BOOST_PAD:"boostpad" };
+let tool = TOOL.PEN;
+const pointers = new Map();
+let stroke = null, pinch = null, panning = null;
+const MIN_PT = 5, ERASE_R = 26, SNAP_R = 26;
+
+canvas.addEventListener("pointerdown", e=>{
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  skipIntro();
+  if(pointers.size === 2){
+    stroke = null; panning = null;
+    const [a,b] = [...pointers.values()];
+    pinch = { d:Math.hypot(a.x-b.x,a.y-b.y), mx:(a.x+b.x)/2, my:(a.y+b.y)/2,
+              wx:s2wx((a.x+b.x)/2), wy:s2wy((a.y+b.y)/2), z:cam.z };
+    cam.auto = false;
+    return;
+  }
+  if(pointers.size !== 1) return;
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
+  const mousePan = e.pointerType === "mouse" && (e.button === 1 || e.button === 2);
+  if(tool === TOOL.PAN || mousePan){ panning = { sx:e.clientX, sy:e.clientY, cx:cam.x, cy:cam.y }; cam.auto=false; }
+  else if(tool === TOOL.ERASE){ stroke = { erase:true }; eraseAt(wx,wy); }
+  else if(tool === TOOL.BOOST_PAD){
+    if(mode === "free") freePads.push({ x:wx, y:wy, r:FREE_PAD_R });
+  }
+  else {
+    let px = wx, py = wy;
+    if(opts.snap && lastEnd && Math.hypot(px-lastEnd.x, py-lastEnd.y) <= SNAP_R/cam.z){
+      px = lastEnd.x; py = lastEnd.y;
+    }
+    stroke = { pts:[{x:px,y:py}], ruler: tool===TOOL.RULER };
+    setLoopPlaying("sfx_draw", true);
+  }
+}, { passive:false });
+
+canvas.addEventListener("pointermove", e=>{
+  if(!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if(pinch && pointers.size >= 2){
+    const [a,b] = [...pointers.values()];
+    const d = Math.hypot(a.x-b.x, a.y-b.y), mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    if(pinch.d > 8) cam.z = Math.max(0.3, Math.min(2.6, pinch.z * (d/pinch.d)));
+    cam.x = pinch.wx - (mx - W/2)/cam.z;
+    cam.y = pinch.wy - (my - H/2)/cam.z;
+    cam.tx = cam.x; cam.ty = cam.y;
+    return;
+  }
+  if(panning){
+    cam.x = panning.cx - (e.clientX - panning.sx)/cam.z;
+    cam.y = panning.cy - (e.clientY - panning.sy)/cam.z;
+    cam.tx = cam.x; cam.ty = cam.y;
+    return;
+  }
+  if(!stroke) return;
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
+  if(stroke.erase){ eraseAt(wx,wy); return; }
+  if(stroke.ruler){ stroke.pts[1] = { x:wx, y:wy }; return; }
+  const p = stroke.pts[stroke.pts.length-1];
+  if(Math.hypot(wx-p.x, wy-p.y) >= MIN_PT/cam.z) stroke.pts.push({ x:wx, y:wy });
+}, { passive:false });
+
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size < 2) pinch = null;
+  if(pointers.size === 0){
+    panning = null;
+    if(stroke && !stroke.erase) commitStroke(stroke);
+    stroke = null;
+    setLoopPlaying("sfx_draw", false);
+  }
+}
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("contextmenu", e=>e.preventDefault());
+canvas.addEventListener("wheel", e=>{
+  e.preventDefault();
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
+  cam.z = Math.max(0.3, Math.min(2.6, cam.z * (e.deltaY < 0 ? 1.12 : 1/1.12)));
+  cam.x = wx - (e.clientX - W/2)/cam.z; cam.y = wy - (e.clientY - H/2)/cam.z;
+  cam.tx = cam.x; cam.ty = cam.y; cam.auto = false;
+}, { passive:false });
+
+function commitStroke(st){
+  const pts = st.pts;
+  if(pts.length < 2) return;
+  if(st.ruler && LEVEL && rulerUsesLeft() <= 0) return; // budget exhausted - drop the stroke
+  const out = [];
+  for(let i=1;i<pts.length;i++){
+    const a=pts[i-1], b=pts[i];
+    if(Math.hypot(b.x-a.x, b.y-a.y) < 0.6) continue;
+    out.push({ x1:a.x, y1:a.y, x2:b.x, y2:b.y });
+  }
+  if(!out.length) return;
+  strokes.push({ segs:out, ruler: !!st.ruler });
+  for(const s of out){ segs.push(s); gridAdd(s); }
+  updateLastEnd();
+  syncRulerBadge();
+}
+// Clips a segment against a circular eraser: returns the sub-segment(s) that
+// survive outside the circle. A long ruler-drawn line is a single segment, so
+// erasing a spot in its middle must cut out just that piece and keep both
+// remaining ends, rather than deleting the whole segment like a filter would.
+function clipSegmentByCircle(s, ex, ey, r){
+  const dx = s.x2-s.x1, dy = s.y2-s.y1;
+  const a = dx*dx+dy*dy;
+  if(a < 1e-9) return [s];
+  const fx = s.x1-ex, fy = s.y1-ey;
+  const b = 2*(fx*dx+fy*dy);
+  const c = fx*fx+fy*fy - r*r;
+  const disc = b*b - 4*a*c;
+  if(disc < 0) return [s];
+  const sq = Math.sqrt(disc);
+  let t1 = (-b-sq)/(2*a), t2 = (-b+sq)/(2*a);
+  if(t1>t2){ const tmp=t1; t1=t2; t2=tmp; }
+  t1 = Math.max(0, t1); t2 = Math.min(1, t2);
+  if(t1 >= t2) return [s];
+  const out = [];
+  const MIN_T = 0.02;
+  if(t1 > MIN_T) out.push({ x1:s.x1, y1:s.y1, x2:s.x1+dx*t1, y2:s.y1+dy*t1 });
+  if(t2 < 1-MIN_T) out.push({ x1:s.x1+dx*t2, y1:s.y1+dy*t2, x2:s.x2, y2:s.y2 });
+  return out;
+}
+function eraseAt(x,y){
+  const r2 = ERASE_R*ERASE_R;
+  let changed = false;
+  for(const st of strokes){
+    let touched = false;
+    const keep = [];
+    for(const s of st.segs){
+      if(segDist2(s,x,y) > r2){ keep.push(s); continue; }
+      touched = true;
+      keep.push(...clipSegmentByCircle(s, x, y, ERASE_R));
+    }
+    if(touched){ st.segs = keep; changed = true; }
+  }
+  if(changed){ strokes = strokes.filter(st => st.segs.length); rebuildGrid(); }
+  if(mode === "free" && freePads.length){
+    const before = freePads.length;
+    freePads = freePads.filter(p => Math.hypot(p.x-x, p.y-y) > ERASE_R);
+    if(freePads.length !== before) changed = true;
+  }
+  if(changed) syncRulerBadge();
+}
+function undo(){ if(strokes.length){ strokes.pop(); rebuildGrid(); syncRulerBadge(); } }
+function clearAll(){ strokes = []; rebuildGrid(); if(mode === "free") freePads = []; restart(); syncRulerBadge(); }
+
+/* keyboard — physical key codes only */
+const heldPan = new Set();
+addEventListener("keydown", e=>{
+  switch(e.code){
+    case "Space":      setPlaying(!playing); e.preventDefault(); break;
+    case "KeyR":       restart(); break;
+    case "KeyP": case "Digit1": setTool(TOOL.PEN);       break;
+    case "KeyL": case "Digit2": setTool(TOOL.RULER);     break;
+    case "KeyE": case "Digit3": setTool(TOOL.ERASE);     break;
+    case "KeyB": case "Digit4": setTool(TOOL.BOOST_PAD); break;
+    case "KeyH": case "Digit5": setTool(TOOL.PAN);       break;
+    case "KeyZ":       undo(); break;
+    case "Equal": case "NumpadAdd":      cam.z=Math.min(2.6,cam.z*1.15); cam.auto=false; break;
+    case "Minus": case "NumpadSubtract": cam.z=Math.max(0.3,cam.z/1.15); cam.auto=false; break;
+    case "ArrowUp": case "KeyW":    heldPan.add("u"); cam.auto=false; e.preventDefault(); break;
+    case "ArrowDown": case "KeyS":  heldPan.add("d"); cam.auto=false; e.preventDefault(); break;
+    case "ArrowLeft": case "KeyA":  heldPan.add("l"); cam.auto=false; e.preventDefault(); break;
+    case "ArrowRight": case "KeyD": heldPan.add("r"); cam.auto=false; e.preventDefault(); break;
+    case "Escape":     closeSettings(); break;
+    default: return;
+  }
+});
+addEventListener("keyup", e=>{
+  if(e.code==="ArrowUp"||e.code==="KeyW") heldPan.delete("u");
+  if(e.code==="ArrowDown"||e.code==="KeyS") heldPan.delete("d");
+  if(e.code==="ArrowLeft"||e.code==="KeyA") heldPan.delete("l");
+  if(e.code==="ArrowRight"||e.code==="KeyD") heldPan.delete("r");
+});
+
+/* gamepad: A = play/pause, B = restart, d-pad pans */
+let padPrev = {};
+function pollPad(){
+  for(const gp of (navigator.getGamepads?.() ?? [])){
+    if(!gp) continue;
+    const b = gp.buttons;
+    const press = i => b[i]?.pressed && !padPrev[i];
+    if(press(0)) setPlaying(!playing);
+    if(press(1)) restart();
+    if(b[12]?.pressed) { heldPan.add("u"); cam.auto=false; } else heldPan.delete("u");
+    if(b[13]?.pressed) { heldPan.add("d"); cam.auto=false; } else heldPan.delete("d");
+    if(b[14]?.pressed) { heldPan.add("l"); cam.auto=false; } else heldPan.delete("l");
+    if(b[15]?.pressed) { heldPan.add("r"); cam.auto=false; } else heldPan.delete("r");
+    padPrev = {}; b.forEach((bt,i)=>padPrev[i]=bt.pressed);
+    return;
+  }
+}
+
+/* ============================ UI ============================ */
+const elTools = document.getElementById("tools"), elTransport = document.getElementById("transport");
+const elHud = document.getElementById("hud"), elHint = document.getElementById("hint");
+const scrubWrap = document.getElementById("scrubwrap"), scrub = document.getElementById("scrub");
+const settingsSheet = document.getElementById("settings");
+const mainmenuSheet = document.getElementById("mainmenu"), levelselectSheet = document.getElementById("levelselect"), winSheet = document.getElementById("winsheet");
+const shopSheet = document.getElementById("shop");
+const opts = { grid:true, trail:true, snap:true };
+// One delegated listener covers every button (toolbar, transport, settings,
+// menus, level list) instead of wiring a tap sound into each handler.
+document.addEventListener("click", e=>{
+  if(e.target.closest(".btn, .txtbtn, .lvlgrid, .sw")) playOneShot("sfx_ui_tap", 0.6);
+  tryStartMusic();
+});
+const btns = {};
+
+function mkBtn(id, imgKey, label, fallback){
+  const b = document.createElement("button");
+  b.className = "btn"; b.setAttribute("aria-label", label); b.title = label;
+  if(IMG[imgKey]){ const im=document.createElement("img"); im.src=IMG[imgKey].src; im.alt=""; b.appendChild(im); }
+  else { const s=document.createElement("span"); s.className="fb"; s.textContent=fallback; b.appendChild(s); }
+  btns[id] = b; return b;
+}
+function buildUI(){
+  elTools.textContent = ""; elTransport.textContent = "";
+  const bPen   = mkBtn("pen",   "ui_pencil",    STR.toolPencil,   "✎");
+  const bRuler = mkBtn("ruler", "ui_ruler",     STR.toolRuler,    "📏");
+  const bEr    = mkBtn("erase", "ui_eraser",    STR.toolEraser,   "⌧");
+  const bPad   = mkBtn("boostpad", "ui_boost_pad", STR.toolBoostPad, "🌀");
+  const bPan   = mkBtn("pan",   "ui_pan",       STR.hintPan,      "✋");
+  elTools.append(bPen, bRuler, bEr, bPad, bPan);
+  bPen.onclick  = ()=>setTool(TOOL.PEN);
+  bRuler.onclick= ()=>setTool(TOOL.RULER);
+  bEr.onclick   = ()=>setTool(TOOL.ERASE);
+  bPad.onclick  = ()=>setTool(TOOL.BOOST_PAD);
+  bPan.onclick  = ()=>setTool(TOOL.PAN);
+
+  const bPlay = mkBtn("play", "ui_play", STR.actionPlay, "▶");
+  const bFast = mkBtn("fast", "ui_fastforward", STR.actionFastForward, "⏩");
+  const bRe   = mkBtn("restart", "ui_restart", STR.actionRestart, "↺");
+  const bSet  = mkBtn("settings", "ui_settings", STR.actionSettings, "⚙");
+  elTransport.append(bPlay, bFast, bRe, bSet);
+  bPlay.onclick = ()=>setPlaying(!playing);
+  bFast.onclick = ()=>{ speedMul = speedMul===1 ? 2 : 1; bFast.classList.toggle("on", speedMul===2); };
+  bRe.onclick   = ()=>restart();
+  bSet.onclick  = ()=>openSettings();
+
+  setTool(tool); syncTransport(); syncToolAvailability(); syncRulerBadge();
+}
+// Shows the remaining ruler-line count as a small badge on its toolbar button
+// in campaign levels; hidden in free-draw mode where the ruler is unlimited.
+function syncRulerBadge(){
+  const b = btns.ruler;
+  if(!b) return;
+  let badge = b.querySelector(".count");
+  if(!LEVEL){ if(badge) badge.remove(); return; }
+  const left = rulerUsesLeft();
+  if(!badge){ badge = document.createElement("span"); badge.className = "count"; b.appendChild(badge); }
+  badge.textContent = left;
+  b.classList.toggle("depleted", left <= 0);
+}
+function setTool(t){
+  if(t === TOOL.BOOST_PAD && mode !== "free") t = TOOL.PEN;
+  if(t === TOOL.RULER && LEVEL && rulerUsesLeft() <= 0){ showHint(STR.hintRulerGone); t = TOOL.PEN; }
+  tool = t;
+  for(const k of ["pen","ruler","erase","boostpad","pan"]) btns[k]?.classList.toggle("on", k===t);
+  if(t===TOOL.PEN) showHint(STR.hintDraw);
+  if(t===TOOL.RULER) showHint(STR.hintRuler + (LEVEL ? ` (${rulerUsesLeft()}x)` : ""));
+  if(t===TOOL.ERASE) showHint(STR.toolEraser);
+  if(t===TOOL.BOOST_PAD) showHint(STR.hintBoostPad);
+  if(t===TOOL.PAN) showHint(STR.hintPan);
+}
+// The boost-pad placement tool only makes sense in free-draw mode (campaign
+// levels have their own fixed pads) - hide it and bail out of it in campaign.
+function syncToolAvailability(){
+  const showPad = mode === "free";
+  if(btns.boostpad) btns.boostpad.style.display = showPad ? "" : "none";
+  if(!showPad && tool === TOOL.BOOST_PAD) setTool(TOOL.PEN);
+}
+function syncTransport(){
+  const b = btns.play; if(!b) return;
+  const key = playing ? "ui_pause" : "ui_play";
+  const lab = playing ? STR.actionPause : STR.actionPlay;
+  b.setAttribute("aria-label", lab); b.title = lab;
+  const im = b.querySelector("img"), sp = b.querySelector(".fb");
+  if(im && IMG[key]) im.src = IMG[key].src;
+  if(sp) sp.textContent = playing ? "⏸" : "▶";
+}
+let hintT = 0;
+function showHint(txt){ elHint.textContent = txt; elHint.classList.add("show"); hintT = 2600; }
+
+function updateScrub(){
+  const n = rec.length;
+  scrubWrap.classList.toggle("show", n > 8);
+  scrub.max = Math.max(1, n-1);
+  if(!scrubbing) scrub.value = Math.max(0, n-1);
+}
+scrub.addEventListener("input", ()=>{
+  scrubbing = true; playing = false; syncTransport();
+  const i = Math.min(rec.length-1, Math.max(0, +scrub.value));
+  const f = rec[i];
+  if(f){ restore(f); cam.auto = true; simFrame = i; }
+});
+scrub.addEventListener("change", ()=>{ scrubbing = false; });
+
+/* settings */
+document.getElementById("stTitle").textContent = STR.settingsTitle;
+document.getElementById("lbGrid").textContent = STR.settingsGrid;
+document.getElementById("lbTrail").textContent = STR.settingsTrail;
+document.getElementById("lbSnap").textContent = STR.settingsSnap;
+document.getElementById("lbSound").textContent = STR.settingsSound;
+document.getElementById("lbHelpTitle").textContent = STR.settingsHelpTitle;
+document.getElementById("credits").textContent = STR.settingsCredits;
+document.getElementById("btnClear").textContent = STR.settingsClear;
+document.getElementById("btnCloseSettings").textContent = STR.settingsClose;
+document.getElementById("btnMenu").textContent = STR.settingsMenu;
+document.getElementById("btnMenu").onclick = ()=>{ closeSettings(); playing=false; syncTransport(); showSheet(mainmenuSheet); };
+const helpList = document.getElementById("helpList");
+for(const line of STR.settingsHelp){ const li=document.createElement("li"); li.textContent=line; helpList.appendChild(li); }
+const swGrid = document.getElementById("swGrid"), swTrail = document.getElementById("swTrail"), swSnap = document.getElementById("swSnap");
+const swSound = document.getElementById("swSound");
+function syncSw(){
+  swGrid.classList.toggle("on", opts.grid); swTrail.classList.toggle("on", opts.trail); swSnap.classList.toggle("on", opts.snap);
+  swSound.classList.toggle("on", !muted);
+}
+swGrid.onclick = ()=>{ opts.grid=!opts.grid; syncSw(); };
+swTrail.onclick= ()=>{ opts.trail=!opts.trail; if(!opts.trail) trail.length=0; syncSw(); };
+swSnap.onclick = ()=>{ opts.snap=!opts.snap; syncSw(); };
+swSound.onclick = ()=>{ setMuted(!muted); syncSw(); };
+syncSw();
+document.getElementById("btnClear").onclick = ()=>{ if(confirm(STR.settingsClearConfirm)){ clearAll(); closeSettings(); } };
+document.getElementById("btnCloseSettings").onclick = closeSettings;
+settingsSheet.addEventListener("pointerdown", e=>{ if(e.target===settingsSheet) closeSettings(); });
+function openSettings(){ playing=false; syncTransport(); settingsSheet.classList.add("show"); }
+function closeSettings(){ settingsSheet.classList.remove("show"); }
+
+/* menus */
+function showSheet(el){ el.classList.add("show"); }
+function hideSheet(el){ el.classList.remove("show"); }
+
+document.getElementById("wTitle").textContent = STR.welcomeTitle;
+document.getElementById("wBody").textContent  = STR.welcomeBody;
+const btnFreeDraw = document.getElementById("btnFreeDraw"), btnCampaign = document.getElementById("btnCampaign");
+btnFreeDraw.textContent = STR.btnFreeDraw;
+btnCampaign.textContent = STR.btnCampaign;
+btnFreeDraw.onclick = ()=>{ hideSheet(mainmenuSheet); enterFreeDraw(); showHint(STR.hintDraw); };
+btnCampaign.onclick = ()=>{ hideSheet(mainmenuSheet); openLevelSelect(); };
+
+document.getElementById("lsTitle").textContent = STR.levelSelectTitle;
+const levelList = document.getElementById("levelList");
+const btnLsBack = document.getElementById("btnLsBack"); btnLsBack.textContent = STR.btnBackToMenu;
+btnLsBack.onclick = ()=>{ hideSheet(levelselectSheet); showSheet(mainmenuSheet); };
+function openLevelSelect(){
+  const progress = loadProgress();
+  levelList.textContent = "";
+  for(let n=0; n<LEVEL_COUNT; n++){
+    const unlocked = levelUnlocked(n, progress);
+    const done = progress.completed.includes(n);
+    const b = document.createElement("button");
+    b.className = "lvlgrid" + (unlocked ? "" : " locked") + (done ? " done" : "");
+    b.textContent = n+1;
+    b.title = STR.levelWord + " " + (n+1) + (done ? " - " + STR.completedBadge : (unlocked ? "" : " - " + STR.lockedLabel));
+    if(unlocked) b.onclick = ()=>{ hideSheet(levelselectSheet); loadLevel(n); showHint(STR.hintDraw); };
+    levelList.appendChild(b);
+  }
+  showSheet(levelselectSheet);
+}
+
+/* shop - coins collected in campaign levels buy purely cosmetic customization */
+const btnShop = document.getElementById("btnShop"); btnShop.textContent = STR.btnShop;
+btnShop.onclick = ()=>{ hideSheet(mainmenuSheet); openShop(); };
+document.getElementById("shopTitle").textContent = STR.shopTitle;
+document.getElementById("shopHColors").textContent = STR.shopSectionColors;
+document.getElementById("shopHPatterns").textContent = STR.shopSectionPatterns;
+document.getElementById("shopHPen").textContent = STR.shopSectionPenColor;
+document.getElementById("shopHOutfits").textContent = STR.shopSectionOutfits;
+const btnShopBack = document.getElementById("btnShopBack"); btnShopBack.textContent = STR.btnBackToMenu;
+btnShopBack.onclick = ()=>{ hideSheet(shopSheet); showSheet(mainmenuSheet); };
+const shopCoinsEl = document.getElementById("shopCoins");
+// One shared builder for all four swatch rows (colors, patterns, pen color,
+// outfits) - each item is either: not yet unlocked (tap spends coins to
+// unlock it), unlocked-but-not-selected (tap selects it), or selected
+// (shown highlighted). `unlockedKey`/`selectedKey` name which `cosmetics`
+// field this row reads/writes.
+function buildSwatchRow(container, items, names, unlockedKey, selectedKey, opts){
+  container.textContent = "";
+  for(const item of items){
+    const unlocked = cosmetics[unlockedKey].includes(item.id);
+    const selected = cosmetics[selectedKey] === item.id;
+    const b = document.createElement("button");
+    b.className = "swatch" + (selected ? " selected" : "") + (!unlocked ? " locked" : "");
+    if(opts && opts.dot){
+      const dot = document.createElement("div"); dot.className = "dot";
+      dot.style.background = opts.dotColor(item.id);
+      b.appendChild(dot);
+    } else if(opts && opts.asset){
+      const img = IMG[opts.asset(item)];
+      if(img){ const im = document.createElement("img"); im.src = img.src; b.appendChild(im); }
+    }
+    const lbl = document.createElement("div"); lbl.className = "lbl"; lbl.textContent = names[item.id] || item.id;
+    b.appendChild(lbl);
+    if(!unlocked){
+      const price = document.createElement("div"); price.className = "price"; price.textContent = "🪙 " + item.cost;
+      b.appendChild(price);
+    }
+    b.onclick = ()=>{
+      if(!unlocked){
+        if(coinTotal < item.cost){ showHint(STR.shopHintLocked); return; }
+        coinTotal -= item.cost; saveCoins();
+        cosmetics[unlockedKey] = [...cosmetics[unlockedKey], item.id];
+      }
+      cosmetics[selectedKey] = item.id;
+      saveCosmetics();
+      refreshShop();
+    };
+    container.appendChild(b);
+  }
+}
+function refreshShop(){
+  shopCoinsEl.textContent = "🪙 " + coinTotal + " " + STR.shopCoinsLabel;
+  buildSwatchRow(document.getElementById("shopColors"), SKIN_COLORS, STR.colorNames, "colors", "skin",
+    { dot:true, dotColor:id => findById(SKIN_COLORS,id).hex });
+  buildSwatchRow(document.getElementById("shopPatterns"), PATTERNS, STR.patternNames, "patterns", "pattern", {});
+  buildSwatchRow(document.getElementById("shopPen"), SKIN_COLORS, STR.colorNames, "colors", "penColor",
+    { dot:true, dotColor:id => PEN_COLOR_HEX[id] });
+  buildSwatchRow(document.getElementById("shopOutfits"), OUTFITS, STR.outfitNames, "outfits", "outfit",
+    { asset:o => o.asset });
+}
+function openShop(){ refreshShop(); showSheet(shopSheet); }
+
+document.getElementById("winTitle").textContent = STR.winTitle;
+document.getElementById("winBody").textContent = STR.winBody;
+const winButtons = document.getElementById("winButtons");
+function onLevelWon(){
+  const p = loadProgress();
+  if(!p.completed.includes(levelIdx)) p.completed.push(levelIdx);
+  saveProgress(p);
+  winButtons.textContent = "";
+  if(levelIdx < LEVEL_COUNT-1){
+    const bNext = document.createElement("button");
+    bNext.className = "txtbtn"; bNext.textContent = STR.btnNextLevel;
+    bNext.onclick = ()=>{ hideSheet(winSheet); loadLevel(levelIdx+1); showHint(STR.hintDraw); };
+    winButtons.appendChild(bNext);
+  }
+  const bSelect = document.createElement("button");
+  bSelect.className = "txtbtn"; bSelect.textContent = STR.btnLevelSelect;
+  bSelect.onclick = ()=>{ hideSheet(winSheet); openLevelSelect(); };
+  const bRetry = document.createElement("button");
+  bRetry.className = "txtbtn"; bRetry.textContent = STR.btnRetryLevel;
+  bRetry.onclick = ()=>{ hideSheet(winSheet); loadLevel(levelIdx); showHint(STR.hintDraw); };
+  winButtons.append(bSelect, bRetry);
+  showSheet(winSheet);
+}
+
+/* orientation hint */
+const rot = document.getElementById("rotate");
+rot.querySelector("b").textContent = STR.hintRotate;
+rot.querySelector("span").textContent = STR.hintRotateSub;
+let rotT = 0;
+function checkOrientation(){
+  const portrait = innerHeight > innerWidth * 1.05 && Math.min(innerWidth, innerHeight) < 900;
+  if(portrait){ rot.classList.add("show"); rotT = 4500; } else { rot.classList.remove("show"); rotT = 0; }
+}
+
+/* ============================ paper texture (procedural, substitutes tex_canvas_ground) ============================ */
+let paperPat = null;
+function buildPaper(){
+  const t = document.createElement("canvas"); t.width = t.height = 128;
+  const g = t.getContext("2d");
+  g.fillStyle = "#f3ead6"; g.fillRect(0,0,128,128);
+  let seed = 1337;
+  const rnd = ()=> (seed = (seed*1664525 + 1013904223) >>> 0) / 4294967296;
+  for(let i=0;i<1400;i++){
+    const x=rnd()*128, y=rnd()*128, a=0.03+rnd()*0.06;
+    g.fillStyle = rnd() < 0.5 ? `rgba(160,146,116,${a})` : `rgba(255,252,240,${a})`;
+    g.fillRect(x, y, 1+rnd()*1.6, 1+rnd()*1.6);
+  }
+  paperPat = ctx.createPattern(t, "repeat");
+}
+
+/* ============================ render ============================ */
+function jitter(x,y){ const n = Math.sin(x*12.9898 + y*78.233)*43758.5453; return (n - Math.floor(n)) - 0.5; }
+
+function drawBackground(){
+  ctx.fillStyle = "#f3ead6"; ctx.fillRect(0,0,W,H);
+  if(paperPat){ ctx.fillStyle = paperPat; ctx.fillRect(0,0,W,H); }
+
+  // farthest parallax layer
+  const sky = IMG.bg_sky_far;
+  if(sky){
+    const f = 0.04, sw = Math.max(W, H*(sky.width/sky.height)) * 1.35, sh = sw*sky.height/sky.width;
+    const ox = -((cam.x*f) % sw), oy = H*0.5 - sh*0.62 - cam.y*f*0.6;
+    ctx.globalAlpha = 0.55;
+    for(let i=-1;i<=Math.ceil(W/sw)+1;i++) ctx.drawImage(sky, ox + i*sw, oy, sw, sh);
+    ctx.globalAlpha = 1;
+  }
+  // notebook rule lines in world space
+  if(opts.grid){
+    const step = 48, y0 = Math.floor(s2wy(0)/step)*step, y1 = s2wy(H);
+    ctx.strokeStyle = "rgba(120,150,180,0.22)"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let wy=y0; wy<=y1; wy+=step){ const sy=Math.round(w2sy(wy))+0.5; ctx.moveTo(0,sy); ctx.lineTo(W,sy); }
+    ctx.stroke();
+    const mx = w2sx(START.x - 90);
+    if(mx > -4 && mx < W+4){ ctx.strokeStyle="rgba(200,80,70,0.34)"; ctx.beginPath();
+      ctx.moveTo(Math.round(mx)+0.5,0); ctx.lineTo(Math.round(mx)+0.5,H); ctx.stroke(); }
+  }
+  // mid parallax layer (keyed, sits on the horizon)
+  const mid = IMG.bg_mid;
+  if(mid){
+    const f = 0.22, sw = Math.max(W*1.1, 900), sh = sw*mid.height/mid.width;
+    const ox = -(((cam.x*f) % sw) + sw) % sw;
+    const oy = w2sy(START.y + 210) - sh*0.86;
+    ctx.globalAlpha = 0.42;
+    for(let i=0;i<Math.ceil(W/sw)+2;i++) ctx.drawImage(mid, ox + i*sw, oy, sw, sh);
+    ctx.globalAlpha = 1;
+  }
+  // a light overall wash keeps the whole backdrop a touch faded, so the drawn
+  // track, rider and hazards (rendered afterwards) read with more contrast
+  ctx.fillStyle = "rgba(243,234,214,0.22)"; ctx.fillRect(0,0,W,H);
+}
+
+function strokeSegs(list, color, width, alpha){
+  if(!list.length) return;
+  ctx.strokeStyle = color; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.globalAlpha = alpha;
+  for(let pass=0; pass<2; pass++){
+    ctx.lineWidth = width * (pass ? 0.55 : 1);
+    ctx.beginPath();
+    for(const s of list){
+      const j = pass ? 0.9 : 0;
+      ctx.moveTo(w2sx(s.x1) + jitter(s.x1,s.y1)*j, w2sy(s.y1) + jitter(s.y1,s.x1)*j);
+      ctx.lineTo(w2sx(s.x2) + jitter(s.x2,s.y2)*j, w2sy(s.y2) + jitter(s.y2,s.x2)*j);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawTrack(){
+  const pad = 60;
+  const minX=s2wx(-pad), maxX=s2wx(W+pad), minY=s2wy(-pad), maxY=s2wy(H+pad);
+  const lines=[];
+  for(const s of segs){
+    if(Math.max(s.x1,s.x2)<minX || Math.min(s.x1,s.x2)>maxX) continue;
+    if(Math.max(s.y1,s.y2)<minY || Math.min(s.y1,s.y2)>maxY) continue;
+    lines.push(s);
+  }
+  const w = Math.max(1.6, 3.4*Math.min(1.6, cam.z));
+  const penColor = penColorHex();
+  strokeSegs(lines, penColor, w, 0.92);
+  if(stroke && stroke.pts && stroke.pts.length > 1){
+    const prev=[];
+    for(let i=1;i<stroke.pts.length;i++){
+      const a=stroke.pts[i-1], b=stroke.pts[i];
+      prev.push({x1:a.x,y1:a.y,x2:b.x,y2:b.y});
+    }
+    strokeSegs(prev, penColor, w, 0.55);
+  }
+}
+
+function drawSnapHint(){
+  if(!opts.snap || !lastEnd || stroke) return;
+  if(tool!==TOOL.PEN && tool!==TOOL.RULER) return;
+  const sx = w2sx(lastEnd.x), sy = w2sy(lastEnd.y), r = 10*cam.z;
+  ctx.save();
+  ctx.strokeStyle = "rgba(200,48,42,0.55)"; ctx.lineWidth = 1.6; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+}
+
+// Hazards get a warm halo + a soft ground shadow so they read as "danger" and
+// pop off the sepia/graphite background regardless of the sprite art itself.
+function drawHazardHalo(sx, sy, r){
+  ctx.save();
+  const g = ctx.createRadialGradient(sx, sy, r*0.3, sx, sy, r*1.55);
+  g.addColorStop(0, "rgba(232,224,42,0.48)"); g.addColorStop(1, "rgba(232,224,42,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r*1.55, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawGroundShadow(sx, sy, r){
+  ctx.save();
+  ctx.fillStyle = "rgba(58,55,51,0.22)";
+  ctx.beginPath(); ctx.ellipse(sx, sy+r*0.78, r*0.9, r*0.28, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawObstacles(){
+  if(!LEVEL) return;
+  for(const o of LEVEL.obstacles){
+    const sx = w2sx(o.x), sy = w2sy(o.y), r = o.r*cam.z;
+    drawHazardHalo(sx, sy, r); drawGroundShadow(sx, sy, r);
+    const img = IMG.obs_rock;
+    if(img){ const h=r*2.1, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h*0.62, wd, h); continue; }
+    ctx.fillStyle = "#6b6558"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for(let i=0;i<=10;i++){ const a=i/10*Math.PI*2, rr=r*(0.86+jitter(o.x+i,o.y)*0.22);
+      const x=sx+Math.cos(a)*rr, y=sy+Math.sin(a)*rr; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+}
+function drawBoostPads(){
+  const pulse = 0.75 + Math.sin(performance.now()/280)*0.25;
+  for(const p of activeBoostPads()){
+    const sx = w2sx(p.x), sy = w2sy(p.y), r = p.r*cam.z;
+    const img = IMG.ui_boost_pad;
+    if(img){ ctx.globalAlpha = pulse; const h=r*2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); ctx.globalAlpha=1; continue; }
+    ctx.save();
+    ctx.globalAlpha = pulse; ctx.strokeStyle = "#3a6ea8"; ctx.lineWidth = 2.4; ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.arc(sx, sy, r*0.8, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#3a6ea8";
+    ctx.beginPath();
+    ctx.moveTo(sx-r*0.22, sy+r*0.32); ctx.lineTo(sx+r*0.22, sy+r*0.32); ctx.lineTo(sx, sy-r*0.42);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+}
+function drawCoins(){
+  if(!LEVEL || !LEVEL.coins.length) return;
+  const pulse = 0.8 + Math.sin(performance.now()/240)*0.2;
+  for(const co of LEVEL.coins){
+    if(collectedCoins.has(co)) continue; // picked up already this attempt - just hide it
+    const sx = w2sx(co.x), sy = w2sy(co.y), r = (co.big ? COIN_R*1.3 : COIN_R) * cam.z;
+    const img = co.big ? IMG.ui_chest : IMG.ui_coin;
+    ctx.globalAlpha = pulse;
+    if(img){ const h=r*2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); ctx.globalAlpha=1; continue; }
+    ctx.fillStyle = co.big ? "#a86a2a" : "#e0b83a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(sx, sy, r*0.7, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+function drawEnemies(enemyPositions){
+  if(!LEVEL) return;
+  for(const e of enemyPositions){
+    const sx = w2sx(e.x), sy = w2sy(e.y), r = e.r*cam.z;
+    drawHazardHalo(sx, sy, r);
+    const img = IMG.enemy_bat;
+    const bob = Math.sin(performance.now()/220 + e.x)*3*cam.z;
+    if(img){ const h=r*2.2, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h/2+bob, wd, h); continue; }
+    ctx.fillStyle = "#e8e02a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(sx, sy+bob, r*0.82, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  }
+}
+function drawArrow(sx, sy, ang, r){
+  ctx.save();
+  ctx.translate(sx, sy); ctx.rotate(ang);
+  ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = Math.max(1.6, r*0.16);
+  ctx.beginPath(); ctx.moveTo(-r*1.6, 0); ctx.lineTo(r*1.1, 0); ctx.stroke();
+  ctx.fillStyle = "#e8e02a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(r*1.6, 0); ctx.lineTo(r*0.5, -r*0.6); ctx.lineTo(r*0.5, r*0.6);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawArchers(){
+  if(!LEVEL || !LEVEL.archers.length) return;
+  const t = simFrame*(STEP/1000);
+  for(const a of LEVEL.archers){
+    const sx = w2sx(a.x), sy = w2sy(a.y), r = 30*cam.z;
+    const img = IMG.enemy_archer;
+    if(img){ const h=r*2.3, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h*0.85, wd, h); }
+    else {
+      ctx.fillStyle = "#7a746a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.ellipse(sx, sy-r*0.5, r*0.5, r*0.9, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    }
+    const arrow = archerArrowAt(a, t);
+    if(arrow){
+      const asx = w2sx(arrow.x), asy = w2sy(arrow.y);
+      drawHazardHalo(asx, asy, arrow.r*cam.z*1.4);
+      drawArrow(asx, asy, arrow.ang, arrow.r*cam.z);
+    }
+  }
+}
+function drawCatapultRock(sx, sy, r){
+  ctx.save();
+  ctx.translate(sx, sy); ctx.rotate(performance.now()/260);
+  ctx.fillStyle = "#6b6558"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = Math.max(1.6, r*0.14);
+  ctx.beginPath();
+  for(let i=0;i<=8;i++){ const a=i/8*Math.PI*2, rr=r*(0.86+(i%2?0.14:-0.08));
+    const x=Math.cos(a)*rr, y=Math.sin(a)*rr; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawCatapults(){
+  if(!LEVEL || !LEVEL.catapults.length) return;
+  const t = simFrame*(STEP/1000);
+  for(const c of LEVEL.catapults){
+    const sx = w2sx(c.x), sy = w2sy(c.y), r = 34*cam.z;
+    const img = IMG.obs_catapult;
+    if(img){ const h=r*2.1, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h*0.8, wd, h); }
+    else {
+      ctx.strokeStyle = "#5a4632"; ctx.lineWidth = Math.max(2, r*0.18);
+      ctx.beginPath(); ctx.moveTo(sx-r*0.5, sy+r*0.5); ctx.lineTo(sx, sy-r*0.9); ctx.lineTo(sx+r*0.5, sy+r*0.5); ctx.stroke();
+    }
+    const rock = catapultRockAt(c, t);
+    if(rock){
+      const rsx = w2sx(rock.x), rsy = w2sy(rock.y);
+      drawHazardHalo(rsx, rsy, rock.r*cam.z*1.3);
+      drawCatapultRock(rsx, rsy, rock.r*cam.z);
+    }
+  }
+}
+function drawGoal(){
+  if(!LEVEL) return;
+  const sx = w2sx(LEVEL.goal.x), sy = w2sy(LEVEL.goal.y);
+  const now = performance.now();
+  const glow = 0.55 + Math.sin(now/260)*0.45;
+  const ringT = (now/1400) % 1;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, 0.5 - ringT*0.5); ctx.strokeStyle = "#d4a017"; ctx.lineWidth = 2.2*cam.z;
+  ctx.beginPath(); ctx.arc(sx, sy, (18+ringT*30)*cam.z, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+  const img = IMG.ui_goal_egg;
+  if(img){
+    const h=64*cam.z, wd=h*img.width/img.height;
+    ctx.save(); ctx.shadowColor = `rgba(212,160,23,${0.8*glow})`; ctx.shadowBlur = 30*cam.z;
+    ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h);
+    ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); // second pass deepens the glow without a second light source
+    ctx.restore();
+    return;
+  }
+  ctx.save();
+  ctx.shadowColor = `rgba(212,160,23,${0.8*glow})`; ctx.shadowBlur = 30*cam.z;
+  ctx.fillStyle = "#d4a017"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.ellipse(sx, sy, 15*cam.z, 20*cam.z, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawStartMarker(){
+  const m = IMG.ui_start_marker;
+  const sx = w2sx(START.x), sy = w2sy(START.y);
+  if(m){
+    const h = 86*cam.z, wd = h*m.width/m.height;
+    ctx.globalAlpha = 0.95;
+    ctx.drawImage(m, sx - wd*0.5, sy - h, wd, h);
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.strokeStyle="#3f3b35"; ctx.lineWidth=2.4*cam.z; ctx.beginPath();
+    ctx.moveTo(sx, sy); ctx.lineTo(sx, sy-70*cam.z); ctx.stroke();
+    ctx.fillStyle="#c8302a"; ctx.beginPath();
+    ctx.moveTo(sx, sy-70*cam.z); ctx.lineTo(sx+38*cam.z, sy-56*cam.z); ctx.lineTo(sx, sy-42*cam.z);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
+function drawTrail(){
+  if(!opts.trail || trail.length < 2) return;
+  ctx.strokeStyle = "rgba(90,86,78,0.45)"; ctx.lineWidth = 1.6; ctx.lineCap="round";
+  ctx.beginPath();
+  for(let i=1;i<trail.length;i++){
+    const a=trail[i-1], b=trail[i];
+    ctx.moveTo(w2sx(a.x), w2sy(a.y)); ctx.lineTo(w2sx(b.x), w2sy(b.y));
+  }
+  ctx.stroke();
+}
+
+// Cosmetic color/pattern/outfit are applied to every rider draw uniformly
+// (idle, moving, airborne, crashed, celebrating) rather than per-branch, so
+// drawSheet/drawSprite/drawRiderFallback are the only three places this
+// needs to be wired in. Colors are a canvas hue-rotate filter on the
+// existing art (no new art); patterns are a second "source-atop" pass
+// clipped to the sprite's own silhouette (also no new art); outfits are a
+// small accessory image drawn on top.
+function drawPatternOverlay(size, ar){
+  const pat = cosmetics.pattern;
+  if(pat === "none") return;
+  const w = size*ar, h = size;
+  ctx.globalCompositeOperation = "source-atop";
+  ctx.globalAlpha = 0.32;
+  if(pat === "stripes"){
+    ctx.strokeStyle = "#fdf9ee"; ctx.lineWidth = Math.max(2, size*0.07);
+    for(let x=-w; x<w*1.5; x+=size*0.18){ ctx.beginPath(); ctx.moveTo(x,-h); ctx.lineTo(x-h,h); ctx.stroke(); }
+  } else if(pat === "stars"){
+    ctx.fillStyle = "#fdf9ee";
+    for(let i=0;i<14;i++){
+      const px = -w/2 + ((i*0.371)%1)*w, py = -h/2 + ((i*0.617)%1)*h;
+      ctx.beginPath(); ctx.arc(px, py, size*0.032, 0, Math.PI*2); ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+}
+function drawOutfit(size, ar){
+  if(cosmetics.outfit === "none") return;
+  const o = findById(OUTFITS, cosmetics.outfit);
+  const img = IMG[o.asset];
+  if(!img) return;
+  const oh = size*0.5, ow = oh*img.width/img.height;
+  ctx.drawImage(img, size*ar*0.05, -size*0.42, ow, oh);
+}
+function drawSheet(sheet, t, sx, sy, size, ang){
+  const idx = sheet.loop
+    ? Math.floor(t*sheet.fps) % sheet.frames
+    : Math.min(sheet.frames-1, Math.floor(t*sheet.fps));
+  const col = idx % sheet.cols, row = Math.floor(idx / sheet.cols);
+  const ar = sheet.cw/sheet.ch;
+  ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.filter = findById(SKIN_COLORS, cosmetics.skin).filter;
+  ctx.drawImage(sheet.img, col*sheet.cw, row*sheet.ch, sheet.cw, sheet.ch,
+                -size*ar/2, -size/2, size*ar, size);
+  ctx.filter = "none";
+  drawPatternOverlay(size, ar);
+  drawOutfit(size, ar);
+  ctx.restore();
+}
+function drawSprite(im, sx, sy, size, ang){
+  const ar = im.width/im.height;
+  ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.filter = findById(SKIN_COLORS, cosmetics.skin).filter;
+  ctx.drawImage(im, -size*ar/2, -size/2, size*ar, size);
+  ctx.filter = "none";
+  drawPatternOverlay(size, ar);
+  drawOutfit(size, ar);
+  ctx.restore();
+}
+function drawRiderFallback(sx, sy, size, ang){
+  ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
+  ctx.fillStyle = findById(SKIN_COLORS, cosmetics.skin).hex; ctx.strokeStyle="#3f3b35"; ctx.lineWidth = Math.max(1.4, size*0.05);
+  ctx.beginPath();
+  ctx.moveTo(size*0.55, 0); ctx.lineTo(-size*0.45, -size*0.30);
+  ctx.lineTo(-size*0.22, 0); ctx.lineTo(-size*0.45, size*0.30);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawRider(){
+  const sx = w2sx(rider.x), sy = w2sy(rider.y);
+  const size = 74*cam.z;
+  const ang = rider.ang + rider.wob;
+  if(rider.crashed && SHEETS.char_impact){ drawSheet(SHEETS.char_impact, crashT, sx, sy, size, ang); return; }
+  if(celebrateT > 0 && IMG.char_celebrate){ drawSprite(IMG.char_celebrate, sx, sy, size, ang*0.3); return; }
+  if(!hasPlayed && IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, 0); return; }
+  if(rider.contact && SHEETS.char_move){ drawSheet(SHEETS.char_move, animT, sx, sy, size, ang); return; }
+  if(!rider.contact && IMG.char_airborne){ drawSprite(IMG.char_airborne, sx, sy, size, ang); return; }
+  if(IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, ang); return; }
+  drawRiderFallback(sx, sy, size, ang);
+}
+
+function drawCrashBurst(){
+  if(!rider.crashed || SHEETS.char_impact) return;
+  const sx = w2sx(rider.x), sy = w2sy(rider.y), r = 26*cam.z*(1+crashT*2);
+  ctx.strokeStyle = `rgba(200,48,42,${Math.max(0, 0.8 - crashT)})`; ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  for(let i=0;i<7;i++){ const a=i*0.9; ctx.moveTo(sx,sy); ctx.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); }
+  ctx.stroke();
+}
+function drawCelebrateFallback(){
+  if(celebrateT <= 0 || IMG.char_celebrate) return;
+  const sx = w2sx(rider.x), sy = w2sy(rider.y), k = 1 - celebrateT;
+  ctx.strokeStyle = `rgba(232,224,42,${Math.max(0,celebrateT)})`; ctx.lineWidth = 2.2;
+  for(let i=0;i<6;i++){
+    const a = i*1.05 + k*2, r = (18 + k*46)*cam.z;
+    const x = sx+Math.cos(a)*r, y = sy+Math.sin(a)*r, s = 7*cam.z;
+    ctx.beginPath(); ctx.moveTo(x-s,y); ctx.lineTo(x+s,y); ctx.moveTo(x,y-s); ctx.lineTo(x,y+s); ctx.stroke();
+  }
+}
+
+function render(){
+  drawBackground();
+  drawTrack();
+  drawSnapHint();
+  drawObstacles();
+  drawArchers();
+  drawCatapults();
+  drawCoins();
+  drawBoostPads();
+  drawGoal();
+  drawStartMarker();
+  drawTrail();
+  if(LEVEL) drawEnemies(LEVEL.enemies.map(e => enemyPosAt(e, simFrame*(STEP/1000))));
+  drawRider();
+  drawCrashBurst();
+  drawCelebrateFallback();
+  drawIntroOverlay();
+}
+
+/* ============================ loop ============================ */
+const STEP = 1000/60;
+let acc = 0, last = performance.now(), blurred = false, frames = 0, fpsAt = last;
+addEventListener("blur", ()=>{ blurred = true; playing = false; syncTransport(); });
+addEventListener("focus", ()=>{ blurred = false; last = performance.now(); acc = 0; });
+
+function update(ms){
+  const dt = ms/1000;
+  animT += dt;
+  if(rider.crashed) crashT += dt;
+  if(celebrateT > 0) celebrateT -= dt;
+  if(hintT > 0){ hintT -= ms; if(hintT <= 0) elHint.classList.remove("show"); }
+  if(rotT > 0){ rotT -= ms; if(rotT <= 0) rot.classList.remove("show"); }
+  tickIntro(dt);
+
+  if(playing && !rider.crashed){
+    const impact = physStep(dt);
+    if(impact > CRASH_V || hazardHit){
+      rider.crashed = true; playing = false; crashT = 0; showHint(STR.statusCrash); syncTransport();
+      playOneShot("sfx_impact");
+      setTimeout(()=>playOneShot("sfx_lose_jingle", 0.85), 280); // thud first, then the "you lost" stinger
+    }
+    if(rider.y > START.y + 24000){
+      playing = false; showHint(STR.statusLost); syncTransport();
+      playOneShot("sfx_lose_jingle", 0.85);
+    }
+    if(rec.length < recMax) rec.push(snapshot()); else playing = false;
+    simFrame = rec.length - 1;
+    updateScrub();
+    if(goalHit && !won){ won = true; playing = false; onLevelWon(); syncTransport(); playOneShot("sfx_milestone"); }
+    const d = dist();
+    if(d > maxDist) maxDist = d;
+    if(maxDist >= nextMilestone){ nextMilestone += 250; celebrateT = 1.0; showHint(STR.statusMilestone); playOneShot("sfx_milestone", 0.8); }
+    if(opts.trail){ trail.push({x:rider.x,y:rider.y}); if(trail.length > 900) trail.shift(); }
+  }
+
+  setLoopPlaying("sfx_whoosh_roll", playing && !rider.crashed);
+  if(playing && !rider.crashed){
+    const spNow = Math.hypot(rider.vx, rider.vy);
+    SND.sfx_whoosh_roll.volume = Math.min(1, spNow/1800) * 0.55;
+    SND.sfx_whoosh_roll.playbackRate = 0.85 + Math.min(1, spNow/2200)*0.5;
+  }
+
+  // cosmetic banking + glide wobble
+  const sp = Math.hypot(rider.vx, rider.vy);
+  if(sp > 22){
+    let target = Math.atan2(rider.vy, rider.vx);
+    let d = target - rider.ang;
+    while(d > Math.PI) d -= Math.PI*2;
+    while(d < -Math.PI) d += Math.PI*2;
+    rider.ang += d * Math.min(1, dt*9);
+  }
+  rider.wob = rider.contact ? 0 : Math.sin(animT*7.5)*0.05;
+
+  // camera
+  const panSp = 420/cam.z*dt;
+  if(heldPan.size){
+    if(heldPan.has("u")) cam.ty -= panSp; if(heldPan.has("d")) cam.ty += panSp;
+    if(heldPan.has("l")) cam.tx -= panSp; if(heldPan.has("r")) cam.tx += panSp;
+    cam.x = cam.tx; cam.y = cam.ty;
+  }
+  if(hasPlayed){
+    const offX = Math.abs(w2sx(rider.x) - W/2), offY = Math.abs(w2sy(rider.y) - H/2);
+    if(!cam.auto && (offX > W*0.55 || offY > H*0.55)) cam.auto = true;
+    if(cam.auto){
+      cam.tx = rider.x + rider.vx*0.16;
+      cam.ty = rider.y + rider.vy*0.10 - 30;
+      const k = Math.min(1, dt*(playing ? 4.2 : 8));
+      cam.x += (cam.tx - cam.x)*k; cam.y += (cam.ty - cam.y)*k;
+    }
+  }
+  elHud.textContent = STR.labelDistance + " " + Math.round(maxDist) + " " + STR.unitMeters;
+}
+
+const dev = new URLSearchParams(location.search).has("dev");
+const devEl = document.getElementById("dev");
+if(dev) devEl.style.display = "block";
+
+function frame(now){
+  requestAnimationFrame(frame);
+  if(blurred) return;
+  let delta = now - last; last = now;
+  if(delta > 250) delta = 250;
+  const activeMul = (playing && !rider.crashed) ? speedMul : 1; // fast-forward only applies mid-glide
+  acc += delta * activeMul;
+  pollPad();
+  let n = 0;
+  const maxN = 6 * activeMul;
+  while(acc >= STEP && n < maxN){ update(STEP); acc -= STEP; n++; }
+  if(acc > STEP*maxN) acc = 0;
+  render();
+  if(dev){
+    frames++;
+    if(now - fpsAt >= 500){
+      devEl.textContent = Math.round(frames*1000/(now-fpsAt)) + " fps | " + segs.length + " seg | " + rec.length + " f";
+      frames = 0; fpsAt = now;
+    }
+  }
+}
+
+resize();
+restart();
+requestAnimationFrame(frame);
+assetsReady.then(()=>{
+  const h = IMG.ui_scrubber_handle;
+  if(h){ scrub.classList.add("hasthumb");
+    const st = document.createElement("style");
+    st.textContent = `#scrub::-webkit-slider-thumb{background-image:url("${h.src}")}#scrub::-moz-range-thumb{background-image:url("${h.src}")}`;
+    document.head.appendChild(st);
+  }
+});
+</script>
+</body>
+</html>
