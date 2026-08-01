@@ -460,24 +460,39 @@ const OUTFITS = [
 // of width; dy is a fraction of height. Head position tuned from real
 // screenshots of the idle pose (see assets.csv) - still an approximation
 // for the other body-part anchors and for poses besides idle/gliding.
-// Re-derived from measured geometry of char_idle.png (mobile/debug/outfit-check/
-// geometry.json + silhouette.txt): head sits at dx 0.18-0.42, dy -0.465 (crown)
-// down to +0.27 (snout tip); the ASCII silhouette shows a gap in the head mass
-// around dy=-0.28 that's plausibly the eye. `scale` corrects for accessory PNGs
-// whose actual artwork fills only part of their padded 256x256 square - goggles
-// are measured (content only 33.6% of the square's height, so scaled up ~1.6x
-// to read as a normal-sized accessory instead of a tiny sticker); the other 7
-// outfits aren't measured yet and default to scale 1.
+// Anchors are keyed by BOTH outfit id and render pose ("idle", "moving",
+// "airborne", "impact", "celebrate") - the dragon uses a different piece of
+// art for each (char_idle.png, the char_move sheet, char_airborne.png, ...),
+// each independently generated and NOT guaranteed to have the head/body at
+// the same relative position. A goggles position tuned only against the
+// idle pose visibly drifted away from the head as soon as the dragon
+// started gliding. Poses without their own measured entry fall back to
+// "idle" in getOutfitAnchor() below - an approximation, not a fix, for
+// whichever poses haven't been measured yet.
+// idle-pose values re-derived from measured geometry of char_idle.png
+// (mobile/debug/outfit-check/geometry.json + silhouette.txt): head sits at
+// dx 0.18-0.42, dy -0.465 (crown) down to +0.27 (snout tip). `scale`
+// corrects for accessory PNGs whose actual artwork fills only part of
+// their padded 256x256 square - goggles are measured (content only 33.6%
+// of the square's height pre-rework), the other 7 outfits aren't measured
+// yet and default to scale 1. `rot` (radians) applies an extra rotation to
+// just that decal, for accessories whose art needs tilting independent of
+// the sprite's own rotation.
 const OUTFIT_ANCHOR = {
-  goggles:  { dx:0.26, dy:-0.36, scale:0.85 }, // over the eyes - pulled up/back from the snout per user screenshot, and much smaller
-  flower:   { dx:0.20, dy:-0.35 }, // near the head, upper/back of it
-  scarf:    { dx:0.12, dy: 0.08 }, // neck/collar, where head meets body
-  partyhat: { dx:0.25, dy:-0.46 }, // on top of the head
-  pilotcap: { dx:0.25, dy:-0.44 }, // on top of the head
-  tophat:   { dx:0.25, dy:-0.48 }, // on top of the head
-  crown:    { dx:0.25, dy:-0.48 }, // on top of the head
-  cape:     { dx:-0.15, dy:-0.20 }, // upper back, opposite the head
+  goggles:  { idle: { dx:0.26, dy:-0.36, scale:0.85 } }, // over the eyes
+  flower:   { idle: { dx:0.20, dy:-0.35 } }, // near the head, upper/back of it
+  scarf:    { idle: { dx:0.12, dy: 0.08 } }, // neck/collar, where head meets body
+  partyhat: { idle: { dx:0.25, dy:-0.46 } }, // on top of the head
+  pilotcap: { idle: { dx:0.25, dy:-0.44 } }, // on top of the head
+  tophat:   { idle: { dx:0.25, dy:-0.48 } }, // on top of the head
+  crown:    { idle: { dx:0.25, dy:-0.48 } }, // on top of the head
+  cape:     { idle: { dx:-0.15, dy:-0.20 } }, // upper back, opposite the head
 };
+function getOutfitAnchor(outfitId, pose){
+  const byPose = OUTFIT_ANCHOR[outfitId];
+  if(!byPose) return { dx:0.3, dy:-0.4 };
+  return byPose[pose] || byPose.idle || { dx:0.3, dy:-0.4 };
+}
 // The pen/line color shares the same unlock list as the dragon's skin
 // colors (unlocking "blue" unlocks it for both), but maps to its own hex
 // values since a hue-rotate filter doesn't apply to vector line strokes -
@@ -1774,17 +1789,24 @@ function drawPatternOverlay(size, ar){
   }
   ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
 }
-function drawOutfit(size, ar){
+function drawOutfit(size, ar, pose){
   if(cosmetics.outfit === "none") return;
   const o = findById(OUTFITS, cosmetics.outfit);
   const img = IMG[o.asset];
   if(!img) return;
-  const anchor = OUTFIT_ANCHOR[o.id] || { dx:0.3, dy:-0.4 };
+  const anchor = getOutfitAnchor(o.id, pose);
   const oh = size*0.4*(anchor.scale||1), ow = oh*img.width/img.height;
   const cx = anchor.dx*size*ar, cy = anchor.dy*size;
-  ctx.drawImage(img, cx-ow/2, cy-oh/2, ow, oh);
+  if(anchor.rot){
+    ctx.save();
+    ctx.translate(cx, cy); ctx.rotate(anchor.rot);
+    ctx.drawImage(img, -ow/2, -oh/2, ow, oh);
+    ctx.restore();
+  } else {
+    ctx.drawImage(img, cx-ow/2, cy-oh/2, ow, oh);
+  }
 }
-function drawSheet(sheet, t, sx, sy, size, ang){
+function drawSheet(sheet, t, sx, sy, size, ang, pose){
   const idx = sheet.loop
     ? Math.floor(t*sheet.fps) % sheet.frames
     : Math.min(sheet.frames-1, Math.floor(t*sheet.fps));
@@ -1796,17 +1818,17 @@ function drawSheet(sheet, t, sx, sy, size, ang){
                 -size*ar/2, -size/2, size*ar, size);
   ctx.filter = "none";
   drawPatternOverlay(size, ar);
-  drawOutfit(size, ar);
+  drawOutfit(size, ar, pose);
   ctx.restore();
 }
-function drawSprite(im, sx, sy, size, ang){
+function drawSprite(im, sx, sy, size, ang, pose){
   const ar = im.width/im.height;
   ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
   ctx.filter = findById(SKIN_COLORS, cosmetics.skin).filter;
   ctx.drawImage(im, -size*ar/2, -size/2, size*ar, size);
   ctx.filter = "none";
   drawPatternOverlay(size, ar);
-  drawOutfit(size, ar);
+  drawOutfit(size, ar, pose);
   ctx.restore();
 }
 function drawRiderFallback(sx, sy, size, ang){
@@ -1823,12 +1845,12 @@ function drawRider(){
   const sx = w2sx(rider.x), sy = w2sy(rider.y);
   const size = 74*cam.z;
   const ang = rider.ang + rider.wob;
-  if(rider.crashed && SHEETS.char_impact){ drawSheet(SHEETS.char_impact, crashT, sx, sy, size, ang); return; }
-  if(celebrateT > 0 && IMG.char_celebrate){ drawSprite(IMG.char_celebrate, sx, sy, size, ang*0.3); return; }
-  if(!hasPlayed && IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, 0); return; }
-  if(rider.contact && SHEETS.char_move){ drawSheet(SHEETS.char_move, animT, sx, sy, size, ang); return; }
-  if(!rider.contact && IMG.char_airborne){ drawSprite(IMG.char_airborne, sx, sy, size, ang); return; }
-  if(IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, ang); return; }
+  if(rider.crashed && SHEETS.char_impact){ drawSheet(SHEETS.char_impact, crashT, sx, sy, size, ang, "impact"); return; }
+  if(celebrateT > 0 && IMG.char_celebrate){ drawSprite(IMG.char_celebrate, sx, sy, size, ang*0.3, "celebrate"); return; }
+  if(!hasPlayed && IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, 0, "idle"); return; }
+  if(rider.contact && SHEETS.char_move){ drawSheet(SHEETS.char_move, animT, sx, sy, size, ang, "moving"); return; }
+  if(!rider.contact && IMG.char_airborne){ drawSprite(IMG.char_airborne, sx, sy, size, ang, "airborne"); return; }
+  if(IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, ang, "idle"); return; }
   drawRiderFallback(sx, sy, size, ang);
 }
 
