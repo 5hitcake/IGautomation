@@ -460,15 +460,23 @@ const OUTFITS = [
 // of width; dy is a fraction of height. Head position tuned from real
 // screenshots of the idle pose (see assets.csv) - still an approximation
 // for the other body-part anchors and for poses besides idle/gliding.
+// Re-derived from measured geometry of char_idle.png (mobile/debug/outfit-check/
+// geometry.json + silhouette.txt): head sits at dx 0.18-0.42, dy -0.465 (crown)
+// down to +0.27 (snout tip); the ASCII silhouette shows a gap in the head mass
+// around dy=-0.28 that's plausibly the eye. `scale` corrects for accessory PNGs
+// whose actual artwork fills only part of their padded 256x256 square - goggles
+// are measured (content only 33.6% of the square's height, so scaled up ~1.6x
+// to read as a normal-sized accessory instead of a tiny sticker); the other 7
+// outfits aren't measured yet and default to scale 1.
 const OUTFIT_ANCHOR = {
-  goggles:  { dx:0.33, dy:-0.32 }, // over the eyes, at the head
-  flower:   { dx:0.30, dy:-0.40 }, // near the head, just behind the eyes
-  scarf:    { dx:0.14, dy:-0.08 }, // around the neck, behind the head
-  partyhat: { dx:0.30, dy:-0.50 }, // on top of the head
-  pilotcap: { dx:0.30, dy:-0.46 }, // on top of the head
-  tophat:   { dx:0.30, dy:-0.52 }, // on top of the head
-  crown:    { dx:0.30, dy:-0.52 }, // on top of the head
-  cape:     { dx:-0.12, dy:-0.02 }, // over the back, opposite the head
+  goggles:  { dx:0.32, dy:-0.27, scale:1.6 }, // over the eyes
+  flower:   { dx:0.20, dy:-0.35 }, // near the head, upper/back of it
+  scarf:    { dx:0.12, dy: 0.08 }, // neck/collar, where head meets body
+  partyhat: { dx:0.25, dy:-0.46 }, // on top of the head
+  pilotcap: { dx:0.25, dy:-0.44 }, // on top of the head
+  tophat:   { dx:0.25, dy:-0.48 }, // on top of the head
+  crown:    { dx:0.25, dy:-0.48 }, // on top of the head
+  cape:     { dx:-0.15, dy:-0.20 }, // upper back, opposite the head
 };
 // The pen/line color shares the same unlock list as the dragon's skin
 // colors (unlocking "blue" unlocks it for both), but maps to its own hex
@@ -1772,7 +1780,7 @@ function drawOutfit(size, ar){
   const img = IMG[o.asset];
   if(!img) return;
   const anchor = OUTFIT_ANCHOR[o.id] || { dx:0.3, dy:-0.4 };
-  const oh = size*0.4, ow = oh*img.width/img.height;
+  const oh = size*0.4*(anchor.scale||1), ow = oh*img.width/img.height;
   const cx = anchor.dx*size*ar, cy = anchor.dy*size;
   ctx.drawImage(img, cx-ow/2, cy-oh/2, ow, oh);
 }
