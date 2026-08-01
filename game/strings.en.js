@@ -75,6 +75,10 @@ export const STR = {
   shopSectionPenColor: "Pen Color",
   shopSectionOutfits: "Outfit",
   shopHintLocked: "Not enough coins",
+  shopSectionGetCoins: "Get More Coins",
+  shopWatchAd: "Watch Ad Video",
+  shopAdCooldown: "Try again in a moment",
+  shopAdUnavailable: "Not available right now - try again later",
   colorNames: { red:"Red", blue:"Blue", green:"Green", purple:"Purple", gold:"Gold" },
   patternNames: { none:"None", stripes:"Stripes", stars:"Stars" },
   outfitNames: {

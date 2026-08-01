@@ -81,3 +81,55 @@ your own developer accounts).
 DNS identifier. Change it before a real submission if you want it tied to
 your own domain/company; it must stay unique and, once submitted, is very
 hard to change without losing the app's identity on the store.
+
+## Monetization: rewarded ads + coin bundles
+
+Optional, purely-cosmetic coins can now also be earned by watching a
+rewarded ad, or bought directly as coin bundles - both **only show up
+inside the native app** (the "Get More Coins" section in the shop is
+hidden entirely on the web-hosted build, since AdMob and store billing
+don't exist in a plain browser). The code lives in `game/index.html`
+(search for "monetization (native app only)") and is feature-detected via
+`window.Capacitor.isNativePlatform()`.
+
+**This has NOT been tested on a real device or store sandbox** - there's no
+Android/iOS device, emulator, or store sandbox account in this environment.
+The code follows both plugins' documented APIs as closely as possible, but
+you should test the full flow (watch an ad, buy a bundle, restore
+purchases) on a real device before shipping.
+
+### What's already wired (with placeholder/test IDs)
+
+- **`@capacitor-community/admob`** for rewarded video ads. Currently
+  configured with Google's official public **test** ad unit IDs and App IDs
+  (`AndroidManifest.xml`'s `com.google.android.gms.ads.APPLICATION_ID`,
+  `Info.plist`'s `GADApplicationIdentifier`, and `AD_UNIT_REWARDED` in
+  `game/index.html`) - these show real test ads but never pay out real
+  money. A successful watch awards `AD_REWARD_COINS` (15) coins, with a
+  60-second cooldown between requests.
+- **`cordova-plugin-purchase`** (via Capacitor's Cordova compatibility
+  layer) for three consumable coin bundles: `coins_small` (50 coins),
+  `coins_medium` (150 coins), `coins_large` (400 coins) - see
+  `COIN_BUNDLES` in `game/index.html`.
+
+### What YOU need to do before this earns real money
+
+1. **Create an AdMob account** (admob.google.com), link it to your app, and
+   create a real Rewarded ad unit for Android and one for iOS. Replace the
+   test ad unit IDs in `AD_UNIT_REWARDED` (`game/index.html`) and the two
+   App IDs (`AndroidManifest.xml`, `Info.plist`) with your real ones.
+2. **Create matching in-app products** in Google Play Console and App Store
+   Connect with the **exact same IDs** used in `COIN_BUNDLES`
+   (`coins_small`, `coins_medium`, `coins_large`), type "consumable", and
+   set your own prices there (the `fallbackPrice` strings in the code are
+   just a placeholder shown before the store responds).
+3. Consider **receipt validation** (`store.validator` in the plugin) for
+   production - the current wiring trusts the plugin's local `approved` /
+   `verified` events without a validation server, which is fine to get
+   started but is more spoofable than server-side validation.
+4. Both stores require ad content to be disclosed in your data-safety /
+   app-privacy questionnaires, and the EU requires a consent flow for
+   personalized ads (GDPR) - `AdMob.initialize()` is currently called
+   without any consent handling; `@capacitor-community/admob` has a
+   `consent` module for this (see its docs) that should be wired in before
+   a real release if you'll have EU users.

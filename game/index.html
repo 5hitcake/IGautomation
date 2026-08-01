@@ -167,6 +167,10 @@
 <div id="shop" class="sheet"><div class="card">
   <h2 id="shopTitle"></h2>
   <p id="shopCoins" style="font-weight:700"></p>
+  <div id="shopGetCoins" style="display:none">
+    <h3 id="shopHGetCoins"></h3>
+    <div class="swatchgrid" id="shopGetCoinsRow"></div>
+  </div>
   <h3 id="shopHColors"></h3><div class="swatchgrid" id="shopColors"></div>
   <h3 id="shopHPatterns"></h3><div class="swatchgrid" id="shopPatterns"></div>
   <h3 id="shopHPen"></h3><div class="swatchgrid" id="shopPen"></div>
@@ -247,6 +251,7 @@ const assetsReady = (async ()=>{
   }));
   if(MISSING.length) console.warn("[assets] missing:", MISSING);
   buildUI();
+  initMonetization();
 })();
 
 /* ============================ audio ============================ */
@@ -455,6 +460,96 @@ const COINS_KEY = "kritzeldrache_coins";
 let coinTotal = 0;
 try{ coinTotal = parseInt(localStorage.getItem(COINS_KEY), 10) || 0; }catch{}
 function saveCoins(){ try{ localStorage.setItem(COINS_KEY, String(coinTotal)); }catch{} }
+
+/* ============================ monetization (native app only) ============================
+   Rewarded ads and real-money coin bundles need AdMob / native store billing,
+   neither of which exists in a plain browser - only in the Capacitor-wrapped
+   app (see mobile/). Everything here checks NATIVE first and is a silent
+   no-op otherwise, so the web-hosted build simply never shows this UI.
+   The ad-unit and product IDs below are Google's/this project's PLACEHOLDER
+   test values - see mobile/README.md for what to replace before a real
+   release. This code path cannot be exercised in this dev environment (no
+   Android/iOS device or store sandbox available) and needs on-device
+   testing before shipping. */
+const NATIVE = typeof window !== "undefined" && !!window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform();
+const PLATFORM = NATIVE ? window.Capacitor.getPlatform() : "web"; // "android" | "ios"
+
+const AD_UNIT_REWARDED = {
+  // Google's official public TEST ad unit IDs - safe to ship as-is during
+  // development (test ads show but never pay out). Replace with your own
+  // real AdMob ad unit IDs before a real release.
+  android: "ca-app-pub-3940256099942544/5224354917",
+  ios: "ca-app-pub-3940256099942544/1712485313",
+}[PLATFORM];
+const AD_REWARD_COINS = 15;
+const AD_COOLDOWN_MS = 60000; // avoid back-to-back ad requests
+let lastAdAt = 0;
+let admobReady = false;
+
+// Same product id registered under both stores - whichever platform the app
+// actually runs on is the one that resolves at store.initialize() time.
+// These ids are PLACEHOLDERS: create matching in-app products with these
+// exact ids in Google Play Console / App Store Connect before release.
+const COIN_BUNDLES = [
+  { id:"coins_small",  coins:50,  fallbackPrice:"€0.99" },
+  { id:"coins_medium", coins:150, fallbackPrice:"€2.99" },
+  { id:"coins_large",  coins:400, fallbackPrice:"€5.99" },
+];
+let iapReady = false;
+const iapPrices = {}; // productId -> localized price string, once the store responds
+
+async function initMonetization(){
+  if(!NATIVE) return;
+  try{
+    const { AdMob } = window.Capacitor.Plugins;
+    await AdMob.initialize({ initializeForTesting: true });
+    admobReady = true;
+  }catch(e){ console.warn("[ads] init failed", e); }
+  try{
+    const cdv = window.CdvPurchase;
+    if(!cdv) return;
+    const store = cdv.store;
+    const products = [];
+    for(const b of COIN_BUNDLES){
+      products.push({ id:b.id, platform:cdv.Platform.GOOGLE_PLAY, type:cdv.ProductType.CONSUMABLE });
+      products.push({ id:b.id, platform:cdv.Platform.APPLE_APPSTORE, type:cdv.ProductType.CONSUMABLE });
+    }
+    store.register(products);
+    store.when()
+      .productUpdated(p => { if(p.pricing) iapPrices[p.id] = p.pricing.price; refreshShop(); })
+      .approved(transaction => transaction.verify())
+      .verified(receipt => {
+        for(const p of receipt.products){
+          const b = COIN_BUNDLES.find(x => x.id === p.id);
+          if(b){ coinTotal += b.coins; saveCoins(); }
+        }
+        receipt.finish();
+        refreshShop();
+      });
+    store.initialize([{ platform: cdv.Platform.GOOGLE_PLAY }, { platform: cdv.Platform.APPLE_APPSTORE }]);
+    iapReady = true;
+  }catch(e){ console.warn("[iap] init failed", e); }
+}
+async function watchRewardedAd(){
+  if(!NATIVE || !admobReady) return;
+  if(Date.now() - lastAdAt < AD_COOLDOWN_MS){ showHint(STR.shopAdCooldown); return; }
+  try{
+    const { AdMob } = window.Capacitor.Plugins;
+    await AdMob.prepareRewardVideoAd({ adId: AD_UNIT_REWARDED, isTesting: true });
+    const result = await AdMob.showRewardVideoAd();
+    if(result){
+      lastAdAt = Date.now();
+      coinTotal += AD_REWARD_COINS; saveCoins(); refreshShop();
+    }
+  }catch(e){ showHint(STR.shopAdUnavailable); }
+}
+function buyCoinBundle(id){
+  if(!NATIVE || !iapReady) return;
+  const product = window.CdvPurchase.store.get(id);
+  const offer = product && product.getOffer();
+  if(offer) offer.order();
+  else showHint(STR.shopAdUnavailable);
+}
 
 const COSMETICS_KEY = "kritzeldrache_cosmetics_v1";
 function loadCosmetics(){
@@ -1260,8 +1355,34 @@ function buildSwatchRow(container, items, names, unlockedKey, selectedKey, opts)
     container.appendChild(b);
   }
 }
+function refreshGetCoinsRow(){
+  const wrap = document.getElementById("shopGetCoins");
+  if(!NATIVE){ wrap.style.display = "none"; return; }
+  wrap.style.display = "";
+  document.getElementById("shopHGetCoins").textContent = STR.shopSectionGetCoins;
+  const row = document.getElementById("shopGetCoinsRow");
+  row.textContent = "";
+  const adBtn = document.createElement("button");
+  adBtn.className = "swatch";
+  adBtn.innerHTML = "";
+  const adLbl = document.createElement("div"); adLbl.className = "lbl"; adLbl.textContent = STR.shopWatchAd;
+  const adSub = document.createElement("div"); adSub.className = "price"; adSub.textContent = "+" + AD_REWARD_COINS + " 🪙";
+  adBtn.append(adLbl, adSub);
+  adBtn.onclick = watchRewardedAd;
+  row.appendChild(adBtn);
+  for(const b of COIN_BUNDLES){
+    const btn = document.createElement("button");
+    btn.className = "swatch";
+    const lbl = document.createElement("div"); lbl.className = "lbl"; lbl.textContent = "+" + b.coins + " 🪙";
+    const price = document.createElement("div"); price.className = "price"; price.textContent = iapPrices[b.id] || b.fallbackPrice;
+    btn.append(lbl, price);
+    btn.onclick = () => buyCoinBundle(b.id);
+    row.appendChild(btn);
+  }
+}
 function refreshShop(){
   shopCoinsEl.textContent = "🪙 " + coinTotal + " " + STR.shopCoinsLabel;
+  refreshGetCoinsRow();
   buildSwatchRow(document.getElementById("shopColors"), SKIN_COLORS, STR.colorNames, "colors", "skin",
     { dot:true, dotColor:id => findById(SKIN_COLORS,id).hex });
   buildSwatchRow(document.getElementById("shopPatterns"), PATTERNS, STR.patternNames, "patterns", "pattern", {});

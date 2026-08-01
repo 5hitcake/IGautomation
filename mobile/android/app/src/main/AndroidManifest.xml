@@ -33,9 +33,22 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!--
+          AdMob App ID - this is GOOGLE'S OFFICIAL PUBLIC TEST APP ID (safe to
+          ship as-is during development; test ads show but earn nothing).
+          Replace with your own real App ID from your AdMob account before a
+          real release, or rewarded ads will never pay out real money.
+          https://developers.google.com/admob/android/test-ads
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 </manifest>

@@ -45,5 +45,23 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+
+	<!--
+	  AdMob App ID - this is GOOGLE'S OFFICIAL PUBLIC TEST APP ID (safe to ship
+	  as-is during development; test ads show but earn nothing). Replace with
+	  your own real App ID from your AdMob account before a real release.
+	  https://developers.google.com/admob/ios/test-ads
+	-->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier is used to show ads that are more relevant to you.</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 </dict>
 </plist>
