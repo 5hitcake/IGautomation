@@ -1,0 +1,69 @@
+{
+ "sheet": {
+  "file": "char_move_f12_288x288_g4x3_fps12_loop.png",
+  "sheet_px": [1152, 864], "cell": [288, 288], "grid": [4, 3], "frames": 12, "fps": 12,
+  "ar_used_by_drawSheet": 1.0
+ },
+ "coord_note": "dx = px_in_cell/288 - 0.5, dy = px_in_cell/288 - 0.5. The cell is drawn filling -size*ar/2..+size*ar/2 by -size/2..+size/2.",
+
+ "WARNING_ar_differs_between_poses": {
+  "char_idle_via_drawSprite": 1.3061,
+  "char_move_via_drawSheet": 1.0,
+  "why_it_matters": "drawOutfit computes cx = anchor.dx * size * ar. Because ar is 1.3061 for idle but 1.0 for the moving sheet, the SAME dx produces a different pixel offset in each pose. A moving-pose dx must be read off this file, never copied from the idle file. To convert an idle dx to the equivalent pixel offset in the moving pose: dx_moving = dx_idle * 1.3061."
+ },
+
+ "head_moves_between_poses": {
+  "char_idle_head_center":  { "dx": 0.254, "dy": -0.147 },
+  "char_move_head_center":  { "dx": 0.269, "dy": -0.032, "note": "loop mean" },
+  "delta_dy": 0.115,
+  "comment": "The head sits ~0.115 of sprite height LOWER (less negative dy) in the moving sheet than in idle. This is the drift the user reported: an idle-tuned dy of -0.36 lands well above the moving head."
+ },
+
+ "representative_frame": 6,
+ "representative": {
+  "frame": 6,
+  "silhouette_bbox": [-0.375, -0.462, 0.403, 0.253],
+  "red_body_bbox":   [-0.365, -0.434, 0.403, 0.250],
+  "head_bbox":       [0.188, -0.278, 0.403, 0.122],
+  "head_center": { "dx": 0.269, "dy": -0.058 },
+  "head_top":    { "dx": 0.269, "dy": -0.278 },
+  "snout_tip":   { "dx": 0.403, "dy": -0.069 },
+  "topmost":     { "dx": -0.208, "dy": -0.462 },
+  "back_top":    { "dx": -0.208, "dy": -0.462 }
+ },
+
+ "loop_variation": {
+  "head_center_dx_range": [0.258, 0.277], "head_center_dx_spread": 0.019,
+  "head_center_dy_range": [-0.058, 0.005], "head_center_dy_spread": 0.063,
+  "head_center_mean": { "dx": 0.269, "dy": -0.032 },
+  "comment": "dx is very stable across the loop (spread 0.019 of sprite width) so one moving dx is safe. dy wobbles more (spread 0.063) as the dragon flaps; the mean is the best single value and worst case is about +/-0.03 off."
+ },
+
+ "all_frames_head_center_and_snout": [
+  { "f": 0,  "head_center": [0.275, -0.037], "snout_tip": [0.410, -0.068], "topmost": [-0.234, -0.292] },
+  { "f": 1,  "head_center": [0.273, -0.004], "snout_tip": [0.413, -0.062], "topmost": [0.241, -0.149] },
+  { "f": 2,  "head_center": [0.272, -0.036], "snout_tip": [0.413, -0.076], "topmost": [-0.233, -0.413] },
+  { "f": 3,  "head_center": [0.268, -0.033], "snout_tip": [0.417, -0.097], "topmost": [0.257, -0.181] },
+  { "f": 4,  "head_center": [0.277, -0.050], "snout_tip": [0.417, -0.087], "topmost": [-0.174, -0.493] },
+  { "f": 5,  "head_center": [0.270, -0.025], "snout_tip": [0.417, -0.073], "topmost": [0.007, -0.181] },
+  { "f": 6,  "head_center": [0.269, -0.058], "snout_tip": [0.403, -0.069], "topmost": [-0.208, -0.462] },
+  { "f": 7,  "head_center": [0.258, -0.020], "snout_tip": [0.399, -0.049], "topmost": [0.028, -0.208] },
+  { "f": 8,  "head_center": [0.265, -0.042], "snout_tip": [0.399, -0.054], "topmost": [-0.325, -0.319] },
+  { "f": 9,  "head_center": [0.261, -0.043], "snout_tip": [0.403, -0.071], "topmost": [0.252, -0.198] },
+  { "f": 10, "head_center": [0.277, -0.043], "snout_tip": [0.410, -0.066], "topmost": [-0.214, -0.420] },
+  { "f": 11, "head_center": [0.267,  0.005], "snout_tip": [0.413, -0.050], "topmost": [0.229, -0.146] }
+ ],
+
+ "char_airborne": {
+  "file": "char_airborne.png", "px": [448, 352], "ar_used_by_drawSprite": 1.2727,
+  "silhouette_bbox": [-0.471, -0.486, 0.487, 0.483],
+  "head_center": { "dx": 0.386, "dy": 0.273 },
+  "head_top":    { "dx": 0.386, "dy": 0.102 },
+  "snout_tip":   { "dx": 0.487, "dy": 0.372 },
+  "topmost":     { "dx": 0.145, "dy": -0.486 },
+  "back_top":    { "dx": -0.281, "dy": -0.435 },
+  "comment": "Airborne is a steep nose-down dive: the head is LOW (dy +0.273, i.e. below centre) and far forward, while the topmost point of the silhouette is the raised tail/wing at dy -0.486. An idle- or moving-tuned anchor will be badly wrong here - airborne needs its own values, and its head_center dy differs from idle by 0.42 of sprite height."
+ },
+
+ "confidence": "head_bbox / head_center / head_top use the same heuristic as the idle file (rightmost 28% of the red region), so they still include some upper body. snout_tip, topmost, back_top and all bboxes are exact. No eye landmark is attempted here - the idle file's eye_center was unreliable and the same method would be no better on a 288px cell."
+}

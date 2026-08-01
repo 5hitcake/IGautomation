@@ -1,0 +1,48 @@
+ASCII map of char_move frame 6 of 12 (cell 288x288 from char_move_f12_288x288_g4x3_fps12_loop.png)
+'#'=poppy-red body/head  ':'=grey wing  '.'=dark outline
+x = anchor dx (-0.5..+0.5), y = anchor dy (-0.5..+0.5). Dragon faces RIGHT.
+NOTE drawSheet passes ar = cw/ch = 1.0 here, but drawSprite passes ar = 1.3061 for char_idle,
+so the same dx is a DIFFERENT pixel offset in this pose. Re-derive dx, do not copy it from idle.
+
+dy=-0.485 |                                                                          |
+dy=-0.456 |                      ::                                                  |
+dy=-0.426 |                       ::..:                                              |
+dy=-0.397 |                        :::::.:              :.                           |
+dy=-0.368 |                         :::::::.:          :::.:                         |
+dy=-0.338 |                         :::::::::.#       :::::..                        |
+dy=-0.309 |                         ::::::::::..#:   :::::::..                       |
+dy=-0.279 |                        :::::::::::::.##::::::::::#                       |
+dy=-0.250 |                      :::::::::::::::::.##:::::::::#                      |
+dy=-0.221 |                       ::::::::::::::::...#..::::::#.                     |
+dy=-0.191 |                          ::::::::::::....##.:::::..#.                    |
+dy=-0.162 |                           .::::::::::::.##::::::.#.   :.#..              |
+dy=-0.132 |                           ::::::::::::###:::::.#.       .####.:          |
+dy=-0.103 |                             ::::::::.###::::.##       .########.         |
+dy=-0.074 |                                :::::...##.:::#.     .####.########       |
+dy=-0.044 |                                ::::::.....##..#::.#####::     :.#        |
+dy=-0.015 |                                  :.#:::....##########.::                 |
+dy=+0.015 |                              ..#####################:::                  |
+dy=+0.044 |                         :#########################.::                    |
+dy=+0.074 |                     .############################..###..                 |
+dy=+0.103 |                  .########...########::.:::::..#####.####.               |
+dy=+0.132 |                #####.::::: :..######.###.:::           .:                |
+dy=+0.162 |              .###::        #############                                 |
+dy=+0.191 |             ##.:         .##:  ##:                                       |
+dy=+0.221 |           :##:         :###::.##                                         |
+dy=+0.250 |          .#:                 ::                                          |
+dy=+0.279 |                                                                          |
+dy=+0.309 |                                                                          |
+dy=+0.338 |                                                                          |
+dy=+0.368 |                                                                          |
+dy=+0.397 |                                                                          |
+dy=+0.426 |                                                                          |
+dy=+0.456 |                                                                          |
+dy=+0.485 |                                                                          |
+          ^         ^         ^         ^         ^         ^         ^         ^
+       dx -0.50     -0.36     -0.23     -0.09     +0.04     +0.18     +0.31     +0.45
+
+READING IT: the head is the compact red blob on the RIGHT around dx +0.19..+0.40,
+dy -0.16..+0.12 (head_center dx 0.269 dy -0.058, snout tip dx 0.403 dy -0.069).
+The big grey mass upper-left is the raised wing; the long red band across
+dy +0.015..+0.13 is the body. Compare char_idle's map: there the head sits at
+dy -0.147, here it is at dy -0.058 -- about 0.115 of sprite height LOWER.
