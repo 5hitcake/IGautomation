@@ -77,6 +77,7 @@
           background:#fdf9ee;padding:8px 16px;cursor:pointer;box-shadow:1px 2px 0 rgba(74,70,64,.35)}
   .txtbtn:active{transform:translate(1px,2px);box-shadow:none}
   .txtbtn.danger{border-color:#c8302a;color:#c8302a}
+  .txtbtn.on{background:#fff4d2;border-color:#c8302a;color:#c8302a}
   .cardfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 
   #rotate{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:40;
@@ -133,6 +134,12 @@
   <div class="row"><label id="lbTrail"></label><div class="sw" id="swTrail"><i></i></div></div>
   <div class="row"><label id="lbSnap"></label><div class="sw" id="swSnap"><i></i></div></div>
   <div class="row"><label id="lbSound"></label><div class="sw" id="swSound"><i></i></div></div>
+  <div class="row"><label id="lbLanguage"></label>
+    <div style="display:flex;gap:6px">
+      <button class="txtbtn" id="btnLangDe" style="padding:4px 12px;font-size:14px">Deutsch</button>
+      <button class="txtbtn" id="btnLangEn" style="padding:4px 12px;font-size:14px">English</button>
+    </div>
+  </div>
   <h3 id="lbHelpTitle"></h3><ul id="helpList"></ul>
   <p id="credits" style="color:#8a8378"></p>
   <div class="cardfoot">
@@ -173,7 +180,9 @@
 </div></div>
 
 <script type="module">
-import { STR } from "./strings.js";
+import { STR, LANG, setLang } from "./strings.js";
+document.title = STR.title;
+document.documentElement.lang = LANG;
 
 /* ============================ assets ============================ */
 const IMG = {}, MISSING = [];
@@ -1139,6 +1148,11 @@ document.getElementById("lbGrid").textContent = STR.settingsGrid;
 document.getElementById("lbTrail").textContent = STR.settingsTrail;
 document.getElementById("lbSnap").textContent = STR.settingsSnap;
 document.getElementById("lbSound").textContent = STR.settingsSound;
+document.getElementById("lbLanguage").textContent = STR.settingsLanguage;
+const btnLangDe = document.getElementById("btnLangDe"), btnLangEn = document.getElementById("btnLangEn");
+btnLangDe.classList.toggle("on", LANG === "de"); btnLangEn.classList.toggle("on", LANG === "en");
+btnLangDe.onclick = ()=>{ if(LANG !== "de") setLang("de"); };
+btnLangEn.onclick = ()=>{ if(LANG !== "en") setLang("en"); };
 document.getElementById("lbHelpTitle").textContent = STR.settingsHelpTitle;
 document.getElementById("credits").textContent = STR.settingsCredits;
 document.getElementById("btnClear").textContent = STR.settingsClear;

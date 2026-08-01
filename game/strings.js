@@ -1,95 +1,24 @@
-// All player-visible text lives here. Switching language = swapping this data.
-export const STR = {
-  title: "Kritzeldrache",
+// All player-visible text lives in strings.de.js / strings.en.js (same keys
+// in both). This file only picks which one to load: an explicit saved
+// choice wins, otherwise the browser's own language, defaulting to German.
+import { STR as STR_DE } from "./strings.de.js";
+import { STR as STR_EN } from "./strings.en.js";
 
-  // Tools / toolbar (used as accessible labels + tooltips)
-  toolPencil: "Stift",
-  toolRuler: "Lineal",
-  toolEraser: "Radierer",
-  toolBoostPad: "Boost-Feld",
-  actionPlay: "Los",
-  actionPause: "Pause",
-  actionFastForward: "Doppeltes Tempo",
-  actionRestart: "Neu",
-  actionSettings: "Einstellungen",
-
-  // Hints
-  hintDraw: "Zeichne eine Linie mit dem Finger",
-  hintRuler: "Ziehe für eine gerade Linie",
-  hintRulerGone: "Keine Lineale mehr übrig – weiter mit dem Stift",
-  hintBoostPad: "Tippe, um ein Boost-Feld zu setzen",
-  hintPlay: "Tippe auf Los und lass den Drachen gleiten",
-  hintPan: "Zwei Finger: schieben und zoomen",
-  hintRotate: "Dreh dein Gerät quer",
-  hintRotateSub: "Kritzeldrache spielt sich am besten im Querformat",
-  hintScrub: "Ziehe am Balken, um zurückzuspulen",
-
-  // Status
-  statusCrash: "Bruchlandung! Spul zurück oder fang neu an",
-  statusLost: "Der Drache ist abgestürzt",
-  statusMilestone: "Weit geflogen!",
-  labelDistance: "Strecke",
-  unitMeters: "m",
-
-  // Settings panel
-  settingsTitle: "Einstellungen",
-  settingsClose: "Fertig",
-  settingsGrid: "Raster anzeigen",
-  settingsTrail: "Kritzelspur",
-  settingsSnap: "Linien einrasten",
-  settingsSound: "Sound",
-  settingsClear: "Alles löschen",
-  settingsClearConfirm: "Wirklich alles löschen?",
-  settingsHelpTitle: "So geht's",
-  settingsHelp: [
-    "Ein Finger zeichnet eine Linie.",
-    "Zwei Finger schieben und zoomen die Seite.",
-    "Der Stift zeichnet frei, das Lineal zieht gerade Linien.",
-    "Start nah am Ende der letzten Linie, um anzuknüpfen.",
-    "Mit dem Radierer wischst du Linien weg.",
-    "Im freien Kritzeln: mit dem Boost-Feld-Werkzeug eigene Boost-Felder setzen, der Radierer entfernt sie wieder.",
-    "In der Kampagne: Hindernissen ausweichen, Boost-Felder mitnehmen, goldenes Ei erreichen.",
-    "Das Lineal ist in der Kampagne begrenzt - je nach Levellänge stehen dir ein paar gerade Linien zur Verfügung.",
-    "Doppeltes Tempo lässt den Drachen beim Gleiten schneller fliegen.",
-    "Münzen und Truhen unterwegs sind freiwillig - im Shop gegen Farben, Muster und Outfits eintauschbar.",
-    "Leertaste = Los / Pause, R = Neu (Tastatur).",
-  ],
-  settingsCredits: "Ein Kritzel-Abenteuer auf kariertem Papier",
-  settingsMenu: "Hauptmenü",
-
-  // Main menu
-  welcomeTitle: "Kritzeldrache",
-  welcomeBody: "Zeichne eine Bahn und schick den Papierdrachen los.",
-  btnFreeDraw: "Freies Kritzeln",
-  btnCampaign: "Kampagne",
-  btnShop: "Shop",
-
-  // Shop (cosmetics bought with coins collected in campaign levels)
-  shopTitle: "Shop",
-  shopCoinsLabel: "Münzen",
-  shopSectionColors: "Drachenfarbe",
-  shopSectionPatterns: "Muster",
-  shopSectionPenColor: "Stiftfarbe",
-  shopSectionOutfits: "Outfit",
-  shopHintLocked: "Zu wenig Münzen",
-  colorNames: { red:"Rot", blue:"Blau", green:"Grün", purple:"Lila", gold:"Gold" },
-  patternNames: { none:"Ohne", stripes:"Streifen", stars:"Sterne" },
-  outfitNames: {
-    none:"Kein Outfit", goggles:"Fliegerbrille", scarf:"Schal", flower:"Blume",
-    partyhat:"Partyhut", pilotcap:"Pilotenmütze", tophat:"Zylinder", cape:"Umhang", crown:"Krone",
-  },
-
-  // Level select
-  levelSelectTitle: "Kampagne",
-  levelWord: "Level",
-  lockedLabel: "Gesperrt",
-  completedBadge: "✓ Geschafft",
-  btnBackToMenu: "Zurück",
-
-  // Win screen
-  winTitle: "Level geschafft!",
-  winBody: "Der Drache hat das goldene Ei erreicht!",
-  btnNextLevel: "Nächstes Level",
-  btnLevelSelect: "Level-Auswahl",
-  btnRetryLevel: "Nochmal",
-};
+export const LANG_KEY = "kritzeldrache_lang";
+function detectLang(){
+  try{
+    const saved = localStorage.getItem(LANG_KEY);
+    if(saved === "de" || saved === "en") return saved;
+  }catch{}
+  return (navigator.language || "de").toLowerCase().startsWith("de") ? "de" : "en";
+}
+export const LANG = detectLang();
+export const STR = LANG === "en" ? STR_EN : STR_DE;
+// Changing the language touches nearly every piece of UI text, most of which
+// is written into the DOM once at startup rather than reactively - a full
+// reload after saving the new choice is simpler and safer than trying to
+// re-render every label in place.
+export function setLang(l){
+  try{ localStorage.setItem(LANG_KEY, l); }catch{}
+  location.reload();
+}
