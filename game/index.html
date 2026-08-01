@@ -449,6 +449,27 @@ const OUTFITS = [
   { id:"cape",     cost:120, asset:"acc_cape" },
   { id:"crown",    cost:150, asset:"acc_crown" },
 ];
+// Where on the dragon's OWN silhouette (in its local, unrotated frame - it
+// rotates rigidly with the sprite since this is drawn inside the same
+// rotate(ang) block as the sprite itself) each outfit's visual center
+// should land, as a fraction of the sprite's rendered size, offset from
+// center. Different accessory types anchor to different body parts (a
+// scarf at the neck, a crown on top of the head, a cape on the back) -
+// a single shared position was wrong by design, not just by number.
+// dx is scaled by `ar` (the sprite's aspect ratio) since it's a fraction
+// of width; dy is a fraction of height. Head position tuned from real
+// screenshots of the idle pose (see assets.csv) - still an approximation
+// for the other body-part anchors and for poses besides idle/gliding.
+const OUTFIT_ANCHOR = {
+  goggles:  { dx:0.33, dy:-0.32 }, // over the eyes, at the head
+  flower:   { dx:0.30, dy:-0.40 }, // near the head, just behind the eyes
+  scarf:    { dx:0.14, dy:-0.08 }, // around the neck, behind the head
+  partyhat: { dx:0.30, dy:-0.50 }, // on top of the head
+  pilotcap: { dx:0.30, dy:-0.46 }, // on top of the head
+  tophat:   { dx:0.30, dy:-0.52 }, // on top of the head
+  crown:    { dx:0.30, dy:-0.52 }, // on top of the head
+  cape:     { dx:-0.12, dy:-0.02 }, // over the back, opposite the head
+};
 // The pen/line color shares the same unlock list as the dragon's skin
 // colors (unlocking "blue" unlocks it for both), but maps to its own hex
 // values since a hue-rotate filter doesn't apply to vector line strokes -
@@ -1750,8 +1771,10 @@ function drawOutfit(size, ar){
   const o = findById(OUTFITS, cosmetics.outfit);
   const img = IMG[o.asset];
   if(!img) return;
-  const oh = size*0.5, ow = oh*img.width/img.height;
-  ctx.drawImage(img, size*ar*0.05, -size*0.42, ow, oh);
+  const anchor = OUTFIT_ANCHOR[o.id] || { dx:0.3, dy:-0.4 };
+  const oh = size*0.4, ow = oh*img.width/img.height;
+  const cx = anchor.dx*size*ar, cy = anchor.dy*size;
+  ctx.drawImage(img, cx-ow/2, cy-oh/2, ow, oh);
 }
 function drawSheet(sheet, t, sx, sy, size, ang){
   const idx = sheet.loop
