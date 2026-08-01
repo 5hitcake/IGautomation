@@ -61,12 +61,27 @@ npx cap sync          # copies www/ into android/ and ios/, applies config
 - **iOS**: open `ios/App/App.xcworkspace` in Xcode (needs CocoaPods -
   `cd ios/App && pod install` first if it wasn't run automatically).
 
-## App icon / splash
+## App icon / splash / store screenshots
 
-Run `npm run assets` (wraps `@capacitor/assets`) once real source images
-exist at `resources/icon.png` (1024x1024) and `resources/splash.png`
-(2732x2732, centered content) - it generates every required Android/iOS
-size automatically into both native projects.
+Generated (v18, see `../game/design/assets.csv`) but - same CDN-access issue
+as the game assets above - not yet committed as files, only as URLs+md5:
+
+| file | save as | URL | md5 |
+|---|---|---|---|
+| icon (1024x1024) | `resources/icon.png` | https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/865f2dbd-60d2-42b6-9468-6f95cae8147e.png | `ed43e676…` |
+| splash (2732x2732) | `resources/splash.png` | https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/3a67c0b0-5b7f-4c16-ba7b-c7dff144c965.png | `d6f5af76…` |
+| screenshot: free-draw glide | `store/screenshots/1-freedraw.png` | https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/01aad5e8-f2fa-45b0-94a6-720f8ccca770.png | `e448a012…` |
+| screenshot: campaign hazards | `store/screenshots/2-campaign.png` | https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/d13c156f-1fd3-4e8f-8c26-0d81c4b3cee6.png | `72be1800…` |
+| screenshot: shop grid | `store/screenshots/3-shop.png` | https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/0cfd23c3-7765-4ab9-b2b3-afa60b22d04f.png | `2608656a…` |
+| screenshot: level 1 with coins | `store/screenshots/4-coins.png` | https://d2ol7oe51mr4n9.cloudfront.net/user_32L4TSMqHHRKuTsZ8RfoJK8mZiY/742c4d67-8d6c-4775-beb5-4d05c3f13e72.png | `6147f59b…` |
+
+The 4 screenshots are the **English** UI (confirms the localization works
+end to end) - re-run with `localStorage kritzeldrache_lang=de` first if you
+want a German set for `listing-de.md` too.
+
+Once `resources/icon.png` and `resources/splash.png` are in place, run
+`npm run assets` (wraps `@capacitor/assets`) - it generates every required
+Android/iOS icon size automatically into both native projects.
 
 ## Store listing text
 
