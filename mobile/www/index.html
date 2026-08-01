@@ -501,9 +501,13 @@ const OUTFIT_ANCHOR = {
     airborne: { dx:0.332, dy: 0.070 },
   },
   scarf: {
-    idle:     { dx:0.14,  dy: 0.06,  scale:0.78 }, // neck/collar
-    moving:   { dx:0.155, dy: 0.175, scale:0.78 },
-    airborne: { dx:0.272, dy: 0.480, scale:0.78 },
+    // Moved up substantially from the first pass, which the user's screenshot
+    // showed sitting at the front leg/chest, nowhere near the neck - pulled
+    // in to sit right at the head/body junction instead (near head_bbox's
+    // left edge, dx 0.179 in the idle geometry).
+    idle:     { dx:0.18,  dy:-0.12,  scale:0.78 }, // neck/collar
+    moving:   { dx:0.195, dy: 0.00,  scale:0.78 },
+    airborne: { dx:0.312, dy: 0.30,  scale:0.78 },
   },
   partyhat: {
     idle:     { dx:0.25,  dy:-0.46,  scale:0.78 }, // top of the head
