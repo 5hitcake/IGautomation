@@ -1,0 +1,36 @@
+{
+ "sprite": { "file": "char_idle.png", "px": [448, 343], "ar": 1.3061 },
+ "coord_note": "dx = px/imgW - 0.5, dy = px/imgH - 0.5 -- identical to OUTFIT_ANCHOR space. Dragon faces RIGHT.",
+ "measured_from": { "commit": "6837207", "index_html_md5": "d60af6957f89fd59d5b3e6895a9961be" },
+
+ "silhouette_bbox_dxdy": [-0.491, -0.488, 0.489, 0.480],
+ "red_body_bbox_dxdy":   [-0.431, -0.480, 0.417, 0.200],
+
+ "landmarks": {
+  "snout_tip":  { "dx":  0.489, "dy":  0.271, "confidence": "high (rightmost opaque column)" },
+  "tail_tip":   { "dx": -0.491, "dy":  0.310, "confidence": "high (leftmost opaque column)" },
+  "back_top":   { "dx":  0.085, "dy": -0.488, "confidence": "high (topmost opaque px over body)" },
+  "head_bbox":  [0.179, -0.465, 0.417, 0.200],
+  "head_center":{ "dx":  0.254, "dy": -0.147, "confidence": "medium (heuristic: rightmost 28% of the red region, so it still includes some upper body)" },
+  "head_top":   { "dx":  0.254, "dy": -0.465, "confidence": "medium (same heuristic)" },
+  "neck_pinch": { "dx": -0.158, "dy":  0.038, "thickness_px": 42, "confidence": "LOW - the thinnest red column landed left of centre, which is probably the tail/rear, not the neck. Read silhouette.txt before trusting this." },
+  "eye_center": { "dx":  0.256, "dy": -0.118, "px": 971, "confidence": "LOW - 971 px is far too large for an eye; this is the centroid of all dark pixels inside the head region, i.e. outline ink, not the pupil." }
+ },
+
+ "accessories_content_fill": {
+  "_note": "Every acc_*.png is a 256x256 SQUARE, so drawOutfit's ow = oh*w/h always yields ow === oh (measured 29.6 x 29.6 canvas px for all 8 at cam.z=1). These fractions say how much of that square the artwork actually occupies, which is why apparent sizes differ so much between outfits.",
+  "goggles": { "content_frac_wh": [0.895, 0.336], "content_aspect": 2.663, "content_center_off": [0.0, -0.002] }
+ },
+
+ "runtime_draw_rects_canvas_px": {
+  "_note": "x, y, w, h passed to ctx.drawImage in the sprite's local rotated frame, captured live for each outfit at cam.z = 1 (sprite size 74 canvas px, so oh = 0.4*74 = 29.6).",
+  "goggles":  [17.10, -38.48, 29.6, 29.6],
+  "flower":   [14.20, -44.40, 29.6, 29.6],
+  "scarf":    [-1.27, -20.72, 29.6, 29.6],
+  "partyhat": [14.20, -51.80, 29.6, 29.6],
+  "pilotcap": [14.20, -48.84, 29.6, 29.6],
+  "tophat":   [14.20, -53.28, 29.6, 29.6],
+  "crown":    [14.20, -53.28, 29.6, 29.6],
+  "cape":     [-26.40, -16.28, 29.6, 29.6]
+ }
+}
