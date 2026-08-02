@@ -14,7 +14,8 @@
     8
   ],
   "posted_reel_ids": [
-    2
+    2,
+    9
   ],
   "recent_backgrounds": [
     "bg_02_mountain_climb.png",
@@ -24,6 +25,7 @@
     "bg_12_rain_window.png"
   ],
   "recent_bg_videos": [
-    "reel_07_rooftop.mp4"
+    "reel_07_rooftop.mp4",
+    "reel_02_ocean_waves.mp4"
   ]
 }
