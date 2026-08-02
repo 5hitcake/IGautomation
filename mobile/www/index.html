@@ -501,14 +501,18 @@ const OUTFIT_ANCHOR = {
     airborne: { dx:0.332, dy: 0.070 },
   },
   scarf: {
-    // Position confirmed correct by the user (right at the neck). But the
-    // art reads as a ring viewed face-on (its opening pointed at the
-    // viewer, showing the "inside"), not wrapped around the neck in
-    // profile - rotating it 90 degrees presents its band edge-on instead,
-    // which is what the user asked for and needs no new art.
-    idle:     { dx:0.18,  dy:-0.12,  scale:0.78, rot:Math.PI/2 }, // neck/collar
-    moving:   { dx:0.195, dy: 0.00,  scale:0.78, rot:Math.PI/2 },
-    airborne: { dx:0.312, dy: 0.30,  scale:0.78, rot:Math.PI/2 },
+    // Position confirmed correct by the user (right at the neck). The
+    // rotation attempt didn't fix the real problem: acc_scarf.png was a
+    // rigid ring/hoop, not a draped garment - no rotation turns a ring into
+    // a scarf. Regenerated as an actual knit scarf with a hanging tail
+    // (confirmed not-a-ring via a shape detector, see
+    // mobile/debug/outfit-check/RING-DETECTOR.md), drawn upright, so no
+    // rot needed anymore. scale dropped because the new art's content
+    // fills much more of its padded square (h_frac 0.641 -> 0.895) -
+    // 0.20/(0.4*0.895) keeps the same on-screen height as before.
+    idle:     { dx:0.18,  dy:-0.12,  scale:0.56 }, // neck/collar
+    moving:   { dx:0.195, dy: 0.00,  scale:0.56 },
+    airborne: { dx:0.312, dy: 0.30,  scale:0.56 },
   },
   partyhat: {
     idle:     { dx:0.25,  dy:-0.46,  scale:0.78 }, // top of the head
