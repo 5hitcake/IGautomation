@@ -415,19 +415,23 @@ const COIN_R = 22, COIN_VALUE = 1, CHEST_VALUE = 8; // optional pickups - purely
 // Colors are applied as a canvas hue-rotate filter on the existing dragon
 // sprites - no new art needed per color. Patterns are a second procedural
 // pass drawn with globalCompositeOperation "source-atop" so they're clipped
-// to the sprite's own silhouette, again with no new art. Outfits are the
-// only cosmetic that needs real new art (small accessory decals).
+// to the sprite's own silhouette, again with no new art.
+// Costs are tuned so the cheapest item isn't affordable from the 6
+// hand-crafted levels alone (~69 coins if every coin/chest is collected) -
+// it should take real progress into the procedural campaign (roughly
+// level 15-20 with realistic, non-perfect coin collection) before the
+// shop has anything worth buying.
 const SKIN_COLORS = [
   { id:"red",    cost:0,   filter:"none",                                        hex:"#c8302a" }, // default hero red - always unlocked
-  { id:"blue",   cost:30,  filter:"hue-rotate(205deg) saturate(1.1)",             hex:"#2a5ea8" },
-  { id:"green",  cost:30,  filter:"hue-rotate(110deg) saturate(1.15)",            hex:"#2a8a4a" },
-  { id:"purple", cost:50,  filter:"hue-rotate(275deg) saturate(1.15)",            hex:"#7a3aa8" },
-  { id:"gold",   cost:80,  filter:"hue-rotate(40deg) saturate(1.6) brightness(1.15)", hex:"#c8962a" },
+  { id:"blue",   cost:160, filter:"hue-rotate(205deg) saturate(1.1)",             hex:"#2a5ea8" },
+  { id:"green",  cost:160, filter:"hue-rotate(110deg) saturate(1.15)",            hex:"#2a8a4a" },
+  { id:"purple", cost:280, filter:"hue-rotate(275deg) saturate(1.15)",            hex:"#7a3aa8" },
+  { id:"gold",   cost:450, filter:"hue-rotate(40deg) saturate(1.6) brightness(1.15)", hex:"#c8962a" },
 ];
 const PATTERNS = [
   { id:"none",    cost:0 },
-  { id:"stripes", cost:150 },
-  { id:"stars",   cost:150 },
+  { id:"stripes", cost:700 },
+  { id:"stars",   cost:700 },
 ];
 // The pen/line color shares the same unlock list as the dragon's skin
 // colors (unlocking "blue" unlocks it for both), but maps to its own hex
