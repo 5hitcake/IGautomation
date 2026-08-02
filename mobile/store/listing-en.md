@@ -24,7 +24,7 @@ Draw whatever you like and watch the dragon glide, slide and pick up speed along
 Dodge rocks, bats, archers and catapults, grab boost pads, and reach the golden egg. The first 6 levels are hand-crafted, the remaining 94 scale up procedurally in length and difficulty - hours of play.
 
 🪙 COINS & SHOP
-Collect coins and chests along the way - always optional, never required - and spend them in the shop on new dragon colors, patterns and outfit accessories. Purely cosmetic, with zero effect on difficulty.
+Collect coins and chests along the way - always optional, never required - and spend them in the shop on new dragon colors and patterns. Purely cosmetic, with zero effect on difficulty.
 
 🎵 ATMOSPHERIC SOUND
 A medieval-flavored music bed and hand-made sound effects for drawing and gliding.

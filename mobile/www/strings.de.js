@@ -72,7 +72,6 @@ export const STR = {
   shopSectionColors: "Drachenfarbe",
   shopSectionPatterns: "Muster",
   shopSectionPenColor: "Stiftfarbe",
-  shopSectionOutfits: "Outfit",
   shopHintLocked: "Zu wenig Münzen",
   shopSectionGetCoins: "Mehr Münzen bekommen",
   shopWatchAd: "Werbevideo schauen",
@@ -80,10 +79,6 @@ export const STR = {
   shopAdUnavailable: "Gerade nicht verfügbar - später nochmal versuchen",
   colorNames: { red:"Rot", blue:"Blau", green:"Grün", purple:"Lila", gold:"Gold" },
   patternNames: { none:"Ohne", stripes:"Streifen", stars:"Sterne" },
-  outfitNames: {
-    none:"Kein Outfit", goggles:"Fliegerbrille", scarf:"Schal", flower:"Blume",
-    partyhat:"Partyhut", pilotcap:"Pilotenmütze", tophat:"Zylinder", cape:"Umhang", crown:"Krone",
-  },
 
   // Level select
   levelSelectTitle: "Kampagne",

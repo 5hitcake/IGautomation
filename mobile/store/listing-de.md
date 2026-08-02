@@ -19,7 +19,7 @@ Zeichne, was du willst, und beobachte, wie der Drache über deine Linien gleitet
 Weiche Felsen, Fledermäusen, Bogenschützen und Katapulten aus, sammle Boost-Felder und erreiche das goldene Drachenei. Die ersten 6 Level sind handgestaltet, die weiteren 94 wachsen prozedural mit der Schwierigkeit - stundenlanger Spielspaß.
 
 🪙 MÜNZEN & SHOP
-Sammle unterwegs Münzen und Schatztruhen - ganz freiwillig, nie Pflicht - und schalte im Shop neue Drachenfarben, Muster und Outfit-Accessoires frei. Rein kosmetisch, ohne jeden Einfluss auf die Schwierigkeit.
+Sammle unterwegs Münzen und Schatztruhen - ganz freiwillig, nie Pflicht - und schalte im Shop neue Drachenfarben und Muster frei. Rein kosmetisch, ohne jeden Einfluss auf die Schwierigkeit.
 
 🎵 STIMMUNGSVOLLER SOUND
 Mittelalterlich angehauchte Hintergrundmusik und handgemachte Soundeffekte fürs Zeichnen und Gleiten.

@@ -174,7 +174,6 @@
   <h3 id="shopHColors"></h3><div class="swatchgrid" id="shopColors"></div>
   <h3 id="shopHPatterns"></h3><div class="swatchgrid" id="shopPatterns"></div>
   <h3 id="shopHPen"></h3><div class="swatchgrid" id="shopPen"></div>
-  <h3 id="shopHOutfits"></h3><div class="swatchgrid" id="shopOutfits"></div>
   <div class="cardfoot" style="justify-content:center"><button class="txtbtn" id="btnShopBack"></button></div>
 </div></div>
 
@@ -215,14 +214,6 @@ const STATIC_ASSETS = {
   ui_fastforward:  "./assets/ui_fastforward.png",
   ui_coin:         "./assets/ui_coin.png",
   ui_chest:        "./assets/ui_chest.png",
-  acc_goggles:     "./assets/acc_goggles.png",
-  acc_scarf:       "./assets/acc_scarf.png",
-  acc_pilotcap:    "./assets/acc_pilotcap.png",
-  acc_tophat:      "./assets/acc_tophat.png",
-  acc_partyhat:    "./assets/acc_partyhat.png",
-  acc_flower:      "./assets/acc_flower.png",
-  acc_cape:        "./assets/acc_cape.png",
-  acc_crown:       "./assets/acc_crown.png",
 };
 // spritesheets — all playback metadata is parsed out of the filename
 const SHEET_FILES = {
@@ -438,112 +429,6 @@ const PATTERNS = [
   { id:"stripes", cost:150 },
   { id:"stars",   cost:150 },
 ];
-const OUTFITS = [
-  { id:"none",     cost:0 },
-  { id:"goggles",  cost:40,  asset:"acc_goggles" },
-  { id:"scarf",    cost:40,  asset:"acc_scarf" },
-  { id:"flower",   cost:35,  asset:"acc_flower" },
-  { id:"partyhat", cost:50,  asset:"acc_partyhat" },
-  { id:"pilotcap", cost:60,  asset:"acc_pilotcap" },
-  { id:"tophat",   cost:70,  asset:"acc_tophat" },
-  { id:"cape",     cost:120, asset:"acc_cape" },
-  { id:"crown",    cost:150, asset:"acc_crown" },
-];
-// Where on the dragon's OWN silhouette (in its local, unrotated frame - it
-// rotates rigidly with the sprite since this is drawn inside the same
-// rotate(ang) block as the sprite itself) each outfit's visual center
-// should land, as a fraction of the sprite's rendered size, offset from
-// center. Different accessory types anchor to different body parts (a
-// scarf at the neck, a crown on top of the head, a cape on the back) -
-// a single shared position was wrong by design, not just by number.
-// dx is scaled by `ar` (the sprite's aspect ratio) since it's a fraction
-// of width; dy is a fraction of height. Head position tuned from real
-// screenshots of the idle pose (see assets.csv) - still an approximation
-// for the other body-part anchors and for poses besides idle/gliding.
-// Anchors are keyed by BOTH outfit id and render pose ("idle", "moving",
-// "airborne", "impact", "celebrate") - the dragon uses a different piece of
-// art for each (char_idle.png, the char_move sheet, char_airborne.png, ...),
-// each independently generated and NOT guaranteed to have the head/body at
-// the same relative position. A goggles position tuned only against the
-// idle pose visibly drifted away from the head as soon as the dragon
-// started gliding. Poses without their own measured entry fall back to
-// "idle" in getOutfitAnchor() below - an approximation, not a fix, for
-// whichever poses haven't been measured yet.
-// idle-pose values re-derived from measured geometry of char_idle.png
-// (mobile/debug/outfit-check/geometry.json + silhouette.txt): head sits at
-// dx 0.18-0.42, dy -0.465 (crown) down to +0.27 (snout tip). `scale`
-// corrects for accessory PNGs whose actual artwork fills only part of
-// their padded 256x256 square - goggles are measured (content only 33.6%
-// of the square's height pre-rework), the other 7 outfits aren't measured
-// yet and default to scale 1. `rot` (radians) applies an extra rotation to
-// just that decal, for accessories whose art needs tilting independent of
-// the sprite's own rotation.
-// idle values are either measured directly (goggles, confirmed correct by
-// the user) or estimated from the same measured head landmarks (the rest).
-// moving/airborne values are NOT independently measured - they're each
-// idle's anchor shifted by that pose's measured head_center delta from
-// idle's head_center (mobile/debug/outfit-check/char_move-geometry.json):
-//   moving delta   = (+0.015, +0.115)  -- head sits lower & slightly forward while gliding
-//   airborne delta = (+0.132, +0.420)  -- steep nose-down dive, head far lower still
-// This assumes an accessory's offset from the head stays roughly constant
-// across poses, which is a reasonable approximation, not a measurement -
-// goggles is the only entry with real per-pose confidence for "moving" too
-// (delta applied on top of its user-confirmed idle value).
-const OUTFIT_ANCHOR = {
-  goggles:  {
-    idle:     { dx:0.26,  dy:-0.36,  scale:0.85 }, // over the eyes - user-confirmed
-    moving:   { dx:0.275, dy:-0.245, scale:0.85 },
-    airborne: { dx:0.392, dy: 0.060, scale:0.85 },
-  },
-  flower: {
-    idle:     { dx:0.20,  dy:-0.35 },
-    moving:   { dx:0.215, dy:-0.235 },
-    airborne: { dx:0.332, dy: 0.070 },
-  },
-  scarf: {
-    // Shape confirmed correct by the user (real drape, not a ring - no rot
-    // needed). Regenerated as an actual knit scarf with a hanging tail
-    // (confirmed not-a-ring via a shape detector, see
-    // mobile/debug/outfit-check/RING-DETECTOR.md). scale reflects the new
-    // art's content fill (h_frac 0.641 -> 0.895): 0.20/(0.4*0.895) keeps
-    // the same on-screen height as the original tuning.
-    // dx shifted further right per user feedback: it was sitting at the
-    // wing/shoulder junction, needs to sit further right on the neck.
-    idle:     { dx:0.30,  dy:-0.12,  scale:0.56 }, // neck/collar
-    moving:   { dx:0.315, dy:-0.005, scale:0.56 },
-    airborne: { dx:0.432, dy: 0.30,  scale:0.56 },
-  },
-  partyhat: {
-    idle:     { dx:0.25,  dy:-0.46,  scale:0.78 }, // top of the head
-    moving:   { dx:0.265, dy:-0.345, scale:0.78 },
-    airborne: { dx:0.382, dy:-0.040, scale:0.78 },
-  },
-  pilotcap: {
-    idle:     { dx:0.25,  dy:-0.44,  scale:0.78 },
-    moving:   { dx:0.265, dy:-0.325, scale:0.78 },
-    airborne: { dx:0.382, dy:-0.020, scale:0.78 },
-  },
-  tophat: {
-    idle:     { dx:0.25,  dy:-0.48 },
-    moving:   { dx:0.265, dy:-0.365 },
-    airborne: { dx:0.382, dy:-0.060 },
-  },
-  crown: {
-    idle:     { dx:0.25,  dy:-0.48 },
-    moving:   { dx:0.265, dy:-0.365 },
-    airborne: { dx:0.382, dy:-0.060 },
-  },
-  cape: {
-    idle:     { dx:-0.10, dy:-0.15,  scale:1.12 }, // upper back
-    moving:   { dx:-0.085,dy:-0.035, scale:1.12 },
-    airborne: { dx:0.032, dy: 0.270, scale:1.12 },
-  },
-};
-function getOutfitAnchor(outfitId, pose){
-  const byPose = OUTFIT_ANCHOR[outfitId];
-  if(!byPose) return { dx:0.3, dy:-0.4 };
-  return byPose[pose] || byPose.idle || { dx:0.3, dy:-0.4 };
-}
 // The pen/line color shares the same unlock list as the dragon's skin
 // colors (unlocking "blue" unlocks it for both), but maps to its own hex
 // values since a hue-rotate filter doesn't apply to vector line strokes -
@@ -650,9 +535,9 @@ const COSMETICS_KEY = "kritzeldrache_cosmetics_v1";
 function loadCosmetics(){
   try{
     const c = JSON.parse(localStorage.getItem(COSMETICS_KEY));
-    if(c && Array.isArray(c.colors) && Array.isArray(c.patterns) && Array.isArray(c.outfits)) return c;
+    if(c && Array.isArray(c.colors) && Array.isArray(c.patterns)) return c;
   }catch{}
-  return { colors:["red"], patterns:["none"], outfits:["none"], skin:"red", pattern:"none", outfit:"none", penColor:"red" };
+  return { colors:["red"], patterns:["none"], skin:"red", pattern:"none", penColor:"red" };
 }
 let cosmetics = loadCosmetics();
 function saveCosmetics(){ try{ localStorage.setItem(COSMETICS_KEY, JSON.stringify(cosmetics)); }catch{} }
@@ -1407,12 +1292,11 @@ document.getElementById("shopTitle").textContent = STR.shopTitle;
 document.getElementById("shopHColors").textContent = STR.shopSectionColors;
 document.getElementById("shopHPatterns").textContent = STR.shopSectionPatterns;
 document.getElementById("shopHPen").textContent = STR.shopSectionPenColor;
-document.getElementById("shopHOutfits").textContent = STR.shopSectionOutfits;
 const btnShopBack = document.getElementById("btnShopBack"); btnShopBack.textContent = STR.btnBackToMenu;
 btnShopBack.onclick = ()=>{ hideSheet(shopSheet); showSheet(mainmenuSheet); };
 const shopCoinsEl = document.getElementById("shopCoins");
-// One shared builder for all four swatch rows (colors, patterns, pen color,
-// outfits) - each item is either: not yet unlocked (tap spends coins to
+// One shared builder for all three swatch rows (colors, patterns, pen
+// color) - each item is either: not yet unlocked (tap spends coins to
 // unlock it), unlocked-but-not-selected (tap selects it), or selected
 // (shown highlighted). `unlockedKey`/`selectedKey` name which `cosmetics`
 // field this row reads/writes.
@@ -1483,8 +1367,6 @@ function refreshShop(){
   buildSwatchRow(document.getElementById("shopPatterns"), PATTERNS, STR.patternNames, "patterns", "pattern", {});
   buildSwatchRow(document.getElementById("shopPen"), SKIN_COLORS, STR.colorNames, "colors", "penColor",
     { dot:true, dotColor:id => PEN_COLOR_HEX[id] });
-  buildSwatchRow(document.getElementById("shopOutfits"), OUTFITS, STR.outfitNames, "outfits", "outfit",
-    { asset:o => o.asset });
 }
 function openShop(){ refreshShop(); showSheet(shopSheet); }
 
@@ -1815,13 +1697,12 @@ function drawTrail(){
   ctx.stroke();
 }
 
-// Cosmetic color/pattern/outfit are applied to every rider draw uniformly
-// (idle, moving, airborne, crashed, celebrating) rather than per-branch, so
+// Cosmetic color/pattern are applied to every rider draw uniformly (idle,
+// moving, airborne, crashed, celebrating) rather than per-branch, so
 // drawSheet/drawSprite/drawRiderFallback are the only three places this
 // needs to be wired in. Colors are a canvas hue-rotate filter on the
 // existing art (no new art); patterns are a second "source-atop" pass
-// clipped to the sprite's own silhouette (also no new art); outfits are a
-// small accessory image drawn on top.
+// clipped to the sprite's own silhouette (also no new art).
 function drawPatternOverlay(size, ar){
   const pat = cosmetics.pattern;
   if(pat === "none") return;
@@ -1840,24 +1721,7 @@ function drawPatternOverlay(size, ar){
   }
   ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
 }
-function drawOutfit(size, ar, pose){
-  if(cosmetics.outfit === "none") return;
-  const o = findById(OUTFITS, cosmetics.outfit);
-  const img = IMG[o.asset];
-  if(!img) return;
-  const anchor = getOutfitAnchor(o.id, pose);
-  const oh = size*0.4*(anchor.scale||1), ow = oh*img.width/img.height;
-  const cx = anchor.dx*size*ar, cy = anchor.dy*size;
-  if(anchor.rot){
-    ctx.save();
-    ctx.translate(cx, cy); ctx.rotate(anchor.rot);
-    ctx.drawImage(img, -ow/2, -oh/2, ow, oh);
-    ctx.restore();
-  } else {
-    ctx.drawImage(img, cx-ow/2, cy-oh/2, ow, oh);
-  }
-}
-function drawSheet(sheet, t, sx, sy, size, ang, pose){
+function drawSheet(sheet, t, sx, sy, size, ang){
   const idx = sheet.loop
     ? Math.floor(t*sheet.fps) % sheet.frames
     : Math.min(sheet.frames-1, Math.floor(t*sheet.fps));
@@ -1869,17 +1733,15 @@ function drawSheet(sheet, t, sx, sy, size, ang, pose){
                 -size*ar/2, -size/2, size*ar, size);
   ctx.filter = "none";
   drawPatternOverlay(size, ar);
-  drawOutfit(size, ar, pose);
   ctx.restore();
 }
-function drawSprite(im, sx, sy, size, ang, pose){
+function drawSprite(im, sx, sy, size, ang){
   const ar = im.width/im.height;
   ctx.save(); ctx.translate(sx,sy); ctx.rotate(ang);
   ctx.filter = findById(SKIN_COLORS, cosmetics.skin).filter;
   ctx.drawImage(im, -size*ar/2, -size/2, size*ar, size);
   ctx.filter = "none";
   drawPatternOverlay(size, ar);
-  drawOutfit(size, ar, pose);
   ctx.restore();
 }
 function drawRiderFallback(sx, sy, size, ang){
@@ -1896,12 +1758,12 @@ function drawRider(){
   const sx = w2sx(rider.x), sy = w2sy(rider.y);
   const size = 74*cam.z;
   const ang = rider.ang + rider.wob;
-  if(rider.crashed && SHEETS.char_impact){ drawSheet(SHEETS.char_impact, crashT, sx, sy, size, ang, "impact"); return; }
-  if(celebrateT > 0 && IMG.char_celebrate){ drawSprite(IMG.char_celebrate, sx, sy, size, ang*0.3, "celebrate"); return; }
-  if(!hasPlayed && IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, 0, "idle"); return; }
-  if(rider.contact && SHEETS.char_move){ drawSheet(SHEETS.char_move, animT, sx, sy, size, ang, "moving"); return; }
-  if(!rider.contact && IMG.char_airborne){ drawSprite(IMG.char_airborne, sx, sy, size, ang, "airborne"); return; }
-  if(IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, ang, "idle"); return; }
+  if(rider.crashed && SHEETS.char_impact){ drawSheet(SHEETS.char_impact, crashT, sx, sy, size, ang); return; }
+  if(celebrateT > 0 && IMG.char_celebrate){ drawSprite(IMG.char_celebrate, sx, sy, size, ang*0.3); return; }
+  if(!hasPlayed && IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, 0); return; }
+  if(rider.contact && SHEETS.char_move){ drawSheet(SHEETS.char_move, animT, sx, sy, size, ang); return; }
+  if(!rider.contact && IMG.char_airborne){ drawSprite(IMG.char_airborne, sx, sy, size, ang); return; }
+  if(IMG.char_idle){ drawSprite(IMG.char_idle, sx, sy, size, ang); return; }
   drawRiderFallback(sx, sy, size, ang);
 }
 
