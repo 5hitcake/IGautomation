@@ -1,0 +1,522 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tafelrunde</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #241a12; color: #f1e6d6;
+    font-family: system-ui, sans-serif; touch-action: none; }
+  #scene { position: fixed; inset: 0; display: block; }
+  #dev { position: fixed; top: 4px; left: 4px; color: #0f0; font: 12px monospace; display: none; z-index: 50; }
+
+  #hud { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between;
+    align-items: flex-start; padding: 10px 12px; pointer-events: none; z-index: 10;
+    text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+  #hud .party { display: flex; gap: 8px; flex-wrap: wrap; }
+  .heroPill { background: rgba(36,26,18,.75); border-radius: 10px; padding: 4px 8px; font-size: 13px;
+    border: 1px solid rgba(255,255,255,.15); }
+  .heroPill.dead { opacity: .4; text-decoration: line-through; }
+  .heroPill.turn { border-color: #ffd27a; box-shadow: 0 0 8px rgba(255,210,122,.6); }
+  #turnInfo { background: rgba(36,26,18,.8); border-radius: 10px; padding: 6px 12px; font-size: 14px;
+    border: 1px solid rgba(255,255,255,.15); max-width: 46vw; text-align: right; }
+
+  #cards { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center;
+    gap: 10px; padding: 10px calc(10px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-bottom));
+    z-index: 10; }
+  .card { width: 92px; background: rgba(36,26,18,.9); border: 2px solid rgba(255,255,255,.2); border-radius: 12px;
+    padding: 6px; text-align: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .card img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 8px; background: #3a2c1c; }
+  .card .name { font-size: 12px; margin-top: 4px; font-weight: 600; }
+  .card .hint { font-size: 10px; opacity: .75; }
+  .card.disabled { opacity: .35; pointer-events: none; }
+  .card.selected { border-color: #ffd27a; box-shadow: 0 0 10px rgba(255,210,122,.7); }
+  #cancelTarget { position: fixed; bottom: 118px; left: 50%; transform: translateX(-50%); z-index: 11;
+    background: #6b3a2a; color: #fff; border: none; border-radius: 20px; padding: 8px 18px; font-size: 13px;
+    display: none; }
+  #targetHint { position: fixed; bottom: 168px; left: 50%; transform: translateX(-50%); z-index: 11;
+    background: rgba(36,26,18,.85); padding: 6px 14px; border-radius: 16px; font-size: 13px; display: none; }
+
+  #overlay { position: fixed; inset: 0; background: rgba(20,14,9,.92); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; z-index: 30; text-align: center; padding: 20px; }
+  #overlay.hidden { display: none; }
+  #overlay h1 { margin: 0; font-size: 22px; }
+  #overlay p { margin: 0; opacity: .85; max-width: 340px; line-height: 1.4; }
+  #inviteBox { display: flex; gap: 6px; align-items: center; }
+  #inviteBox input { width: 220px; max-width: 60vw; padding: 8px; border-radius: 8px; border: 1px solid #665;
+    background: #1c140d; color: #f1e6d6; }
+  button.primary { background: #b5522f; color: #fff; border: none; border-radius: 24px; padding: 12px 28px;
+    font-size: 15px; font-weight: 600; }
+  #err { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); background: #7a2b2b; color: #fff;
+    padding: 6px 14px; border-radius: 10px; font-size: 13px; z-index: 20; display: none; }
+  #logPanel { position: fixed; top: 54px; left: 12px; z-index: 10; font-size: 11px; opacity: .7; max-width: 40vw;
+    display: none; }
+  @media (min-width: 700px) { #logPanel { display: block; } }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="dev"></div>
+
+<div id="hud">
+  <div class="party" id="party"></div>
+  <div id="turnInfo"></div>
+</div>
+<div id="logPanel"></div>
+<div id="err"></div>
+
+<div id="targetHint"></div>
+<button id="cancelTarget"></button>
+<div id="cards"></div>
+
+<div id="overlay">
+  <h1 id="overlayTitle">Tafelrunde</h1>
+  <p id="overlayText"></p>
+  <div id="inviteBox">
+    <input id="link" readonly>
+  </div>
+  <button class="primary" id="startBtn"></button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "./vendor/GLTFLoader.js";
+import { STR } from "./strings.js";
+
+// ---------------- room / identity / websocket (per client-reference.md) ----------------
+const params = new URLSearchParams(location.search);
+let room = params.get("room");
+if (!room) {
+  room = Math.random().toString(36).slice(2, 8);
+  params.set("room", room);
+  history.replaceState(null, "", location.pathname + "?" + params);
+}
+document.getElementById("link").value = location.href;
+
+let playerId = sessionStorage.getItem("mp-player-id");
+if (!playerId) {
+  playerId = "p-" + Math.random().toString(36).slice(2, 10);
+  sessionStorage.setItem("mp-player-id", playerId);
+}
+
+const base = location.pathname.replace(/\/+$/, "");
+const wsUrl = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + base + "/ws/" + room;
+
+const overlay = document.getElementById("overlay");
+const overlayTitle = document.getElementById("overlayTitle");
+const overlayText = document.getElementById("overlayText");
+const startBtn = document.getElementById("startBtn");
+const errEl = document.getElementById("err");
+const turnInfo = document.getElementById("turnInfo");
+const partyEl = document.getElementById("party");
+const cardsEl = document.getElementById("cards");
+const cancelBtn = document.getElementById("cancelTarget");
+const targetHint = document.getElementById("targetHint");
+const logPanel = document.getElementById("logPanel");
+
+overlayTitle.textContent = STR.title;
+overlayText.textContent = STR.waitingHint;
+startBtn.textContent = STR.startBtn;
+cancelBtn.textContent = STR.cancelTarget;
+
+let ws, joined = false, lastState = null, prevState = null;
+
+function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+function connect() {
+  ws = new WebSocket(wsUrl);
+  ws.onopen = () => { errEl.style.display = "none"; if (joined) send({ type: "join", playerId }); };
+  ws.onclose = () => { overlayText.textContent = STR.disconnected; setTimeout(connect, 1500); };
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "error") { errEl.textContent = msg.error; errEl.style.display = "block"; return; }
+    if (msg.type !== "state") return;
+    errEl.style.display = "none";
+    onState(msg);
+  };
+}
+connect();
+
+startBtn.onclick = () => {
+  joined = true;
+  overlay.classList.add("hidden");
+  send({ type: "join", playerId });
+};
+document.getElementById("link").onclick = (e) => { e.target.select(); };
+
+// ---------------- hex math (client-side mirror, used only for highlighting) ----------------
+const SIZE = 1.7;
+function hexToWorld(q, r) { return { x: SIZE * 1.5 * q, z: SIZE * Math.sqrt(3) * (r + q / 2) }; }
+function worldToHex(x, z) {
+  const qf = (2 / 3 * x) / SIZE;
+  const rf = (-1 / 3 * x + Math.sqrt(3) / 3 * z) / SIZE;
+  return cubeRound(qf, rf);
+}
+function cubeRound(qf, rf) {
+  let x = qf, z = rf, y = -x - z;
+  let rx = Math.round(x), ry = Math.round(y), rz = Math.round(z);
+  const dx = Math.abs(rx - x), dy = Math.abs(ry - y), dz = Math.abs(rz - z);
+  if (dx > dy && dx > dz) rx = -ry - rz; else if (dy > dz) ry = -rx - rz; else rz = -rx - ry;
+  return { q: rx, r: rz };
+}
+function hexDist(a, b) { return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2; }
+const DIRS = [{ q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 }, { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }];
+function neighbors(q, r) { return DIRS.map(d => ({ q: q + d.q, r: r + d.r })); }
+function inBounds(q, r, radius) { return Math.abs(q) <= radius && Math.abs(r) <= radius && Math.abs(q + r) <= radius; }
+function occupantAt(state, q, r) {
+  for (const h of state.heroes) if (h.hp > 0 && h.q === q && h.r === r) return { kind: "hero", unit: h };
+  for (const e of state.enemies) if (e.active && e.hp > 0 && e.q === q && e.r === r) return { kind: "enemy", unit: e };
+  return null;
+}
+function obstacleAt(state, q, r) { return state.board.obstacles.some(o => o.q === q && o.r === r); }
+function reachableMove(state, from, range) {
+  const seen = new Map(); seen.set(from.q + "," + from.r, 0);
+  let frontier = [from];
+  for (let step = 1; step <= range; step++) {
+    const next = [];
+    for (const cell of frontier) for (const n of neighbors(cell.q, cell.r)) {
+      const k = n.q + "," + n.r;
+      if (seen.has(k) || !inBounds(n.q, n.r, state.board.radius) || obstacleAt(state, n.q, n.r) || occupantAt(state, n.q, n.r)) continue;
+      seen.set(k, step); next.push(n);
+    }
+    frontier = next;
+  }
+  return seen;
+}
+
+// ---------------- Three.js scene ----------------
+const canvas = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const DPR_CAP = 1.5;
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, DPR_CAP));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2a2016);
+scene.fog = new THREE.Fog(0x2a2016, 30, 70);
+
+const FRUSTUM = 16;
+let aspect = innerWidth / innerHeight;
+const camera = new THREE.OrthographicCamera(-FRUSTUM * aspect, FRUSTUM * aspect, FRUSTUM, -FRUSTUM, 0.1, 200);
+camera.position.set(16, 20, 16);
+camera.lookAt(0, 0, 0);
+
+const ambient = new THREE.AmbientLight(0xffe4c2, 0.65);
+scene.add(ambient);
+const sun = new THREE.DirectionalLight(0xffd9a0, 1.1);
+sun.position.set(12, 22, 8);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -22; sun.shadow.camera.right = 22;
+sun.shadow.camera.top = 22; sun.shadow.camera.bottom = -22;
+scene.add(sun);
+
+function resize() {
+  aspect = innerWidth / innerHeight;
+  camera.left = -FRUSTUM * aspect; camera.right = FRUSTUM * aspect;
+  camera.top = FRUSTUM; camera.bottom = -FRUSTUM;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+addEventListener("resize", resize); addEventListener("orientationchange", resize); resize();
+
+// ---------------- asset loading ----------------
+const loader = new GLTFLoader();
+const modelCache = {};
+async function loadModel(id) {
+  if (modelCache[id]) return modelCache[id];
+  const gltf = await loader.loadAsync(`./assets/models/${id}.glb`);
+  modelCache[id] = gltf.scene;
+  return gltf.scene;
+}
+const texLoader = new THREE.TextureLoader();
+const groundTex = texLoader.load("./assets/tex_ground.jpg");
+groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+groundTex.colorSpace = THREE.SRGBColorSpace;
+
+const tileGeo = new THREE.CylinderGeometry(SIZE, SIZE, 0.35, 6);
+const tileMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9 });
+const boardGroup = new THREE.Group();
+scene.add(boardGroup);
+
+function buildBoard(state) {
+  boardGroup.clear();
+  const r = state.board.radius;
+  for (let q = -r; q <= r; q++) {
+    for (let rr = -r; rr <= r; rr++) {
+      if (!inBounds(q, rr, r)) continue;
+      const w = hexToWorld(q, rr);
+      const tile = new THREE.Mesh(tileGeo, tileMat);
+      tile.position.set(w.x, -0.18, w.z);
+      tile.receiveShadow = true;
+      tile.userData = { q, r: rr, isTile: true };
+      boardGroup.add(tile);
+    }
+  }
+  for (const o of state.board.obstacles) {
+    loadModel(o.type === "rock" ? "prop_rock" : "prop_tree").then(proto => {
+      const m = proto.clone();
+      const w = hexToWorld(o.q, o.r);
+      m.position.set(w.x, 0, w.z);
+      m.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+      boardGroup.add(m);
+    }).catch(() => {});
+  }
+}
+
+// highlight discs for valid targets
+const highlightMat = new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.55 });
+const highlightGeo = new THREE.CylinderGeometry(SIZE * 0.85, SIZE * 0.85, 0.05, 6);
+let highlightMeshes = [];
+function clearHighlights() { for (const m of highlightMeshes) scene.remove(m); highlightMeshes = []; }
+function showHighlights(hexList) {
+  clearHighlights();
+  for (const h of hexList) {
+    const w = hexToWorld(h.q, h.r);
+    const m = new THREE.Mesh(highlightGeo, highlightMat);
+    m.position.set(w.x, 0.02, w.z);
+    m.userData = { q: h.q, r: h.r, isHighlight: true };
+    scene.add(m); highlightMeshes.push(m);
+  }
+}
+
+// units: id -> { obj, kind, hp, q, r, targetPos, animT }
+const units = new Map();
+const HERO_MODEL = { waechter: "hero_waechter", wildhueter: "hero_wildhueter" };
+const ENEMY_MODEL = { raider: "enemy_pluenderer", archer: "enemy_bogenschuetze", captain: "enemy_hauptmann" };
+
+async function ensureUnit(uid, modelId, kind) {
+  let u = units.get(uid);
+  if (u) {
+    if (u.removed) { scene.add(u.obj); u.removed = false; u.dead = false; u.deathT = 0; u.obj.scale.setScalar(1); }
+    return u;
+  }
+  const proto = await loadModel(modelId);
+  const obj = proto.clone();
+  obj.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.userData.baseEmissive = n.material && n.material.emissive ? n.material.emissive.clone() : null; } });
+  scene.add(obj);
+  u = { obj, kind, animT: Math.random() * 10, hitFlash: 0, lastHp: null, dead: false };
+  units.set(uid, u);
+  return u;
+}
+
+function syncUnits(state) {
+  const seen = new Set();
+  for (const h of state.heroes) {
+    const uid = "hero:" + h.playerId;
+    seen.add(uid);
+    ensureUnit(uid, HERO_MODEL[h.cls], "hero").then(u => {
+      const w = hexToWorld(h.q, h.r);
+      if (u.targetX === undefined) { u.obj.position.set(w.x, 0, w.z); }
+      u.targetX = w.x; u.targetZ = w.z;
+      if (u.lastHp !== null && h.hp < u.lastHp) u.hitFlash = 0.35;
+      if (h.hp <= 0 && !u.dead) u.dead = true;
+      if (h.hp > 0) u.dead = false;
+      u.lastHp = h.hp; u.hp = h.hp; u.maxHp = h.maxHp;
+    });
+  }
+  for (const e of state.enemies) {
+    if (!e.active) continue;
+    const uid = "enemy:" + e.id;
+    seen.add(uid);
+    ensureUnit(uid, ENEMY_MODEL[e.type], "enemy").then(u => {
+      const w = hexToWorld(e.q, e.r);
+      if (u.targetX === undefined) { u.obj.position.set(w.x, 0, w.z); }
+      u.targetX = w.x; u.targetZ = w.z;
+      if (u.lastHp !== null && e.hp < u.lastHp) u.hitFlash = 0.35;
+      if (e.hp <= 0 && !u.dead) u.dead = true;
+      u.lastHp = e.hp; u.hp = e.hp; u.maxHp = e.maxHp;
+    });
+  }
+  for (const [uid, u] of units) {
+    if (!seen.has(uid) && !u.removed) { u.dead = true; }
+  }
+}
+
+// ---------------- pointer input ----------------
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let pendingCard = null; // "move" | "attack" | "special"
+let validTargets = [];
+
+function pointerToNDC(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  pointer.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  if (!pendingCard) return;
+  pointerToNDC(e);
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(scene.children, true);
+  for (const hit of hits) {
+    let obj = hit.object;
+    while (obj && !obj.userData.isTile && !obj.userData.isHighlight) obj = obj.parent;
+    if (obj && (obj.userData.isTile || obj.userData.isHighlight)) {
+      tryTarget(obj.userData.q, obj.userData.r);
+      return;
+    }
+  }
+});
+
+function tryTarget(q, r) {
+  const inRange = validTargets.some(t => t.q === q && t.r === r);
+  if (!inRange) return;
+  send({ type: "action", action: { card: pendingCard, q, r } });
+  clearPending();
+}
+
+function clearPending() {
+  pendingCard = null; validTargets = [];
+  clearHighlights();
+  cancelBtn.style.display = "none";
+  targetHint.style.display = "none";
+  document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
+}
+cancelBtn.onclick = clearPending;
+
+// ---------------- render loop ----------------
+const STEP = 1000 / 60;
+let acc = 0, last = performance.now();
+const dev = new URLSearchParams(location.search).has("dev");
+if (dev) document.getElementById("dev").style.display = "block";
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(now - last, 100); last = now; acc += dt;
+  while (acc >= STEP) { tick(STEP / 1000); acc -= STEP; }
+  renderer.render(scene, camera);
+}
+function tick(dtSec) {
+  for (const [uid, u] of units) {
+    u.animT += dtSec;
+    if (u.targetX !== undefined) {
+      u.obj.position.x += (u.targetX - u.obj.position.x) * Math.min(1, dtSec * 6);
+      u.obj.position.z += (u.targetZ - u.obj.position.z) * Math.min(1, dtSec * 6);
+    }
+    const bob = u.dead ? 0 : Math.sin(u.animT * 2.2) * 0.06;
+    let scale = 1;
+    if (u.dead) {
+      u.deathT = (u.deathT || 0) + dtSec;
+      scale = Math.max(0, 1 - u.deathT / 0.6);
+      if (scale <= 0.02 && !u.removed) { scene.remove(u.obj); u.removed = true; }
+    } else if (u.hitFlash > 0) {
+      u.hitFlash -= dtSec;
+      scale = 1 + Math.sin(u.hitFlash * 40) * 0.06;
+    }
+    u.obj.position.y = bob;
+    u.obj.scale.setScalar(Math.max(0.001, scale));
+  }
+}
+requestAnimationFrame(frame);
+
+// ---------------- state -> UI ----------------
+function onState(msg) {
+  prevState = lastState; lastState = msg;
+  const s = msg.view;
+  if (msg.status === "waiting") {
+    overlay.classList.remove("hidden");
+    overlayText.textContent = STR.waitingHint;
+    return;
+  }
+  overlay.classList.add("hidden");
+  if (!s) return;
+  if (!boardGroup.children.length) buildBoard(s);
+  syncUnits(s);
+  renderHud(msg, s);
+  renderCards(msg, s);
+  renderLog(s);
+  if (msg.status === "over") renderGameOver(msg);
+}
+
+function renderHud(msg, s) {
+  turnInfo.textContent = STR.roundLabel(s.round) + " · " +
+    (s.phase === "enemy" ? STR.enemyPhase : (isMyTurn(msg, s) ? STR.yourTurn : STR.waitingForTurn(heroLabel(s.heroes[s.activeHeroIdx]))));
+  partyEl.innerHTML = "";
+  s.heroes.forEach((h, i) => {
+    const pill = document.createElement("div");
+    pill.className = "heroPill" + (h.hp <= 0 ? " dead" : "") + (i === s.activeHeroIdx && s.phase === "hero" ? " turn" : "");
+    pill.textContent = `${STR.heroNames[h.cls]}: ${h.hp}/${h.maxHp} ${STR.hpLabel}` + (h.shield ? ` (+${h.shield})` : "");
+    partyEl.appendChild(pill);
+  });
+}
+function heroLabel(h) { return h ? STR.heroNames[h.cls] : ""; }
+function isMyTurn(msg, s) {
+  return msg.status === "playing" && s.phase === "hero" && s.heroes[s.activeHeroIdx] && s.heroes[s.activeHeroIdx].playerId === msg.you;
+}
+
+const CARD_DEFS = {
+  waechter: [
+    { card: "move", art: "card_move", name: STR.cardMove, hint: STR.cardMoveHint },
+    { card: "attack", art: "card_attack_waechter", name: STR.cardAttackWaechter, hint: STR.cardAttackWaechterHint },
+    { card: "special", art: "card_special_waechter", name: STR.cardSpecialWaechter, hint: STR.cardSpecialWaechterHint },
+  ],
+  wildhueter: [
+    { card: "move", art: "card_move", name: STR.cardMove, hint: STR.cardMoveHint },
+    { card: "attack", art: "card_attack_wildhueter", name: STR.cardAttackWildhueter, hint: STR.cardAttackWildhueterHint },
+    { card: "special", art: "card_special_wildhueter", name: STR.cardSpecialWildhueter, hint: STR.cardSpecialWildhueterHint },
+  ],
+};
+
+function renderCards(msg, s) {
+  const myHero = s.heroes.find(h => h.playerId === msg.you);
+  cardsEl.innerHTML = "";
+  if (!myHero) return;
+  const active = isMyTurn(msg, s) && myHero.hp > 0 && !myHero.acted;
+  for (const def of CARD_DEFS[myHero.cls]) {
+    const el = document.createElement("div");
+    el.className = "card" + (active ? "" : " disabled");
+    el.innerHTML = `<img src="./assets/ui/${def.art}.png" alt=""><div class="name">${def.name}</div><div class="hint">${def.hint}</div>`;
+    el.onclick = () => selectCard(def.card, myHero, s, el);
+    cardsEl.appendChild(el);
+    def._el = el;
+  }
+}
+
+function selectCard(card, hero, s, el) {
+  pendingCard = card;
+  document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
+  if (el) el.classList.add("selected");
+  const HERO_RANGE = { waechter: { attack: 1, special: 0 }, wildhueter: { attack: 3, special: 3 } };
+  let targets = [];
+  if (card === "move") {
+    const r = reachableMove(s, hero, 2);
+    for (const [k] of r) { if (k === hero.q + "," + hero.r) continue; const [q, rr] = k.split(",").map(Number); targets.push({ q, r: rr }); }
+  } else if (card === "attack") {
+    const range = HERO_RANGE[hero.cls].attack;
+    for (const e of s.enemies) if (e.active && e.hp > 0 && hexDist(hero, e) <= range) targets.push({ q: e.q, r: e.r });
+  } else if (card === "special") {
+    if (hero.cls === "waechter") {
+      send({ type: "action", action: { card: "special", q: hero.q, r: hero.r } });
+      clearPending(); return;
+    } else {
+      const range = HERO_RANGE.wildhueter.special;
+      for (const e of s.enemies) if (e.active && e.hp > 0 && hexDist(hero, e) <= range) targets.push({ q: e.q, r: e.r });
+    }
+  }
+  validTargets = targets;
+  showHighlights(targets);
+  cancelBtn.style.display = "block";
+  targetHint.style.display = "block";
+  targetHint.textContent = STR.pickTarget;
+}
+
+function renderLog(s) {
+  logPanel.innerHTML = STR.logLabel + ":<br>" + s.log.slice(-6).map(l => "· " + l).join("<br>");
+}
+
+function renderGameOver(msg) {
+  overlay.classList.remove("hidden");
+  const won = msg.result && msg.result.outcome === "win";
+  overlayTitle.textContent = won ? STR.win : STR.lose;
+  overlayText.textContent = "";
+  startBtn.textContent = STR.playAgain;
+  startBtn.onclick = () => { send({ type: "reset" }); overlay.classList.add("hidden"); };
+}
+</script>
+</body>
+</html>
