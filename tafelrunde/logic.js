@@ -1,5 +1,9 @@
 // Tafelrunde - rules module (Tier 1: turn-based, no imports, no timers).
 // Co-op hex-grid tactics: 1-4 human heroes vs CPU-controlled enemies.
+// Each card is a fixed SEQUENCE of steps (e.g. move -> attack, or attack -> shield).
+// Playing a card means resolving its steps in order; steps that need a player-picked
+// target (move/attack) wait for the next action, self-only steps (shield/splash)
+// resolve immediately in the same call.
 // State is plain JSON (numbers/strings/booleans/arrays/objects only).
 
 export const meta = { game: "tafelrunde", minPlayers: 1, maxPlayers: 4 };
@@ -21,7 +25,6 @@ function obstacleSet(state) {
   return s;
 }
 function livingHeroes(state) { return state.heroes.filter(h => h.hp > 0); }
-function livingEnemies(state) { return state.enemies.filter(e => e.active && e.hp > 0); }
 function occupantAt(state, q, r) {
   for (const h of state.heroes) if (h.hp > 0 && h.q === q && h.r === r) return { kind: "hero", unit: h };
   for (const e of state.enemies) if (e.active && e.hp > 0 && e.q === q && e.r === r) return { kind: "enemy", unit: e };
@@ -67,16 +70,114 @@ function stepToward(state, from, to) {
   return best;
 }
 
-// ---------- class / enemy definitions ----------
+// ---------- class / card / enemy definitions ----------
 const HERO_CLASSES = {
-  waechter: { name: "Wächter", hp: 22, moveRange: 2, atkRange: 1, atkBase: 3, atkVar: 2, shieldGain: 4 },
-  wildhueter: { name: "Wildhüter", hp: 15, moveRange: 2, atkRange: 3, atkBase: 2, atkVar: 2, specialRange: 3 },
+  waechter: { name: "Wächter", hp: 22 },
+  wildhueter: { name: "Wildhüter", hp: 15 },
 };
+
+// Every card is a fixed sequence of steps. "move"/"attack" need a player-picked
+// target hex each time they're the current step; "shield"/"splashFromLast"
+// resolve automatically right after the previous step, no extra input needed.
+const CARDS = {
+  waechter: {
+    ansturm: { name: "Ansturm", steps: [
+      { type: "move", range: 2 },
+      { type: "attack", range: 1, dmgBase: 3, dmgVar: 2 },
+    ] },
+    schildhieb: { name: "Schildhieb", steps: [
+      { type: "attack", range: 1, dmgBase: 2, dmgVar: 2 },
+      { type: "shield", amount: 3 },
+    ] },
+    rueckzug: { name: "Rückzug", steps: [
+      { type: "attack", range: 1, dmgBase: 2, dmgVar: 2 },
+      { type: "move", range: 1 },
+    ] },
+  },
+  wildhueter: {
+    sprungschuss: { name: "Sprungschuss", steps: [
+      { type: "move", range: 2 },
+      { type: "attack", range: 2, dmgBase: 2, dmgVar: 2 },
+    ] },
+    sicherung: { name: "Sicherung", steps: [
+      { type: "attack", range: 2, dmgBase: 2, dmgVar: 2 },
+      { type: "shield", amount: 2 },
+    ] },
+    explosivpfeil: { name: "Explosivpfeil", steps: [
+      { type: "attack", range: 2, dmgBase: 2, dmgVar: 2 },
+      { type: "splashFromLast", amount: 1 },
+    ] },
+  },
+};
+
 const ENEMY_DEFS = {
   raider: { hp: 8, moveRange: 2, atkRange: 1, dmgBase: 1, dmgVar: 2 },
   archer: { hp: 6, moveRange: 2, atkRange: 3, dmgBase: 1, dmgVar: 2 },
   captain: { hp: 20, moveRange: 2, atkRange: 1, dmgBase: 3, dmgVar: 3 },
 };
+
+// Each enemy type has two situational moves it can telegraph and then execute -
+// the mirror of hero cards, just chosen by simple AI instead of a player.
+const ENEMY_MOVES = {
+  raider: {
+    vorstoss: { name: "Vorstoß", desc: "nähert sich und schlägt zu" },
+    wutschlag: { name: "Wutschlag", desc: "doppelter Nahkampf-Treffer" },
+  },
+  archer: {
+    zielschuss: { name: "Zielschuss", desc: "hält Abstand und schießt" },
+    rueckzugsschuss: { name: "Rückzugsschuss", desc: "weicht zurück und schießt" },
+  },
+  captain: {
+    wuchtschlag: { name: "Wuchtschlag", desc: "harter Einzeltreffer" },
+    wirbelangriff: { name: "Wirbelangriff", desc: "trifft alle angrenzenden Helden" },
+  },
+};
+
+function nearestHero(state, unit) {
+  const heroesAlive = livingHeroes(state);
+  if (!heroesAlive.length) return null;
+  return heroesAlive.reduce((best, h) => {
+    const d = hexDist(unit, h);
+    return !best || d < best.d ? { h, d } : best;
+  }, null).h;
+}
+
+// Decide which move an enemy WILL use next enemy phase, based on the board right now.
+// Stored on the enemy as plannedMove so the client can show it before it happens.
+function decideEnemyMove(state, enemy) {
+  const target = nearestHero(state, enemy);
+  if (!target) return null;
+  const dist = hexDist(enemy, target);
+  if (enemy.type === "raider") return dist <= 1 ? "wutschlag" : "vorstoss";
+  if (enemy.type === "archer") return dist <= 1 ? "rueckzugsschuss" : "zielschuss";
+  if (enemy.type === "captain") {
+    const adjacent = livingHeroes(state).filter(h => hexDist(enemy, h) <= 1).length;
+    return adjacent >= 2 ? "wirbelangriff" : "wuchtschlag";
+  }
+  return null;
+}
+
+function moveToward(state, unit, target, moveRange, stopRange) {
+  for (let step = 0; step < moveRange && hexDist(unit, target) > stopRange; step++) {
+    const next = stepToward(state, unit, target);
+    if (!next) break;
+    unit.q = next.q; unit.r = next.r;
+  }
+}
+
+function stepAway(state, from, avoid) {
+  const obst = obstacleSet(state);
+  let best = null, bestDist = hexDist(from, avoid);
+  for (const n of neighbors(from.q, from.r)) {
+    if (!inBounds(n.q, n.r, state.board.radius)) continue;
+    const k = key(n.q, n.r);
+    if (obst.has(k)) continue;
+    if (occupantAt(state, n.q, n.r)) continue;
+    const d = hexDist(n, avoid);
+    if (d > bestDist) { bestDist = d; best = n; }
+  }
+  return best;
+}
 
 const OBSTACLES = [
   { q: 0, r: -2, type: "rock" }, { q: -1, r: 1, type: "rock" }, { q: 1, r: 1, type: "rock" },
@@ -94,7 +195,10 @@ export function setup(players) {
     const cls = i % 2 === 0 ? "waechter" : "wildhueter";
     const def = HERO_CLASSES[cls];
     const sp = HERO_SPAWNS[i];
-    return { playerId: pid, cls, hp: def.hp, maxHp: def.hp, shield: 0, q: sp.q, r: sp.r, acted: false };
+    return {
+      playerId: pid, cls, hp: def.hp, maxHp: def.hp, shield: 0, q: sp.q, r: sp.r,
+      acted: false, cardStep: null, lastAttackTarget: null,
+    };
   });
 
   const raiderCount = n + 1;
@@ -103,16 +207,16 @@ export function setup(players) {
   let eid = 0;
   for (let i = 0; i < raiderCount; i++) {
     const sp = RAIDER_SPAWNS[i % RAIDER_SPAWNS.length];
-    enemies.push({ id: "e" + (eid++), type: "raider", hp: ENEMY_DEFS.raider.hp, maxHp: ENEMY_DEFS.raider.hp, q: sp.q, r: sp.r, active: true });
+    enemies.push({ id: "e" + (eid++), type: "raider", hp: ENEMY_DEFS.raider.hp, maxHp: ENEMY_DEFS.raider.hp, q: sp.q, r: sp.r, active: true, plannedMove: null });
   }
   for (let i = 0; i < archerCount; i++) {
     const sp = ARCHER_SPAWNS[i % ARCHER_SPAWNS.length];
-    enemies.push({ id: "e" + (eid++), type: "archer", hp: ENEMY_DEFS.archer.hp, maxHp: ENEMY_DEFS.archer.hp, q: sp.q, r: sp.r, active: true });
+    enemies.push({ id: "e" + (eid++), type: "archer", hp: ENEMY_DEFS.archer.hp, maxHp: ENEMY_DEFS.archer.hp, q: sp.q, r: sp.r, active: true, plannedMove: null });
   }
   const captainHp = ENEMY_DEFS.captain.hp + 4 * (n - 1);
-  enemies.push({ id: "e" + (eid++), type: "captain", hp: captainHp, maxHp: captainHp, q: CAPTAIN_SPAWN.q, r: CAPTAIN_SPAWN.r, active: false });
+  enemies.push({ id: "e" + (eid++), type: "captain", hp: captainHp, maxHp: captainHp, q: CAPTAIN_SPAWN.q, r: CAPTAIN_SPAWN.r, active: false, plannedMove: null });
 
-  return {
+  const state = {
     board: { radius: 4, obstacles: OBSTACLES },
     players: players.slice(),
     heroes,
@@ -120,10 +224,11 @@ export function setup(players) {
     round: 1,
     phase: "hero",
     activeHeroIdx: 0,
-    taunt: null,
     log: [],
     over: null,
   };
+  for (const e of enemies) if (e.active) e.plannedMove = decideEnemyMove(state, e);
+  return state;
 }
 
 function nextActiveHeroIdx(state, fromIdx) {
@@ -149,44 +254,68 @@ function dealDamage(target, dmg) {
   target.hp = Math.max(0, target.hp - remaining);
 }
 
-function runEnemyPhase(state) {
-  const alive = () => livingHeroes(state);
-  for (const e of state.enemies) {
-    if (!e.active || e.hp <= 0) continue;
-    const heroesAlive = alive();
-    if (heroesAlive.length === 0) break;
-    let target = null;
-    if (state.taunt) {
-      const t = state.heroes.find(h => h.playerId === state.taunt.heroPlayerId && h.hp > 0);
-      if (t) target = t;
+function rollDmg(def) { return def.dmgBase + Math.floor(Math.random() * def.dmgVar); }
+
+function runEnemyMove(state, e) {
+  const def = ENEMY_DEFS[e.type];
+  const target = nearestHero(state, e);
+  if (!target) return;
+  const move = e.plannedMove || decideEnemyMove(state, e);
+  const moveDef = ENEMY_MOVES[e.type][move];
+
+  if (e.type === "raider" && move === "wutschlag" && hexDist(e, target) <= def.atkRange) {
+    const dmg = rollDmg(def) + 1;
+    dealDamage(target, dmg);
+    pushLog(state, "Plünderer (" + moveDef.name + ") trifft " + target.cls + " hart für " + dmg);
+    return;
+  }
+  if (e.type === "archer" && move === "rueckzugsschuss" && hexDist(e, target) <= 1) {
+    const away = stepAway(state, e, target);
+    if (away) { e.q = away.q; e.r = away.r; }
+    if (hexDist(e, target) <= def.atkRange) {
+      const dmg = rollDmg(def);
+      dealDamage(target, dmg);
+      pushLog(state, "Bogenschütze (" + moveDef.name + ") trifft " + target.cls + " für " + dmg);
     }
-    if (!target) {
-      target = heroesAlive.reduce((best, h) => {
-        const d = hexDist(e, h);
-        return !best || d < best.d ? { h, d } : best;
-      }, null).h;
-    }
-    const def = ENEMY_DEFS[e.type];
-    if (hexDist(e, target) > def.atkRange) {
-      for (let step = 0; step < def.moveRange && hexDist(e, target) > def.atkRange; step++) {
-        const next = stepToward(state, e, target);
-        if (!next) break;
-        e.q = next.q; e.r = next.r;
+    return;
+  }
+  if (e.type === "captain" && move === "wirbelangriff") {
+    moveToward(state, e, target, def.moveRange, def.atkRange);
+    for (const h of livingHeroes(state)) {
+      if (hexDist(e, h) <= 1) {
+        const dmg = Math.max(1, Math.round(rollDmg(def) * 0.7));
+        dealDamage(h, dmg);
+        pushLog(state, "Hauptmann (" + moveDef.name + ") trifft " + h.cls + " für " + dmg);
       }
     }
-    if (hexDist(e, target) <= def.atkRange) {
-      const dmg = def.dmgBase + Math.floor(Math.random() * def.dmgVar);
-      dealDamage(target, dmg);
-      pushLog(state, e.type + " trifft " + target.cls + " für " + dmg);
-    }
+    return;
   }
-  state.taunt = null;
+
+  // default pattern (vorstoss / zielschuss / wuchtschlag): close in, then hit once
+  moveToward(state, e, target, def.moveRange, def.atkRange);
+  if (hexDist(e, target) <= def.atkRange) {
+    const dmg = e.type === "captain" ? rollDmg(def) + 1 : rollDmg(def);
+    dealDamage(target, dmg);
+    pushLog(state, (moveDef ? moveDef.name : e.type) + " trifft " + target.cls + " für " + dmg);
+  }
+}
+
+function runEnemyPhase(state) {
+  for (const e of state.enemies) {
+    if (!e.active || e.hp <= 0) continue;
+    if (livingHeroes(state).length === 0) break;
+    runEnemyMove(state, e);
+  }
 
   const nonCaptainAlive = state.enemies.some(e => e.type !== "captain" && e.active && e.hp > 0);
   const captain = state.enemies.find(e => e.type === "captain");
   if (!nonCaptainAlive && captain && !captain.active) {
     captain.active = true;
     pushLog(state, "Der Hauptmann erscheint!");
+  }
+
+  for (const e of state.enemies) {
+    if (e.active && e.hp > 0) e.plannedMove = decideEnemyMove(state, e);
   }
 }
 
@@ -206,6 +335,13 @@ function checkGameOver(state) {
   }
 }
 
+// Which step of `cardId` is next for this hero: the step index they were mid-card on,
+// or step 0 if they're starting a fresh card this turn.
+function currentStep(hero, cardId) {
+  if (hero.cardStep && hero.cardStep.cardId === cardId) return hero.cardStep.stepIndex;
+  return 0;
+}
+
 export function validateAction(state, playerId, action) {
   if (state.over) return { ok: false, error: "das Spiel ist bereits vorbei" };
   if (state.phase !== "hero") return { ok: false, error: "die Gegner sind noch am Zug" };
@@ -215,88 +351,125 @@ export function validateAction(state, playerId, action) {
   if (hero.hp <= 0) return { ok: false, error: "dein Held ist besiegt" };
   if (hero.acted) return { ok: false, error: "du hast diese Runde schon eine Karte gespielt" };
   if (state.activeHeroIdx !== idx) return { ok: false, error: "nicht dein Zug" };
-  if (!action || !["move", "attack", "special"].includes(action.card)) {
-    return { ok: false, error: "unbekannte Karte" };
+  if (!action || typeof action.cardId !== "string") return { ok: false, error: "unbekannte Karte" };
+  if (hero.cardStep && hero.cardStep.cardId !== action.cardId) {
+    return { ok: false, error: "erst die begonnene Karte zu Ende spielen" };
   }
   if (!Number.isInteger(action.q) || !Number.isInteger(action.r)) {
     return { ok: false, error: "Zielfeld fehlt" };
   }
-  const def = HERO_CLASSES[hero.cls];
+  const card = CARDS[hero.cls] && CARDS[hero.cls][action.cardId];
+  if (!card) return { ok: false, error: "unbekannte Karte" };
+  const stepIndex = currentStep(hero, action.cardId);
+  const step = card.steps[stepIndex];
+  if (!step) return { ok: false, error: "Karte bereits abgeschlossen" };
   const dist = hexDist(hero, action);
 
-  if (action.card === "move") {
+  if (step.type === "move") {
     if (!inBounds(action.q, action.r, state.board.radius)) return { ok: false, error: "Ziel liegt außerhalb des Bretts" };
-    const r = reachable(state, hero, def.moveRange);
+    const r = reachable(state, hero, step.range);
     if (!r.has(key(action.q, action.r)) || (action.q === hero.q && action.r === hero.r)) {
       return { ok: false, error: "Feld nicht erreichbar" };
     }
     return { ok: true };
   }
-  if (action.card === "attack") {
-    if (dist > def.atkRange) return { ok: false, error: "Ziel außer Reichweite" };
+  if (step.type === "attack") {
+    if (dist > step.range) return { ok: false, error: "Ziel außer Reichweite" };
     const occ = occupantAt(state, action.q, action.r);
     if (!occ || occ.kind !== "enemy") return { ok: false, error: "dort steht kein Gegner" };
     return { ok: true };
   }
-  if (action.card === "special") {
-    if (hero.cls === "waechter") {
-      return { ok: true }; // self-cast, target ignored
+  return { ok: false, error: "ungültige Aktion" };
+}
+
+// Resolve any steps from `fromIndex` onward that don't need a player-picked target
+// (shield / splashFromLast), stopping at the next move/attack step or the card's end.
+function autoResolveTrailing(state, hero, card, fromIndex) {
+  let i = fromIndex;
+  while (i < card.steps.length) {
+    const step = card.steps[i];
+    if (step.type === "shield") {
+      hero.shield += step.amount;
+      pushLog(state, hero.cls + " (" + card.name + ") erhält Schild +" + step.amount);
+      i++;
+    } else if (step.type === "splashFromLast") {
+      const last = hero.lastAttackTarget;
+      if (last) {
+        for (const n of neighbors(last.q, last.r)) {
+          const near = occupantAt(state, n.q, n.r);
+          if (near && near.kind === "enemy") dealDamage(near.unit, step.amount);
+        }
+        pushLog(state, hero.cls + "'s (" + card.name + ") Angriff streut auf Nachbarn");
+      }
+      i++;
     } else {
-      const range = HERO_CLASSES.wildhueter.specialRange;
-      if (dist > range) return { ok: false, error: "Ziel außer Reichweite" };
-      const occ = occupantAt(state, action.q, action.r);
-      if (!occ || occ.kind !== "enemy") return { ok: false, error: "dort steht kein Gegner" };
-      return { ok: true };
+      break; // move / attack: needs the next player action
     }
   }
-  return { ok: false, error: "ungültige Aktion" };
+  return i;
+}
+
+// Does `step` have at least one legal target right now? Used to skip a step
+// instead of soft-locking the hero when e.g. no enemy is left in range.
+function stepHasTarget(state, hero, step) {
+  if (step.type === "move") {
+    const r = reachable(state, hero, step.range);
+    return r.size > 1 || !r.has(key(hero.q, hero.r));
+  }
+  if (step.type === "attack") {
+    return state.enemies.some(e => e.active && e.hp > 0 && hexDist(hero, e) <= step.range);
+  }
+  return true;
 }
 
 export function applyAction(state, playerId, action) {
   const s = JSON.parse(JSON.stringify(state));
   const idx = s.heroes.findIndex(h => h.playerId === playerId);
   const hero = s.heroes[idx];
-  const def = HERO_CLASSES[hero.cls];
+  const card = CARDS[hero.cls][action.cardId];
+  const stepIndex = currentStep(hero, action.cardId);
+  const step = card.steps[stepIndex];
 
-  if (action.card === "move") {
+  if (step.type === "move") {
     hero.q = action.q; hero.r = action.r;
-    pushLog(s, hero.cls + " zieht um");
-  } else if (action.card === "attack") {
+    pushLog(s, hero.cls + " (" + card.name + ") zieht um");
+  } else if (step.type === "attack") {
     const occ = occupantAt(s, action.q, action.r);
-    const dmg = def.atkBase + Math.floor(Math.random() * def.atkVar);
+    const dmg = step.dmgBase + Math.floor(Math.random() * step.dmgVar);
     dealDamage(occ.unit, dmg);
-    pushLog(s, hero.cls + " greift an: " + dmg + " Schaden");
-  } else if (action.card === "special") {
-    if (hero.cls === "waechter") {
-      hero.shield += def.shieldGain;
-      s.taunt = { heroPlayerId: playerId, round: s.round };
-      pushLog(s, "Wächter ruft Schildwall aus");
-    } else {
-      const occ = occupantAt(s, action.q, action.r);
-      dealDamage(occ.unit, 3);
-      for (const n of neighbors(action.q, action.r)) {
-        const near = occupantAt(s, n.q, n.r);
-        if (near && near.kind === "enemy") dealDamage(near.unit, 1);
-      }
-      pushLog(s, "Wildhüter schießt Fallenpfeil");
-    }
+    hero.lastAttackTarget = { q: action.q, r: action.r };
+    pushLog(s, hero.cls + " (" + card.name + ") trifft für " + dmg);
   }
+
+  let next = autoResolveTrailing(s, hero, card, stepIndex + 1);
+  while (next < card.steps.length && !stepHasTarget(s, hero, card.steps[next])) {
+    pushLog(s, card.name + ": " + card.steps[next].type + "-Schritt hat kein Ziel und verpufft");
+    next = autoResolveTrailing(s, hero, card, next + 1);
+  }
+  if (next < card.steps.length) {
+    hero.cardStep = { cardId: action.cardId, stepIndex: next };
+    checkGameOver(s);
+    return s; // still this hero's turn - waiting for the next step's target
+  }
+
+  hero.cardStep = null;
+  hero.lastAttackTarget = null;
   hero.acted = true;
 
-  const next = nextActiveHeroIdx(s, idx + 1);
-  if (next === -1) {
+  const nextHero = nextActiveHeroIdx(s, idx + 1);
+  if (nextHero === -1) {
     s.phase = "enemy";
     runEnemyPhase(s);
     checkGameOver(s);
     if (!s.over) {
       s.round += 1;
       s.phase = "hero";
-      for (const h of s.heroes) h.acted = false;
+      for (const h of s.heroes) { h.acted = false; h.cardStep = null; h.lastAttackTarget = null; }
       const firstAlive = nextActiveHeroIdx(s, 0);
       s.activeHeroIdx = firstAlive === -1 ? 0 : firstAlive;
     }
   } else {
-    s.activeHeroIdx = next;
+    s.activeHeroIdx = nextHero;
     checkGameOver(s);
   }
   return s;

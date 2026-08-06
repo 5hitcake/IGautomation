@@ -21,21 +21,35 @@
   #turnInfo { background: rgba(36,26,18,.8); border-radius: 10px; padding: 6px 12px; font-size: 14px;
     border: 1px solid rgba(255,255,255,.15); max-width: 46vw; text-align: right; }
 
+  #unitLayer { position: fixed; inset: 0; z-index: 6; pointer-events: none; }
+  .unitTag { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column;
+    align-items: center; gap: 2px; white-space: nowrap; }
+  .unitTag .hpbar { width: 46px; height: 6px; border-radius: 4px; background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.25); overflow: hidden; }
+  .unitTag .hpfill { height: 100%; background: #4caf50; transition: width .25s ease; }
+  .unitTag.enemy .hpfill { background: #d84b3a; }
+  .unitTag .hpfill.low { background: #d84b3a; }
+  .unitTag .moveTag { font-size: 10px; background: rgba(122,20,20,.85); color: #fff; padding: 1px 6px;
+    border-radius: 8px; text-shadow: none; }
+  .unitTag .shieldTag { font-size: 10px; background: rgba(70,120,200,.85); color: #fff; padding: 1px 5px;
+    border-radius: 8px; }
+
   #cards { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center;
     gap: 10px; padding: 10px calc(10px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-bottom));
-    z-index: 10; }
-  .card { width: 92px; background: rgba(36,26,18,.9); border: 2px solid rgba(255,255,255,.2); border-radius: 12px;
+    z-index: 10; flex-wrap: wrap; }
+  .card { width: 96px; background: rgba(36,26,18,.9); border: 2px solid rgba(255,255,255,.2); border-radius: 12px;
     padding: 6px; text-align: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
   .card img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 8px; background: #3a2c1c; }
   .card .name { font-size: 12px; margin-top: 4px; font-weight: 600; }
-  .card .hint { font-size: 10px; opacity: .75; }
+  .card .hint { font-size: 9px; opacity: .8; line-height: 1.25; margin-top: 2px; }
   .card.disabled { opacity: .35; pointer-events: none; }
   .card.selected { border-color: #ffd27a; box-shadow: 0 0 10px rgba(255,210,122,.7); }
-  #cancelTarget { position: fixed; bottom: 118px; left: 50%; transform: translateX(-50%); z-index: 11;
+  #cancelTarget { position: fixed; bottom: 132px; left: 50%; transform: translateX(-50%); z-index: 11;
     background: #6b3a2a; color: #fff; border: none; border-radius: 20px; padding: 8px 18px; font-size: 13px;
     display: none; }
-  #targetHint { position: fixed; bottom: 168px; left: 50%; transform: translateX(-50%); z-index: 11;
-    background: rgba(36,26,18,.85); padding: 6px 14px; border-radius: 16px; font-size: 13px; display: none; }
+  #targetHint { position: fixed; bottom: 182px; left: 50%; transform: translateX(-50%); z-index: 11;
+    background: rgba(36,26,18,.85); padding: 6px 14px; border-radius: 16px; font-size: 13px; display: none;
+    text-align: center; max-width: 80vw; }
 
   #overlay { position: fixed; inset: 0; background: rgba(20,14,9,.92); display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 16px; z-index: 30; text-align: center; padding: 20px; }
@@ -57,6 +71,7 @@
 <body>
 <canvas id="scene"></canvas>
 <div id="dev"></div>
+<div id="unitLayer"></div>
 
 <div id="hud">
   <div class="party" id="party"></div>
@@ -116,13 +131,14 @@ const cardsEl = document.getElementById("cards");
 const cancelBtn = document.getElementById("cancelTarget");
 const targetHint = document.getElementById("targetHint");
 const logPanel = document.getElementById("logPanel");
+const unitLayer = document.getElementById("unitLayer");
 
 overlayTitle.textContent = STR.title;
 overlayText.textContent = STR.waitingHint;
 startBtn.textContent = STR.startBtn;
 cancelBtn.textContent = STR.cancelTarget;
 
-let ws, joined = false, lastState = null, prevState = null;
+let ws, joined = false;
 
 function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
 function connect() {
@@ -149,18 +165,6 @@ document.getElementById("link").onclick = (e) => { e.target.select(); };
 // ---------------- hex math (client-side mirror, used only for highlighting) ----------------
 const SIZE = 1.7;
 function hexToWorld(q, r) { return { x: SIZE * 1.5 * q, z: SIZE * Math.sqrt(3) * (r + q / 2) }; }
-function worldToHex(x, z) {
-  const qf = (2 / 3 * x) / SIZE;
-  const rf = (-1 / 3 * x + Math.sqrt(3) / 3 * z) / SIZE;
-  return cubeRound(qf, rf);
-}
-function cubeRound(qf, rf) {
-  let x = qf, z = rf, y = -x - z;
-  let rx = Math.round(x), ry = Math.round(y), rz = Math.round(z);
-  const dx = Math.abs(rx - x), dy = Math.abs(ry - y), dz = Math.abs(rz - z);
-  if (dx > dy && dx > dz) rx = -ry - rz; else if (dy > dz) ry = -rx - rz; else rz = -rx - ry;
-  return { q: rx, r: rz };
-}
 function hexDist(a, b) { return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2; }
 const DIRS = [{ q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 }, { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }];
 function neighbors(q, r) { return DIRS.map(d => ({ q: q + d.q, r: r + d.r })); }
@@ -223,12 +227,17 @@ function resize() {
 }
 addEventListener("resize", resize); addEventListener("orientationchange", resize); resize();
 
+function worldToScreen(x, y, z) {
+  const v = new THREE.Vector3(x, y, z).project(camera);
+  return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight };
+}
+
 // ---------------- asset loading ----------------
-const loader = new GLTFLoader();
+const gltfLoader = new GLTFLoader();
 const modelCache = {};
 async function loadModel(id) {
   if (modelCache[id]) return modelCache[id];
-  const gltf = await loader.loadAsync(`./assets/models/${id}.glb`);
+  const gltf = await gltfLoader.loadAsync(`./assets/models/${id}.glb`);
   modelCache[id] = gltf.scene;
   return gltf.scene;
 }
@@ -236,6 +245,15 @@ const texLoader = new THREE.TextureLoader();
 const groundTex = texLoader.load("./assets/tex_ground.jpg");
 groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
 groundTex.colorSpace = THREE.SRGBColorSpace;
+const spriteTexCache = {};
+function loadSpriteTex(id) {
+  if (!spriteTexCache[id]) {
+    const t = texLoader.load(`./assets/sprites/${id}.png`);
+    t.colorSpace = THREE.SRGBColorSpace;
+    spriteTexCache[id] = t;
+  }
+  return spriteTexCache[id];
+}
 
 const tileGeo = new THREE.CylinderGeometry(SIZE, SIZE, 0.35, 6);
 const tileMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9 });
@@ -283,63 +301,111 @@ function showHighlights(hexList) {
   }
 }
 
-// units: id -> { obj, kind, hp, q, r, targetPos, animT }
-const units = new Map();
-const HERO_MODEL = { waechter: "hero_waechter", wildhueter: "hero_wildhueter" };
-const ENEMY_MODEL = { raider: "enemy_pluenderer", archer: "enemy_bogenschuetze", captain: "enemy_hauptmann" };
+// ---------------- units: 2D comic sprites billboarded over the 3D board ----------------
+const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.38, depthWrite: false });
+const shadowGeo = new THREE.CircleGeometry(0.85, 20);
+const ownRingGeo = new THREE.RingGeometry(1.05, 1.28, 24);
+const ownRingMat = new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false });
 
-async function ensureUnit(uid, modelId, kind) {
+const units = new Map();
+const HERO_SPRITE = { waechter: "hero_waechter", wildhueter: "hero_wildhueter" };
+const ENEMY_SPRITE = { raider: "enemy_pluenderer", archer: "enemy_bogenschuetze", captain: "enemy_hauptmann" };
+const SPRITE_H = { hero: 2.1, raider: 1.7, archer: 1.6, captain: 2.5 };
+
+function ensureUnit(uid, spriteId, kind, sizeKey, isOwn) {
   let u = units.get(uid);
   if (u) {
-    if (u.removed) { scene.add(u.obj); u.removed = false; u.dead = false; u.deathT = 0; u.obj.scale.setScalar(1); }
+    if (u.removed) { scene.add(u.obj); u.removed = false; u.dead = false; u.deathT = 0; u.obj.scale.set(u.baseScaleX, u.baseScaleY, 1); }
     return u;
   }
-  const proto = await loadModel(modelId);
-  const obj = proto.clone();
-  obj.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.userData.baseEmissive = n.material && n.material.emissive ? n.material.emissive.clone() : null; } });
-  scene.add(obj);
-  u = { obj, kind, animT: Math.random() * 10, hitFlash: 0, lastHp: null, dead: false };
+  const tex = loadSpriteTex(spriteId);
+  const h = SPRITE_H[sizeKey] || 1.8;
+  const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+  const sprite = new THREE.Sprite(spriteMat);
+  sprite.scale.set(h * 0.8, h, 1);
+  sprite.center.set(0.5, 0); // anchor at sprite's bottom edge, so position.y=0 sits on the ground
+
+  const group = new THREE.Group();
+  const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.01;
+  group.add(shadow);
+  if (isOwn) {
+    const ring = new THREE.Mesh(ownRingGeo, ownRingMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.015;
+    group.add(ring);
+  }
+  group.add(sprite);
+  scene.add(group);
+
+  const tag = document.createElement("div");
+  tag.className = "unitTag" + (kind === "enemy" ? " enemy" : "");
+  tag.innerHTML = `<div class="moveTag" style="display:none"></div><div class="hpbar"><div class="hpfill"></div></div><div class="shieldTag" style="display:none"></div>`;
+  unitLayer.appendChild(tag);
+
+  u = { obj: group, sprite, kind, spriteH: h, animT: Math.random() * 10, hitFlash: 0, lastHp: null, dead: false, tag };
   units.set(uid, u);
   return u;
 }
 
-function syncUnits(state) {
+function syncUnits(state, you) {
   const seen = new Set();
   for (const h of state.heroes) {
     const uid = "hero:" + h.playerId;
     seen.add(uid);
-    ensureUnit(uid, HERO_MODEL[h.cls], "hero").then(u => {
-      const w = hexToWorld(h.q, h.r);
-      if (u.targetX === undefined) { u.obj.position.set(w.x, 0, w.z); }
-      u.targetX = w.x; u.targetZ = w.z;
-      if (u.lastHp !== null && h.hp < u.lastHp) u.hitFlash = 0.35;
-      if (h.hp <= 0 && !u.dead) u.dead = true;
-      if (h.hp > 0) u.dead = false;
-      u.lastHp = h.hp; u.hp = h.hp; u.maxHp = h.maxHp;
-    });
+    const u = ensureUnit(uid, HERO_SPRITE[h.cls], "hero", "hero", h.playerId === you);
+    const w = hexToWorld(h.q, h.r);
+    if (u.targetX === undefined) u.obj.position.set(w.x, 0, w.z);
+    u.targetX = w.x; u.targetZ = w.z;
+    if (u.lastHp !== null && h.hp < u.lastHp) u.hitFlash = 0.35;
+    u.dead = h.hp <= 0;
+    u.lastHp = h.hp; u.hp = h.hp; u.maxHp = h.maxHp; u.shield = h.shield; u.moveTagText = null;
   }
   for (const e of state.enemies) {
     if (!e.active) continue;
     const uid = "enemy:" + e.id;
     seen.add(uid);
-    ensureUnit(uid, ENEMY_MODEL[e.type], "enemy").then(u => {
-      const w = hexToWorld(e.q, e.r);
-      if (u.targetX === undefined) { u.obj.position.set(w.x, 0, w.z); }
-      u.targetX = w.x; u.targetZ = w.z;
-      if (u.lastHp !== null && e.hp < u.lastHp) u.hitFlash = 0.35;
-      if (e.hp <= 0 && !u.dead) u.dead = true;
-      u.lastHp = e.hp; u.hp = e.hp; u.maxHp = e.maxHp;
-    });
+    const u = ensureUnit(uid, ENEMY_SPRITE[e.type], "enemy", e.type, false);
+    const w = hexToWorld(e.q, e.r);
+    if (u.targetX === undefined) u.obj.position.set(w.x, 0, w.z);
+    u.targetX = w.x; u.targetZ = w.z;
+    if (u.lastHp !== null && e.hp < u.lastHp) u.hitFlash = 0.35;
+    u.dead = e.hp <= 0;
+    u.lastHp = e.hp; u.hp = e.hp; u.maxHp = e.maxHp; u.shield = 0;
+    u.moveTagText = (state.phase === "hero" && e.plannedMove) ? STR.enemyMoves[e.plannedMove] : null;
   }
   for (const [uid, u] of units) {
     if (!seen.has(uid) && !u.removed) { u.dead = true; }
+    if (!seen.has(uid)) { u.tag.style.display = "none"; }
+  }
+}
+
+function updateUnitTags() {
+  for (const [uid, u] of units) {
+    if (u.removed) { u.tag.style.display = "none"; continue; }
+    const topY = u.obj.position.y + u.spriteH + 0.35;
+    const p = worldToScreen(u.obj.position.x, topY, u.obj.position.z);
+    u.tag.style.display = "flex";
+    u.tag.style.left = p.x + "px";
+    u.tag.style.top = p.y + "px";
+    const frac = u.maxHp ? Math.max(0, u.hp / u.maxHp) : 0;
+    const fill = u.tag.querySelector(".hpfill");
+    fill.style.width = Math.round(frac * 100) + "%";
+    fill.classList.toggle("low", frac <= 0.3);
+    const moveEl = u.tag.querySelector(".moveTag");
+    if (u.moveTagText) { moveEl.style.display = "inline-block"; moveEl.textContent = u.moveTagText; }
+    else moveEl.style.display = "none";
+    const shieldEl = u.tag.querySelector(".shieldTag");
+    if (u.shield) { shieldEl.style.display = "inline-block"; shieldEl.textContent = "🛡" + u.shield; }
+    else shieldEl.style.display = "none";
   }
 }
 
 // ---------------- pointer input ----------------
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
-let pendingCard = null; // "move" | "attack" | "special"
+let pendingCard = null;
 let validTargets = [];
 
 function pointerToNDC(e) {
@@ -366,8 +432,9 @@ canvas.addEventListener("pointerdown", (e) => {
 function tryTarget(q, r) {
   const inRange = validTargets.some(t => t.q === q && t.r === r);
   if (!inRange) return;
-  send({ type: "action", action: { card: pendingCard, q, r } });
-  clearPending();
+  send({ type: "action", action: { cardId: pendingCard, q, r } });
+  clearHighlights();
+  targetHint.style.display = "none";
 }
 
 function clearPending() {
@@ -390,6 +457,7 @@ function frame(now) {
   const dt = Math.min(now - last, 100); last = now; acc += dt;
   while (acc >= STEP) { tick(STEP / 1000); acc -= STEP; }
   renderer.render(scene, camera);
+  updateUnitTags();
 }
 function tick(dtSec) {
   for (const [uid, u] of units) {
@@ -408,15 +476,29 @@ function tick(dtSec) {
       u.hitFlash -= dtSec;
       scale = 1 + Math.sin(u.hitFlash * 40) * 0.06;
     }
+    u.baseScaleX = scale; u.baseScaleY = scale;
     u.obj.position.y = bob;
-    u.obj.scale.setScalar(Math.max(0.001, scale));
+    u.obj.scale.set(Math.max(0.001, scale), Math.max(0.001, scale), 1);
   }
 }
 requestAnimationFrame(frame);
 
+// ---------------- cards: id -> steps (mirrors logic.js CARDS, for highlighting + labels only) ----------------
+const CARD_DEFS = {
+  waechter: [
+    { id: "ansturm", art: "card_waechter_ansturm", steps: [{ type: "move", range: 2 }, { type: "attack", range: 1 }] },
+    { id: "schildhieb", art: "card_waechter_schildhieb", steps: [{ type: "attack", range: 1 }, { type: "shield" }] },
+    { id: "rueckzug", art: "card_waechter_rueckzug", steps: [{ type: "attack", range: 1 }, { type: "move", range: 1 }] },
+  ],
+  wildhueter: [
+    { id: "sprungschuss", art: "card_wildhueter_sprungschuss", steps: [{ type: "move", range: 2 }, { type: "attack", range: 2 }] },
+    { id: "sicherung", art: "card_wildhueter_sicherung", steps: [{ type: "attack", range: 2 }, { type: "shield" }] },
+    { id: "explosivpfeil", art: "card_wildhueter_explosivpfeil", steps: [{ type: "attack", range: 2 }, { type: "splashFromLast" }] },
+  ],
+};
+
 // ---------------- state -> UI ----------------
 function onState(msg) {
-  prevState = lastState; lastState = msg;
   const s = msg.view;
   if (msg.status === "waiting") {
     overlay.classList.remove("hidden");
@@ -426,7 +508,7 @@ function onState(msg) {
   overlay.classList.add("hidden");
   if (!s) return;
   if (!boardGroup.children.length) buildBoard(s);
-  syncUnits(s);
+  syncUnits(s, msg.you);
   renderHud(msg, s);
   renderCards(msg, s);
   renderLog(s);
@@ -434,8 +516,13 @@ function onState(msg) {
 }
 
 function renderHud(msg, s) {
-  turnInfo.textContent = STR.roundLabel(s.round) + " · " +
-    (s.phase === "enemy" ? STR.enemyPhase : (isMyTurn(msg, s) ? STR.yourTurn : STR.waitingForTurn(heroLabel(s.heroes[s.activeHeroIdx]))));
+  const myTurn = isMyTurn(msg, s);
+  const myHero = s.heroes.find(h => h.playerId === msg.you);
+  let label;
+  if (s.phase === "enemy") label = STR.enemyPhase;
+  else if (myTurn) label = (myHero && myHero.cardStep) ? STR.yourTurnStep2 : STR.yourTurn;
+  else label = STR.waitingForTurn(heroLabel(s.heroes[s.activeHeroIdx]));
+  turnInfo.textContent = STR.roundLabel(s.round) + " · " + label;
   partyEl.innerHTML = "";
   s.heroes.forEach((h, i) => {
     const pill = document.createElement("div");
@@ -449,60 +536,56 @@ function isMyTurn(msg, s) {
   return msg.status === "playing" && s.phase === "hero" && s.heroes[s.activeHeroIdx] && s.heroes[s.activeHeroIdx].playerId === msg.you;
 }
 
-const CARD_DEFS = {
-  waechter: [
-    { card: "move", art: "card_move", name: STR.cardMove, hint: STR.cardMoveHint },
-    { card: "attack", art: "card_attack_waechter", name: STR.cardAttackWaechter, hint: STR.cardAttackWaechterHint },
-    { card: "special", art: "card_special_waechter", name: STR.cardSpecialWaechter, hint: STR.cardSpecialWaechterHint },
-  ],
-  wildhueter: [
-    { card: "move", art: "card_move", name: STR.cardMove, hint: STR.cardMoveHint },
-    { card: "attack", art: "card_attack_wildhueter", name: STR.cardAttackWildhueter, hint: STR.cardAttackWildhueterHint },
-    { card: "special", art: "card_special_wildhueter", name: STR.cardSpecialWildhueter, hint: STR.cardSpecialWildhueterHint },
-  ],
-};
-
 function renderCards(msg, s) {
   const myHero = s.heroes.find(h => h.playerId === msg.you);
   cardsEl.innerHTML = "";
-  if (!myHero) return;
-  const active = isMyTurn(msg, s) && myHero.hp > 0 && !myHero.acted;
-  for (const def of CARD_DEFS[myHero.cls]) {
+  if (!myHero) { clearPending(); return; }
+  const myTurn = isMyTurn(msg, s) && myHero.hp > 0 && !myHero.acted;
+  if (!myTurn) { clearPending(); }
+  const defs = CARD_DEFS[myHero.cls];
+  for (const def of defs) {
+    const info = STR.cards[def.id];
+    const committed = myHero.cardStep && myHero.cardStep.cardId === def.id;
+    const clickable = myTurn && (!myHero.cardStep || committed);
     const el = document.createElement("div");
-    el.className = "card" + (active ? "" : " disabled");
-    el.innerHTML = `<img src="./assets/ui/${def.art}.png" alt=""><div class="name">${def.name}</div><div class="hint">${def.hint}</div>`;
-    el.onclick = () => selectCard(def.card, myHero, s, el);
+    el.className = "card" + (clickable ? "" : " disabled") + (committed ? " selected" : "");
+    el.innerHTML = `<img src="./assets/ui/${def.art}.png" alt=""><div class="name">${info.name}</div><div class="hint">${info.hint}</div>`;
+    if (clickable && !committed) el.onclick = () => startCard(def, myHero, s);
     cardsEl.appendChild(el);
-    def._el = el;
+  }
+  if (myTurn && myHero.cardStep) {
+    const def = defs.find(d => d.id === myHero.cardStep.cardId);
+    const step = def.steps[myHero.cardStep.stepIndex];
+    activateStep(def.id, step, myHero, s, myHero.cardStep.stepIndex + 1);
+  } else {
+    clearPending();
   }
 }
 
-function selectCard(card, hero, s, el) {
-  pendingCard = card;
-  document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
-  if (el) el.classList.add("selected");
-  const HERO_RANGE = { waechter: { attack: 1, special: 0 }, wildhueter: { attack: 3, special: 3 } };
+function startCard(def, hero, s) {
+  activateStep(def.id, def.steps[0], hero, s, 1);
+}
+
+function activateStep(cardId, step, hero, s, stepNumber) {
+  pendingCard = cardId;
   let targets = [];
-  if (card === "move") {
-    const r = reachableMove(s, hero, 2);
+  let hint = "";
+  if (step.type === "move") {
+    const r = reachableMove(s, hero, step.range);
     for (const [k] of r) { if (k === hero.q + "," + hero.r) continue; const [q, rr] = k.split(",").map(Number); targets.push({ q, r: rr }); }
-  } else if (card === "attack") {
-    const range = HERO_RANGE[hero.cls].attack;
-    for (const e of s.enemies) if (e.active && e.hp > 0 && hexDist(hero, e) <= range) targets.push({ q: e.q, r: e.r });
-  } else if (card === "special") {
-    if (hero.cls === "waechter") {
-      send({ type: "action", action: { card: "special", q: hero.q, r: hero.r } });
-      clearPending(); return;
-    } else {
-      const range = HERO_RANGE.wildhueter.special;
-      for (const e of s.enemies) if (e.active && e.hp > 0 && hexDist(hero, e) <= range) targets.push({ q: e.q, r: e.r });
-    }
+    hint = STR.stepPickMove.replace("{n}", stepNumber);
+  } else if (step.type === "attack") {
+    for (const e of s.enemies) if (e.active && e.hp > 0 && hexDist(hero, e) <= step.range) targets.push({ q: e.q, r: e.r });
+    hint = STR.stepPickAttack.replace("{n}", stepNumber);
+  } else {
+    // shield / splashFromLast resolve automatically server-side, never reach here
+    return;
   }
   validTargets = targets;
   showHighlights(targets);
-  cancelBtn.style.display = "block";
   targetHint.style.display = "block";
-  targetHint.textContent = STR.pickTarget;
+  targetHint.textContent = hint;
+  cancelBtn.style.display = stepNumber === 1 ? "block" : "none";
 }
 
 function renderLog(s) {
