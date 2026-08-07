@@ -34,9 +34,16 @@
   .unitTag .shieldTag { font-size: 10px; background: rgba(70,120,200,.85); color: #fff; padding: 1px 5px;
     border-radius: 8px; }
 
-  #cards { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center;
-    gap: 10px; padding: 10px calc(10px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-bottom));
-    z-index: 10; flex-wrap: wrap; }
+  #cardsPanel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex;
+    flex-direction: column; align-items: center; pointer-events: none; }
+  #cardsToggle { pointer-events: auto; background: rgba(36,26,18,.92); border: 1px solid rgba(255,255,255,.25);
+    border-bottom: none; color: #f1e6d6; border-radius: 12px 12px 0 0; padding: 5px 26px; font-size: 13px;
+    cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+  #cards { pointer-events: auto; width: 100%; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+    max-height: 260px; overflow: hidden; box-sizing: border-box;
+    padding: 10px calc(10px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-bottom));
+    transition: max-height .25s ease, opacity .2s ease, padding .25s ease; }
+  #cardsPanel.collapsed #cards { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
   .card { width: 96px; background: rgba(36,26,18,.9); border: 2px solid rgba(255,255,255,.2); border-radius: 12px;
     padding: 6px; text-align: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
   .card img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 8px; background: #3a2c1c; }
@@ -46,10 +53,12 @@
   .card.selected { border-color: #ffd27a; box-shadow: 0 0 10px rgba(255,210,122,.7); }
   #cancelTarget { position: fixed; bottom: 132px; left: 50%; transform: translateX(-50%); z-index: 11;
     background: #6b3a2a; color: #fff; border: none; border-radius: 20px; padding: 8px 18px; font-size: 13px;
-    display: none; }
+    display: none; transition: bottom .25s ease; }
   #targetHint { position: fixed; bottom: 182px; left: 50%; transform: translateX(-50%); z-index: 11;
     background: rgba(36,26,18,.85); padding: 6px 14px; border-radius: 16px; font-size: 13px; display: none;
-    text-align: center; max-width: 80vw; }
+    text-align: center; max-width: 80vw; transition: bottom .25s ease; }
+  body.cardsCollapsed #cancelTarget { bottom: 54px; }
+  body.cardsCollapsed #targetHint { bottom: 104px; }
 
   #overlay { position: fixed; inset: 0; background: rgba(20,14,9,.92); display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 16px; z-index: 30; text-align: center; padding: 20px; }
@@ -82,7 +91,10 @@
 
 <div id="targetHint"></div>
 <button id="cancelTarget"></button>
-<div id="cards"></div>
+<div id="cardsPanel">
+  <div id="cardsToggle">▾</div>
+  <div id="cards"></div>
+</div>
 
 <div id="overlay">
   <h1 id="overlayTitle">Tafelrunde</h1>
@@ -99,6 +111,7 @@
 <script type="module">
 import * as THREE from "three";
 import { GLTFLoader } from "./vendor/GLTFLoader.js";
+import { OrbitControls } from "./vendor/OrbitControls.js";
 import { STR } from "./strings.js";
 
 // ---------------- room / identity / websocket (per client-reference.md) ----------------
@@ -132,11 +145,24 @@ const cancelBtn = document.getElementById("cancelTarget");
 const targetHint = document.getElementById("targetHint");
 const logPanel = document.getElementById("logPanel");
 const unitLayer = document.getElementById("unitLayer");
+const cardsPanel = document.getElementById("cardsPanel");
+const cardsToggle = document.getElementById("cardsToggle");
 
 overlayTitle.textContent = STR.title;
 overlayText.textContent = STR.waitingHint;
 startBtn.textContent = STR.startBtn;
 cancelBtn.textContent = STR.cancelTarget;
+
+// ---------------- poker-style collapsible hand ----------------
+let cardsCollapsed = false;
+let autoCollapsed = false; // true if we collapsed the tray ourselves while picking a target
+function setCardsCollapsed(v) {
+  cardsCollapsed = v;
+  cardsPanel.classList.toggle("collapsed", cardsCollapsed);
+  document.body.classList.toggle("cardsCollapsed", cardsCollapsed);
+  cardsToggle.textContent = cardsCollapsed ? "▲" : "▼";
+}
+cardsToggle.onclick = () => setCardsCollapsed(!cardsCollapsed);
 
 let ws, joined = false;
 
@@ -202,11 +228,25 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x2a2016);
 scene.fog = new THREE.Fog(0x2a2016, 30, 70);
 
-const FRUSTUM = 16;
+const FRUSTUM = 20;
 let aspect = innerWidth / innerHeight;
 const camera = new THREE.OrthographicCamera(-FRUSTUM * aspect, FRUSTUM * aspect, FRUSTUM, -FRUSTUM, 0.1, 200);
 camera.position.set(16, 20, 16);
 camera.lookAt(0, 0, 0);
+
+// rotate (drag) + zoom (wheel/pinch) so the whole board can be brought into view and inspected from any angle
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.enablePan = false;
+controls.enableDamping = true;
+controls.dampingFactor = 0.12;
+controls.rotateSpeed = 0.6;
+controls.zoomSpeed = 0.8;
+controls.minZoom = 0.5;
+controls.maxZoom = 2.5;
+controls.minPolarAngle = 0.3;
+controls.maxPolarAngle = 1.3;
+controls.update();
 
 const ambient = new THREE.AmbientLight(0xffe4c2, 0.65);
 scene.add(ambient);
@@ -315,7 +355,12 @@ const SPRITE_H = { hero: 2.1, raider: 1.7, archer: 1.6, captain: 2.5 };
 function ensureUnit(uid, spriteId, kind, sizeKey, isOwn) {
   let u = units.get(uid);
   if (u) {
-    if (u.removed) { scene.add(u.obj); u.removed = false; u.dead = false; u.deathT = 0; u.obj.scale.set(u.baseScaleX, u.baseScaleY, 1); }
+    if (u.removed) {
+      scene.add(u.obj); u.removed = false; u.dead = false; u.deathT = 0;
+      u.hitFlash = 0; u.lungeT = 0; u.swingT = 0;
+      u.obj.scale.set(1, 1, 1);
+      u.sprite.material.color.setRGB(1, 1, 1);
+    }
     return u;
   }
   const tex = loadSpriteTex(spriteId);
@@ -344,9 +389,35 @@ function ensureUnit(uid, spriteId, kind, sizeKey, isOwn) {
   tag.innerHTML = `<div class="moveTag" style="display:none"></div><div class="hpbar"><div class="hpfill"></div></div><div class="shieldTag" style="display:none"></div>`;
   unitLayer.appendChild(tag);
 
-  u = { obj: group, sprite, kind, spriteH: h, animT: Math.random() * 10, hitFlash: 0, lastHp: null, dead: false, tag };
+  u = {
+    obj: group, sprite, kind, spriteH: h, animT: Math.random() * 10, hitFlash: 0, lastHp: null, dead: false, tag,
+    lungeT: 0, lungeDur: 0.3, lungeDirX: 0, lungeDirZ: 0,
+    swingT: 0, swingDur: 0.3, swingDelay: 0, swingDir: 1,
+  };
   units.set(uid, u);
   return u;
+}
+
+// attack lunge: a quick dash toward a world position and back, for the unit performing the strike
+function triggerLunge(u, targetX, targetZ) {
+  if (!u || u.baseX === undefined) return;
+  const dx = targetX - u.baseX, dz = targetZ - u.baseZ;
+  const len = Math.hypot(dx, dz) || 1;
+  u.lungeDirX = dx / len; u.lungeDirZ = dz / len;
+  u.lungeDur = 0.26 + Math.random() * 0.08;
+  u.lungeT = u.lungeDur;
+}
+// swing: an in-place weapon-swing gesture (rotation + squash), used when we only know a unit acted, not exactly at whom
+function triggerSwing(u, delay) {
+  if (!u) return;
+  u.swingDir = Math.random() < 0.5 ? -1 : 1;
+  u.swingDur = 0.3 + Math.random() * 0.18;
+  u.swingT = u.swingDur;
+  u.swingDelay = delay || 0;
+}
+function triggerHit(u) {
+  if (!u) return;
+  u.hitFlash = 0.32 + Math.random() * 0.12;
 }
 
 function syncUnits(state, you) {
@@ -356,9 +427,9 @@ function syncUnits(state, you) {
     seen.add(uid);
     const u = ensureUnit(uid, HERO_SPRITE[h.cls], "hero", "hero", h.playerId === you);
     const w = hexToWorld(h.q, h.r);
-    if (u.targetX === undefined) u.obj.position.set(w.x, 0, w.z);
+    if (u.baseX === undefined) { u.baseX = w.x; u.baseZ = w.z; u.obj.position.set(w.x, 0, w.z); }
     u.targetX = w.x; u.targetZ = w.z;
-    if (u.lastHp !== null && h.hp < u.lastHp) u.hitFlash = 0.35;
+    if (u.lastHp !== null && h.hp < u.lastHp) triggerHit(u);
     u.dead = h.hp <= 0;
     u.lastHp = h.hp; u.hp = h.hp; u.maxHp = h.maxHp; u.shield = h.shield; u.moveTagText = null;
   }
@@ -368,9 +439,9 @@ function syncUnits(state, you) {
     seen.add(uid);
     const u = ensureUnit(uid, ENEMY_SPRITE[e.type], "enemy", e.type, false);
     const w = hexToWorld(e.q, e.r);
-    if (u.targetX === undefined) u.obj.position.set(w.x, 0, w.z);
+    if (u.baseX === undefined) { u.baseX = w.x; u.baseZ = w.z; u.obj.position.set(w.x, 0, w.z); }
     u.targetX = w.x; u.targetZ = w.z;
-    if (u.lastHp !== null && e.hp < u.lastHp) u.hitFlash = 0.35;
+    if (u.lastHp !== null && e.hp < u.lastHp) triggerHit(u);
     u.dead = e.hp <= 0;
     u.lastHp = e.hp; u.hp = e.hp; u.maxHp = e.maxHp; u.shield = 0;
     u.moveTagText = (state.phase === "hero" && e.plannedMove) ? STR.enemyMoves[e.plannedMove] : null;
@@ -403,10 +474,14 @@ function updateUnitTags() {
 }
 
 // ---------------- pointer input ----------------
+// The canvas now also drives OrbitControls (drag to rotate, wheel/pinch to zoom), so a hex
+// pick must only fire on a genuine TAP (down+up close together), never on a rotate/zoom drag.
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let pendingCard = null;
+let pendingStepType = null;
 let validTargets = [];
+let pointerDownInfo = null;
 
 function pointerToNDC(e) {
   const r = renderer.domElement.getBoundingClientRect();
@@ -415,7 +490,15 @@ function pointerToNDC(e) {
 }
 
 canvas.addEventListener("pointerdown", (e) => {
-  if (!pendingCard) return;
+  pointerDownInfo = { x: e.clientX, y: e.clientY, t: performance.now() };
+});
+canvas.addEventListener("pointerup", (e) => {
+  const down = pointerDownInfo;
+  pointerDownInfo = null;
+  if (!down || !pendingCard) return;
+  const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+  const held = performance.now() - down.t;
+  if (moved > 14 || held > 550) return; // was a camera rotate/zoom drag, not a tap
   pointerToNDC(e);
   raycaster.setFromCamera(pointer, camera);
   const hits = raycaster.intersectObjects(scene.children, true);
@@ -432,17 +515,23 @@ canvas.addEventListener("pointerdown", (e) => {
 function tryTarget(q, r) {
   const inRange = validTargets.some(t => t.q === q && t.r === r);
   if (!inRange) return;
+  if (pendingStepType === "attack") {
+    const mine = units.get("hero:" + playerId);
+    const w = hexToWorld(q, r);
+    triggerLunge(mine, w.x, w.z);
+  }
   send({ type: "action", action: { cardId: pendingCard, q, r } });
   clearHighlights();
   targetHint.style.display = "none";
 }
 
 function clearPending() {
-  pendingCard = null; validTargets = [];
+  pendingCard = null; pendingStepType = null; validTargets = [];
   clearHighlights();
   cancelBtn.style.display = "none";
   targetHint.style.display = "none";
   document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
+  if (autoCollapsed) { autoCollapsed = false; setCardsCollapsed(false); }
 }
 cancelBtn.onclick = clearPending;
 
@@ -460,25 +549,58 @@ function frame(now) {
   updateUnitTags();
 }
 function tick(dtSec) {
+  controls.update();
   for (const [uid, u] of units) {
     u.animT += dtSec;
+
+    // base position eases toward the latest hex; lunge/lungeDir add a temporary dash on top
     if (u.targetX !== undefined) {
-      u.obj.position.x += (u.targetX - u.obj.position.x) * Math.min(1, dtSec * 6);
-      u.obj.position.z += (u.targetZ - u.obj.position.z) * Math.min(1, dtSec * 6);
+      u.baseX += (u.targetX - u.baseX) * Math.min(1, dtSec * 6);
+      u.baseZ += (u.targetZ - u.baseZ) * Math.min(1, dtSec * 6);
     }
+    let lungeOffX = 0, lungeOffZ = 0;
+    if (u.lungeT > 0) {
+      u.lungeT = Math.max(0, u.lungeT - dtSec);
+      const p = u.lungeT / u.lungeDur;
+      const k = Math.sin((1 - p) * Math.PI); // 0 -> 1 -> 0
+      lungeOffX = u.lungeDirX * k * 0.45;
+      lungeOffZ = u.lungeDirZ * k * 0.45;
+    }
+
+    // in-place swing gesture (weapon swing / recoil), independent of the lunge dash
+    let swingRot = 0, swingScale = 1;
+    if (u.swingDelay > 0) {
+      u.swingDelay -= dtSec;
+    } else if (u.swingT > 0) {
+      u.swingT = Math.max(0, u.swingT - dtSec);
+      const p = u.swingT / u.swingDur;
+      const k = Math.sin((1 - p) * Math.PI);
+      swingRot = u.swingDir * k * 0.4;
+      swingScale = 1 + k * 0.12;
+    }
+
     const bob = u.dead ? 0 : Math.sin(u.animT * 2.2) * 0.06;
     let scale = 1;
     if (u.dead) {
       u.deathT = (u.deathT || 0) + dtSec;
       scale = Math.max(0, 1 - u.deathT / 0.6);
       if (scale <= 0.02 && !u.removed) { scene.remove(u.obj); u.removed = true; }
+      u.sprite.material.color.setRGB(1, 1, 1);
     } else if (u.hitFlash > 0) {
       u.hitFlash -= dtSec;
-      scale = 1 + Math.sin(u.hitFlash * 40) * 0.06;
+      scale = 1 + Math.sin(u.hitFlash * 40) * 0.08;
+      const t = Math.max(0, u.hitFlash / 0.35);
+      u.sprite.material.color.setRGB(1, 1 - 0.55 * t, 1 - 0.55 * t);
+    } else {
+      u.sprite.material.color.setRGB(1, 1, 1);
     }
-    u.baseScaleX = scale; u.baseScaleY = scale;
+    scale *= swingScale;
+
+    u.obj.position.x = u.baseX + lungeOffX;
+    u.obj.position.z = u.baseZ + lungeOffZ;
     u.obj.position.y = bob;
     u.obj.scale.set(Math.max(0.001, scale), Math.max(0.001, scale), 1);
+    u.sprite.material.rotation = swingRot;
   }
 }
 requestAnimationFrame(frame);
@@ -498,6 +620,7 @@ const CARD_DEFS = {
 };
 
 // ---------------- state -> UI ----------------
+let lastRound = null;
 function onState(msg) {
   const s = msg.view;
   if (msg.status === "waiting") {
@@ -509,6 +632,17 @@ function onState(msg) {
   if (!s) return;
   if (!boardGroup.children.length) buildBoard(s);
   syncUnits(s, msg.you);
+  // a round just advanced -> the whole enemy phase resolved in one jump server-side (Tier-1 kernel
+  // returns one final state, not a step-by-step feed), so give every surviving enemy a quick,
+  // lightly-staggered "acted" swing gesture rather than claiming precise per-attack attribution.
+  if (lastRound !== null && s.round !== lastRound && msg.status === "playing") {
+    let i = 0;
+    for (const e of s.enemies) {
+      if (!e.active || e.hp <= 0) continue;
+      triggerSwing(units.get("enemy:" + e.id), (i++) * 0.08 + Math.random() * 0.08);
+    }
+  }
+  lastRound = s.round;
   renderHud(msg, s);
   renderCards(msg, s);
   renderLog(s);
@@ -568,6 +702,7 @@ function startCard(def, hero, s) {
 
 function activateStep(cardId, step, hero, s, stepNumber) {
   pendingCard = cardId;
+  pendingStepType = step.type;
   let targets = [];
   let hint = "";
   if (step.type === "move") {
@@ -586,6 +721,7 @@ function activateStep(cardId, step, hero, s, stepNumber) {
   targetHint.style.display = "block";
   targetHint.textContent = hint;
   cancelBtn.style.display = stepNumber === 1 ? "block" : "none";
+  if (!cardsCollapsed) { autoCollapsed = true; setCardsCollapsed(true); } // free up the board while picking a target
 }
 
 function renderLog(s) {
