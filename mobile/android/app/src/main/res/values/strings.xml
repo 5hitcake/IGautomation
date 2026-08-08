@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Kritzeldrache</string>
-    <string name="title_activity_main">Kritzeldrache</string>
-    <string name="package_name">com.kritzeldrache.dragon</string>
-    <string name="custom_url_scheme">com.kritzeldrache.dragon</string>
+    <string name="app_name">Dragonslide</string>
+    <string name="title_activity_main">Dragonslide</string>
+    <string name="package_name">com.dragonslide.game</string>
+    <string name="custom_url_scheme">com.dragonslide.game</string>
 </resources>

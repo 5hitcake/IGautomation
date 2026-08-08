@@ -92,10 +92,30 @@ your own developer accounts).
 
 ## App ID
 
-`com.kritzeldrache.dragon` (`capacitor.config.json`) - a placeholder reverse-
-DNS identifier. Change it before a real submission if you want it tied to
-your own domain/company; it must stay unique and, once submitted, is very
-hard to change without losing the app's identity on the store.
+`com.dragonslide.game` (`capacitor.config.json`, Android `applicationId`/
+`namespace`, iOS `PRODUCT_BUNDLE_IDENTIFIER`) - this is set now for the
+first Play Console upload. It's invisible to users (not the same as the
+display name) but, once submitted, is permanent - it cannot be changed
+without losing the app's identity on the store.
+
+## Display name (localized)
+
+The store listing name and the on-device app label are "Dragonslide"
+everywhere except German-speaking regions, where they show "Kritzeldrache":
+- Play Store listing: create a separate German store-listing translation in
+  Play Console (Store presence > Main store listing > add language) using
+  `store/listing-de.md`; the English listing (`store/listing-en.md`) is the
+  default.
+- Android home-screen label: `android/app/src/main/res/values/strings.xml`
+  (default, "Dragonslide") vs `values-de/strings.xml` ("Kritzeldrache") -
+  the plain "de" qualifier covers de-DE, de-AT and de-CH automatically.
+- iOS home-screen label: currently a single `CFBundleDisplayName` in
+  `Info.plist` ("Dragonslide"). Per-locale iOS display names need an
+  `InfoPlist.strings` localization added properly in Xcode (not safely
+  hand-editable in `project.pbxproj`) - still to do once an iOS build is
+  actually underway.
+- In-game title/UI text already auto-switches via `strings.de.js`/
+  `strings.en.js` independent of all of the above.
 
 ## Monetization: rewarded ads + coin bundles
 

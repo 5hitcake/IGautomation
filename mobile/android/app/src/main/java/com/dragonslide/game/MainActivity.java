@@ -1,4 +1,4 @@
-package com.kritzeldrache.dragon;
+package com.dragonslide.game;
 
 import com.getcapacitor.BridgeActivity;
 
