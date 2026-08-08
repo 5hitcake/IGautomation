@@ -117,6 +117,38 @@ everywhere except German-speaking regions, where they show "Kritzeldrache":
 - In-game title/UI text already auto-switches via `strings.de.js`/
   `strings.en.js` independent of all of the above.
 
+## Building the signed Android release (.aab)
+
+Neither this dev sandbox nor most casual setups have the Android SDK
+installed, so the signed release bundle is built in CI instead:
+`.github/workflows/android-release.yml`, manually triggered (Actions tab ->
+"Android Release Build (Dragonslide)" -> "Run workflow"). It builds, signs
+with the upload keystore, and commits the resulting `.aab` straight into
+`mobile/releases/` on the branch it ran on - pull afterwards to get it.
+
+It needs 4 repository secrets (Settings -> Secrets and variables -> Actions
+-> New repository secret) with the **upload key** for this app - an upload
+keystore was generated once, out of band, and its values (base64 keystore,
+store password, key alias, key password) were handed to you directly since
+they're too sensitive to keep in this repo or in chat history longer than
+necessary. **Store them somewhere safe now if you haven't** - the store/key
+password can't be recovered if lost, and re-running Play Console's key-reset
+flow to replace it is real friction:
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
+On first upload, choose "Use Play App Signing" in Play Console (the
+default) - Google then holds the real signing key and only this upload key
+is needed to authenticate future uploads, so losing it is recoverable via
+Play Console support instead of catastrophic.
+
+`android/app/build.gradle`'s release `signingConfig` only activates when
+`RELEASE_STORE_FILE` is set in the environment (which the workflow does) -
+a plain local `./gradlew bundleRelease` without those env vars produces an
+unsigned build, by design, since the keystore never lives in this repo.
+
 ## Monetization: rewarded ads + coin bundles
 
 Optional, purely-cosmetic coins can now also be earned by watching a

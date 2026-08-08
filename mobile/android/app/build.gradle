@@ -16,10 +16,29 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Release signing reads from environment variables only (set from GitHub
+    // Actions secrets in .github/workflows/android-release.yml) - never from
+    // a committed file, so the upload keystore/passwords never touch git.
+    // Building `assembleRelease`/`bundleRelease` locally without those env
+    // vars set produces an unsigned build type ("null" signingConfig).
+    def releaseStoreFile = System.getenv("RELEASE_STORE_FILE")
+    if (releaseStoreFile) {
+        signingConfigs {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseStoreFile) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
