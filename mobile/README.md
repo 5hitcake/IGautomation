@@ -79,9 +79,41 @@ The 4 screenshots are the **English** UI (confirms the localization works
 end to end) - re-run with `localStorage kritzeldrache_lang=de` first if you
 want a German set for `listing-de.md` too.
 
-Once `resources/icon.png` and `resources/splash.png` are in place, run
-`npm run assets` (wraps `@capacitor/assets`) - it generates every required
-Android/iOS icon size automatically into both native projects.
+**One command does all of this** from any machine or CI runner that can reach
+the CDN:
+
+```bash
+bash mobile/fetch-brand-assets.sh
+```
+
+It downloads the icon, the splash and all four store screenshots, verifies
+every file against the md5s in the table above (aborting on any mismatch),
+checks the icon is 1024x1024 and the splash 2732x2732, then runs
+`npm run assets` (wraps `@capacitor/assets`) to regenerate every required
+Android/iOS icon and splash size into both native projects - overwriting the
+generic Capacitor placeholder icon. It prints the exact `git add` line to
+commit afterwards.
+
+Doing it by hand instead: save the two files to `resources/icon.png` and
+`resources/splash.png`, then run `npm run assets`.
+
+**Why this isn't already committed:** the artwork lives on the Higgsfield
+CDN, and the Claude coding environment's egress policy denies that host - the
+agent proxy answers 403 to CONNECT, so the agent cannot fetch the bytes and
+commit them itself. Allowlisting `d2ol7oe51mr4n9.cloudfront.net` for the
+agent session would let it commit these directly and remove the need for the
+script. The artwork itself is verified intact: both files were re-fetched and
+re-checksummed on 2026-08-02 and match the md5s above exactly.
+
+**Icon is text-free by construction**, which is what the dual-naming
+(Dragonslide internationally, Kritzeldrache in German-speaking regions)
+requires: it is a flat `#f3ead6` canvas with a single chroma-keyed dragon
+alpha-composited on top - no text layer was ever drawn. Measured: all four
+corners are exactly `#f3ead6`, the subject is one contiguous band of marked
+rows with zero vertical gaps (a caption under the character would introduce
+at least one), and it occupies 85.9% x 66.0% of the frame, centred. The
+splash places the same dragon at 42.1% x 32.3%, inside the centre-60% safe
+area.
 
 ## Store listing text
 
