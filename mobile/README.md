@@ -154,9 +154,11 @@ everywhere except German-speaking regions, where they show "Kritzeldrache":
 Neither this dev sandbox nor most casual setups have the Android SDK
 installed, so the signed release bundle is built in CI instead:
 `.github/workflows/android-release.yml`, manually triggered (Actions tab ->
-"Android Release Build (Dragonslide)" -> "Run workflow"). It builds, signs
-with the upload keystore, and commits the resulting `.aab` straight into
-`mobile/releases/` on the branch it ran on - pull afterwards to get it.
+"Android Release Build (Dragonslide)" -> "Run workflow"). It also runs
+`fetch-brand-assets.sh` and commits the real icon/splash if they aren't in
+the repo yet (a no-op on later runs), then builds, signs with the upload
+keystore, and commits the resulting `.aab` straight into `mobile/releases/`
+on the branch it ran on - pull afterwards to get it.
 
 It needs 4 repository secrets (Settings -> Secrets and variables -> Actions
 -> New repository secret) with the **upload key** for this app - an upload

@@ -5,6 +5,12 @@ name: Android Release Build (Dragonslide)
 # it shouldn't run on every push. The signing keystore never touches the
 # repo: it's decoded from a secret into a gitignored path, used only for
 # this job, then discarded when the runner is torn down.
+#
+# Also fetches the real app icon/splash/screenshots from the CDN
+# (mobile/fetch-brand-assets.sh) and commits them if they aren't already in
+# the repo - the Claude coding sandbox that otherwise develops this project
+# can't reach that CDN, but this runner isn't subject to that restriction.
+# Once committed once, this step is a no-op on future runs.
 on:
   workflow_dispatch:
 
@@ -31,6 +37,23 @@ jobs:
       - name: Install mobile dependencies
         working-directory: mobile
         run: npm ci
+
+      - name: Install Pillow (used by fetch-brand-assets.sh's sanity check)
+        run: pip install --quiet pillow
+
+      - name: Fetch brand assets (icon/splash/screenshots) + regenerate native icons
+        working-directory: mobile
+        run: bash fetch-brand-assets.sh
+
+      - name: Commit brand assets if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mobile/resources mobile/store/screenshots \
+                  mobile/android/app/src/main/res mobile/ios/App/App/Assets.xcassets
+          git diff --cached --quiet && echo "No brand-asset changes to commit" || \
+            git commit -m "Mobile: real app icon/splash/screenshots, regenerated native sizes"
+          git push
 
       - name: Sync Capacitor (web assets + native config/plugins)
         working-directory: mobile
