@@ -22,7 +22,8 @@
   ],
   "posted_reel_ids": [
     2,
-    9
+    9,
+    6
   ],
   "recent_backgrounds": [
     "bg_06_desert_road.png",
@@ -33,6 +34,7 @@
   ],
   "recent_bg_videos": [
     "reel_07_rooftop.mp4",
-    "reel_02_ocean_waves.mp4"
+    "reel_02_ocean_waves.mp4",
+    "reel_03_city_timelapse.mp4"
   ]
 }
