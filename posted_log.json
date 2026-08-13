@@ -21,7 +21,8 @@
     67,
     80,
     73,
-    101
+    101,
+    57
   ],
   "posted_reel_ids": [
     2,
@@ -29,11 +30,11 @@
     6
   ],
   "recent_backgrounds": [
-    "bg_04_ocean_waves.png",
     "bg_12_rain_window.png",
     "bg_08_forest.png",
     "bg_10_abstract_smoke.png",
-    "bg_03_city_night.png"
+    "bg_03_city_night.png",
+    "bg_15_night_road.png"
   ],
   "recent_bg_videos": [
     "reel_07_rooftop.mp4",
