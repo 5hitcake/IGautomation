@@ -30,7 +30,8 @@
   "posted_reel_ids": [
     2,
     9,
-    6
+    6,
+    5
   ],
   "recent_backgrounds": [
     "bg_03_city_night.png",
@@ -42,6 +43,7 @@
   "recent_bg_videos": [
     "reel_07_rooftop.mp4",
     "reel_02_ocean_waves.mp4",
-    "reel_03_city_timelapse.mp4"
+    "reel_03_city_timelapse.mp4",
+    "reel_08_night_road.mp4"
   ]
 }
