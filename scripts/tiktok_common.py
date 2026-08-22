@@ -242,7 +242,10 @@ def generate_higgsfield_image(
         json={"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": "2K"},
         timeout=60,
     )
-    submit.raise_for_status()
+    if not submit.ok:
+        raise RuntimeError(
+            f"Higgsfield-Anfrage abgelehnt ({submit.status_code}): {submit.text}"
+        )
     data = submit.json()
     status_url = data["status_url"]
 
@@ -252,7 +255,10 @@ def generate_higgsfield_image(
         time.sleep(poll_interval)
         waited += poll_interval
         resp = requests.get(status_url, headers=headers, timeout=30)
-        resp.raise_for_status()
+        if not resp.ok:
+            raise RuntimeError(
+                f"Higgsfield-Status-Abfrage fehlgeschlagen ({resp.status_code}): {resp.text}"
+            )
         result = resp.json()
         status = result["status"]
         if status == "completed":
