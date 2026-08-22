@@ -18,7 +18,10 @@ TIKTOK_GENERATED_DIR = os.path.join(ROOT, "assets", "tiktok_generated")
 # deutlich staerker bei komplexen Kompositionen und laeuft dabei auf HF-eigener
 # Infrastruktur, nicht auf dem GitHub-Actions-Runner.
 FLUX_MODEL_ID = "black-forest-labs/FLUX.1-schnell"
-HF_INFERENCE_URL = f"https://api-inference.huggingface.co/models/{FLUX_MODEL_ID}"
+# Die alte Domain api-inference.huggingface.co wurde abgeschaltet (DNS-Fehler
+# im ersten Live-Test) - HF hat auf einen zentralen "Inference Providers"
+# Router umgestellt, ueber den auch der kostenlose hf-inference-Provider laeuft.
+HF_INFERENCE_URL = f"https://router.huggingface.co/hf-inference/models/{FLUX_MODEL_ID}"
 
 # Reichhaltiger Stil-Prefix fuer FLUX (grosses Modell, vertraegt lange Prompts).
 STYLE_PREFIX = (
