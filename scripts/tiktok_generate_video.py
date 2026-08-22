@@ -37,7 +37,11 @@ from tiktok_common import (
 CANVAS_SIZE = (1080, 1920)
 ZOOM_SOURCE = (2160, 3840)  # 2x, damit der Zoom nicht pixelig wird
 FPS = 30
-VOICE = os.environ.get("TIKTOK_TTS_VOICE", "de-DE-ConradNeural")
+# Killian, tiefer und langsamer fuer einen dunkleren/mysterioeseren Erzaehlton
+# (im Chat gegen Conrad und Florian verglichen und ausgewaehlt).
+VOICE = os.environ.get("TIKTOK_TTS_VOICE", "de-DE-KillianNeural")
+VOICE_PITCH = os.environ.get("TIKTOK_TTS_PITCH", "-15Hz")
+VOICE_RATE = os.environ.get("TIKTOK_TTS_RATE", "-8%")
 FONT_PATH = os.path.join(ROOT, "assets", "fonts", "Poppins-Bold.ttf")
 
 
@@ -58,7 +62,9 @@ def escape_ffmpeg_path(path):
 async def synth_speech_with_words(text, output_path):
     """Vertont eine Zeile per edge-tts und gibt zusaetzlich die exakten
     Wort-Zeitstempel zurueck (WordBoundary-Events), fuer Wort-fuer-Wort-Untertitel."""
-    communicate = edge_tts.Communicate(text, VOICE, boundary="WordBoundary")
+    communicate = edge_tts.Communicate(
+        text, VOICE, pitch=VOICE_PITCH, rate=VOICE_RATE, boundary="WordBoundary"
+    )
     words = []
     with open(output_path, "wb") as f:
         async for chunk in communicate.stream():

@@ -14,9 +14,10 @@ HF_API_BASE = "https://router.huggingface.co/hf-inference/models"
 HF_DEFAULT_MODEL = "stabilityai/stable-diffusion-3-medium-diffusers"
 
 STYLE_PREFIX = (
-    "Studio Ghibli anime style illustration, hand-painted cel animation look, "
-    "soft painterly background, Hayao Miyazaki art style, clean lineart, "
-    "highly detailed, vertical portrait composition, cinematic lighting, "
+    "Studio Ghibli anime style illustration, hand-painted 2D cel animation look, "
+    "soft painterly watercolor background, warm natural color palette, "
+    "Hayao Miyazaki art style, clean confident lineart, richly detailed textures, "
+    "vertical portrait composition, cinematic lighting, sharp focus, "
 )
 
 HANDLE = "@weirdworld.ai"
