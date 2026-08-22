@@ -122,3 +122,26 @@ def test_random_character_description_is_nonempty_string():
     desc = tc.random_character_description()
     assert isinstance(desc, str)
     assert len(desc) > 10
+
+
+def test_build_beats_marks_exactly_the_artifact_holding_beats_as_critical(topics_file):
+    topics = json.load(open(topics_file, encoding="utf-8"))["topics"]
+    beats = tc.build_beats(topics[0])
+    critical_indices = {i for i, b in enumerate(beats) if b["critical"]}
+    # Nur Hook, Fund, Reaktion, Aufloesung zeigen eine Person mit dem Artefakt
+    # in der Hand - das braucht Higgsfield. Alle anderen sind reine
+    # Umgebungs-/Symbolbilder und laufen kostenlos.
+    assert critical_indices == {0, 2, 3, 6}
+
+
+def test_build_beats_non_critical_beats_have_short_free_prompt(topics_file):
+    topics = json.load(open(topics_file, encoding="utf-8"))["topics"]
+    beats = tc.build_beats(topics[0])
+    for i, beat in enumerate(beats):
+        if beat["critical"]:
+            continue
+        assert "free_image_prompt" in beat
+        assert beat["free_image_prompt"].startswith(tc.FREE_STYLE_PREFIX)
+        # Das selbst gehostete Modell schneidet nach ca. 77 Tokens hart ab -
+        # der freie Prompt muss deutlich kuerzer sein als der volle Higgsfield-Prompt.
+        assert len(beat["free_image_prompt"].split()) < 40

@@ -1,19 +1,27 @@
 """Generiert ein TikTok-Video (1080x1920) im Ghibli/Anime-Stil aus einem Thema
-aus content/tiktok_topics.json:
-  1. Pro Erzaehl-Beat wird ueber die kostenlose Hugging Face Inference API ein
-     Standbild generiert (siehe tiktok_common.generate_hf_image).
-  2. Pro Beat wird die Sprachzeile ueber edge-tts (kostenlos, kein Key) vertont,
+aus content/tiktok_topics.json, im Hybrid-Verfahren:
+  1. Fuer die 4 Beats, in denen ein Charakter ein bestimmtes Artefakt in der
+     Hand haelt (Hook, Fund, Reaktion, Aufloesung), wird ueber die
+     kostenpflichtige Higgsfield-API generiert (siehe tiktok_common.
+     generate_higgsfield_image) - das kleine kostenlose Modell scheitert
+     zuverlaessig an "Person haelt spezifisches Objekt".
+  2. Fuer die restlichen 4 Beats (Ort, Vertuschung x2, Follow-CTA - reine
+     Umgebungs-/Symbolbilder ohne kritische Objekt-Interaktion) wird ein
+     selbst gehostetes, kostenloses Ghibli-Diffusion-Modell lokal ausgefuehrt
+     (laeuft auch ohne GPU, nur langsamer - kein Zeitdruck bei dieser Automation).
+  3. Pro Beat wird die Sprachzeile ueber edge-tts (kostenlos, kein Key) vertont,
      inklusive Wort-fuer-Wort-Zeitstempeln (WordBoundary-Events).
-  3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Standbild und
+  4. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Standbild und
      blendet die Untertitel Wort fuer Wort synchron zur Sprachausgabe ein.
-  4. Alle Segmente werden zu einem Video zusammengefuegt und
+  5. Alle Segmente werden zu einem Video zusammengefuegt und
      assets/tiktok_generated/next_post.json fuer tiktok_publish.py geschrieben.
 
-Benoetigt ffmpeg und den Python-Paket edge-tts (siehe requirements.txt).
-Umgebungsvariable HF_API_TOKEN muss gesetzt sein (kostenloser Hugging-Face-Account,
-siehe README).
+Benoetigt ffmpeg und die Python-Pakete edge-tts, torch, diffusers, transformers,
+accelerate (siehe requirements.txt). Umgebungsvariablen HIGGSFIELD_API_KEY_ID
+und HIGGSFIELD_API_KEY_SECRET muessen gesetzt sein (siehe README Setup).
 """
 import asyncio
+import io
 import json
 import math
 import os
@@ -23,12 +31,14 @@ import sys
 import tempfile
 
 import edge_tts
+import torch
+from diffusers import DPMSolverMultistepScheduler, StableDiffusionPipeline
 from tiktok_common import (
     ROOT,
     TIKTOK_GENERATED_DIR,
     build_beats,
     build_caption,
-    generate_hf_image,
+    generate_higgsfield_image,
     load_state,
     pick_next_topic,
     save_state,
@@ -44,6 +54,18 @@ VOICE_PITCH = os.environ.get("TIKTOK_TTS_PITCH", "-15Hz")
 VOICE_RATE = os.environ.get("TIKTOK_TTS_RATE", "-8%")
 FONT_PATH = os.path.join(ROOT, "assets", "fonts", "Poppins-Bold.ttf")
 
+# Selbst gehostetes Modell fuer die nicht-kritischen Beats (kostenlos). Diese
+# Einstellungen wurden im Chat gegen mehrere Alternativen getestet: DPM-Solver
+# statt Standard-Sampler, expliziter Negativ-Prompt und guidance_scale 7.5
+# lieferten deutlich sauberere Ergebnisse als die Ausgangswerte.
+FREE_MODEL_ID = "nitrosocke/Ghibli-Diffusion"
+FREE_MODEL_STEPS = 35
+FREE_MODEL_GUIDANCE = 7.5
+FREE_MODEL_NEGATIVE_PROMPT = (
+    "blurry, deformed, disfigured, bad anatomy, extra limbs, poorly drawn face, "
+    "dark, low contrast, watermark, text"
+)
+
 
 def check_ffmpeg():
     for binary in ("ffmpeg", "ffprobe"):
@@ -57,6 +79,28 @@ def check_ffmpeg():
 def escape_ffmpeg_path(path):
     # ffmpeg-Filterausdruecke erwarten escapte Doppelpunkte/Backslashes in Pfaden.
     return path.replace("\\", "/").replace(":", "\\:")
+
+
+def load_free_pipeline():
+    pipe = StableDiffusionPipeline.from_pretrained(
+        FREE_MODEL_ID, dtype=torch.float32, safety_checker=None
+    )
+    pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
+    return pipe.to("cpu")
+
+
+def generate_free_image(pipe, prompt):
+    image = pipe(
+        prompt,
+        negative_prompt=FREE_MODEL_NEGATIVE_PROMPT,
+        num_inference_steps=FREE_MODEL_STEPS,
+        guidance_scale=FREE_MODEL_GUIDANCE,
+        height=512,
+        width=512,
+    ).images[0]
+    buf = io.BytesIO()
+    image.save(buf, format="JPEG")
+    return buf.getvalue()
 
 
 async def synth_speech_with_words(text, output_path):
@@ -158,9 +202,10 @@ def concat_segments(segment_paths, output_path, work_dir):
 
 def main():
     check_ffmpeg()
-    hf_token = os.environ.get("HF_API_TOKEN")
-    if not hf_token:
-        print("HF_API_TOKEN ist nicht gesetzt (siehe README Setup).")
+    hf_key_id = os.environ.get("HIGGSFIELD_API_KEY_ID")
+    hf_key_secret = os.environ.get("HIGGSFIELD_API_KEY_SECRET")
+    if not hf_key_id or not hf_key_secret:
+        print("HIGGSFIELD_API_KEY_ID/HIGGSFIELD_API_KEY_SECRET sind nicht gesetzt (siehe README Setup).")
         sys.exit(1)
 
     os.makedirs(TIKTOK_GENERATED_DIR, exist_ok=True)
@@ -168,13 +213,22 @@ def main():
     topic = pick_next_topic(state)
     beats = build_beats(topic)
 
+    print("Lade selbst gehostetes Modell fuer die nicht-kritischen Beats...")
+    free_pipe = load_free_pipeline()
+
     with tempfile.TemporaryDirectory() as work_dir:
         segment_paths = []
         for i, beat in enumerate(beats):
-            print(f"Beat {i + 1}/{len(beats)}: {beat['text'][:60]}...")
+            print(f"Beat {i + 1}/{len(beats)} ({'Higgsfield' if beat['critical'] else 'kostenlos'}): "
+                  f"{beat['text'][:60]}...")
 
             image_path = os.path.join(work_dir, f"beat_{i:02d}.jpg")
-            image_bytes = generate_hf_image(beat["image_prompt"], hf_token)
+            if beat["critical"]:
+                image_bytes = generate_higgsfield_image(
+                    beat["image_prompt"], hf_key_id, hf_key_secret
+                )
+            else:
+                image_bytes = generate_free_image(free_pipe, beat["free_image_prompt"])
             with open(image_path, "wb") as f:
                 f.write(image_bytes)
 

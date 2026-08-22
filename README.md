@@ -161,10 +161,11 @@ GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
 1. `scripts/tiktok_generate_video.py` wählt ein noch nicht verwendetes Thema aus
    `content/tiktok_topics.json` (Format: Hook → Ort/Jahr → Fund → Experten-Reaktion →
    Vertuschung → Auflösung → Follow-CTA, 8 Beats).
-2. Pro Beat wird ein Standbild über die Hugging-Face-API generiert und die
-   Sprachzeile über `edge-tts` vertont.
-3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Bild, brennt den
-   Text als Untertitel ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
+2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über die kostenpflichtige
+   Higgsfield-API, 4 Beats über ein kostenloses, selbst gehostetes Modell. Jede
+   Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
+3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Bild, blendet die
+   Untertitel Wort für Wort ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
 4. `scripts/tiktok_publish.py` lädt das Video über die offizielle **TikTok Content
    Posting API** hoch (Direct Post, `FILE_UPLOAD`).
 
@@ -174,20 +175,36 @@ absichtlich keine wiederkehrende "Maskottchen"-Figur. Geht es um eine reale
 historische Person (`real_person` in `content/tiktok_topics.json`), wird diese
 Person nur *innerhalb desselben Videos* konsistent beschrieben.
 
-### Schritt 1: Hugging-Face-Token einrichten
+### Warum Hybrid statt komplett kostenlos?
 
-1. Kostenlosen Account auf [huggingface.co](https://huggingface.co) anlegen (keine
-   Kreditkarte nötig).
-2. Profilbild oben rechts → **Settings** → **Access Tokens** → **Create new token**
-   → Typ **"Read"** → Namen vergeben → **Create token**.
-3. Token als GitHub Secret `HF_API_TOKEN` hinterlegen (Settings → Secrets and
-   variables → Actions → New repository secret).
+Kleine, kostenlose Bildmodelle (getestet: Hugging Face Inference API, ein selbst
+gehostetes SD1.5-Ghibli-Modell) scheitern zuverlässig daran, "eine Person hält ein
+bestimmtes Objekt in der Hand" korrekt darzustellen - eine bekannte Schwäche dieser
+Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Deshalb:
 
-Der Gratis-Tarif reicht für die tägliche Generierung locker aus (8 Bilder/Tag,
-Limit liegt deutlich höher). Welches Bildmodell genutzt wird, lässt sich optional
-über das Secret/die Env-Variable `HF_IMAGE_MODEL` überschreiben (Standard:
-`stabilityai/stable-diffusion-3-medium-diffusers` - aktuell das einzige im
-Gratis-Tarif für Text-zu-Bild freigegebene Modell).
+- **4 kritische Beats** (Hook, Fund, Reaktion, Auflösung - dort hält der Charakter
+  das Artefakt) laufen über die **Higgsfield-API** (`higgsfield-ai/soul/standard`,
+  ~1,5 Credits/Bild, siehe [docs.higgsfield.ai](https://docs.higgsfield.ai/docs)).
+- **4 einfache Beats** (Ort, Vertuschung ×2, Follow-CTA - reine Umgebungs-/Symbolbilder
+  ohne kritische Objekt-Interaktion) laufen über ein **selbst gehostetes, kostenloses**
+  `nitrosocke/Ghibli-Diffusion`-Modell direkt im GitHub-Actions-Runner (CPU, kein GPU
+  nötig - dauert dafür ca. 10-15 Min./Bild. Das ist bewusst so: Qualität hat hier
+  Vorrang vor Geschwindigkeit, die Automation läuft ohnehin unbeaufsichtigt).
+
+Macht real ca. **6 Credits/Video** statt ~15-20 bei einer reinen Higgsfield-Lösung.
+
+### Schritt 1: Higgsfield-API-Zugang einrichten
+
+1. Auf [cloud.higgsfield.ai](https://cloud.higgsfield.ai) anmelden (bestehender
+   oder neuer Account).
+2. Im Dashboard unter **API** einen neuen API-Key erzeugen (liefert eine Key-ID
+   und ein Secret).
+3. Beide Werte als GitHub Secrets `HIGGSFIELD_API_KEY_ID` und
+   `HIGGSFIELD_API_KEY_SECRET` hinterlegen (Settings → Secrets and variables →
+   Actions → New repository secret).
+
+Kosten: ca. 6 Credits pro Video (4 Bilder à ~1,5 Credits) - bei täglichem Posten
+grob 1 €/Woche, abhängig vom aktuellen Credit-Preis im Higgsfield-Dashboard.
 
 ### Schritt 2: TikTok Content Posting API einrichten
 
@@ -203,9 +220,11 @@ Gratis-Tarif für Text-zu-Bild freigegebene Modell).
 
 ### Schritt 3: Testen
 
-**Lokal (ohne echte API-Calls, benötigt ffmpeg + `pip install -r requirements.txt`):**
+**Lokal (benötigt ffmpeg + `pip install -r requirements.txt`; der erste Lauf lädt
+zusätzlich das ca. 2 GB große Ghibli-Diffusion-Modell einmalig herunter):**
 ```
-export HF_API_TOKEN=hf_...
+export HIGGSFIELD_API_KEY_ID=...
+export HIGGSFIELD_API_KEY_SECRET=...
 python scripts/tiktok_generate_video.py
 python scripts/tiktok_publish.py --dry-run
 ```
