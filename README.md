@@ -9,8 +9,11 @@ für eine Account-Sperre.
 - **Täglich**: 1 Zitat-Bild (`daily_post.yml`)
 - **Wöchentlich** (sonntags): 1 Reel mit animiertem Text-Overlay, optional mit Musik (`weekly_reel.yml`)
 
-**TikTok (@weirdworld.ai)** – täglich ein KI-generiertes Ghibli/Anime-Video über
-die **TikTok Content Posting API**, komplett kostenlos (Details weiter unten unter
+**TikTok (@weirdworld.ai) + zweiter Instagram-Account** – täglich ein
+KI-generiertes Ghibli/Anime-Video, gleichzeitig über die **TikTok Content
+Posting API** und (als Reel) über die **Instagram Graph API** auf einem
+zweiten, eigenständigen Instagram-Account veröffentlicht - unabhängig vom
+Mindset-Account oben (Details weiter unten unter
 [TikTok-Automatisierung](#tiktok-automatisierung-weirdworldai)):
 - **Täglich**: 1 narratives Kurzvideo (`tiktok_daily.yml`)
 
@@ -146,10 +149,12 @@ im Actions-Log).
 
 ## TikTok-Automatisierung (@weirdworld.ai)
 
-Zusätzlich zum Instagram-Teil generiert und postet dieses Repo **täglich ein
-KI-Video im Ghibli/Anime-Stil** für einen zweiten Account
-(`tiktok_daily.yml`) - nach demselben Prinzip wie oben: kein Login-Bot,
-GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
+Zusätzlich zum Instagram-Teil oben generiert und postet dieses Repo **täglich ein
+KI-Video im Ghibli/Anime-Stil** (`tiktok_daily.yml`) - nach demselben Prinzip:
+kein Login-Bot, GitHub Actions als Zeitgeber, offizielle Plattform-APIs zum
+Veröffentlichen. Dasselbe generierte Video geht dabei an **zwei Ziele
+gleichzeitig**: TikTok (@weirdworld.ai) und einen zweiten, eigenständigen
+Instagram-Account (als Reel) - unabhängig vom Mindset-Account weiter oben.
 
 **Kosten: 0 €.** Es werden ausschließlich kostenlose Dienste genutzt:
 - **Bilder**: Hybrid aus einem größeren Modell über die kostenlose Hugging-Face-
@@ -173,6 +178,10 @@ GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
    Untertitel Wort für Wort ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
 4. `scripts/tiktok_publish.py` lädt das Video über die offizielle **TikTok Content
    Posting API** hoch (Direct Post, `FILE_UPLOAD`).
+5. Direkt danach postet `scripts/publish.py --post-file assets/tiktok_generated/next_post.json`
+   dasselbe Video als Reel über die **Instagram Graph API** auf den zweiten
+   Instagram-Account (derselbe Code wie beim Mindset-Account oben, nur mit
+   anderen Zugangsdaten und anderer next_post.json als Quelle).
 
 **Wichtig zu den Charakteren**: Bei erfundenen Szenen wird bei **jedem Video eine
 neue, zufällige Figur** ausgewürfelt (Geschlecht, Alter, Herkunft, Outfit) - es gibt
@@ -227,7 +236,23 @@ nutzbar), für 4 Bilder/Tag aber problemlos ausreichend.
    App auf `PUBLIC_TO_EVERYONE` umstellen.
 5. Access Token als GitHub Secret `TIKTOK_ACCESS_TOKEN` hinterlegen.
 
-### Schritt 3: Testen
+### Schritt 3: Zweiten Instagram-Account einrichten
+
+Genau dieselben Schritte wie in **[Schritt 2: Instagram API einrichten](#schritt-2-instagram-api-einrichten-ohne-facebook-seite)**
+weiter oben, aber diesmal für den zweiten (weirdworld.ai-)Account statt für
+@mindset_und.motivation - separates professionelles Konto, separate Meta-App
+(oder separater Tester-Eintrag in derselben App), separater Access Token.
+
+Die Werte als **eigene** GitHub Secrets hinterlegen (bewusst andere Namen als
+`IG_ACCESS_TOKEN`/`IG_ACCOUNT_ID`, damit sich die beiden Instagram-Accounts
+nicht überschreiben):
+
+| Name | Wert |
+|---|---|
+| `WEIRDWORLD_IG_ACCESS_TOKEN` | Long-Lived Token des zweiten Instagram-Accounts |
+| `WEIRDWORLD_IG_ACCOUNT_ID` | Instagram-Business-Account-ID des zweiten Accounts |
+
+### Schritt 4: Testen
 
 **Lokal (benötigt ffmpeg + `pip install -r requirements.txt`; der erste Lauf lädt
 zusätzlich das ca. 2 GB große Ghibli-Diffusion-Modell einmalig herunter):**
@@ -235,6 +260,7 @@ zusätzlich das ca. 2 GB große Ghibli-Diffusion-Modell einmalig herunter):**
 export HF_API_TOKEN=...
 python scripts/tiktok_generate_video.py
 python scripts/tiktok_publish.py --dry-run
+python scripts/publish.py --post-file assets/tiktok_generated/next_post.json --dry-run
 ```
 
 **Erster echter Post:** Im GitHub-Repo unter **Actions → Daily TikTok Post →
