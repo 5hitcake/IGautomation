@@ -243,7 +243,11 @@ def main():
 
     caption = build_caption(topic)
     next_post = {
-        "type": "video",
+        # "reel" (nicht "video") ist bewusst gewaehlt: scripts/publish.py
+        # (Instagram) erwartet genau diesen Wert fuer media_type=REELS, wenn
+        # dasselbe next_post.json auch auf einen zweiten Instagram-Account
+        # gepostet wird. tiktok_publish.py selbst liest "type" gar nicht.
+        "type": "reel",
         "file": os.path.relpath(output_path, ROOT).replace("\\", "/"),
         "caption": caption,
     }

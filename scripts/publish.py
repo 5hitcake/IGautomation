@@ -136,13 +136,23 @@ def publish_media(ig_account_id, access_token, creation_id, dry_run):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--post-file",
+        default=os.path.join(GENERATED_DIR, "next_post.json"),
+        help=(
+            "Pfad zur next_post.json (Standard: assets/generated/next_post.json). "
+            "Damit laesst sich derselbe Publish-Code auch fuer einen zweiten "
+            "Instagram-Account mit anderem Content verwenden, z.B. "
+            "assets/tiktok_generated/next_post.json."
+        ),
+    )
     args = parser.parse_args()
 
-    next_post_path = os.path.join(GENERATED_DIR, "next_post.json")
+    next_post_path = args.post_file
     if not os.path.exists(next_post_path):
         print(
-            "Kein next_post.json gefunden - zuerst generate_quote_card.py "
-            "oder generate_reel.py ausfuehren."
+            f"Kein next_post.json unter {next_post_path} gefunden - zuerst den "
+            "passenden Generierungs-Schritt ausfuehren."
         )
         sys.exit(1)
 
