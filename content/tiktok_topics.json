@@ -1,5 +1,5 @@
 {
-  "_comment": "Themen-Pool fuer tiktok_generate_video.py. Jedes Thema folgt der bewaehrten Formel: Hook (Frage/Behauptung) -> Ort+Jahr -> Fund -> Experten-Reaktion -> Vertuschung (2 Beats) -> Aufloesung/Payoff -> Follow-CTA. 'artifact' ist eine konkrete, bildhafte, moeglichst mit echten Rechercheergebnissen abgeglichene Beschreibung des zentralen Fundstuecks/Phaenomens dieses Themas - wird in die Bild-Prompts der Hook-, Fund-, Reaktions- und Aufloesungs-Szene eingesetzt, damit das Artefakt tatsaechlich zu sehen ist (nicht nur ein generisches 'antikes Artefakt'). Bei Themen mit einer populaeren, aber anachronistischen Fehl-Deutung (z.B. 'Astronaut von Palenque') beschreibt 'artifact' explizit das ECHTE Aussehen des Fundstuecks (Material, Stil, Epoche) und schliesst die irrefuehrende moderne Interpretation ausdruecklich aus ('NOT a modern...'), damit das Bildmodell keine anachronistischen Objekte (Raumanzuege, moderne Technik) zeichnet. real_person=null bedeutet: die Figuren in diesem Video sind frei erfunden und muessen JEDES Mal neu/zufaellig aussehen. Ist real_person gesetzt, muss diese Figur (nur innerhalb desselben Videos) moeglichst akkurat/konsistent dargestellt werden - andere Figuren im selben Video bleiben trotzdem zufaellig.",
+  "_comment": "Themen-Pool fuer tiktok_generate_video.py. Jedes Thema folgt der bewaehrten Formel: Hook (Frage/Behauptung) -> Ort+Jahr -> Fund -> Experten-Reaktion -> Vertuschung (2 Beats) -> Aufloesung/Payoff -> Follow-CTA. 'artifact' ist eine konkrete, bildhafte, moeglichst mit echten Rechercheergebnissen abgeglichene Beschreibung des zentralen Fundstuecks/Phaenomens dieses Themas - wird in die Bild-Prompts der Hook-, Fund-, Reaktions- und Aufloesungs-Szene eingesetzt, damit das Artefakt tatsaechlich zu sehen ist (nicht nur ein generisches 'antikes Artefakt'). 'location_detail' beschreibt ebenso konkret und faktentreu, wie der reale Ort/die reale Stadt/Landschaft tatsaechlich aussieht (Architektur, Vegetation, Landschaft) - wird im Orts-Beat verwendet, damit die Umgebung authentisch statt generisch wirkt. Bei Themen mit einer populaeren, aber anachronistischen Fehl-Deutung (z.B. 'Astronaut von Palenque') beschreibt 'artifact' explizit das ECHTE Aussehen des Fundstuecks (Material, Stil, Epoche) und schliesst die irrefuehrende moderne Interpretation ausdruecklich aus ('NOT a modern...'), damit das Bildmodell keine anachronistischen Objekte (Raumanzuege, moderne Technik) zeichnet. real_person=null bedeutet: die Figuren in diesem Video sind frei erfunden und muessen JEDES Mal neu/zufaellig aussehen. Ist real_person gesetzt, muss diese Figur (nur innerhalb desselben Videos) moeglichst akkurat/konsistent dargestellt werden - andere Figuren im selben Video bleiben trotzdem zufaellig.",
   "topics": [
     {
       "id": 1,
@@ -12,6 +12,7 @@
       "suppression_2": "Lehrbücher reduzierten den Fund auf eine gewöhnliche Kultstätte, unbequeme Fragen blieben unbeantwortet.",
       "payoff": "Das war die verschwiegene Geschichte von Göbekli Tepe.",
       "artifact": "a massive T-shaped limestone megalith nearly 5 meters tall, carved in low relief with a fox, a scorpion and a wild boar, standing in a ring of similar weathered pillars half-sunk into ochre desert soil, ancient stone texture, no modern tools or fences visible",
+      "location_detail": "an arid Anatolian hillside in southeastern Türkiye, golden wheat-colored earth under a warm sky, distant low mountains on the horizon, scattered ancient stone pillar tops emerging from the ground",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#gobeklitepe", "#archäologie", "#verschwiegenegeschichte", "#antikehochkultur"]
@@ -27,6 +28,7 @@
       "suppression_2": "Keine unabhängigen Ausgrabungen, nur staatlich freigegebene Fragmente.",
       "payoff": "Das ist der Sanxingdui-Vertuschungsfall.",
       "artifact": "an oxidized jade-green bronze ritual mask nearly a meter wide, with two huge cylindrical eyes protruding on stalks, large flaring wing-like ears, and an elongated angular face, ancient Bronze Age Chinese craftsmanship, no modern objects nearby",
+      "location_detail": "lush green Sichuan farmland in southern China, misty distant mountains, a muddy excavation pit freshly opened in a rice paddy field, traditional Chinese village rooftops faintly visible in the distance",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#sanxingdui", "#archäologie", "#verschwiegenegeschichte", "#bronzezeit"]
@@ -42,6 +44,7 @@
       "suppression_2": "Keine offizielle Stellungnahme, keine Debatte in der Fachwelt.",
       "payoff": "Das war das Delphi-Ethylen-Orakel.",
       "artifact": "a natural fissure in the limestone floor of an ancient Greek temple, pale green vapor curling upward from it, lit by flickering torchlight against fluted marble columns, no modern equipment visible",
+      "location_detail": "the steep rocky slopes of Mount Parnassus in central Greece, ancient marble temple ruins with fluted stone columns overlooking a deep green valley, olive trees dotting the hillside",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#delphi", "#orakel", "#verschwiegenegeschichte", "#antikegriechen"]
@@ -57,6 +60,7 @@
       "suppression_2": "Die Tafeln lagen danach jahrzehntelang unbeachtet und unübersetzt im Museum.",
       "payoff": "Das war die Unterdrückung des Gilgamesch-Epos.",
       "artifact": "a small sun-baked oval clay tablet cracked at one corner, densely pressed with tiny wedge-shaped cuneiform marks, resting on a wooden 19th-century museum table under warm gaslight",
+      "location_detail": "a foggy Victorian London street at dusk, glowing gas lamps, the grand stone facade of the British Museum with tall classical columns, horse-drawn carriages passing by",
       "real_person": {
         "name": "George Smith",
         "description": "Mann Ende 20, blasse Haut, zerzaustes dunkelbraunes Haar, braune viktorianische Jacke über weißem Kragenhemd, dunkelblaue Weste"
@@ -75,6 +79,7 @@
       "suppression_2": "Eine einzige Deutung wurde per Gesetz festgeschrieben, jede weitere Prüfung verboten.",
       "payoff": "Das war der Astronaut von Palenque.",
       "artifact": "an ancient carved limestone sarcophagus lid in classic Maya relief art style, showing a Maya ruler in jade jewelry and an elaborate feathered headdress reclining amid stylized serpent-mouth shapes, cross-shaped World Tree branches and cosmic glyphs; the arrangement of vegetal shapes and tubes is often compared to levers and a breathing mask, but it is carved ancient stone relief, NOT a modern astronaut or spacesuit - no 20th-century technology, metal, or fabric visible anywhere",
+      "location_detail": "dense tropical jungle in Chiapas, Mexico, grey stone Maya pyramid temples with steep staircases emerging from the green canopy, mist rising between tall ceiba trees",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#palenque", "#archäologie", "#verschwiegenegeschichte", "#altehochkultur"]
@@ -90,6 +95,7 @@
       "suppression_2": "Anfragen internationaler Forschungsteams auf Zugang zu den Rohdaten blieben unbeantwortet.",
       "payoff": "Das sind die russischen Pyramiden mit den unmöglichen Ergebnissen.",
       "artifact": "a large translucent fiberglass pyramid frame roughly four meters tall standing in an open Russian field, 1990s-era wooden seedling trays and analog scientific measuring instruments arranged inside it",
+      "location_detail": "an open Russian countryside research compound, birch trees around a clearing, an overcast sky, a modest concrete laboratory building nearby",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#pyramiden", "#russland", "#verschwiegenegeschichte", "#experiment"]
@@ -105,6 +111,7 @@
       "suppression_2": "Unabhängige Datierungsversuche wurden wiederholt verzögert oder verweigert.",
       "payoff": "Das ist die verschwiegene Geschichte der Dashka-Steinplatte.",
       "artifact": "a massive flat grey stone slab over a meter wide, its surface finely engraved with a raised-relief topographic map showing winding rivers, canyons and mountain ridges in intricate miniature detail",
+      "location_detail": "a wide grassy steppe landscape in the Ural foothills of Bashkortostan, Russia, a small research tent camp, low rolling hills under a pale overcast sky",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#tartaria", "#steinplatte", "#verschwiegenegeschichte", "#kartografie"]
@@ -120,6 +127,7 @@
       "suppression_2": "Teile von Teslas Originalunterlagen wurden nach seinem Tod beschlagnahmt und nie vollständig veröffentlicht.",
       "payoff": "Das ist die verschwiegene Geschichte von Teslas freier Energie.",
       "artifact": "Nikola Tesla's real 1899 Colorado Springs experimental station: a tall wooden tower topped with a large wire coil, releasing branching blue-white electrical arcs into the night sky, sparks reflecting off wet grass",
+      "location_detail": "a high-altitude Colorado plain at the edge of a small 1899 frontier town, distant snow-capped Rocky Mountains, a lone wooden experimental station standing isolated under a stormy night sky",
       "real_person": {
         "name": "Nikola Tesla",
         "description": "hochgewachsener Mann Ende 30, schlank, akkurat gescheiteltes dunkles Haar, schmaler Schnurrbart, eleganter schwarzer viktorianischer Anzug mit Fliege"
@@ -138,6 +146,7 @@
       "suppression_2": "Umfassende akustische Studien wurden nie vollständig veröffentlicht.",
       "payoff": "Das ist das Geheimnis des Hypogäums von Ħal Saflieni.",
       "artifact": "a smooth hand-carved subterranean limestone chamber with a curved resonant niche known as the Oracle Room, ochre-painted spiral patterns on the ceiling, faint golden sound-wave ripples suggested in the air",
+      "location_detail": "a modest golden-limestone Mediterranean building on a Maltese hillside marking the entrance to an underground complex, dry scrubland and low stone walls typical of Malta",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#malta", "#archäologie", "#verschwiegenegeschichte", "#akustik"]
@@ -153,6 +162,7 @@
       "suppression_2": "Eine unabhängige Nachprüfung wurde nie durchgeführt oder veröffentlicht.",
       "payoff": "Das ist das verschwiegene Rätsel des Wolgograd-Objekts.",
       "artifact": "a heavily corroded metallic wheel-shaped object roughly 10cm wide, with visible gear-like teeth along its rim, embedded in dark layered coal rock strata",
+      "location_detail": "an open steppe in the Volgograd region of southern Russia, an active coal quarry with dark exposed rock layers, industrial mining equipment visible in the distance",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#anomalie", "#geologie", "#verschwiegenegeschichte", "#rätsel"]

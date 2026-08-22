@@ -17,7 +17,9 @@ STYLE_PREFIX = (
     "Studio Ghibli anime style illustration, hand-painted 2D cel animation look, "
     "soft painterly watercolor background, warm natural color palette, "
     "Hayao Miyazaki art style, clean confident lineart, richly detailed textures, "
-    "vertical portrait composition, cinematic lighting, sharp focus, "
+    "the entire background fully painted and detailed edge to edge, no blank, "
+    "empty or blurred background space, vertical portrait composition, "
+    "cinematic lighting, sharp focus, "
 )
 
 HANDLE = "@weirdworld.ai"
@@ -118,8 +120,8 @@ def build_beats(topic):
         {
             "text": f"{topic['location']}. {topic['year']}.",
             "image_prompt": (
-                f"{STYLE_PREFIX}wide establishing shot of {topic['location']}, "
-                f"atmospheric, golden hour lighting, no visible modern text or logos"
+                f"{STYLE_PREFIX}wide establishing shot of {topic['location_detail']}, "
+                f"atmospheric, golden hour lighting"
             ),
         },
         {
@@ -158,7 +160,7 @@ def build_beats(topic):
             ),
         },
         {
-            "text": f"Folge {HANDLE} fuer mehr verschwiegene Geschichte.",
+            "text": "Folge für mehr.",
             "image_prompt": (
                 f"{STYLE_PREFIX}a smartphone screen showing a glowing follow button, "
                 f"clean simple background"
