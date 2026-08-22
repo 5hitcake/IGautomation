@@ -1,10 +1,10 @@
 """Generiert ein TikTok-Video (1080x1920) im Ghibli/Anime-Stil aus einem Thema
 aus content/tiktok_topics.json, im Hybrid-Verfahren:
   1. Fuer die 4 Beats, in denen ein Charakter ein bestimmtes Artefakt in der
-     Hand haelt (Hook, Fund, Reaktion, Aufloesung), wird ueber FLUX.1-schnell
-     auf der kostenlosen Hugging-Face-Inference-API generiert (siehe
-     tiktok_common.generate_flux_image) - das kleine selbst gehostete Modell
-     scheitert zuverlaessig an "Person haelt spezifisches Objekt".
+     Hand haelt (Hook, Fund, Reaktion, Aufloesung), wird ueber ein groesseres
+     Modell auf der kostenlosen Hugging-Face-Inference-API generiert (siehe
+     tiktok_common.generate_hf_critical_image) - das kleine selbst gehostete
+     Modell scheitert zuverlaessig an "Person haelt spezifisches Objekt".
   2. Fuer die restlichen 5 Beats (Ort, Suche, Vertuschung x2, Follow-CTA -
      reine Umgebungs-/Handlungsbilder ohne kritische Objekt-Interaktion) wird
      ein selbst gehostetes, kostenloses Ghibli-Diffusion-Modell lokal
@@ -39,7 +39,7 @@ from tiktok_common import (
     TIKTOK_GENERATED_DIR,
     build_beats,
     build_caption,
-    generate_flux_image,
+    generate_hf_critical_image,
     load_state,
     pick_next_topic,
     save_state,
@@ -219,12 +219,12 @@ def main():
     with tempfile.TemporaryDirectory() as work_dir:
         segment_paths = []
         for i, beat in enumerate(beats):
-            print(f"Beat {i + 1}/{len(beats)} ({'FLUX' if beat['critical'] else 'kostenlos'}): "
+            print(f"Beat {i + 1}/{len(beats)} ({'HF-kritisch' if beat['critical'] else 'kostenlos'}): "
                   f"{beat['text'][:60]}...")
 
             image_path = os.path.join(work_dir, f"beat_{i:02d}.jpg")
             if beat["critical"]:
-                image_bytes = generate_flux_image(beat["image_prompt"], hf_token)
+                image_bytes = generate_hf_critical_image(beat["image_prompt"], hf_token)
             else:
                 image_bytes = generate_free_image(free_pipe, beat["free_image_prompt"])
             with open(image_path, "wb") as f:

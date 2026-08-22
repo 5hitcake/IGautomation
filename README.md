@@ -152,9 +152,9 @@ KI-Video im Ghibli/Anime-Stil** für einen zweiten Account
 GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
 
 **Kosten: 0 €.** Es werden ausschließlich kostenlose Dienste genutzt:
-- **Bilder**: Hybrid aus FLUX.1-schnell über die kostenlose Hugging-Face-Inference-API
-  (4 kritische Beats) und einem selbst gehosteten, kostenlosen Modell (5 einfache
-  Beats) - siehe unten.
+- **Bilder**: Hybrid aus einem größeren Modell über die kostenlose Hugging-Face-
+  Inference-API (4 kritische Beats) und einem selbst gehosteten, kostenlosen Modell
+  (5 einfache Beats) - siehe unten.
 - **Sprachausgabe**: `edge-tts` (kein Account, kein Key)
 - **Zusammenschnitt**: ffmpeg (in der GitHub-Actions-Umgebung vorinstalliert)
 
@@ -166,9 +166,9 @@ GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
    Suche-Beat baut zusätzlichen Spannungsbogen auf und zeigt themenspezifisch die
    reale Such-/Ausgrabungsmethode (z.B. Taucher am Schiffswrack beim Antikythera-
    Mechanismus, Archäolog*innen beim Freilegen, Astronom*innen am Teleskop).
-2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über FLUX.1-schnell (kostenlose
-   HF Inference API), 5 Beats über ein kostenloses, selbst gehostetes Modell. Jede
-   Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
+2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über ein größeres Modell
+   (kostenlose HF Inference API), 5 Beats über ein kostenloses, selbst gehostetes
+   Modell. Jede Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
 3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Bild, blendet die
    Untertitel Wort für Wort ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
 4. `scripts/tiktok_publish.py` lädt das Video über die offizielle **TikTok Content
@@ -189,11 +189,13 @@ Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Higgsfield
 (Bezahl-API) war ein Zwischenschritt, ist aber ohne Guthaben nicht nutzbar. Deshalb:
 
 - **4 kritische Beats** (Hook, Fund, Reaktion, Auflösung - dort hält der Charakter
-  das Artefakt) laufen über **FLUX.1-schnell** auf der kostenlosen Hugging-Face-
-  Inference-API. FLUX ist architektonisch (Rectified-Flow-Transformer, T5-Textencoder
-  statt CLIP-77-Token-Cutoff) deutlich stärker bei komplexen Kompositionen als
-  SD1.5-Modelle - noch nicht firmenspezifisch für "Person hält Objekt" verifiziert,
-  aber ein grundsätzlich anderer Modelltyp als das, was bisher scheiterte.
+  das Artefakt) laufen über **`stabilityai/stable-diffusion-3-medium-diffusers`**
+  auf der kostenlosen Hugging-Face-Inference-API (`router.huggingface.co/hf-inference`)
+  - laut aktueller HF-Doku das einzige Text-zu-Bild-Modell, das dieser kostenlose
+  Provider noch bedient (FLUX.1-schnell wurde dort bereits abgekündigt, 410 im
+  Live-Test). SD3-medium nutzt einen T5-Textencoder statt CLIPs 77-Token-Cutoff
+  und ist damit potenziell staerker bei komplexen Kompositionen als SD1.5-Modelle -
+  aber noch nicht firmenspezifisch für "Person hält Objekt" verifiziert.
 - **5 einfache Beats** (Ort, Suche, Vertuschung ×2, Follow-CTA - reine Umgebungs-/
   Handlungsbilder ohne kritische Objekt-Interaktion) laufen über ein **selbst gehostetes,
   kostenloses** `nitrosocke/Ghibli-Diffusion`-Modell direkt im GitHub-Actions-Runner
