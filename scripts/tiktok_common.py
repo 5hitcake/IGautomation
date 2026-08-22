@@ -10,18 +10,19 @@ TIKTOK_TOPICS_PATH = os.path.join(ROOT, "content", "tiktok_topics.json")
 TIKTOK_STATE_PATH = os.path.join(ROOT, "tiktok_posted_log.json")
 TIKTOK_GENERATED_DIR = os.path.join(ROOT, "assets", "tiktok_generated")
 
-# FLUX.1-schnell ueber die kostenlose Hugging-Face-Inference-API fuer die Beats,
-# in denen ein Charakter ein bestimmtes Artefakt korrekt in der Hand halten muss.
-# Das kleine selbst gehostete SD1.5-Modell scheitert zuverlaessig an "Person
-# haelt spezifisches Objekt" - FLUX ist architektonisch (Rectified-Flow-
-# Transformer statt SD1.5-U-Net, T5-Textencoder statt CLIP-77-Token-Cutoff)
-# deutlich staerker bei komplexen Kompositionen und laeuft dabei auf HF-eigener
-# Infrastruktur, nicht auf dem GitHub-Actions-Runner.
-FLUX_MODEL_ID = "black-forest-labs/FLUX.1-schnell"
+# Groesseres Modell ueber die kostenlose Hugging-Face-Inference-API fuer die
+# Beats, in denen ein Charakter ein bestimmtes Artefakt korrekt in der Hand
+# halten muss. Das kleine selbst gehostete SD1.5-Modell scheitert
+# zuverlaessig an "Person haelt spezifisches Objekt". FLUX.1-schnell waere
+# architektonisch staerker gewesen, wurde aber vom kostenlosen hf-inference-
+# Provider bereits abgekuendigt (410 im Live-Test) - SD3-medium ist laut
+# aktueller HF-Doku das einzige noch unterstuetzte Text-zu-Bild-Modell auf
+# diesem kostenlosen Provider.
+HF_CRITICAL_MODEL_ID = "stabilityai/stable-diffusion-3-medium-diffusers"
 # Die alte Domain api-inference.huggingface.co wurde abgeschaltet (DNS-Fehler
 # im ersten Live-Test) - HF hat auf einen zentralen "Inference Providers"
 # Router umgestellt, ueber den auch der kostenlose hf-inference-Provider laeuft.
-HF_INFERENCE_URL = f"https://router.huggingface.co/hf-inference/models/{FLUX_MODEL_ID}"
+HF_INFERENCE_URL = f"https://router.huggingface.co/hf-inference/models/{HF_CRITICAL_MODEL_ID}"
 
 # Reichhaltiger Stil-Prefix fuer FLUX (grosses Modell, vertraegt lange Prompts).
 STYLE_PREFIX = (
@@ -233,15 +234,16 @@ def build_caption(topic):
     return f"{topic['hook']}\n\n{HANDLE}\n\n{' '.join(tags)}"
 
 
-def generate_flux_image(prompt, hf_token, width=864, height=1536, max_wait_seconds=300):
-    """Generiert ein Bild ueber FLUX.1-schnell auf der kostenlosen
-    Hugging-Face-Inference-API und gibt die Bild-Bytes zurueck. Ist das Modell
-    gerade "am Aufwaermen" (503 mit estimated_time), wird automatisch erneut
-    versucht, bis max_wait_seconds erreicht ist."""
+def generate_hf_critical_image(prompt, hf_token, width=832, height=1472, max_wait_seconds=300):
+    """Generiert ein Bild ueber das aktuell auf dem kostenlosen hf-inference-
+    Provider verfuegbare Modell (siehe HF_CRITICAL_MODEL_ID) und gibt die
+    Bild-Bytes zurueck. Ist das Modell gerade "am Aufwaermen" (503 mit
+    estimated_time), wird automatisch erneut versucht, bis max_wait_seconds
+    erreicht ist."""
     headers = {"Authorization": f"Bearer {hf_token}"}
     payload = {
         "inputs": prompt,
-        "parameters": {"width": width, "height": height, "num_inference_steps": 4},
+        "parameters": {"width": width, "height": height, "num_inference_steps": 28},
     }
     waited = 0
     poll_interval = 10
