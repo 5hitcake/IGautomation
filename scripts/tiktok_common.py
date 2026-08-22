@@ -239,7 +239,7 @@ def generate_higgsfield_image(
     submit = requests.post(
         f"{HIGGSFIELD_BASE_URL}/{HIGGSFIELD_MODEL_PATH}",
         headers=headers,
-        json={"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": "2K"},
+        json={"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": "1080p"},
         timeout=60,
     )
     if not submit.ok:
