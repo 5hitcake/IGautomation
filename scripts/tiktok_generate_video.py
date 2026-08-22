@@ -2,9 +2,10 @@
 aus content/tiktok_topics.json:
   1. Pro Erzaehl-Beat wird ueber die kostenlose Hugging Face Inference API ein
      Standbild generiert (siehe tiktok_common.generate_hf_image).
-  2. Pro Beat wird die Sprachzeile ueber edge-tts (kostenlos, kein Key) vertont.
-  3. ffmpeg legt einen sanften Zoom/Pan (Ken-Burns-Effekt) auf jedes Standbild,
-     synchron zur jeweiligen Sprachzeile, und brennt den Text als Untertitel ein.
+  2. Pro Beat wird die Sprachzeile ueber edge-tts (kostenlos, kein Key) vertont,
+     inklusive Wort-fuer-Wort-Zeitstempeln (WordBoundary-Events).
+  3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Standbild und
+     blendet die Untertitel Wort fuer Wort synchron zur Sprachausgabe ein.
   4. Alle Segmente werden zu einem Video zusammengefuegt und
      assets/tiktok_generated/next_post.json fuer tiktok_publish.py geschrieben.
 
@@ -14,6 +15,7 @@ siehe README).
 """
 import asyncio
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -48,25 +50,25 @@ def check_ffmpeg():
             )
 
 
-def wrap_text(text, max_chars_per_line=28):
-    words = text.split()
-    lines, current = [], ""
-    for word in words:
-        trial = f"{current} {word}".strip()
-        if len(trial) <= max_chars_per_line:
-            current = trial
-        else:
-            if current:
-                lines.append(current)
-            current = word
-    if current:
-        lines.append(current)
-    return "\n".join(lines)
+def escape_ffmpeg_path(path):
+    # ffmpeg-Filterausdruecke erwarten escapte Doppelpunkte/Backslashes in Pfaden.
+    return path.replace("\\", "/").replace(":", "\\:")
 
 
-async def synth_speech(text, output_path):
-    communicate = edge_tts.Communicate(text, VOICE)
-    await communicate.save(output_path)
+async def synth_speech_with_words(text, output_path):
+    """Vertont eine Zeile per edge-tts und gibt zusaetzlich die exakten
+    Wort-Zeitstempel zurueck (WordBoundary-Events), fuer Wort-fuer-Wort-Untertitel."""
+    communicate = edge_tts.Communicate(text, VOICE, boundary="WordBoundary")
+    words = []
+    with open(output_path, "wb") as f:
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                f.write(chunk["data"])
+            elif chunk["type"] == "WordBoundary":
+                start = chunk["offset"] / 10_000_000
+                duration = chunk["duration"] / 10_000_000
+                words.append({"word": chunk["text"], "start": start, "end": start + duration})
+    return words
 
 
 def ffprobe_duration(path):
@@ -80,43 +82,60 @@ def ffprobe_duration(path):
     return float(result.stdout.strip())
 
 
-def build_segment(image_path, audio_path, text, output_path):
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".txt", delete=False, encoding="utf-8"
-    ) as tf:
-        tf.write(wrap_text(text))
-        caption_path = tf.name
-
-    try:
-        duration = ffprobe_duration(audio_path)
-        w, h = CANVAS_SIZE
-        zw, zh = ZOOM_SOURCE
-        # ffmpeg drawtext erwartet in Filterausdruecken escapte Doppelpunkte/Backslashes
-        escaped_caption_path = caption_path.replace("\\", "/").replace(":", "\\:")
-        escaped_font_path = FONT_PATH.replace("\\", "/").replace(":", "\\:")
-        filter_complex = (
-            f"[0:v]scale={zw}:{zh}:force_original_aspect_ratio=increase,"
-            f"crop={zw}:{zh},"
-            f"zoompan=z='min(zoom+0.0015,1.15)':d=1:s={w}x{h}:fps={FPS},"
-            f"drawtext=fontfile='{escaped_font_path}':textfile='{escaped_caption_path}':"
-            f"fontcolor=white:fontsize=58:line_spacing=12:box=1:boxcolor=black@0.55:"
-            f"boxborderw=24:x=(w-text_w)/2:y=h-420[v]"
+def build_word_overlay_filter(words, work_dir, beat_index):
+    """Baut eine Kette von drawtext-Filtern, die jeweils genau ein Wort fuer die
+    Dauer seines gesprochenen Zeitfensters einblenden (Wort-fuer-Wort-Untertitel)."""
+    escaped_font = escape_ffmpeg_path(FONT_PATH)
+    label = "vz"
+    parts = []
+    for i, w in enumerate(words):
+        word_path = os.path.join(work_dir, f"beat{beat_index:02d}_word{i:03d}.txt")
+        with open(word_path, "w", encoding="utf-8") as f:
+            f.write(w["word"])
+        escaped_word_path = escape_ffmpeg_path(word_path)
+        next_label = f"v{beat_index}_{i}"
+        parts.append(
+            f"[{label}]drawtext=fontfile='{escaped_font}':textfile='{escaped_word_path}':"
+            f"fontcolor=white:fontsize=80:box=1:boxcolor=black@0.55:boxborderw=26:"
+            f"x=(w-text_w)/2:y=h-420:enable='between(t,{w['start']:.3f},{w['end']:.3f})'"
+            f"[{next_label}]"
         )
-        cmd = [
-            "ffmpeg", "-y",
-            "-loop", "1", "-i", image_path,
-            "-i", audio_path,
-            "-filter_complex", filter_complex,
-            "-map", "[v]", "-map", "1:a",
-            "-c:v", "libx264", "-pix_fmt", "yuv420p",
-            "-t", str(duration),
-            "-c:a", "aac",
-            "-shortest",
-            output_path,
-        ]
-        subprocess.run(cmd, check=True)
-    finally:
-        os.unlink(caption_path)
+        label = next_label
+    return ";".join(parts), label
+
+
+def build_segment(image_path, audio_path, words, output_path, work_dir, beat_index):
+    duration = ffprobe_duration(audio_path)
+    w, h = CANVAS_SIZE
+    zw, zh = ZOOM_SOURCE
+    frames = max(1, math.ceil(duration * FPS))
+
+    zoom_filter = (
+        f"[0:v]scale={zw}:{zh}:force_original_aspect_ratio=increase,"
+        f"crop={zw}:{zh},"
+        f"zoompan=z='min(zoom+0.0015,1.15)':d={frames}:s={w}x{h}:fps={FPS}[vz]"
+    )
+
+    if words:
+        word_filter, final_label = build_word_overlay_filter(words, work_dir, beat_index)
+        filter_complex = f"{zoom_filter};{word_filter}"
+    else:
+        filter_complex = zoom_filter
+        final_label = "vz"
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-loop", "1", "-i", image_path,
+        "-i", audio_path,
+        "-filter_complex", filter_complex,
+        "-map", f"[{final_label}]", "-map", "1:a",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        "-t", str(duration),
+        "-c:a", "aac",
+        "-shortest",
+        output_path,
+    ]
+    subprocess.run(cmd, check=True)
 
 
 def concat_segments(segment_paths, output_path, work_dir):
@@ -154,10 +173,10 @@ def main():
                 f.write(image_bytes)
 
             audio_path = os.path.join(work_dir, f"beat_{i:02d}.mp3")
-            asyncio.run(synth_speech(beat["text"], audio_path))
+            words = asyncio.run(synth_speech_with_words(beat["text"], audio_path))
 
             segment_path = os.path.join(work_dir, f"segment_{i:02d}.mp4")
-            build_segment(image_path, audio_path, beat["text"], segment_path)
+            build_segment(image_path, audio_path, words, segment_path, work_dir, i)
             segment_paths.append(segment_path)
 
         filename = f"tiktok_{topic['id']:04d}.mp4"
