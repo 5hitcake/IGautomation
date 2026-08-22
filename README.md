@@ -151,10 +151,10 @@ KI-Video im Ghibli/Anime-Stil** für einen zweiten Account
 (`tiktok_daily.yml`) - nach demselben Prinzip wie oben: kein Login-Bot,
 GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
 
-**Kosten: minimal (~1 €/Woche).** Nur die 4 kritischen Bild-Beats kosten über die
-Higgsfield-API etwas, alles andere ist kostenlos:
-- **Bilder**: Hybrid aus Higgsfield-API (4 kritische Beats) und einem selbst
-  gehosteten, kostenlosen Modell (5 einfache Beats) - siehe unten.
+**Kosten: 0 €.** Es werden ausschließlich kostenlose Dienste genutzt:
+- **Bilder**: Hybrid aus FLUX.1-schnell über die kostenlose Hugging-Face-Inference-API
+  (4 kritische Beats) und einem selbst gehosteten, kostenlosen Modell (5 einfache
+  Beats) - siehe unten.
 - **Sprachausgabe**: `edge-tts` (kein Account, kein Key)
 - **Zusammenschnitt**: ffmpeg (in der GitHub-Actions-Umgebung vorinstalliert)
 
@@ -166,8 +166,8 @@ Higgsfield-API etwas, alles andere ist kostenlos:
    Suche-Beat baut zusätzlichen Spannungsbogen auf und zeigt themenspezifisch die
    reale Such-/Ausgrabungsmethode (z.B. Taucher am Schiffswrack beim Antikythera-
    Mechanismus, Archäolog*innen beim Freilegen, Astronom*innen am Teleskop).
-2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über die kostenpflichtige
-   Higgsfield-API, 4 Beats über ein kostenloses, selbst gehostetes Modell. Jede
+2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über FLUX.1-schnell (kostenlose
+   HF Inference API), 5 Beats über ein kostenloses, selbst gehostetes Modell. Jede
    Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
 3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Bild, blendet die
    Untertitel Wort für Wort ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
@@ -180,37 +180,38 @@ absichtlich keine wiederkehrende "Maskottchen"-Figur. Geht es um eine reale
 historische Person (`real_person` in `content/tiktok_topics.json`), wird diese
 Person nur *innerhalb desselben Videos* konsistent beschrieben.
 
-### Warum Hybrid statt komplett kostenlos?
+### Warum Hybrid statt ein einziges Modell?
 
-Kleine, kostenlose Bildmodelle (getestet: Hugging Face Inference API, ein selbst
-gehostetes SD1.5-Ghibli-Modell) scheitern zuverlässig daran, "eine Person hält ein
+Kleine SD1.5-Klasse-Bildmodelle (getestet: ein selbst gehostetes
+`nitrosocke/Ghibli-Diffusion`) scheitern zuverlässig daran, "eine Person hält ein
 bestimmtes Objekt in der Hand" korrekt darzustellen - eine bekannte Schwäche dieser
-Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Deshalb:
+Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Higgsfield
+(Bezahl-API) war ein Zwischenschritt, ist aber ohne Guthaben nicht nutzbar. Deshalb:
 
 - **4 kritische Beats** (Hook, Fund, Reaktion, Auflösung - dort hält der Charakter
-  das Artefakt) laufen über die **Higgsfield-API** (`higgsfield-ai/soul/standard`,
-  ~1,5 Credits/Bild, siehe [docs.higgsfield.ai](https://docs.higgsfield.ai/docs)).
+  das Artefakt) laufen über **FLUX.1-schnell** auf der kostenlosen Hugging-Face-
+  Inference-API. FLUX ist architektonisch (Rectified-Flow-Transformer, T5-Textencoder
+  statt CLIP-77-Token-Cutoff) deutlich stärker bei komplexen Kompositionen als
+  SD1.5-Modelle - noch nicht firmenspezifisch für "Person hält Objekt" verifiziert,
+  aber ein grundsätzlich anderer Modelltyp als das, was bisher scheiterte.
 - **5 einfache Beats** (Ort, Suche, Vertuschung ×2, Follow-CTA - reine Umgebungs-/
   Handlungsbilder ohne kritische Objekt-Interaktion) laufen über ein **selbst gehostetes,
-  kostenloses**
-  `nitrosocke/Ghibli-Diffusion`-Modell direkt im GitHub-Actions-Runner (CPU, kein GPU
-  nötig - dauert dafür ca. 10-15 Min./Bild. Das ist bewusst so: Qualität hat hier
-  Vorrang vor Geschwindigkeit, die Automation läuft ohnehin unbeaufsichtigt).
+  kostenloses** `nitrosocke/Ghibli-Diffusion`-Modell direkt im GitHub-Actions-Runner
+  (CPU, kein GPU nötig - dauert dafür ca. 10-15 Min./Bild. Das ist bewusst so:
+  Qualität hat hier Vorrang vor Geschwindigkeit, die Automation läuft ohnehin
+  unbeaufsichtigt).
 
-Macht real ca. **6 Credits/Video** statt ~15-20 bei einer reinen Higgsfield-Lösung.
+### Schritt 1: Hugging-Face-API-Token einrichten
 
-### Schritt 1: Higgsfield-API-Zugang einrichten
+1. Auf [huggingface.co](https://huggingface.co) anmelden (bestehender oder neuer
+   Account, kostenlos, keine Kreditkarte nötig).
+2. Unter **Settings → Access Tokens** einen neuen Token erzeugen (Typ "Read"
+   reicht für die Inference API).
+3. Den Token als GitHub Secret `HF_API_TOKEN` hinterlegen (Settings → Secrets
+   and variables → Actions → New repository secret).
 
-1. Auf [cloud.higgsfield.ai](https://cloud.higgsfield.ai) anmelden (bestehender
-   oder neuer Account).
-2. Im Dashboard unter **API** einen neuen API-Key erzeugen (liefert eine Key-ID
-   und ein Secret).
-3. Beide Werte als GitHub Secrets `HIGGSFIELD_API_KEY_ID` und
-   `HIGGSFIELD_API_KEY_SECRET` hinterlegen (Settings → Secrets and variables →
-   Actions → New repository secret).
-
-Kosten: ca. 6 Credits pro Video (4 Bilder à ~1,5 Credits) - bei täglichem Posten
-grob 1 €/Woche, abhängig vom aktuellen Credit-Preis im Higgsfield-Dashboard.
+Die kostenlose Inference API ist ratenlimitiert (nicht unbegrenzt parallel
+nutzbar), für 4 Bilder/Tag aber problemlos ausreichend.
 
 ### Schritt 2: TikTok Content Posting API einrichten
 
@@ -229,8 +230,7 @@ grob 1 €/Woche, abhängig vom aktuellen Credit-Preis im Higgsfield-Dashboard.
 **Lokal (benötigt ffmpeg + `pip install -r requirements.txt`; der erste Lauf lädt
 zusätzlich das ca. 2 GB große Ghibli-Diffusion-Modell einmalig herunter):**
 ```
-export HIGGSFIELD_API_KEY_ID=...
-export HIGGSFIELD_API_KEY_SECRET=...
+export HF_API_TOKEN=...
 python scripts/tiktok_generate_video.py
 python scripts/tiktok_publish.py --dry-run
 ```

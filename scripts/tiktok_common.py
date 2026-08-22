@@ -10,13 +10,17 @@ TIKTOK_TOPICS_PATH = os.path.join(ROOT, "content", "tiktok_topics.json")
 TIKTOK_STATE_PATH = os.path.join(ROOT, "tiktok_posted_log.json")
 TIKTOK_GENERATED_DIR = os.path.join(ROOT, "assets", "tiktok_generated")
 
-# Higgsfield-API (kostenpflichtig, ~4 Bilder/Video) fuer die Beats, in denen ein
-# Charakter ein bestimmtes Artefakt korrekt in der Hand halten muss - das kleine
-# kostenlose Modell scheitert zuverlaessig an "Person haelt spezifisches Objekt".
-HIGGSFIELD_BASE_URL = "https://platform.higgsfield.ai"
-HIGGSFIELD_MODEL_PATH = "higgsfield-ai/soul/standard"
+# FLUX.1-schnell ueber die kostenlose Hugging-Face-Inference-API fuer die Beats,
+# in denen ein Charakter ein bestimmtes Artefakt korrekt in der Hand halten muss.
+# Das kleine selbst gehostete SD1.5-Modell scheitert zuverlaessig an "Person
+# haelt spezifisches Objekt" - FLUX ist architektonisch (Rectified-Flow-
+# Transformer statt SD1.5-U-Net, T5-Textencoder statt CLIP-77-Token-Cutoff)
+# deutlich staerker bei komplexen Kompositionen und laeuft dabei auf HF-eigener
+# Infrastruktur, nicht auf dem GitHub-Actions-Runner.
+FLUX_MODEL_ID = "black-forest-labs/FLUX.1-schnell"
+HF_INFERENCE_URL = f"https://api-inference.huggingface.co/models/{FLUX_MODEL_ID}"
 
-# Reichhaltiger Stil-Prefix fuer Higgsfield (grosses Modell, vertraegt lange Prompts).
+# Reichhaltiger Stil-Prefix fuer FLUX (grosses Modell, vertraegt lange Prompts).
 STYLE_PREFIX = (
     "Studio Ghibli anime style illustration, hand-painted 2D cel animation look, "
     "soft painterly watercolor background, warm natural color palette, "
@@ -109,13 +113,13 @@ def build_beats(topic):
     Abwechslung (z.B. Taucher am Schiffswrack statt nur Landschaft+Artefakt).
 
     Jeder Beat traegt zwei Bild-Prompts:
-    - image_prompt: reichhaltig, fuer Higgsfield (kostenpflichtig, praezise).
-    - free_image_prompt: kurz, fuer das kostenlose selbst gehostete Modell.
+    - image_prompt: reichhaltig, fuer FLUX.1-schnell (kostenlose HF Inference API).
+    - free_image_prompt: kurz, fuer das kostenlose selbst gehostete SD1.5-Modell.
     "critical"=True markiert Beats, in denen ein Charakter das Artefakt exakt
-    in der Hand haelt - dort scheitert das kostenlose Modell zuverlaessig,
-    deshalb laufen NUR diese vier Beats ueber Higgsfield; alle anderen (Ort,
-    Suche, Vertuschung, CTA) sind reine Umgebungs-/Handlungsbilder und laufen
-    kostenlos.
+    in der Hand haelt - dort scheitert das kleine selbst gehostete Modell
+    zuverlaessig, deshalb laufen NUR diese vier Beats ueber FLUX; alle anderen
+    (Ort, Suche, Vertuschung, CTA) sind reine Umgebungs-/Handlungsbilder und
+    laufen ueber das selbst gehostete Modell.
 
     real_person (falls gesetzt) wird fuer JEDE Szene dieses Videos verwendet,
     in der eine Person zu sehen ist - alle anderen Themen wuerfeln pro Video
@@ -226,46 +230,24 @@ def build_caption(topic):
     return f"{topic['hook']}\n\n{HANDLE}\n\n{' '.join(tags)}"
 
 
-def generate_higgsfield_image(
-    prompt, api_key_id, api_key_secret, aspect_ratio="9:16", max_wait_seconds=180
-):
-    """Generiert ein Bild ueber die Higgsfield-API (kostenpflichtig) und gibt
-    die Bild-Bytes zurueck. Reicht den Job ein, pollt bis zu einem
-    Endzustand und laedt das Ergebnis herunter."""
-    headers = {
-        "Authorization": f"Key {api_key_id}:{api_key_secret}",
-        "Content-Type": "application/json",
+def generate_flux_image(prompt, hf_token, width=864, height=1536, max_wait_seconds=300):
+    """Generiert ein Bild ueber FLUX.1-schnell auf der kostenlosen
+    Hugging-Face-Inference-API und gibt die Bild-Bytes zurueck. Ist das Modell
+    gerade "am Aufwaermen" (503 mit estimated_time), wird automatisch erneut
+    versucht, bis max_wait_seconds erreicht ist."""
+    headers = {"Authorization": f"Bearer {hf_token}"}
+    payload = {
+        "inputs": prompt,
+        "parameters": {"width": width, "height": height, "num_inference_steps": 4},
     }
-    submit = requests.post(
-        f"{HIGGSFIELD_BASE_URL}/{HIGGSFIELD_MODEL_PATH}",
-        headers=headers,
-        json={"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": "1080p"},
-        timeout=60,
-    )
-    if not submit.ok:
-        raise RuntimeError(
-            f"Higgsfield-Anfrage abgelehnt ({submit.status_code}): {submit.text}"
-        )
-    data = submit.json()
-    status_url = data["status_url"]
-
     waited = 0
-    poll_interval = 5
-    while waited < max_wait_seconds:
-        time.sleep(poll_interval)
-        waited += poll_interval
-        resp = requests.get(status_url, headers=headers, timeout=30)
-        if not resp.ok:
-            raise RuntimeError(
-                f"Higgsfield-Status-Abfrage fehlgeschlagen ({resp.status_code}): {resp.text}"
-            )
-        result = resp.json()
-        status = result["status"]
-        if status == "completed":
-            image_url = result["images"][0]["url"]
-            image_resp = requests.get(image_url, timeout=60)
-            image_resp.raise_for_status()
-            return image_resp.content
-        if status in ("failed", "nsfw", "canceled"):
-            raise RuntimeError(f"Higgsfield-Generierung fehlgeschlagen: {result}")
-    raise TimeoutError(f"Higgsfield-Generierung nicht abgeschlossen nach {max_wait_seconds}s")
+    poll_interval = 10
+    while True:
+        resp = requests.post(HF_INFERENCE_URL, headers=headers, json=payload, timeout=120)
+        if resp.ok and resp.headers.get("content-type", "").startswith("image/"):
+            return resp.content
+        if resp.status_code == 503 and waited < max_wait_seconds:
+            time.sleep(poll_interval)
+            waited += poll_interval
+            continue
+        raise RuntimeError(f"FLUX-Anfrage fehlgeschlagen ({resp.status_code}): {resp.text}")

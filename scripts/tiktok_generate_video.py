@@ -1,14 +1,15 @@
 """Generiert ein TikTok-Video (1080x1920) im Ghibli/Anime-Stil aus einem Thema
 aus content/tiktok_topics.json, im Hybrid-Verfahren:
   1. Fuer die 4 Beats, in denen ein Charakter ein bestimmtes Artefakt in der
-     Hand haelt (Hook, Fund, Reaktion, Aufloesung), wird ueber die
-     kostenpflichtige Higgsfield-API generiert (siehe tiktok_common.
-     generate_higgsfield_image) - das kleine kostenlose Modell scheitert
-     zuverlaessig an "Person haelt spezifisches Objekt".
-  2. Fuer die restlichen 4 Beats (Ort, Vertuschung x2, Follow-CTA - reine
-     Umgebungs-/Symbolbilder ohne kritische Objekt-Interaktion) wird ein
-     selbst gehostetes, kostenloses Ghibli-Diffusion-Modell lokal ausgefuehrt
-     (laeuft auch ohne GPU, nur langsamer - kein Zeitdruck bei dieser Automation).
+     Hand haelt (Hook, Fund, Reaktion, Aufloesung), wird ueber FLUX.1-schnell
+     auf der kostenlosen Hugging-Face-Inference-API generiert (siehe
+     tiktok_common.generate_flux_image) - das kleine selbst gehostete Modell
+     scheitert zuverlaessig an "Person haelt spezifisches Objekt".
+  2. Fuer die restlichen 5 Beats (Ort, Suche, Vertuschung x2, Follow-CTA -
+     reine Umgebungs-/Handlungsbilder ohne kritische Objekt-Interaktion) wird
+     ein selbst gehostetes, kostenloses Ghibli-Diffusion-Modell lokal
+     ausgefuehrt (laeuft auch ohne GPU, nur langsamer - kein Zeitdruck bei
+     dieser Automation).
   3. Pro Beat wird die Sprachzeile ueber edge-tts (kostenlos, kein Key) vertont,
      inklusive Wort-fuer-Wort-Zeitstempeln (WordBoundary-Events).
   4. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Standbild und
@@ -17,8 +18,8 @@ aus content/tiktok_topics.json, im Hybrid-Verfahren:
      assets/tiktok_generated/next_post.json fuer tiktok_publish.py geschrieben.
 
 Benoetigt ffmpeg und die Python-Pakete edge-tts, torch, diffusers, transformers,
-accelerate (siehe requirements.txt). Umgebungsvariablen HIGGSFIELD_API_KEY_ID
-und HIGGSFIELD_API_KEY_SECRET muessen gesetzt sein (siehe README Setup).
+accelerate (siehe requirements.txt). Umgebungsvariable HF_API_TOKEN muss
+gesetzt sein (siehe README Setup) - komplett kostenlos, kein Kreditkarten-Zwang.
 """
 import asyncio
 import io
@@ -38,7 +39,7 @@ from tiktok_common import (
     TIKTOK_GENERATED_DIR,
     build_beats,
     build_caption,
-    generate_higgsfield_image,
+    generate_flux_image,
     load_state,
     pick_next_topic,
     save_state,
@@ -202,10 +203,9 @@ def concat_segments(segment_paths, output_path, work_dir):
 
 def main():
     check_ffmpeg()
-    hf_key_id = os.environ.get("HIGGSFIELD_API_KEY_ID")
-    hf_key_secret = os.environ.get("HIGGSFIELD_API_KEY_SECRET")
-    if not hf_key_id or not hf_key_secret:
-        print("HIGGSFIELD_API_KEY_ID/HIGGSFIELD_API_KEY_SECRET sind nicht gesetzt (siehe README Setup).")
+    hf_token = os.environ.get("HF_API_TOKEN")
+    if not hf_token:
+        print("HF_API_TOKEN ist nicht gesetzt (siehe README Setup).")
         sys.exit(1)
 
     os.makedirs(TIKTOK_GENERATED_DIR, exist_ok=True)
@@ -219,14 +219,12 @@ def main():
     with tempfile.TemporaryDirectory() as work_dir:
         segment_paths = []
         for i, beat in enumerate(beats):
-            print(f"Beat {i + 1}/{len(beats)} ({'Higgsfield' if beat['critical'] else 'kostenlos'}): "
+            print(f"Beat {i + 1}/{len(beats)} ({'FLUX' if beat['critical'] else 'kostenlos'}): "
                   f"{beat['text'][:60]}...")
 
             image_path = os.path.join(work_dir, f"beat_{i:02d}.jpg")
             if beat["critical"]:
-                image_bytes = generate_higgsfield_image(
-                    beat["image_prompt"], hf_key_id, hf_key_secret
-                )
+                image_bytes = generate_flux_image(beat["image_prompt"], hf_token)
             else:
                 image_bytes = generate_free_image(free_pipe, beat["free_image_prompt"])
             with open(image_path, "wb") as f:
