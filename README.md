@@ -1,11 +1,18 @@
-# Instagram-Automatisierung für @mindset_und.motivation
+# Social-Media-Automatisierung
 
-Dieses Repo generiert automatisch Motivations-Content (Zitat-Bilder + Reels) und
-veröffentlicht ihn über die offizielle **Instagram Graph API** – zeitgesteuert über
-GitHub Actions. Kein Login-Bot, kein Risiko für eine Account-Sperre.
+Dieses Repo generiert automatisch Content und veröffentlicht ihn über offizielle
+Plattform-APIs – zeitgesteuert über GitHub Actions. Kein Login-Bot, kein Risiko
+für eine Account-Sperre.
 
+**Instagram (@mindset_und.motivation)** – Motivations-Content über die
+**Instagram Graph API**:
 - **Täglich**: 1 Zitat-Bild (`daily_post.yml`)
 - **Wöchentlich** (sonntags): 1 Reel mit animiertem Text-Overlay, optional mit Musik (`weekly_reel.yml`)
+
+**TikTok (@weirdworld.ai)** – täglich ein KI-generiertes Ghibli/Anime-Video über
+die **TikTok Content Posting API**, komplett kostenlos (Details weiter unten unter
+[TikTok-Automatisierung](#tiktok-automatisierung-weirdworldai)):
+- **Täglich**: 1 narratives Kurzvideo (`tiktok_daily.yml`)
 
 ## Wie es funktioniert
 
@@ -137,6 +144,84 @@ im Actions-Log).
 
 ---
 
+## TikTok-Automatisierung (@weirdworld.ai)
+
+Zusätzlich zum Instagram-Teil generiert und postet dieses Repo **täglich ein
+KI-Video im Ghibli/Anime-Stil** für einen zweiten Account
+(`tiktok_daily.yml`) - nach demselben Prinzip wie oben: kein Login-Bot,
+GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
+
+**Kosten: 0 €.** Es werden ausschließlich kostenlose Dienste genutzt:
+- **Bilder**: Hugging Face Inference API (kostenloser Account, kein Kreditkarten-Zwang)
+- **Sprachausgabe**: `edge-tts` (kein Account, kein Key)
+- **Zusammenschnitt**: ffmpeg (in der GitHub-Actions-Umgebung vorinstalliert)
+
+### Wie ein Video entsteht
+
+1. `scripts/tiktok_generate_video.py` wählt ein noch nicht verwendetes Thema aus
+   `content/tiktok_topics.json` (Format: Hook → Ort/Jahr → Fund → Experten-Reaktion →
+   Vertuschung → Auflösung → Follow-CTA, 8 Beats).
+2. Pro Beat wird ein Standbild über die Hugging-Face-API generiert und die
+   Sprachzeile über `edge-tts` vertont.
+3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Bild, brennt den
+   Text als Untertitel ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
+4. `scripts/tiktok_publish.py` lädt das Video über die offizielle **TikTok Content
+   Posting API** hoch (Direct Post, `FILE_UPLOAD`).
+
+**Wichtig zu den Charakteren**: Bei erfundenen Szenen wird bei **jedem Video eine
+neue, zufällige Figur** ausgewürfelt (Geschlecht, Alter, Herkunft, Outfit) - es gibt
+absichtlich keine wiederkehrende "Maskottchen"-Figur. Geht es um eine reale
+historische Person (`real_person` in `content/tiktok_topics.json`), wird diese
+Person nur *innerhalb desselben Videos* konsistent beschrieben.
+
+### Schritt 1: Hugging-Face-Token einrichten
+
+1. Kostenlosen Account auf [huggingface.co](https://huggingface.co) anlegen (keine
+   Kreditkarte nötig).
+2. Profilbild oben rechts → **Settings** → **Access Tokens** → **Create new token**
+   → Typ **"Read"** → Namen vergeben → **Create token**.
+3. Token als GitHub Secret `HF_API_TOKEN` hinterlegen (Settings → Secrets and
+   variables → Actions → New repository secret).
+
+Der Gratis-Tarif reicht für die tägliche Generierung locker aus (8 Bilder/Tag,
+Limit liegt deutlich höher). Welches Bildmodell genutzt wird, lässt sich optional
+über das Secret/die Env-Variable `HF_IMAGE_MODEL` überschreiben (Standard:
+`stabilityai/stable-diffusion-3-medium-diffusers` - aktuell das einzige im
+Gratis-Tarif für Text-zu-Bild freigegebene Modell).
+
+### Schritt 2: TikTok Content Posting API einrichten
+
+1. Auf [developers.tiktok.com](https://developers.tiktok.com) anmelden und eine
+   neue App anlegen.
+2. Produkt **"Content Posting API"** hinzufügen, Scope `video.publish` aktivieren.
+3. Über den OAuth-Flow der App einen Access Token für den Ziel-Account erzeugen.
+4. Solange die App noch nicht von TikTok freigegeben ist ("in Prüfung"), können
+   Videos nur mit `privacy_level: PRIVATE_TO_SELF` gepostet werden (Standard in
+   `tiktok_publish.py`, steuerbar über `TIKTOK_PRIVACY_LEVEL`). Nach Freigabe der
+   App auf `PUBLIC_TO_EVERYONE` umstellen.
+5. Access Token als GitHub Secret `TIKTOK_ACCESS_TOKEN` hinterlegen.
+
+### Schritt 3: Testen
+
+**Lokal (ohne echte API-Calls, benötigt ffmpeg + `pip install -r requirements.txt`):**
+```
+export HF_API_TOKEN=hf_...
+python scripts/tiktok_generate_video.py
+python scripts/tiktok_publish.py --dry-run
+```
+
+**Erster echter Post:** Im GitHub-Repo unter **Actions → Daily TikTok Post →
+Run workflow** manuell auslösen.
+
+### TikTok-Themen erweitern
+
+Neue Themen: in `content/tiktok_topics.json` einen neuen Eintrag mit fortlaufender
+`id` ergänzen (Felder wie bei den bestehenden Einträgen). `real_person` auf `null`
+setzen für frei erfundene Figuren, oder mit `name` + `description` befüllen, wenn
+eine reale Person möglichst akkurat dargestellt werden soll.
+
+---
+
 ## Content erweitern
 
 - **Neue Zitate**: In `content/quotes_de.json` einfach neue Einträge mit fortlaufender
@@ -163,8 +248,13 @@ content/quotes_de.json   Zitat-Datenbank
 content/hashtags.json    Hashtag-Bank
 content/reels.json       Reel-Texte + Zuordnung zu Kategorien
 scripts/                 Python-Skripte (Generierung + Publish)
-tests/                   Unit-Tests fuer scripts/common.py
+assets/tiktok_generated/ Wird von tiktok_generate_video.py befuellt (Output)
+content/tiktok_topics.json Themen-Datenbank fuer die TikTok-Videos
+scripts/                 Python-Skripte (Generierung + Publish, IG und TikTok)
+tests/                   Unit-Tests fuer scripts/common.py und scripts/tiktok_common.py
 .github/workflows/ci.yml Lint + Tests + Smoke-Tests bei jedem Push
+.github/workflows/tiktok_daily.yml Taeglicher TikTok-Post (Cron)
 requirements-dev.txt     Zusaetzliche Dev-Abhaengigkeiten (pytest, ruff)
 posted_log.json          Trackt bereits verwendete Zitate/Assets (wird automatisch committet)
+tiktok_posted_log.json   Trackt bereits verwendete TikTok-Themen (wird automatisch committet)
 ```

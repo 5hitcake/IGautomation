@@ -1,0 +1,151 @@
+{
+  "_comment": "Themen-Pool fuer tiktok_generate_video.py. Jedes Thema folgt der bewaehrten Formel: Hook (Frage/Behauptung) -> Ort+Jahr -> Fund -> Experten-Reaktion -> Vertuschung (2 Beats) -> Aufloesung/Payoff -> Follow-CTA. real_person=null bedeutet: die Figuren in diesem Video sind frei erfunden und muessen JEDES Mal neu/zufaellig aussehen. Ist real_person gesetzt, muss diese Figur (nur innerhalb desselben Videos) moeglichst akkurat/konsistent dargestellt werden - andere Figuren im selben Video bleiben trotzdem zufaellig.",
+  "topics": [
+    {
+      "id": 1,
+      "hook": "Wusstest du, dass der Tempel von Göbekli Tepe von seinen eigenen Entdeckern vergöttlicht und dann vergöttlicht... nein, verschwiegen wurde?",
+      "location": "Türkei",
+      "year": "12.000 Jahre vor heute entdeckt 1994",
+      "discovery": "Jäger und Sammler errichteten massive Steinpfeiler mit exakter astronomischer Ausrichtung, Jahrtausende vor der ersten Ackerbau-Zivilisation.",
+      "reaction": "Archäolog*innen konnten nicht erklären, wie eine Gesellschaft ohne Landwirtschaft solche Bauwerke plante.",
+      "suppression_1": "Ausgrabungsgenehmigungen wurden eingeschränkt, nur 5 Prozent der Fläche wurden je freigelegt.",
+      "suppression_2": "Lehrbücher reduzierten den Fund auf eine gewöhnliche Kultstätte, unbequeme Fragen blieben unbeantwortet.",
+      "payoff": "Das war die verschwiegene Geschichte von Göbekli Tepe.",
+      "real_person": null,
+      "category": "AntikeHochkultur",
+      "hashtags": ["#gobeklitepe", "#archäologie", "#verschwiegenegeschichte", "#antikehochkultur"]
+    },
+    {
+      "id": 2,
+      "hook": "Wusstest du, dass China die seltsamste Zivilisation der Welt fand und seitdem kontrolliert, was die Welt darüber erfährt?",
+      "location": "Sichuan, China",
+      "year": "entdeckt 1986",
+      "discovery": "Bronzemasken mit riesigen Stielaugen und menschenähnliche Figuren ohne erkennbare Verbindung zu einer bekannten Dynastie.",
+      "reaction": "Fachleute fanden weder Schrift noch Ursprung noch Nachkommen dieser Kultur.",
+      "suppression_1": "Jede Enthüllung wurde zuerst auf Chinesisch formuliert, bevor unabhängige Forscher überhaupt fragen konnten.",
+      "suppression_2": "Keine unabhängigen Ausgrabungen, nur staatlich freigegebene Fragmente.",
+      "payoff": "Das ist der Sanxingdui-Vertuschungsfall.",
+      "real_person": null,
+      "category": "AntikeHochkultur",
+      "hashtags": ["#sanxingdui", "#archäologie", "#verschwiegenegeschichte", "#bronzezeit"]
+    },
+    {
+      "id": 3,
+      "hook": "Wusstest du, dass das mächtigste Orakel der Antike eigentlich eine Drogen-Maschine war?",
+      "location": "Delphi, Griechenland",
+      "year": "geologisch untersucht ab 2001",
+      "discovery": "Unter dem Apollo-Tempel kreuzen sich zwei aktive Verwerfungen, aus denen psychoaktives Ethylengas aufstieg.",
+      "reaction": "Geolog*innen fanden heraus, dass der Tempel exakt über dieser Gasquelle errichtet wurde.",
+      "suppression_1": "Klassische Philolog*innen ignorierten die geologischen Befunde jahrelang.",
+      "suppression_2": "Keine offizielle Stellungnahme, keine Debatte in der Fachwelt.",
+      "payoff": "Das war das Delphi-Ethylen-Orakel.",
+      "real_person": null,
+      "category": "AntikeHochkultur",
+      "hashtags": ["#delphi", "#orakel", "#verschwiegenegeschichte", "#antikegriechen"]
+    },
+    {
+      "id": 4,
+      "hook": "Wusstest du, dass die Bibel eine Quelle hatte, die das British Museum jahrzehntelang versteckte?",
+      "location": "London, britisches Museum",
+      "year": "1872",
+      "discovery": "George Smith, Autodidakt ohne akademischen Titel, entzifferte eine Sintflut-Erzählung, über tausend Jahre älter als die biblische Version.",
+      "reaction": "England geriet in Aufruhr, die Zeitungen überschlugen sich.",
+      "suppression_1": "Der Premierminister finanzierte Smiths Rückkehr, offiziell aus Großzügigkeit.",
+      "suppression_2": "Die Tafeln lagen danach jahrzehntelang unbeachtet und unübersetzt im Museum.",
+      "payoff": "Das war die Unterdrückung des Gilgamesch-Epos.",
+      "real_person": {
+        "name": "George Smith",
+        "description": "Mann Ende 20, blasse Haut, zerzaustes dunkelbraunes Haar, braune viktorianische Jacke über weißem Kragenhemd, dunkelblaue Weste"
+      },
+      "category": "VerbotenesWissen",
+      "hashtags": ["#gilgamesch", "#britishmuseum", "#verschwiegenegeschichte", "#geschichte"]
+    },
+    {
+      "id": 5,
+      "hook": "Wusstest du, dass ein Stein in Mexiko die Archäologie für immer hätte verändern können?",
+      "location": "Palenque, Mexiko",
+      "year": "1952, nach 9 Jahren Ausgrabung",
+      "discovery": "Ein Sarkophagdeckel zeigt eine Figur mit Pedalen, Hebeln und einer Atemvorrichtung - für viele wie ein Cockpit.",
+      "reaction": "Luft- und Raumfahrtingenieure erkannten sofort technische Details, die nicht zu einem sterbenden König passten.",
+      "suppression_1": "Das mexikanische Institut für Archäologie lehnte unabhängige 3D-Vermessungen mehrfach ab.",
+      "suppression_2": "Eine einzige Deutung wurde per Gesetz festgeschrieben, jede weitere Prüfung verboten.",
+      "payoff": "Das war der Astronaut von Palenque.",
+      "real_person": null,
+      "category": "VerbotenesWissen",
+      "hashtags": ["#palenque", "#archäologie", "#verschwiegenegeschichte", "#altehochkultur"]
+    },
+    {
+      "id": 6,
+      "hook": "Wusstest du, dass ein sowjetisches Pyramiden-Experiment Ergebnisse lieferte, die bis heute niemand erklären kann?",
+      "location": "Russland",
+      "year": "Experimente ab den 1990ern",
+      "discovery": "Nachgebaute Pyramiden aus Fiberglas sollen Saatgut-Keimraten, Immunsystem-Werte und sogar Metall-Kristallstrukturen verändert haben.",
+      "reaction": "Beteiligte Wissenschaftler*innen konnten den Effekt messen, aber nicht erklären.",
+      "suppression_1": "Ergebnisse wurden nie in einem unabhängigen, referierten Fachjournal veröffentlicht.",
+      "suppression_2": "Anfragen internationaler Forschungsteams auf Zugang zu den Rohdaten blieben unbeantwortet.",
+      "payoff": "Das sind die russischen Pyramiden mit den unmöglichen Ergebnissen.",
+      "real_person": null,
+      "category": "VerbotenesWissen",
+      "hashtags": ["#pyramiden", "#russland", "#verschwiegenegeschichte", "#experiment"]
+    },
+    {
+      "id": 7,
+      "hook": "Wusstest du, dass eine Steinplatte in Sibirien eine Zivilisation zeigen soll, die es laut Lehrbüchern nie gab?",
+      "location": "Baschkortostan, Russland",
+      "year": "gefunden 1999",
+      "discovery": "Die 'Dashka-Steinplatte' zeigt angeblich ein detailliertes Reliefkarten-System eines riesigen Flussgebiets - Jahrtausende zu früh für diese Präzision.",
+      "reaction": "Geolog*innen und Kartograf*innen stritten öffentlich über die Echtheit der Platte.",
+      "suppression_1": "Zugang zum Original wurde nach der ersten Untersuchungswelle stark eingeschränkt.",
+      "suppression_2": "Unabhängige Datierungsversuche wurden wiederholt verzögert oder verweigert.",
+      "payoff": "Das ist die verschwiegene Geschichte der Dashka-Steinplatte.",
+      "real_person": null,
+      "category": "VerbotenesWissen",
+      "hashtags": ["#tartaria", "#steinplatte", "#verschwiegenegeschichte", "#kartografie"]
+    },
+    {
+      "id": 8,
+      "hook": "Wusstest du, dass ein Nikola-Tesla-Experiment angeblich freie Energie lieferte, bevor es plötzlich gestoppt wurde?",
+      "location": "Colorado Springs, USA",
+      "year": "1899",
+      "discovery": "Tesla dokumentierte drahtlose Energieübertragung über mehrere Kilometer in seinen eigenen Labornotizen.",
+      "reaction": "Investoren zogen sich zurück, sobald klar wurde, dass sich Energie nicht mehr zählerbasiert verkaufen ließe.",
+      "suppression_1": "Die Finanzierung durch J.P. Morgan wurde abrupt eingestellt.",
+      "suppression_2": "Teile von Teslas Originalunterlagen wurden nach seinem Tod beschlagnahmt und nie vollständig veröffentlicht.",
+      "payoff": "Das ist die verschwiegene Geschichte von Teslas freier Energie.",
+      "real_person": {
+        "name": "Nikola Tesla",
+        "description": "hochgewachsener Mann Ende 30, schlank, akkurat gescheiteltes dunkles Haar, schmaler Schnurrbart, eleganter schwarzer viktorianischer Anzug mit Fliege"
+      },
+      "category": "VerbotenesWissen",
+      "hashtags": ["#teslafreeenergy", "#nikolatesla", "#verschwiegenegeschichte", "#erfindung"]
+    },
+    {
+      "id": 9,
+      "hook": "Wusstest du, dass ein Bauwerk auf Malta älter sein könnte als die Pyramiden von Gizeh - und darüber wird kaum gesprochen?",
+      "location": "Ħal Saflieni, Malta",
+      "year": "entdeckt 1902",
+      "discovery": "Ein unterirdisches Tempelsystem mit akustischen Kammern, die menschliche Stimmen auf bis heute unerklärte Weise verstärken.",
+      "reaction": "Akustik-Forscher*innen maßen Resonanzfrequenzen, die gezielt beim Bau berücksichtigt worden sein müssen.",
+      "suppression_1": "Der Zugang für Besucher*innen und Forschende wurde drastisch limitiert.",
+      "suppression_2": "Umfassende akustische Studien wurden nie vollständig veröffentlicht.",
+      "payoff": "Das ist das Geheimnis des Hypogäums von Ħal Saflieni.",
+      "real_person": null,
+      "category": "AntikeHochkultur",
+      "hashtags": ["#malta", "#archäologie", "#verschwiegenegeschichte", "#akustik"]
+    },
+    {
+      "id": 10,
+      "hook": "Wusstest du, dass ein Metall-Objekt in einem 300.000 Jahre alten Kohleflöz gefunden wurde?",
+      "location": "Wolgograd-Region, Russland",
+      "year": "gemeldete Funde ab den 1990ern",
+      "discovery": "Ein präzise gefertigtes Metallrad soll tief in geologischen Schichten eingebettet gewesen sein, die weit älter sind als jede bekannte Zivilisation.",
+      "reaction": "Geolog*innen stritten, ob die Fundschicht wirklich ungestört und korrekt datiert war.",
+      "suppression_1": "Das Objekt verschwand nach ersten Untersuchungen aus öffentlichem Zugriff.",
+      "suppression_2": "Eine unabhängige Nachprüfung wurde nie durchgeführt oder veröffentlicht.",
+      "payoff": "Das ist das verschwiegene Rätsel des Wolgograd-Objekts.",
+      "real_person": null,
+      "category": "VerbotenesWissen",
+      "hashtags": ["#anomalie", "#geologie", "#verschwiegenegeschichte", "#rätsel"]
+    }
+  ]
+}
