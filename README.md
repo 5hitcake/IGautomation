@@ -1,11 +1,18 @@
-# Instagram-Automatisierung für @mindset_und.motivation
+# Social-Media-Automatisierung
 
-Dieses Repo generiert automatisch Motivations-Content (Zitat-Bilder + Reels) und
-veröffentlicht ihn über die offizielle **Instagram Graph API** – zeitgesteuert über
-GitHub Actions. Kein Login-Bot, kein Risiko für eine Account-Sperre.
+Dieses Repo generiert automatisch Content und veröffentlicht ihn über offizielle
+Plattform-APIs – zeitgesteuert über GitHub Actions. Kein Login-Bot, kein Risiko
+für eine Account-Sperre.
 
+**Instagram (@mindset_und.motivation)** – Motivations-Content über die
+**Instagram Graph API**:
 - **Täglich**: 1 Zitat-Bild (`daily_post.yml`)
 - **Wöchentlich** (sonntags): 1 Reel mit animiertem Text-Overlay, optional mit Musik (`weekly_reel.yml`)
+
+**TikTok (@weirdworld.ai)** – täglich ein KI-generiertes Ghibli/Anime-Video über
+die **TikTok Content Posting API**, komplett kostenlos (Details weiter unten unter
+[TikTok-Automatisierung](#tiktok-automatisierung-weirdworldai)):
+- **Täglich**: 1 narratives Kurzvideo (`tiktok_daily.yml`)
 
 ## Wie es funktioniert
 
@@ -137,6 +144,109 @@ im Actions-Log).
 
 ---
 
+## TikTok-Automatisierung (@weirdworld.ai)
+
+Zusätzlich zum Instagram-Teil generiert und postet dieses Repo **täglich ein
+KI-Video im Ghibli/Anime-Stil** für einen zweiten Account
+(`tiktok_daily.yml`) - nach demselben Prinzip wie oben: kein Login-Bot,
+GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
+
+**Kosten: minimal (~1 €/Woche).** Nur die 4 kritischen Bild-Beats kosten über die
+Higgsfield-API etwas, alles andere ist kostenlos:
+- **Bilder**: Hybrid aus Higgsfield-API (4 kritische Beats) und einem selbst
+  gehosteten, kostenlosen Modell (5 einfache Beats) - siehe unten.
+- **Sprachausgabe**: `edge-tts` (kein Account, kein Key)
+- **Zusammenschnitt**: ffmpeg (in der GitHub-Actions-Umgebung vorinstalliert)
+
+### Wie ein Video entsteht
+
+1. `scripts/tiktok_generate_video.py` wählt ein noch nicht verwendetes Thema aus
+   `content/tiktok_topics.json` (Format: Hook → Ort/Jahr → Suche → Fund →
+   Experten-Reaktion → Vertuschung → Auflösung → Follow-CTA, 9 Beats). Der
+   Suche-Beat baut zusätzlichen Spannungsbogen auf und zeigt themenspezifisch die
+   reale Such-/Ausgrabungsmethode (z.B. Taucher am Schiffswrack beim Antikythera-
+   Mechanismus, Archäolog*innen beim Freilegen, Astronom*innen am Teleskop).
+2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über die kostenpflichtige
+   Higgsfield-API, 4 Beats über ein kostenloses, selbst gehostetes Modell. Jede
+   Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
+3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Bild, blendet die
+   Untertitel Wort für Wort ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
+4. `scripts/tiktok_publish.py` lädt das Video über die offizielle **TikTok Content
+   Posting API** hoch (Direct Post, `FILE_UPLOAD`).
+
+**Wichtig zu den Charakteren**: Bei erfundenen Szenen wird bei **jedem Video eine
+neue, zufällige Figur** ausgewürfelt (Geschlecht, Alter, Herkunft, Outfit) - es gibt
+absichtlich keine wiederkehrende "Maskottchen"-Figur. Geht es um eine reale
+historische Person (`real_person` in `content/tiktok_topics.json`), wird diese
+Person nur *innerhalb desselben Videos* konsistent beschrieben.
+
+### Warum Hybrid statt komplett kostenlos?
+
+Kleine, kostenlose Bildmodelle (getestet: Hugging Face Inference API, ein selbst
+gehostetes SD1.5-Ghibli-Modell) scheitern zuverlässig daran, "eine Person hält ein
+bestimmtes Objekt in der Hand" korrekt darzustellen - eine bekannte Schwäche dieser
+Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Deshalb:
+
+- **4 kritische Beats** (Hook, Fund, Reaktion, Auflösung - dort hält der Charakter
+  das Artefakt) laufen über die **Higgsfield-API** (`higgsfield-ai/soul/standard`,
+  ~1,5 Credits/Bild, siehe [docs.higgsfield.ai](https://docs.higgsfield.ai/docs)).
+- **5 einfache Beats** (Ort, Suche, Vertuschung ×2, Follow-CTA - reine Umgebungs-/
+  Handlungsbilder ohne kritische Objekt-Interaktion) laufen über ein **selbst gehostetes,
+  kostenloses**
+  `nitrosocke/Ghibli-Diffusion`-Modell direkt im GitHub-Actions-Runner (CPU, kein GPU
+  nötig - dauert dafür ca. 10-15 Min./Bild. Das ist bewusst so: Qualität hat hier
+  Vorrang vor Geschwindigkeit, die Automation läuft ohnehin unbeaufsichtigt).
+
+Macht real ca. **6 Credits/Video** statt ~15-20 bei einer reinen Higgsfield-Lösung.
+
+### Schritt 1: Higgsfield-API-Zugang einrichten
+
+1. Auf [cloud.higgsfield.ai](https://cloud.higgsfield.ai) anmelden (bestehender
+   oder neuer Account).
+2. Im Dashboard unter **API** einen neuen API-Key erzeugen (liefert eine Key-ID
+   und ein Secret).
+3. Beide Werte als GitHub Secrets `HIGGSFIELD_API_KEY_ID` und
+   `HIGGSFIELD_API_KEY_SECRET` hinterlegen (Settings → Secrets and variables →
+   Actions → New repository secret).
+
+Kosten: ca. 6 Credits pro Video (4 Bilder à ~1,5 Credits) - bei täglichem Posten
+grob 1 €/Woche, abhängig vom aktuellen Credit-Preis im Higgsfield-Dashboard.
+
+### Schritt 2: TikTok Content Posting API einrichten
+
+1. Auf [developers.tiktok.com](https://developers.tiktok.com) anmelden und eine
+   neue App anlegen.
+2. Produkt **"Content Posting API"** hinzufügen, Scope `video.publish` aktivieren.
+3. Über den OAuth-Flow der App einen Access Token für den Ziel-Account erzeugen.
+4. Solange die App noch nicht von TikTok freigegeben ist ("in Prüfung"), können
+   Videos nur mit `privacy_level: PRIVATE_TO_SELF` gepostet werden (Standard in
+   `tiktok_publish.py`, steuerbar über `TIKTOK_PRIVACY_LEVEL`). Nach Freigabe der
+   App auf `PUBLIC_TO_EVERYONE` umstellen.
+5. Access Token als GitHub Secret `TIKTOK_ACCESS_TOKEN` hinterlegen.
+
+### Schritt 3: Testen
+
+**Lokal (benötigt ffmpeg + `pip install -r requirements.txt`; der erste Lauf lädt
+zusätzlich das ca. 2 GB große Ghibli-Diffusion-Modell einmalig herunter):**
+```
+export HIGGSFIELD_API_KEY_ID=...
+export HIGGSFIELD_API_KEY_SECRET=...
+python scripts/tiktok_generate_video.py
+python scripts/tiktok_publish.py --dry-run
+```
+
+**Erster echter Post:** Im GitHub-Repo unter **Actions → Daily TikTok Post →
+Run workflow** manuell auslösen.
+
+### TikTok-Themen erweitern
+
+Neue Themen: in `content/tiktok_topics.json` einen neuen Eintrag mit fortlaufender
+`id` ergänzen (Felder wie bei den bestehenden Einträgen). `real_person` auf `null`
+setzen für frei erfundene Figuren, oder mit `name` + `description` befüllen, wenn
+eine reale Person möglichst akkurat dargestellt werden soll.
+
+---
+
 ## Content erweitern
 
 - **Neue Zitate**: In `content/quotes_de.json` einfach neue Einträge mit fortlaufender
@@ -163,8 +273,13 @@ content/quotes_de.json   Zitat-Datenbank
 content/hashtags.json    Hashtag-Bank
 content/reels.json       Reel-Texte + Zuordnung zu Kategorien
 scripts/                 Python-Skripte (Generierung + Publish)
-tests/                   Unit-Tests fuer scripts/common.py
+assets/tiktok_generated/ Wird von tiktok_generate_video.py befuellt (Output)
+content/tiktok_topics.json Themen-Datenbank fuer die TikTok-Videos
+scripts/                 Python-Skripte (Generierung + Publish, IG und TikTok)
+tests/                   Unit-Tests fuer scripts/common.py und scripts/tiktok_common.py
 .github/workflows/ci.yml Lint + Tests + Smoke-Tests bei jedem Push
+.github/workflows/tiktok_daily.yml Taeglicher TikTok-Post (Cron)
 requirements-dev.txt     Zusaetzliche Dev-Abhaengigkeiten (pytest, ruff)
 posted_log.json          Trackt bereits verwendete Zitate/Assets (wird automatisch committet)
+tiktok_posted_log.json   Trackt bereits verwendete TikTok-Themen (wird automatisch committet)
 ```

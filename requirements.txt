@@ -1,2 +1,9 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 Pillow==12.3.0
 requests==2.34.2
+edge-tts==7.2.8
+torch==2.13.0+cpu
+diffusers==0.40.0
+transformers
+accelerate
+safetensors
