@@ -165,7 +165,7 @@ GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
    Experten-Reaktion → Vertuschung → Auflösung → Follow-CTA, 9 Beats). Der
    Suche-Beat baut zusätzlichen Spannungsbogen auf und zeigt themenspezifisch die
    reale Such-/Ausgrabungsmethode (z.B. Taucher am Schiffswrack beim Antikythera-
-   Mechanismus, Archäolog*innen beim Freilegen, Astronom*innen am Teleskop).
+   Mechanismus, Archäologen beim Freilegen, Astronomen am Teleskop).
 2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über ein größeres Modell
    (kostenlose HF Inference API), 5 Beats über ein kostenloses, selbst gehostetes
    Modell. Jede Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
