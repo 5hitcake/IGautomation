@@ -26,6 +26,7 @@ def topics_file(tmp_path, monkeypatch):
                     "suppression_1": "Vertuschung eins.",
                     "suppression_2": "Vertuschung zwei.",
                     "payoff": "Aufloesung eins.",
+                    "artifact": "ein Testartefakt mit besonderen Merkmalen",
                     "real_person": None,
                     "category": "Test",
                     "hashtags": ["#eins"],
@@ -40,6 +41,7 @@ def topics_file(tmp_path, monkeypatch):
                     "suppression_1": "Vertuschung eins.",
                     "suppression_2": "Vertuschung zwei.",
                     "payoff": "Aufloesung zwei.",
+                    "artifact": "ein zweites Testartefakt",
                     "real_person": {"name": "Reale Person", "description": "eine Testbeschreibung"},
                     "category": "Test",
                     "hashtags": ["#zwei"],
@@ -101,6 +103,17 @@ def test_build_caption_includes_hook_and_hashtags(topics_file):
     assert topics[0]["hook"] in caption
     assert "#eins" in caption
     assert tc.HANDLE in caption
+
+
+def test_build_beats_includes_topic_artifact_in_visual_beats(topics_file):
+    topics = json.load(open(topics_file, encoding="utf-8"))["topics"]
+    beats = tc.build_beats(topics[0])
+    artifact = topics[0]["artifact"]
+    # Hook, Fund, Reaktion und Aufloesung muessen das konkrete Artefakt zeigen,
+    # nicht nur ein generisches "ancient artifact" (Regressionstest fuer den
+    # Bug, dass z.B. der "Astronaut von Palenque" nie im Bild zu sehen war).
+    for i in (0, 2, 3, 6):
+        assert artifact in beats[i]["image_prompt"]
 
 
 def test_random_character_description_is_nonempty_string():

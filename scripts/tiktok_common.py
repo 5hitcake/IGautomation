@@ -100,12 +100,18 @@ def build_beats(topic):
     else:
         subject = random_character_description()
 
+    # Konkrete visuelle Beschreibung des Fundstuecks dieses Themas - ohne das
+    # wuerde jedes Video nur ein generisches "antikes Artefakt" zeigen, das nie
+    # zur eigentlichen Story passt (z.B. nie den tatsaechlichen Sarkophag,
+    # nie die tatsaechliche Bronzemaske).
+    artifact = topic["artifact"]
+
     beats = [
         {
             "text": topic["hook"],
             "image_prompt": (
-                f"{STYLE_PREFIX}{subject}, close-up shot, discovering a mysterious "
-                f"glowing artifact, dramatic reveal moment"
+                f"{STYLE_PREFIX}{subject}, close-up shot, discovering {artifact}, "
+                f"dramatic reveal moment"
             ),
         },
         {
@@ -118,15 +124,15 @@ def build_beats(topic):
         {
             "text": topic["discovery"],
             "image_prompt": (
-                f"{STYLE_PREFIX}{subject}, kneeling and examining an ancient artifact "
-                f"in detail, warm lantern light, dramatic shadows"
+                f"{STYLE_PREFIX}{subject}, kneeling and examining {artifact} in close "
+                f"detail, warm lantern light, dramatic shadows"
             ),
         },
         {
             "text": topic["reaction"],
             "image_prompt": (
                 f"{STYLE_PREFIX}{subject}, shocked and amazed expression, looking "
-                f"directly at the artifact, dramatic close-up"
+                f"directly at {artifact}, dramatic close-up"
             ),
         },
         {
@@ -146,8 +152,8 @@ def build_beats(topic):
         {
             "text": topic["payoff"],
             "image_prompt": (
-                f"{STYLE_PREFIX}{subject}, standing triumphant beside the fully "
-                f"revealed artifact, cinematic wide shot, dramatic lighting"
+                f"{STYLE_PREFIX}{subject}, standing triumphant beside {artifact}, "
+                f"fully revealed, cinematic wide shot, dramatic lighting"
             ),
         },
         {

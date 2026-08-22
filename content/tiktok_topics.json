@@ -1,5 +1,5 @@
 {
-  "_comment": "Themen-Pool fuer tiktok_generate_video.py. Jedes Thema folgt der bewaehrten Formel: Hook (Frage/Behauptung) -> Ort+Jahr -> Fund -> Experten-Reaktion -> Vertuschung (2 Beats) -> Aufloesung/Payoff -> Follow-CTA. real_person=null bedeutet: die Figuren in diesem Video sind frei erfunden und muessen JEDES Mal neu/zufaellig aussehen. Ist real_person gesetzt, muss diese Figur (nur innerhalb desselben Videos) moeglichst akkurat/konsistent dargestellt werden - andere Figuren im selben Video bleiben trotzdem zufaellig.",
+  "_comment": "Themen-Pool fuer tiktok_generate_video.py. Jedes Thema folgt der bewaehrten Formel: Hook (Frage/Behauptung) -> Ort+Jahr -> Fund -> Experten-Reaktion -> Vertuschung (2 Beats) -> Aufloesung/Payoff -> Follow-CTA. 'artifact' ist eine konkrete, bildhafte Beschreibung des zentralen Fundstuecks/Phaenomens dieses Themas - wird in die Bild-Prompts der Hook-, Fund-, Reaktions- und Aufloesungs-Szene eingesetzt, damit das Artefakt tatsaechlich zu sehen ist (nicht nur ein generisches 'antikes Artefakt'). real_person=null bedeutet: die Figuren in diesem Video sind frei erfunden und muessen JEDES Mal neu/zufaellig aussehen. Ist real_person gesetzt, muss diese Figur (nur innerhalb desselben Videos) moeglichst akkurat/konsistent dargestellt werden - andere Figuren im selben Video bleiben trotzdem zufaellig.",
   "topics": [
     {
       "id": 1,
@@ -11,6 +11,7 @@
       "suppression_1": "Ausgrabungsgenehmigungen wurden eingeschränkt, nur 5 Prozent der Fläche wurden je freigelegt.",
       "suppression_2": "Lehrbücher reduzierten den Fund auf eine gewöhnliche Kultstätte, unbequeme Fragen blieben unbeantwortet.",
       "payoff": "Das war die verschwiegene Geschichte von Göbekli Tepe.",
+      "artifact": "massive T-shaped megalithic stone pillars carved with relief animals (foxes, snakes, wild boars), arranged in a circular stone enclosure, half-buried in sandy earth",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#gobeklitepe", "#archäologie", "#verschwiegenegeschichte", "#antikehochkultur"]
@@ -25,6 +26,7 @@
       "suppression_1": "Jede Enthüllung wurde zuerst auf Chinesisch formuliert, bevor unabhängige Forscher überhaupt fragen konnten.",
       "suppression_2": "Keine unabhängigen Ausgrabungen, nur staatlich freigegebene Fragmente.",
       "payoff": "Das ist der Sanxingdui-Vertuschungsfall.",
+      "artifact": "an oxidized green bronze mask with enormous cylindrical protruding eyes on stalks, large wing-like ears, and an elongated angular face",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#sanxingdui", "#archäologie", "#verschwiegenegeschichte", "#bronzezeit"]
@@ -39,6 +41,7 @@
       "suppression_1": "Klassische Philolog*innen ignorierten die geologischen Befunde jahrelang.",
       "suppression_2": "Keine offizielle Stellungnahme, keine Debatte in der Fachwelt.",
       "payoff": "Das war das Delphi-Ethylen-Orakel.",
+      "artifact": "a crack in an ancient stone temple floor with swirling luminous green vapor rising from it, illuminating carved marble columns around it",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#delphi", "#orakel", "#verschwiegenegeschichte", "#antikegriechen"]
@@ -53,6 +56,7 @@
       "suppression_1": "Der Premierminister finanzierte Smiths Rückkehr, offiziell aus Großzügigkeit.",
       "suppression_2": "Die Tafeln lagen danach jahrzehntelang unbeachtet und unübersetzt im Museum.",
       "payoff": "Das war die Unterdrückung des Gilgamesch-Epos.",
+      "artifact": "a small oval clay tablet densely covered in tiny wedge-shaped cuneiform script, warmly lit under a magnifying glass",
       "real_person": {
         "name": "George Smith",
         "description": "Mann Ende 20, blasse Haut, zerzaustes dunkelbraunes Haar, braune viktorianische Jacke über weißem Kragenhemd, dunkelblaue Weste"
@@ -70,6 +74,7 @@
       "suppression_1": "Das mexikanische Institut für Archäologie lehnte unabhängige 3D-Vermessungen mehrfach ab.",
       "suppression_2": "Eine einzige Deutung wurde per Gesetz festgeschrieben, jede weitere Prüfung verboten.",
       "payoff": "Das war der Astronaut von Palenque.",
+      "artifact": "an ornate carved stone sarcophagus lid depicting a reclining humanoid figure surrounded by control pedals, levers, tubes and a breathing mask, strongly resembling a spacecraft cockpit",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#palenque", "#archäologie", "#verschwiegenegeschichte", "#altehochkultur"]
@@ -84,6 +89,7 @@
       "suppression_1": "Ergebnisse wurden nie in einem unabhängigen, referierten Fachjournal veröffentlicht.",
       "suppression_2": "Anfragen internationaler Forschungsteams auf Zugang zu den Rohdaten blieben unbeantwortet.",
       "payoff": "Das sind die russischen Pyramiden mit den unmöglichen Ergebnissen.",
+      "artifact": "a large translucent fiberglass pyramid frame standing in an open field, with trays of seedlings and scientific measuring equipment arranged inside it",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#pyramiden", "#russland", "#verschwiegenegeschichte", "#experiment"]
@@ -98,6 +104,7 @@
       "suppression_1": "Zugang zum Original wurde nach der ersten Untersuchungswelle stark eingeschränkt.",
       "suppression_2": "Unabhängige Datierungsversuche wurden wiederholt verzögert oder verweigert.",
       "payoff": "Das ist die verschwiegene Geschichte der Dashka-Steinplatte.",
+      "artifact": "a massive grey stone slab with a finely engraved relief map showing rivers, canyons and terrain contours in intricate detail",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#tartaria", "#steinplatte", "#verschwiegenegeschichte", "#kartografie"]
@@ -112,6 +119,7 @@
       "suppression_1": "Die Finanzierung durch J.P. Morgan wurde abrupt eingestellt.",
       "suppression_2": "Teile von Teslas Originalunterlagen wurden nach seinem Tod beschlagnahmt und nie vollständig veröffentlicht.",
       "payoff": "Das ist die verschwiegene Geschichte von Teslas freier Energie.",
+      "artifact": "a tall wooden Tesla coil tower crackling with branching blue-white electrical arcs against a night sky",
       "real_person": {
         "name": "Nikola Tesla",
         "description": "hochgewachsener Mann Ende 30, schlank, akkurat gescheiteltes dunkles Haar, schmaler Schnurrbart, eleganter schwarzer viktorianischer Anzug mit Fliege"
@@ -129,6 +137,7 @@
       "suppression_1": "Der Zugang für Besucher*innen und Forschende wurde drastisch limitiert.",
       "suppression_2": "Umfassende akustische Studien wurden nie vollständig veröffentlicht.",
       "payoff": "Das ist das Geheimnis des Hypogäums von Ħal Saflieni.",
+      "artifact": "a smooth hand-carved underground stone chamber with a curved resonant niche, faint golden sound-wave ripples visible in the air",
       "real_person": null,
       "category": "AntikeHochkultur",
       "hashtags": ["#malta", "#archäologie", "#verschwiegenegeschichte", "#akustik"]
@@ -143,6 +152,7 @@
       "suppression_1": "Das Objekt verschwand nach ersten Untersuchungen aus öffentlichem Zugriff.",
       "suppression_2": "Eine unabhängige Nachprüfung wurde nie durchgeführt oder veröffentlicht.",
       "payoff": "Das ist das verschwiegene Rätsel des Wolgograd-Objekts.",
+      "artifact": "a corroded metallic wheel-shaped object with visible gear-like teeth, embedded in dark layered coal rock",
       "real_person": null,
       "category": "VerbotenesWissen",
       "hashtags": ["#anomalie", "#geologie", "#verschwiegenegeschichte", "#rätsel"]
