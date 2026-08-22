@@ -21,6 +21,8 @@ def topics_file(tmp_path, monkeypatch):
                     "hook": "Hook eins?",
                     "location": "Ort eins",
                     "year": "Jahr eins",
+                    "search": "Suche eins.",
+                    "search_visual": "eine Testsuchszene mit besonderen Merkmalen",
                     "discovery": "Fund eins.",
                     "reaction": "Reaktion eins.",
                     "suppression_1": "Vertuschung eins.",
@@ -37,6 +39,8 @@ def topics_file(tmp_path, monkeypatch):
                     "hook": "Hook zwei?",
                     "location": "Ort zwei",
                     "year": "Jahr zwei",
+                    "search": "Suche zwei.",
+                    "search_visual": "eine zweite Testsuchszene",
                     "discovery": "Fund zwei.",
                     "reaction": "Reaktion zwei.",
                     "suppression_1": "Vertuschung eins.",
@@ -68,10 +72,10 @@ def test_pick_next_topic_cycles_before_repeating(topics_file):
     assert third["id"] in {1, 2}
 
 
-def test_build_beats_has_eight_beats_with_text_and_prompt(topics_file):
+def test_build_beats_has_nine_beats_with_text_and_prompt(topics_file):
     topics = json.load(open(topics_file, encoding="utf-8"))["topics"]
     beats = tc.build_beats(topics[0])
-    assert len(beats) == 8
+    assert len(beats) == 9
     for beat in beats:
         assert beat["text"]
         assert beat["image_prompt"]
@@ -85,7 +89,7 @@ def test_build_beats_uses_real_person_description_consistently(topics_file):
     description = real_person_topic["real_person"]["description"]
     # Beats mit sichtbarer Person (Hook, Fund, Reaktion, Aufloesung) muessen
     # dieselbe reale Personenbeschreibung nutzen statt eine zufaellige.
-    for i in (0, 2, 3, 6):
+    for i in (0, 3, 4, 7):
         assert description in beats[i]["image_prompt"]
 
 
@@ -114,7 +118,7 @@ def test_build_beats_includes_topic_artifact_in_visual_beats(topics_file):
     # Hook, Fund, Reaktion und Aufloesung muessen das konkrete Artefakt zeigen,
     # nicht nur ein generisches "ancient artifact" (Regressionstest fuer den
     # Bug, dass z.B. der "Astronaut von Palenque" nie im Bild zu sehen war).
-    for i in (0, 2, 3, 6):
+    for i in (0, 3, 4, 7):
         assert artifact in beats[i]["image_prompt"]
 
 
@@ -131,7 +135,7 @@ def test_build_beats_marks_exactly_the_artifact_holding_beats_as_critical(topics
     # Nur Hook, Fund, Reaktion, Aufloesung zeigen eine Person mit dem Artefakt
     # in der Hand - das braucht Higgsfield. Alle anderen sind reine
     # Umgebungs-/Symbolbilder und laufen kostenlos.
-    assert critical_indices == {0, 2, 3, 6}
+    assert critical_indices == {0, 3, 4, 7}
 
 
 def test_build_beats_non_critical_beats_have_short_free_prompt(topics_file):

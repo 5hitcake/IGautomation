@@ -101,8 +101,12 @@ def pick_next_topic(state):
 
 
 def build_beats(topic):
-    """Baut die Erzaehl-Beats nach der Formel: Hook -> Ort/Jahr -> Fund ->
-    Experten-Reaktion -> Vertuschung x2 -> Aufloesung -> Follow-CTA.
+    """Baut die Erzaehl-Beats nach der Formel: Hook -> Ort/Jahr -> Suche ->
+    Fund -> Experten-Reaktion -> Vertuschung x2 -> Aufloesung -> Follow-CTA.
+
+    Der Suche-Beat (topic["search"]/topic["search_visual"]) baut zusaetzlichen
+    Spannungsbogen vor dem eigentlichen Fund auf und sorgt fuer mehr visuelle
+    Abwechslung (z.B. Taucher am Schiffswrack statt nur Landschaft+Artefakt).
 
     Jeder Beat traegt zwei Bild-Prompts:
     - image_prompt: reichhaltig, fuer Higgsfield (kostenpflichtig, praezise).
@@ -110,7 +114,8 @@ def build_beats(topic):
     "critical"=True markiert Beats, in denen ein Charakter das Artefakt exakt
     in der Hand haelt - dort scheitert das kostenlose Modell zuverlaessig,
     deshalb laufen NUR diese vier Beats ueber Higgsfield; alle anderen (Ort,
-    Vertuschung, CTA) sind reine Umgebungs-/Symbolbilder und laufen kostenlos.
+    Suche, Vertuschung, CTA) sind reine Umgebungs-/Handlungsbilder und laufen
+    kostenlos.
 
     real_person (falls gesetzt) wird fuer JEDE Szene dieses Videos verwendet,
     in der eine Person zu sehen ist - alle anderen Themen wuerfeln pro Video
@@ -145,6 +150,12 @@ def build_beats(topic):
             "free_image_prompt": (
                 f"{FREE_STYLE_PREFIX}wide shot, {topic['location_detail']}"
             ),
+        },
+        {
+            "text": topic["search"],
+            "critical": False,
+            "image_prompt": f"{STYLE_PREFIX}{topic['search_visual']}",
+            "free_image_prompt": f"{FREE_STYLE_PREFIX}{topic['search_visual']}",
         },
         {
             "text": topic["discovery"],

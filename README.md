@@ -151,16 +151,21 @@ KI-Video im Ghibli/Anime-Stil** für einen zweiten Account
 (`tiktok_daily.yml`) - nach demselben Prinzip wie oben: kein Login-Bot,
 GitHub Actions als Zeitgeber, offizielle TikTok-API zum Veröffentlichen.
 
-**Kosten: 0 €.** Es werden ausschließlich kostenlose Dienste genutzt:
-- **Bilder**: Hugging Face Inference API (kostenloser Account, kein Kreditkarten-Zwang)
+**Kosten: minimal (~1 €/Woche).** Nur die 4 kritischen Bild-Beats kosten über die
+Higgsfield-API etwas, alles andere ist kostenlos:
+- **Bilder**: Hybrid aus Higgsfield-API (4 kritische Beats) und einem selbst
+  gehosteten, kostenlosen Modell (5 einfache Beats) - siehe unten.
 - **Sprachausgabe**: `edge-tts` (kein Account, kein Key)
 - **Zusammenschnitt**: ffmpeg (in der GitHub-Actions-Umgebung vorinstalliert)
 
 ### Wie ein Video entsteht
 
 1. `scripts/tiktok_generate_video.py` wählt ein noch nicht verwendetes Thema aus
-   `content/tiktok_topics.json` (Format: Hook → Ort/Jahr → Fund → Experten-Reaktion →
-   Vertuschung → Auflösung → Follow-CTA, 8 Beats).
+   `content/tiktok_topics.json` (Format: Hook → Ort/Jahr → Suche → Fund →
+   Experten-Reaktion → Vertuschung → Auflösung → Follow-CTA, 9 Beats). Der
+   Suche-Beat baut zusätzlichen Spannungsbogen auf und zeigt themenspezifisch die
+   reale Such-/Ausgrabungsmethode (z.B. Taucher am Schiffswrack beim Antikythera-
+   Mechanismus, Archäolog*innen beim Freilegen, Astronom*innen am Teleskop).
 2. **Hybrid-Bildgenerierung** (siehe unten): 4 Beats über die kostenpflichtige
    Higgsfield-API, 4 Beats über ein kostenloses, selbst gehostetes Modell. Jede
    Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
@@ -185,8 +190,9 @@ Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Deshalb:
 - **4 kritische Beats** (Hook, Fund, Reaktion, Auflösung - dort hält der Charakter
   das Artefakt) laufen über die **Higgsfield-API** (`higgsfield-ai/soul/standard`,
   ~1,5 Credits/Bild, siehe [docs.higgsfield.ai](https://docs.higgsfield.ai/docs)).
-- **4 einfache Beats** (Ort, Vertuschung ×2, Follow-CTA - reine Umgebungs-/Symbolbilder
-  ohne kritische Objekt-Interaktion) laufen über ein **selbst gehostetes, kostenloses**
+- **5 einfache Beats** (Ort, Suche, Vertuschung ×2, Follow-CTA - reine Umgebungs-/
+  Handlungsbilder ohne kritische Objekt-Interaktion) laufen über ein **selbst gehostetes,
+  kostenloses**
   `nitrosocke/Ghibli-Diffusion`-Modell direkt im GitHub-Actions-Runner (CPU, kein GPU
   nötig - dauert dafür ca. 10-15 Min./Bild. Das ist bewusst so: Qualität hat hier
   Vorrang vor Geschwindigkeit, die Automation läuft ohnehin unbeaufsichtigt).
