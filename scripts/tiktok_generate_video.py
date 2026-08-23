@@ -42,6 +42,7 @@ from tiktok_common import (
     generate_hf_critical_image,
     load_state,
     pick_next_topic,
+    pick_tiktok_music,
     save_state,
 )
 
@@ -66,6 +67,12 @@ FREE_MODEL_NEGATIVE_PROMPT = (
     "blurry, deformed, disfigured, bad anatomy, extra limbs, poorly drawn face, "
     "dark, low contrast, watermark, text"
 )
+
+# Deutlich gedaempft, damit die Erzaehlerstimme jederzeit klar im Vordergrund
+# bleibt - die Musik ist nur ein leises atmosphaerisches Bett darunter, kein
+# gleichwertiger zweiter Ton (anders als bei generate_reel.py, wo es keine
+# konkurrierende Sprachspur gibt).
+MUSIC_VOLUME = 0.15
 
 
 def check_ffmpeg():
@@ -201,6 +208,28 @@ def concat_segments(segment_paths, output_path, work_dir):
     subprocess.run(cmd, check=True)
 
 
+def mix_background_music(video_path, music_path, output_path, volume=MUSIC_VOLUME):
+    """Mischt einen (in einer Schleife laufenden) Musiktrack leise unter die
+    vorhandene Erzaehlerstimme des Videos. normalize=0 verhindert, dass amix
+    automatisch beide Spuren gleich laut absenkt - die Lautstaerke-Balance
+    wird stattdessen komplett ueber `volume` auf der Musikspur gesteuert, die
+    Erzaehlerstimme bleibt unangetastet. duration=first schneidet die
+    Musikschleife exakt auf die Laenge der Erzaehlung zu."""
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-stream_loop", "-1", "-i", music_path,
+        "-filter_complex",
+        f"[1:a]volume={volume}[music];"
+        f"[0:a][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]",
+        "-map", "0:v", "-map", "[a]",
+        "-c:v", "copy", "-c:a", "aac",
+        "-shortest",
+        output_path,
+    ]
+    subprocess.run(cmd, check=True)
+
+
 def main():
     check_ffmpeg()
     hf_token = os.environ.get("HF_API_TOKEN")
@@ -237,9 +266,17 @@ def main():
             build_segment(image_path, audio_path, words, segment_path, work_dir, i)
             segment_paths.append(segment_path)
 
+        concat_path = os.path.join(work_dir, "concat.mp4")
+        concat_segments(segment_paths, concat_path, work_dir)
+
         filename = f"tiktok_{topic['id']:04d}.mp4"
         output_path = os.path.join(TIKTOK_GENERATED_DIR, filename)
-        concat_segments(segment_paths, output_path, work_dir)
+        music_path = pick_tiktok_music()
+        if music_path:
+            print(f"Mische Hintergrundmusik ein: {os.path.basename(music_path)}")
+            mix_background_music(concat_path, music_path, output_path)
+        else:
+            shutil.copy(concat_path, output_path)
 
     caption = build_caption(topic)
     next_post = {
