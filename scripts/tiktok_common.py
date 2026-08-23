@@ -9,6 +9,7 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 TIKTOK_TOPICS_PATH = os.path.join(ROOT, "content", "tiktok_topics.json")
 TIKTOK_STATE_PATH = os.path.join(ROOT, "tiktok_posted_log.json")
 TIKTOK_GENERATED_DIR = os.path.join(ROOT, "assets", "tiktok_generated")
+TIKTOK_MUSIC_DIR = os.path.join(ROOT, "assets", "tiktok_music")
 
 # Groesseres Modell ueber die kostenlose Hugging-Face-Inference-API fuer die
 # Beats, in denen ein Charakter ein bestimmtes Artefakt korrekt in der Hand
@@ -227,6 +228,19 @@ def build_beats(topic):
         },
     ]
     return beats
+
+
+def pick_tiktok_music():
+    """Gibt einen zufaelligen Musiktrack aus assets/tiktok_music zurueck, oder
+    None wenn der Ordner (noch) leer ist - dann wird das Video ohne
+    Hintergrundmusik (nur Erzaehlerstimme) erstellt."""
+    if not os.path.isdir(TIKTOK_MUSIC_DIR):
+        return None
+    supported = (".mp3", ".wav", ".m4a", ".aac")
+    files = [f for f in os.listdir(TIKTOK_MUSIC_DIR) if f.lower().endswith(supported)]
+    if not files:
+        return None
+    return os.path.join(TIKTOK_MUSIC_DIR, random.choice(files))
 
 
 def build_caption(topic):

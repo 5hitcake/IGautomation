@@ -176,9 +176,14 @@ Instagram-Account (als Reel) - unabhängig vom Mindset-Account weiter oben.
    Modell. Jede Sprachzeile wird über `edge-tts` vertont, inkl. Wort-für-Wort-Zeitstempeln.
 3. ffmpeg legt einen sanften Zoom (Ken-Burns-Effekt) auf jedes Bild, blendet die
    Untertitel Wort für Wort ein und fügt alle Beats zu einem 1080x1920-Video zusammen.
-4. `scripts/tiktok_publish.py` lädt das Video über die offizielle **TikTok Content
+4. Liegt ein Track in `assets/tiktok_music/`, wird er per ffmpeg (`amix`, deutlich
+   gedämpft, `MUSIC_VOLUME = 0.15`) unter die Erzählerstimme gemischt - die Stimme
+   bleibt dabei unangetastet und klar im Vordergrund, die Musik läuft in einer
+   Schleife und wird auf die Länge der Erzählung zugeschnitten. Ohne Dateien dort
+   bleibt es beim reinen Erzähler-Ton (kein Fehler, kein Zutun nötig).
+5. `scripts/tiktok_publish.py` lädt das Video über die offizielle **TikTok Content
    Posting API** hoch (Direct Post, `FILE_UPLOAD`).
-5. Direkt danach postet `scripts/publish.py --post-file assets/tiktok_generated/next_post.json`
+6. Direkt danach postet `scripts/publish.py --post-file assets/tiktok_generated/next_post.json`
    dasselbe Video als Reel über die **Instagram Graph API** auf den zweiten
    Instagram-Account (derselbe Code wie beim Mindset-Account oben, nur mit
    anderen Zugangsdaten und anderer next_post.json als Quelle).
@@ -266,6 +271,21 @@ python scripts/publish.py --post-file assets/tiktok_generated/next_post.json --d
 **Erster echter Post:** Im GitHub-Repo unter **Actions → Daily TikTok Post →
 Run workflow** manuell auslösen.
 
+### Musik einbauen
+
+Weder die TikTok Content Posting API noch die Instagram Graph API erlauben es,
+programmatisch einen Sound aus der jeweiligen Plattform-Musikbibliothek an ein
+hochgeladenes Video anzuhängen - das geht nur manuell in der App. Die Musik wird
+deshalb **direkt ins Video eingebettet** (fest im MP4, bevor es hochgeladen wird):
+
+- Lizenzfreie Tracks (mp3/wav/m4a/aac) in `assets/tiktok_music/` ablegen - ein
+  zufälliger Track wird automatisch gedämpft unter die Erzählerstimme gemischt.
+  Ohne Dateien dort läuft nur die Erzählerstimme (kein Fehler).
+- Details, Stil-Empfehlung (dunkel/mysteriös statt Mindset-Motivation) und
+  Quellen: `assets/tiktok_music/README.md`.
+- Lautstärke-Balance: `MUSIC_VOLUME` in `scripts/tiktok_generate_video.py`
+  (Standard `0.15`) steuert, wie leise die Musik unter der Stimme liegt.
+
 ### TikTok-Themen erweitern
 
 Neue Themen: in `content/tiktok_topics.json` einen neuen Eintrag mit fortlaufender
@@ -295,6 +315,7 @@ eine reale Person möglichst akkurat dargestellt werden soll.
 assets/backgrounds/   Hintergrundbilder fuer Zitat-Cards
 assets/bg_videos/     Hintergrund-Clips fuer Reels
 assets/music/         Optionale lizenzfreie Musiktracks fuer Reels (von dir befuellt)
+assets/tiktok_music/  Optionale lizenzfreie Musiktracks fuer TikTok-Videos (von dir befuellt)
 assets/fonts/         Poppins (Open Font License)
 assets/generated/     Wird von den Skripten befuellt (Output)
 content/quotes_de.json   Zitat-Datenbank
