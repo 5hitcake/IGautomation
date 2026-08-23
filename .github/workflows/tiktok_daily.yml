@@ -3,7 +3,12 @@ name: Daily TikTok Post
 on:
   schedule:
     - cron: "0 15 * * *"  # ~16-17 Uhr deutsche Zeit (MEZ/MESZ)
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      regenerate:
+        description: "Neues Video generieren? (nein = nur den zuletzt generierten Post erneut veroeffentlichen, z.B. zum Testen ohne HF-Kontingent zu verbrauchen)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -30,11 +35,13 @@ jobs:
           pip install -r requirements.txt
 
       - name: Generate TikTok video
+        if: github.event.inputs.regenerate != 'false'
         env:
           HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
         run: python scripts/tiktok_generate_video.py
 
       - name: Commit generated asset
+        if: github.event.inputs.regenerate != 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
