@@ -24,10 +24,11 @@ from urllib3.util.retry import Retry
 API_BASE = "https://open.tiktokapis.com/v2"
 POLL_INTERVAL_SECONDS = 10
 MAX_POLL_ATTEMPTS = 30
-# PRIVATE_TO_SELF ist der sichere Default fuer unbeaufsichtigte Automation
-# (z.B. waehrend die App noch im TikTok-Review-Status "in Pruefung" ist).
-# Auf PUBLIC_TO_EVERYONE umstellen, sobald die App freigegeben ist.
-DEFAULT_PRIVACY_LEVEL = os.environ.get("TIKTOK_PRIVACY_LEVEL", "PRIVATE_TO_SELF")
+# SELF_ONLY ist der einzige gueltige Wert fuer nicht-auditierte Apps (die
+# TikTok-API lehnt "PRIVATE_TO_SELF" mit 400 invalid_params ab - das ist
+# kein gueltiger privacy_level-Wert). Auf PUBLIC_TO_EVERYONE umstellen,
+# sobald die App freigegeben ist.
+DEFAULT_PRIVACY_LEVEL = os.environ.get("TIKTOK_PRIVACY_LEVEL", "SELF_ONLY")
 
 
 def make_session():

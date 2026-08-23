@@ -231,7 +231,7 @@ nutzbar), für 4 Bilder/Tag aber problemlos ausreichend.
 2. Produkt **"Content Posting API"** hinzufügen, Scope `video.publish` aktivieren.
 3. Über den OAuth-Flow der App einen Access Token für den Ziel-Account erzeugen.
 4. Solange die App noch nicht von TikTok freigegeben ist ("in Prüfung"), können
-   Videos nur mit `privacy_level: PRIVATE_TO_SELF` gepostet werden (Standard in
+   Videos nur mit `privacy_level: SELF_ONLY` gepostet werden (Standard in
    `tiktok_publish.py`, steuerbar über `TIKTOK_PRIVACY_LEVEL`). Nach Freigabe der
    App auf `PUBLIC_TO_EVERYONE` umstellen.
 5. Access Token als GitHub Secret `TIKTOK_ACCESS_TOKEN` hinterlegen.
