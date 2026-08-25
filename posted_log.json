@@ -33,7 +33,8 @@
     98,
     61,
     47,
-    37
+    37,
+    59
   ],
   "posted_reel_ids": [
     2,
@@ -43,11 +44,11 @@
     8
   ],
   "recent_backgrounds": [
-    "bg_05_gym.png",
     "bg_02_mountain_climb.png",
     "bg_09_starry_sky.png",
     "bg_14_snow_peak.png",
-    "bg_07_beach_run.png"
+    "bg_07_beach_run.png",
+    "bg_06_desert_road.png"
   ],
   "recent_bg_videos": [
     "reel_07_rooftop.mp4",
