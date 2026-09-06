@@ -43,7 +43,8 @@
     49,
     68,
     55,
-    36
+    36,
+    28
   ],
   "posted_reel_ids": [
     2,
@@ -54,11 +55,11 @@
     4
   ],
   "recent_backgrounds": [
-    "bg_14_snow_peak.png",
     "bg_05_gym.png",
     "bg_08_forest.png",
     "bg_06_desert_road.png",
-    "bg_07_beach_run.png"
+    "bg_07_beach_run.png",
+    "bg_01_mountain_dawn.png"
   ],
   "recent_bg_videos": [
     "reel_02_ocean_waves.mp4",
