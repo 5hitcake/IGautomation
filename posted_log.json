@@ -52,7 +52,8 @@
     6,
     5,
     8,
-    4
+    4,
+    10
   ],
   "recent_backgrounds": [
     "bg_05_gym.png",
@@ -62,10 +63,10 @@
     "bg_01_mountain_dawn.png"
   ],
   "recent_bg_videos": [
-    "reel_02_ocean_waves.mp4",
     "reel_03_city_timelapse.mp4",
     "reel_08_night_road.mp4",
     "reel_01_mountain_drone.mp4",
-    "reel_05_rain_window.mp4"
+    "reel_05_rain_window.mp4",
+    "reel_07_rooftop.mp4"
   ]
 }
