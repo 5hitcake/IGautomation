@@ -45,7 +45,8 @@
     55,
     36,
     28,
-    21
+    21,
+    50
   ],
   "posted_reel_ids": [
     2,
@@ -57,11 +58,11 @@
     10
   ],
   "recent_backgrounds": [
-    "bg_08_forest.png",
     "bg_06_desert_road.png",
     "bg_07_beach_run.png",
     "bg_01_mountain_dawn.png",
-    "bg_15_night_road.png"
+    "bg_15_night_road.png",
+    "bg_05_gym.png"
   ],
   "recent_bg_videos": [
     "reel_03_city_timelapse.mp4",
