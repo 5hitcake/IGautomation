@@ -60,7 +60,8 @@
     5,
     8,
     4,
-    10
+    10,
+    7
   ],
   "recent_backgrounds": [
     "bg_14_snow_peak.png",
@@ -70,10 +71,10 @@
     "bg_12_rain_window.png"
   ],
   "recent_bg_videos": [
-    "reel_03_city_timelapse.mp4",
     "reel_08_night_road.mp4",
     "reel_01_mountain_drone.mp4",
     "reel_05_rain_window.mp4",
-    "reel_07_rooftop.mp4"
+    "reel_07_rooftop.mp4",
+    "reel_06_clouds_dawn.mp4"
   ]
 }
