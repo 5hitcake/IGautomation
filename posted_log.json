@@ -57,7 +57,8 @@
     1,
     35,
     72,
-    53
+    53,
+    6
   ],
   "posted_reel_ids": [
     2,
@@ -70,11 +71,11 @@
     7
   ],
   "recent_backgrounds": [
-    "bg_07_beach_run.png",
     "bg_04_ocean_waves.png",
     "bg_09_starry_sky.png",
     "bg_02_mountain_climb.png",
-    "bg_06_desert_road.png"
+    "bg_06_desert_road.png",
+    "bg_03_city_night.png"
   ],
   "recent_bg_videos": [
     "reel_08_night_road.mp4",
