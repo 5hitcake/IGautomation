@@ -1,6 +1,8 @@
 // Hintergrundmusik, live erzeugt (kostenlos, keine Lizenzfragen).
 //
-// Ein 32-Takt-Song in C-Dur (Strophe A, Überleitung B, A, Refrain C). Im Spiel
+// Ein 32-Takt-Song in C-Dur (Strophe A, Überleitung B, A, Refrain C) im Stil
+// flotter Arcade-/Eurodance-Musik: durchgehende Bassdrum, Oktav-Bass,
+// Akkord-Stöße, "Pumpen", Trommelwirbel und Rauschen als Übergänge. Im Spiel
 // wird er mit jeder Kamerastufe schneller, bekommt mehr Instrumente dazu und
 // wechselt ab Stufe 3 und 6 einen Halbton höher. Im Menü läuft eine ruhige
 // Fassung ohne Schlagzeug.
@@ -8,8 +10,8 @@ import { audioOut } from './audio.js';
 
 const CFG = {
   menuBpm: 92,
-  gameBpm: 120,
-  bpmPerLevel: 7,
+  gameBpm: 128,
+  bpmPerLevel: 6,
   volume: 0.34,
 };
 
@@ -69,10 +71,11 @@ const NOTE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 const toMidi = (n) => 12 * (Number(n.slice(-1)) + 1) + NOTE[n[0]] + (n[1] === '#' ? 1 : 0);
 const midiHz = (m) => 440 * 2 ** ((m - 69) / 12);
 
-/** Song als Liste von Takten: { chord, melody: [[midi, achtel] | null] × 8 } */
+/** Song als Liste von Takten: { chord, melody: [[midi, achtel] | null] × 8, section, barInSection, next } */
 function buildSong(form) {
   const bars = [];
-  for (const key of form) {
+  form.forEach((key, fi) => {
+    const next = form[(fi + 1) % form.length];
     const sec = SECTIONS[key];
     sec.melody.forEach((line, b) => {
       const tokens = line.split(' ');
@@ -82,9 +85,9 @@ function buildSong(form) {
         while (tokens[i + len] === '-') len++;
         return [toMidi(tok), len];
       });
-      bars.push({ chord: CHORDS[sec.chords[b]], melody: mel });
+      bars.push({ chord: CHORDS[sec.chords[b]], melody: mel, section: key, barInSection: b, next });
     });
-  }
+  });
   return bars;
 }
 
@@ -136,18 +139,25 @@ function makeBus() {
   const lead = filter('lowpass', 3400);
   lead.connect(out);
   lead.connect(delay);
+  // "Pumpen": Arpeggio, Flächen und Akkord-Stöße ducken sich bei jeder Bassdrum
+  const pump = ctx.createGain();
+  pump.connect(out);
   const arp = filter('lowpass', 2800);
-  arp.connect(out);
+  arp.connect(pump);
   arp.connect(delay);
+  const stab = filter('lowpass', 3200);
+  stab.connect(pump);
   const bass = filter('lowpass', 700, 2);
   bass.connect(out);
   const pad = filter('lowpass', 1400);
-  pad.connect(out);
+  pad.connect(pump);
   const snare = filter('bandpass', 1900, 0.8);
   snare.connect(out);
   const hat = filter('highpass', 7500);
   hat.connect(out);
-  return { delay, lead, arp, bass, pad, snare, hat };
+  const click = filter('highpass', 3000);
+  click.connect(out);
+  return { delay, pump, lead, arp, stab, bass, pad, snare, hat, click };
 }
 
 function env(t, attack, hold, release, vol) {
@@ -210,7 +220,55 @@ function noise(t, dur, vol, target, decay = true) {
   src.stop(t + dur + 0.02);
 }
 
+function duck(t) {
+  const g = bus.pump.gain;
+  g.setValueAtTime(0.3, t);
+  g.linearRampToValueAtTime(1, t + 0.15);
+}
+
+/** Akkord-Stoß auf der Nachschlag-Zählung */
+function stab(chord, t, vol) {
+  const g = env(t, 0.004, 0.05, 0.09, vol);
+  g.connect(bus.stab);
+  chord.forEach((m, i) => osc('sawtooth', m + 24 + transpose, t, t + 0.16, g, i * 5 - 5));
+}
+
+function clap(t, vol = 0.5) {
+  [0, 0.011, 0.022].forEach((d) => noise(t + d, 0.02, vol, bus.snare));
+  noise(t + 0.03, 0.14, vol * 0.6, bus.snare);
+}
+
+/** Aufsteigendes Rauschen vor einem neuen Abschnitt */
+function riser(t, dur) {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  src.loop = true;
+  const f = ctx.createBiquadFilter();
+  f.type = 'bandpass';
+  f.Q.value = 3;
+  f.frequency.setValueAtTime(400, t);
+  f.frequency.exponentialRampToValueAtTime(9000, t + dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.22, t + dur);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
+  src.connect(f).connect(g).connect(out);
+  src.start(t);
+  src.stop(t + dur + 0.1);
+}
+
+const SCALE = [0, 2, 4, 5, 7, 9, 11];
+/** Terz darüber innerhalb der C-Dur-Tonleiter */
+function thirdAbove(m) {
+  const pc = m % 12;
+  const i = SCALE.indexOf(pc);
+  if (i < 0) return m + 4;
+  return m + ((SCALE[(i + 2) % 7] - pc + 12) % 12);
+}
+
 function kick(t, vol = 0.9) {
+  noise(t, 0.012, 0.3, bus.click);
+  duck(t);
   const o = ctx.createOscillator();
   const g = ctx.createGain();
   o.frequency.setValueAtTime(160, t);
@@ -222,14 +280,14 @@ function kick(t, vol = 0.9) {
   o.stop(t + 0.25);
 }
 
-function snare(t) {
-  noise(t, 0.16, 0.55, bus.snare);
+function snare(t, vol = 0.55) {
+  noise(t, 0.16, vol, bus.snare);
   const o = ctx.createOscillator();
   const g = ctx.createGain();
   o.type = 'triangle';
   o.frequency.setValueAtTime(220, t);
   o.frequency.exponentialRampToValueAtTime(140, t + 0.08);
-  g.gain.setValueAtTime(0.35, t);
+  g.gain.setValueAtTime(vol * 0.64, t);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
   o.connect(g).connect(out);
   o.start(t);
@@ -256,6 +314,7 @@ function playStep(i, t) {
       const [m, len] = n;
       const dur = len * 2 * x * 0.92;
       leadNote(m + tr, t, dur, game ? 0.09 : 0.13, !game);
+      if (game && bar.section === 'C') leadNote(thirdAbove(m) + tr, t, dur, 0.05, false);
       if (game && level >= 4) leadNote(m + tr - 12, t, dur, 0.05, true);
     }
   }
@@ -268,9 +327,13 @@ function playStep(i, t) {
     return;
   }
 
-  // Bass: synkopiertes Muster
-  if (s === 0 || s === 3 || s === 8 || s === 11) bassNote(root, t, x * 2.4, 0.22);
-  else if (s === 6 || s === 14) bassNote(root + 12, t, x * 1.6, 0.14);
+  const fillBar = bar.barInSection === 7;
+
+  // Bass: Oktav-Sprünge in Achteln (Eurodance), am Taktende synkopiert
+  if (s % 2 === 0) bassNote(s % 4 === 0 ? root : root + 12, t, x * 1.7, s % 4 === 0 ? 0.22 : 0.16);
+
+  // Akkord-Stöße auf der Nachschlag-Zählung (im Refrain immer, sonst ab Stufe 2)
+  if (s % 4 === 2 && (bar.section === 'C' || level >= 2)) stab(bar.chord, t, 0.035);
 
   // Arpeggio ab Stufe 1
   if (level >= 1) {
@@ -278,16 +341,24 @@ function playStep(i, t) {
     pluck(tones[s % 4] + tr, t, 0.045);
   }
 
-  // Schlagzeug, wird mit jeder Stufe voller
-  if (s === 0 || s === 8 || (level >= 2 && (s === 4 || s === 12))) kick(t, s % 8 === 0 ? 0.9 : 0.6);
-  if (level >= 3 && s === 14) kick(t, 0.5);
-  if (s === 4 || s === 12) snare(t);
+  // Schlagzeug: durchgehende Bassdrum, Clap + Snare auf 2 und 4
+  if (s % 4 === 0 && !(fillBar && s >= 12)) kick(t, s % 8 === 0 ? 0.95 : 0.8);
+  if (level >= 3 && (s === 14 || s === 7) && !fillBar) kick(t, 0.45);
+  if ((s === 4 || s === 12) && !(fillBar && s === 12)) {
+    snare(t);
+    clap(t, 0.4);
+  }
   if (s % 4 === 2) noise(t, 0.05, 0.14, bus.hat);
-  if (level >= 2 && s % 2 === 0 && s % 4 !== 2) noise(t, 0.03, 0.07, bus.hat);
-  if (level >= 5 && s % 2 === 1) noise(t, 0.025, 0.05, bus.hat);
+  if (level >= 1 && s % 2 === 0 && s % 4 !== 2) noise(t, 0.03, 0.07, bus.hat);
+  if (level >= 4 && s % 2 === 1) noise(t, 0.025, 0.05, bus.hat);
   if (level >= 2 && (s === 6 || s === 14)) noise(t, 0.2, 0.08, bus.hat);
-  // Crash am Anfang jedes 8-Takt-Abschnitts
-  if (s === 0 && barIdx % 8 === 0 && level >= 1) noise(t, 1.2, 0.12, bus.hat);
+
+  // Übergang: Trommelwirbel in der zweiten Hälfte des letzten Takts
+  if (fillBar && s >= 8 && (level >= 1 || s >= 12)) snare(t, 0.12 + (s - 8) * 0.05);
+  // Aufsteigendes Rauschen vor dem Refrain (ab Stufe 2 vor jedem Abschnitt)
+  if (fillBar && s === 0 && (bar.next === 'C' || level >= 2)) riser(t, 16 * x);
+  // Becken am Anfang jedes Abschnitts
+  if (s === 0 && bar.barInSection === 0) noise(t, 1.2, 0.13, bus.hat);
 }
 
 function schedule() {
@@ -347,7 +418,7 @@ export const music = {
  * Rendert die Musik ohne Lautsprecher in einen AudioBuffer (für Hörproben
  * und Tests). Beeinflusst eine gerade laufende Musik nicht.
  */
-export async function renderPreview(previewMode, previewLevel, seconds, sampleRate = 32000) {
+export async function renderPreview(previewMode, previewLevel, seconds, startBar = 0, sampleRate = 32000) {
   const saved = { ctx, out, bus, mode, level, step, nextTime, transpose };
   const off = new OfflineAudioContext(1, Math.ceil(sampleRate * seconds), sampleRate);
   try {
@@ -362,7 +433,7 @@ export async function renderPreview(previewMode, previewLevel, seconds, sampleRa
     gain.connect(comp).connect(off.destination);
     out = gain;
     bus = makeBus();
-    step = 0;
+    step = startBar * 16;
     nextTime = 0.05;
     while (nextTime < seconds - 0.3) {
       playStep(step, nextTime);
