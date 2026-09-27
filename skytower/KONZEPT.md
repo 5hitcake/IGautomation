@@ -45,16 +45,16 @@ herausfällt, hat verloren.
 - **C) Neigen:** Neigungssensor. Funktioniert gut, ist in Bus/Bahn aber
   unpraktisch.
 
-### 2.3 Physik-Startwerte (werden im Prototyp feinjustiert)
+### 2.3 Physik-Startwerte (Stand Prototyp v0.1, alle in `src/config.js`)
 | Wert | Startwert |
 |---|---|
-| Logische Auflösung | 540 × 960 (skaliert auf jedes Handy) |
-| Etagenabstand | 110 px |
-| Schwerkraft | 2200 px/s² |
-| Grund-Sprunggeschwindigkeit | 900 px/s |
-| Bonus pro Tempo | + 0,9 × horizontale Geschwindigkeit |
-| Max. Laufgeschwindigkeit | 650 px/s |
-| Beschleunigung / Reibung | 1800 / 2400 px/s² |
+| Logische Breite | 720 (Höhe passt sich dem Handy an) |
+| Etagenabstand | 150 px |
+| Schwerkraft | 2900 px/s² |
+| Grund-Sprunggeschwindigkeit | 1200 px/s (~1,6 Etagen aus dem Stand) |
+| Bonus pro Tempo | + 0,9 × horizontale Geschwindigkeit (~5 Etagen mit vollem Anlauf) |
+| Max. Laufgeschwindigkeit | 870 px/s |
+| Beschleunigung / Richtungswechsel / Abbremsen | 2400 / 4800 / 1400 px/s² |
 
 ### 2.4 Kamera & Druck
 - Die Kamera steht still, bis der Spieler **Etage 5** erreicht, danach scrollt
