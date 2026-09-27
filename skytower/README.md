@@ -15,9 +15,11 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   im Menü sowie bei Combos ab 25 Etagen und beim Erreichen einer neuen Zone
 - Bei „Neuer Rekord!“ jubelt Wolki über dem Ergebnis
 - Münzen, lokaler Highscore, Tutorial-Hinweise, Pause, Game-Over-Bildschirm
-- Hintergrundmusik (live erzeugt), wird mit jeder Kamerastufe schneller und voller
+- Hintergrundmusik (live erzeugt, `src/services/music.js`): 32-Takt-Song mit Strophe,
+  Überleitung und Refrain; wird mit jeder Kamerastufe schneller und voller und wechselt
+  ab Stufe 3 und 6 einen Halbton höher. Ruhige Fassung im Menü.
 - Grafiken im Code gezeichnet (`src/art.js`), Sounds und Musik live synthetisiert
-  (`src/services/audio.js`), beides Platzhalter und später austauschbar
+  (`src/services/audio.js`, `src/services/music.js`), beides Platzhalter und später austauschbar
 
 ## Entwickeln
 

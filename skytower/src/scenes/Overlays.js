@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { W, VIEW_H, ZOOM, setupCamera, txt, button } from '../view.js';
-import { sfx, music } from '../services/audio.js';
+import { sfx } from '../services/audio.js';
+import { music } from '../services/music.js';
 
 function panel(scene, h) {
   scene.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.5).setOrigin(0);

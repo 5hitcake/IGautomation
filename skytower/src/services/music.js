@@ -1,0 +1,376 @@
+// Hintergrundmusik, live erzeugt (kostenlos, keine Lizenzfragen).
+//
+// Ein 32-Takt-Song in C-Dur (Strophe A, Überleitung B, A, Refrain C). Im Spiel
+// wird er mit jeder Kamerastufe schneller, bekommt mehr Instrumente dazu und
+// wechselt ab Stufe 3 und 6 einen Halbton höher. Im Menü läuft eine ruhige
+// Fassung ohne Schlagzeug.
+import { audioOut } from './audio.js';
+
+const CFG = {
+  menuBpm: 92,
+  gameBpm: 120,
+  bpmPerLevel: 7,
+  volume: 0.34,
+};
+
+// Akkorde als MIDI-Töne (tiefe Lage, Bass nimmt den ersten Ton)
+const CHORDS = {
+  C: [48, 52, 55],
+  G: [43, 47, 50],
+  Am: [45, 48, 52],
+  F: [41, 45, 48],
+  Em: [40, 43, 47],
+};
+
+// Melodie in Achteln: Note, "-" = vorherige Note halten, "." = Pause
+const SECTIONS = {
+  A: {
+    chords: ['C', 'G', 'Am', 'F', 'C', 'G', 'F', 'G'],
+    melody: [
+      'E5 G5 C6 G5 E5 G5 A5 G5',
+      'D5 G5 B5 G5 D5 G5 A5 G5',
+      'C5 E5 A5 E5 C5 E5 G5 E5',
+      'F5 - A5 - C6 - A5 G5',
+      'E5 G5 C6 G5 E5 G5 A5 G5',
+      'D5 G5 B5 D6 C6 B5 A5 G5',
+      'A5 - C6 A5 G5 F5 E5 D5',
+      'D5 - G5 - B5 - . .',
+    ],
+  },
+  B: {
+    chords: ['Am', 'F', 'C', 'G', 'Am', 'F', 'G', 'G'],
+    melody: [
+      'A5 - . A5 C6 - B5 A5',
+      'A5 - G5 - F5 - E5 F5',
+      'G5 - . G5 C6 - B5 G5',
+      'B5 - A5 - G5 - D5 E5',
+      'A5 - . A5 C6 - D6 E6',
+      'F6 - E6 D6 C6 - A5 C6',
+      'D6 - B5 G5 D6 - B5 G5',
+      'D6 - - - . . G5 B5',
+    ],
+  },
+  C: {
+    chords: ['F', 'G', 'Em', 'Am', 'F', 'G', 'C', 'C'],
+    melody: [
+      'C6 - A5 - C6 D6 C6 A5',
+      'B5 - G5 - B5 C6 B5 G5',
+      'G5 - E5 - G5 A5 G5 E5',
+      'A5 - - - C6 - E6 -',
+      'F6 - E6 - D6 - C6 -',
+      'D6 - C6 - B5 - G5 -',
+      'C6 - E6 - G6 - E6 C6',
+      'C6 - - - . . . .',
+    ],
+  },
+};
+
+const NOTE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const toMidi = (n) => 12 * (Number(n.slice(-1)) + 1) + NOTE[n[0]] + (n[1] === '#' ? 1 : 0);
+const midiHz = (m) => 440 * 2 ** ((m - 69) / 12);
+
+/** Song als Liste von Takten: { chord, melody: [[midi, achtel] | null] × 8 } */
+function buildSong(form) {
+  const bars = [];
+  for (const key of form) {
+    const sec = SECTIONS[key];
+    sec.melody.forEach((line, b) => {
+      const tokens = line.split(' ');
+      const mel = tokens.map((tok, i) => {
+        if (tok === '.' || tok === '-') return null;
+        let len = 1;
+        while (tokens[i + len] === '-') len++;
+        return [toMidi(tok), len];
+      });
+      bars.push({ chord: CHORDS[sec.chords[b]], melody: mel });
+    });
+  }
+  return bars;
+}
+
+const SONGS = {
+  game: buildSong(['A', 'B', 'A', 'C']),
+  menu: buildSong(['A', 'B']),
+};
+
+// ---------------------------------------------------------------------------
+
+let ctx = null;
+let out = null; // Gain + Kompressor dieses Laufs
+let bus = null;
+let noiseBuf = null;
+let timer = null;
+let mode = 'menu';
+let level = 0;
+let step = 0;
+let nextTime = 0;
+let transpose = 0;
+
+const bpm = () => (mode === 'menu' ? CFG.menuBpm : CFG.gameBpm + level * CFG.bpmPerLevel);
+const sixteenth = () => 60 / bpm() / 4;
+
+function makeBus() {
+  if (!noiseBuf) {
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const filter = (type, freq, q = 1) => {
+    const f = ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    f.Q.value = q;
+    return f;
+  };
+
+  // Echo für Melodie und Arpeggio
+  const delay = ctx.createDelay(1);
+  delay.delayTime.value = sixteenth() * 3;
+  const fb = ctx.createGain();
+  fb.gain.value = 0.3;
+  const wet = ctx.createGain();
+  wet.gain.value = 0.22;
+  delay.connect(fb).connect(delay);
+  delay.connect(filter('lowpass', 2400)).connect(wet).connect(out);
+
+  const lead = filter('lowpass', 3400);
+  lead.connect(out);
+  lead.connect(delay);
+  const arp = filter('lowpass', 2800);
+  arp.connect(out);
+  arp.connect(delay);
+  const bass = filter('lowpass', 700, 2);
+  bass.connect(out);
+  const pad = filter('lowpass', 1400);
+  pad.connect(out);
+  const snare = filter('bandpass', 1900, 0.8);
+  snare.connect(out);
+  const hat = filter('highpass', 7500);
+  hat.connect(out);
+  return { delay, lead, arp, bass, pad, snare, hat };
+}
+
+function env(t, attack, hold, release, vol) {
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + attack);
+  g.gain.setValueAtTime(vol, t + attack + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + attack + hold + release);
+  return g;
+}
+
+function osc(type, midi, t, end, target, detune = 0) {
+  const o = ctx.createOscillator();
+  o.type = type;
+  o.frequency.setValueAtTime(midiHz(midi), t);
+  o.detune.value = detune;
+  o.connect(target);
+  o.start(t);
+  o.stop(end + 0.05);
+}
+
+function leadNote(m, t, dur, vol, soft) {
+  const g = env(t, 0.012, Math.max(0, dur - 0.08), 0.12, vol);
+  g.connect(bus.lead);
+  if (soft) {
+    osc('triangle', m, t, t + dur + 0.14, g);
+  } else {
+    osc('square', m, t, t + dur + 0.14, g, -7);
+    osc('sawtooth', m, t, t + dur + 0.14, g, 7);
+  }
+}
+
+function pluck(m, t, vol) {
+  const g = env(t, 0.004, 0, 0.16, vol);
+  g.connect(bus.arp);
+  osc('triangle', m, t, t + 0.2, g);
+}
+
+function bassNote(m, t, dur, vol) {
+  const g = env(t, 0.006, dur * 0.6, dur * 0.4, vol);
+  g.connect(bus.bass);
+  osc('square', m, t, t + dur, g);
+  osc('triangle', m - 12, t, t + dur, g);
+}
+
+function padChord(chord, t, dur, vol) {
+  const g = env(t, 0.35, dur - 0.6, 0.5, vol);
+  g.connect(bus.pad);
+  chord.forEach((m, i) => osc('triangle', m + 12 + transpose, t, t + dur + 0.2, g, i * 4 - 4));
+}
+
+function noise(t, dur, vol, target, decay = true) {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  if (decay) g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(g).connect(target);
+  src.start(t);
+  src.stop(t + dur + 0.02);
+}
+
+function kick(t, vol = 0.9) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.frequency.setValueAtTime(160, t);
+  o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+  o.connect(g).connect(out);
+  o.start(t);
+  o.stop(t + 0.25);
+}
+
+function snare(t) {
+  noise(t, 0.16, 0.55, bus.snare);
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(220, t);
+  o.frequency.exponentialRampToValueAtTime(140, t + 0.08);
+  g.gain.setValueAtTime(0.35, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+  o.connect(g).connect(out);
+  o.start(t);
+  o.stop(t + 0.12);
+}
+
+function playStep(i, t) {
+  const song = SONGS[mode];
+  const barIdx = Math.floor(i / 16) % song.length;
+  const bar = song[barIdx];
+  const s = i % 16;
+  const x = sixteenth();
+  const game = mode === 'game';
+
+  // Tonart nur am Taktanfang wechseln
+  if (s === 0) transpose = game ? (level >= 6 ? 2 : level >= 3 ? 1 : 0) : 0;
+  const tr = transpose;
+  const root = bar.chord[0] + tr;
+
+  // Melodie
+  if (s % 2 === 0) {
+    const n = bar.melody[s / 2];
+    if (n) {
+      const [m, len] = n;
+      const dur = len * 2 * x * 0.92;
+      leadNote(m + tr, t, dur, game ? 0.09 : 0.13, !game);
+      if (game && level >= 4) leadNote(m + tr - 12, t, dur, 0.05, true);
+    }
+  }
+
+  if (!game) {
+    // Menü: weiche Flächen, sanftes Arpeggio, ruhiger Bass
+    if (s === 0) padChord(bar.chord, t, 16 * x, 0.05);
+    if (s === 0 || s === 8) bassNote(root, t, 7 * x, 0.16);
+    if (s % 4 === 2) pluck(bar.chord[(s / 4) % 3 | 0] + 24 + tr, t, 0.05);
+    return;
+  }
+
+  // Bass: synkopiertes Muster
+  if (s === 0 || s === 3 || s === 8 || s === 11) bassNote(root, t, x * 2.4, 0.22);
+  else if (s === 6 || s === 14) bassNote(root + 12, t, x * 1.6, 0.14);
+
+  // Arpeggio ab Stufe 1
+  if (level >= 1) {
+    const tones = [bar.chord[0] + 24, bar.chord[1] + 24, bar.chord[2] + 24, bar.chord[0] + 36];
+    pluck(tones[s % 4] + tr, t, 0.045);
+  }
+
+  // Schlagzeug, wird mit jeder Stufe voller
+  if (s === 0 || s === 8 || (level >= 2 && (s === 4 || s === 12))) kick(t, s % 8 === 0 ? 0.9 : 0.6);
+  if (level >= 3 && s === 14) kick(t, 0.5);
+  if (s === 4 || s === 12) snare(t);
+  if (s % 4 === 2) noise(t, 0.05, 0.14, bus.hat);
+  if (level >= 2 && s % 2 === 0 && s % 4 !== 2) noise(t, 0.03, 0.07, bus.hat);
+  if (level >= 5 && s % 2 === 1) noise(t, 0.025, 0.05, bus.hat);
+  if (level >= 2 && (s === 6 || s === 14)) noise(t, 0.2, 0.08, bus.hat);
+  // Crash am Anfang jedes 8-Takt-Abschnitts
+  if (s === 0 && barIdx % 8 === 0 && level >= 1) noise(t, 1.2, 0.12, bus.hat);
+}
+
+function schedule() {
+  while (nextTime < ctx.currentTime + 0.15) {
+    playStep(step, nextTime);
+    nextTime += sixteenth();
+    step = (step + 1) % (SONGS[mode].length * 16);
+  }
+}
+
+export const music = {
+  /** Startet die Musik im Modus 'menu' oder 'game' (setzt unlockAudio voraus). */
+  start(newMode, newLevel = 0) {
+    const a = audioOut();
+    if (!a) return;
+    ctx = a.ctx;
+    const changed = newMode !== mode;
+    mode = newMode;
+    this.setLevel(newLevel);
+    if (timer && !changed) return;
+    this.stop();
+    const gain = ctx.createGain();
+    gain.gain.value = CFG.volume;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16;
+    comp.ratio.value = 4;
+    gain.connect(comp).connect(a.master);
+    out = gain;
+    bus = makeBus();
+    step = 0;
+    nextTime = ctx.currentTime + 0.06;
+    timer = setInterval(schedule, 25);
+    schedule();
+  },
+  setLevel(l) {
+    level = l;
+    if (bus && ctx) bus.delay.delayTime.setTargetAtTime(sixteenth() * 3, ctx.currentTime, 0.1);
+  },
+  stop() {
+    if (timer) clearInterval(timer);
+    timer = null;
+    if (out && ctx) {
+      const g = out;
+      const b = bus;
+      g.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+      setTimeout(() => {
+        g.disconnect();
+        b.delay.disconnect(); // Echo-Schleife auflösen
+      }, 600);
+    }
+    out = null;
+    bus = null;
+  },
+};
+
+/**
+ * Rendert die Musik ohne Lautsprecher in einen AudioBuffer (für Hörproben
+ * und Tests). Beeinflusst eine gerade laufende Musik nicht.
+ */
+export async function renderPreview(previewMode, previewLevel, seconds, sampleRate = 32000) {
+  const saved = { ctx, out, bus, mode, level, step, nextTime, transpose };
+  const off = new OfflineAudioContext(1, Math.ceil(sampleRate * seconds), sampleRate);
+  try {
+    ctx = off;
+    mode = previewMode;
+    level = previewLevel;
+    const gain = off.createGain();
+    gain.gain.value = CFG.volume * 1.6;
+    const comp = off.createDynamicsCompressor();
+    comp.threshold.value = -16;
+    comp.ratio.value = 4;
+    gain.connect(comp).connect(off.destination);
+    out = gain;
+    bus = makeBus();
+    step = 0;
+    nextTime = 0.05;
+    while (nextTime < seconds - 0.3) {
+      playStep(step, nextTime);
+      nextTime += sixteenth();
+      step = (step + 1) % (SONGS[mode].length * 16);
+    }
+  } finally {
+    ({ ctx, out, bus, mode, level, step, nextTime, transpose } = saved);
+  }
+  return off.startRendering();
+}

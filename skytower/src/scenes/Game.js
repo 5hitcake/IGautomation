@@ -5,7 +5,8 @@ import { platformTexture, PLATFORM_H, PLATFORM_PAD } from '../art.js';
 import { Sky } from '../systems/sky.js';
 import { ComboTracker } from '../systems/combo.js';
 import { save } from '../services/storage.js';
-import { sfx, vibrate, music } from '../services/audio.js';
+import { sfx, vibrate } from '../services/audio.js';
+import { music } from '../services/music.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
