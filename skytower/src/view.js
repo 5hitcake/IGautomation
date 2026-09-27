@@ -13,7 +13,7 @@ export const VIEW_H = Math.round(Math.min(1700, Math.max(1100, (W * innerH) / in
 
 const cssW = Math.min(innerW, (innerH * W) / VIEW_H);
 const dpr = window.devicePixelRatio || 1;
-export const ZOOM = Math.min(2.5, Math.max(1, (cssW * dpr) / W));
+export const ZOOM = Math.min(2, Math.max(1, (cssW * dpr) / W));
 
 export function setupCamera(scene) {
   scene.cameras.main.setOrigin(0, 0).setZoom(ZOOM);

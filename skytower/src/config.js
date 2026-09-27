@@ -34,7 +34,8 @@ export const TOWER = {
 };
 
 export const CAMERA = {
-  startFloor: 5, // ab hier scrollt die Kamera
+  startFloor: 5, // ab hier scrollt die Kamera ...
+  startAfter: 8, // ... spätestens aber nach so vielen Sekunden
   baseSpeed: 55,
   speedPerLevel: 32,
   levelEvery: 30, // Sekunden bis zur nächsten Stufe

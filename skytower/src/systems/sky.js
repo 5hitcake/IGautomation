@@ -84,9 +84,13 @@ export class Sky {
     const t = next ? Math.max(0, Math.min(1, (floor - (next.from - BLEND_FLOORS)) / BLEND_FLOORS)) : 0;
     const top = mix(z.skyTop, next ? next.skyTop : z.skyTop, t);
     const bottom = mix(z.skyBottom, next ? next.skyBottom : z.skyBottom, t);
-    this.g.clear();
-    this.g.fillGradientStyle(top, top, bottom, bottom, 1);
-    this.g.fillRect(0, 0, W, VIEW_H);
+    if (top !== this.lastTop || bottom !== this.lastBottom) {
+      this.lastTop = top;
+      this.lastBottom = bottom;
+      this.g.clear();
+      this.g.fillGradientStyle(top, top, bottom, bottom, 1);
+      this.g.fillRect(0, 0, W, VIEW_H);
+    }
 
     const space = idx >= 4;
     const starAlpha = Math.max(0, Math.min(1, (floor - 330) / 120));

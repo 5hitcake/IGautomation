@@ -3,17 +3,18 @@
 Endless-Jumper fürs Handy, angelehnt an den PC-Klassiker *Icy Tower*.
 Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 
-## Stand: Prototyp v0.1 (Phase 1)
+## Stand: Prototyp v0.2 (Phase 1)
 
 - Automatisches Springen, Sprunghöhe hängt vom Anlauf ab
 - Steuerung: linke/rechte Bildschirmhälfte halten (am PC: Pfeiltasten oder A/D, P = Pause)
 - Wandabpraller mit Höhenbonus
-- Kamera startet ab Etage 5 und wird alle 30 s schneller
+- Kamera startet ab Etage 5 (spätestens nach 8 s) und wird alle 30 s schneller
 - Combos nach Icy-Tower-Regeln (Punkte = Etagen²) mit Combo-Rufen
 - 7 Himmelszonen mit Farbübergängen, zerfallende Regenwolken, bewegliche Plattformen
 - Münzen, lokaler Highscore, Tutorial-Hinweise, Pause, Game-Over-Bildschirm
-- Grafiken im Code gezeichnet (`src/art.js`), Sounds live synthetisiert (`src/services/audio.js`),
-  beides Platzhalter und später austauschbar
+- Hintergrundmusik (live erzeugt), wird mit jeder Kamerastufe schneller und voller
+- Grafiken im Code gezeichnet (`src/art.js`), Sounds und Musik live synthetisiert
+  (`src/services/audio.js`), beides Platzhalter und später austauschbar
 
 ## Entwickeln
 

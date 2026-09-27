@@ -138,6 +138,8 @@ const STYLE = {
 };
 
 export const PLATFORM_H = 40;
+// Rand um die Plattform für Wolken-Buckel, Eiszapfen, Tropfen und Flügel
+export const PLATFORM_PAD = { x: 36, top: 18, bottom: 36 };
 
 function puffy(g, c, w, h) {
   const step = 40;
@@ -206,4 +208,24 @@ export function drawPlatform(g, style, w, opts = {}) {
     g.fillEllipse(-14, 8, 26, 13);
     g.fillEllipse(w + 14, 8, 26, 13);
   }
+}
+
+/**
+ * Plattform einmalig als Textur vorberechnen (statt jedes Frame als Vektor
+ * neu zu zeichnen) und wiederverwenden. Gibt den Texturnamen zurück; das Bild
+ * wird mit Ursprung (0,0) bei (x - PAD.x, top - PAD.top) und Scale 1/zoom gesetzt.
+ */
+export function platformTexture(scene, style, w, moving, zoom) {
+  const key = `plat_${style}_${moving ? 'm' : 's'}_${w}`;
+  if (scene.textures.exists(key)) return key;
+  const P = PLATFORM_PAD;
+  const g = scene.make.graphics({}, false);
+  drawPlatform(g, style, w, { moving });
+  g.setScale(zoom).setPosition(P.x * zoom, P.top * zoom);
+  const tw = Math.ceil((w + 2 * P.x) * zoom);
+  const th = Math.ceil((PLATFORM_H + P.top + P.bottom) * zoom);
+  const tex = scene.textures.addDynamicTexture(key, tw, th);
+  tex.draw(g);
+  g.destroy();
+  return key;
 }

@@ -3,7 +3,7 @@ import { W, VIEW_H, ZOOM, setupCamera, txt, button } from '../view.js';
 import { Sky } from '../systems/sky.js';
 import { drawPlatform } from '../art.js';
 import { save } from '../services/storage.js';
-import { unlockAudio, setSoundEnabled, sfx } from '../services/audio.js';
+import { unlockAudio, setSoundEnabled, sfx, music } from '../services/audio.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -15,6 +15,12 @@ export class MenuScene extends Phaser.Scene {
     const s = save.get();
     setSoundEnabled(s.settings.sound);
     this.sky = new Sky(this, { city: true });
+    // Musik darf erst nach der ersten Berührung starten (Browser-Regel)
+    music.start('menu');
+    this.input.once('pointerdown', () => {
+      unlockAudio();
+      music.start('menu');
+    });
 
     const title = txt(this, W / 2, VIEW_H * 0.17, 'Sky Tower', 118, { strokeThickness: 16, color: '#ffffff' });
     title.setShadow(0, 10, '#2d3a5a', 0, true, false);
@@ -33,8 +39,6 @@ export class MenuScene extends Phaser.Scene {
       ease: 'Quad.out',
       yoyo: true,
       repeat: -1,
-      onYoyo: () => wolki.setTexture('wolki_fall'),
-      onRepeat: () => wolki.setTexture('wolki_up'),
     });
 
     const stats = [
@@ -47,6 +51,7 @@ export class MenuScene extends Phaser.Scene {
     button(this, W / 2, VIEW_H * 0.76, 'Spielen', () => {
       unlockAudio();
       sfx.click();
+      music.start('game');
       this.scene.start('Game');
     }, { w: 420, h: 116, size: 54 });
 
@@ -58,7 +63,7 @@ export class MenuScene extends Phaser.Scene {
       sfx.click();
     }, { w: 260, h: 78, size: 34, fill: 0xbfe6ff });
 
-    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.1 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
+    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.2 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
   }
 
   soundLabel() {

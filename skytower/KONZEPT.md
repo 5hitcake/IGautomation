@@ -57,8 +57,8 @@ herausfällt, hat verloren.
 | Beschleunigung / Richtungswechsel / Abbremsen | 2400 / 4800 / 1400 px/s² |
 
 ### 2.4 Kamera & Druck
-- Die Kamera steht still, bis der Spieler **Etage 5** erreicht, danach scrollt
-  sie konstant nach oben.
+- Die Kamera steht still, bis der Spieler **Etage 5** erreicht (spätestens
+  nach 8 Sekunden), danach scrollt sie konstant nach oben.
 - **Alle 30 Sekunden** wird sie schneller („Schneller!“-Einblendung + Sound),
   über 8 Stufen hinweg.
 - Ist der Spieler im oberen Bildschirmdrittel, zieht die Kamera mit ihm mit.

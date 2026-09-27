@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { W, VIEW_H, setupCamera, txt, button } from '../view.js';
-import { sfx } from '../services/audio.js';
+import { sfx, music } from '../services/audio.js';
 
 function panel(scene, h) {
   scene.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.5).setOrigin(0);
@@ -27,6 +27,7 @@ export class PauseScene extends Phaser.Scene {
       sfx.click();
       this.scene.stop();
       this.scene.resume('Game');
+      music.start('game', this.scene.get('Game').camLevel);
     });
     button(this, W / 2, y + 350, 'Menü', () => {
       sfx.click();

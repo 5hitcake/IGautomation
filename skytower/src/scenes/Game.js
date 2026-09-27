@@ -1,16 +1,17 @@
 import Phaser from 'phaser';
 import { PHYSICS, TOWER, CAMERA, COMBO, ZONES, zoneIndexForFloor } from '../config.js';
 import { W, VIEW_H, ZOOM, setupCamera, txt } from '../view.js';
-import { drawPlatform, PLATFORM_H } from '../art.js';
+import { platformTexture, PLATFORM_H, PLATFORM_PAD } from '../art.js';
 import { Sky } from '../systems/sky.js';
 import { ComboTracker } from '../systems/combo.js';
 import { save } from '../services/storage.js';
-import { sfx, vibrate } from '../services/audio.js';
+import { sfx, vibrate, music } from '../services/audio.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
 const WALL = TOWER.wallWidth;
 const HUD_Y = 74;
+const PAD = PLATFORM_PAD;
 const PAUSE_BTN = { x: 58, y: HUD_Y, r: 40 };
 
 const TUTORIAL = [
@@ -68,6 +69,7 @@ export class GameScene extends Phaser.Scene {
     this.createInput();
 
     if (!save.get().tutorialSeen) this.showTutorial();
+    music.start('game', 0);
 
     this.game.events.on('hidden', this.autoPause, this);
     this.events.once('shutdown', () => this.game.events.off('hidden', this.autoPause, this));
@@ -155,6 +157,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       const f = Math.min(1, floor / TOWER.shrinkUntilFloor);
       w = TOWER.startWidth * (1 - f * (1 - TOWER.minWidthFactor)) * (0.85 + Math.random() * 0.3);
+      w = Math.round(w / 8) * 8; // Breiten bündeln, damit Texturen wiederverwendet werden
       x = WALL + Math.random() * (inner - w);
       if (floor >= TOWER.crumbleFromFloor && Math.random() < TOWER.crumbleChance) {
         type = 'crumble';
@@ -165,9 +168,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     const top = -floor * FH;
-    const g = this.add.graphics({ x, y: top }).setDepth(5);
-    drawPlatform(g, style, w, { moving: type === 'moving' });
-    const p = { floor, x, w, top, type, g, gone: false, crumbleT: -1, vx: 0 };
+    const key = platformTexture(this, style, w, type === 'moving', ZOOM);
+    const img = this.add.image(x - PAD.x, top - PAD.top, key).setOrigin(0).setScale(1 / ZOOM).setDepth(5);
+    const p = { floor, x, w, top, type, img, gone: false, crumbleT: -1, vx: 0 };
     if (type === 'moving') p.vx = (Math.random() < 0.5 ? -1 : 1) * TOWER.movingSpeed * (0.8 + Math.random() * 0.4);
     if (style === 'milestone') {
       p.label = txt(this, x + w / 2, top + PLATFORM_H / 2, `${floor}`, 34, { color: '#5a3a00', stroke: '#fff0a8', strokeThickness: 6 }).setDepth(6);
@@ -186,7 +189,7 @@ export class GameScene extends Phaser.Scene {
     const bottomY = this.scrollY + VIEW_H + 240;
     this.platforms = this.platforms.filter((p) => {
       if (p.top <= bottomY) return true;
-      p.g.destroy();
+      p.img.destroy();
       p.label?.destroy();
       p.coin?.destroy();
       return false;
@@ -199,15 +202,15 @@ export class GameScene extends Phaser.Scene {
         p.x += p.vx * dt;
         if (p.x < WALL) { p.x = WALL; p.vx *= -1; }
         if (p.x + p.w > W - WALL) { p.x = W - WALL - p.w; p.vx *= -1; }
-        p.g.x = p.x;
+        p.img.x = p.x - PAD.x;
         if (p.coin) p.coin.x = p.x + p.w / 2;
       }
       if (p.crumbleT >= 0 && !p.gone) {
         p.crumbleT += dt;
-        p.g.x = p.x + Math.sin(p.crumbleT * 70) * 3;
+        p.img.x = p.x - PAD.x + Math.sin(p.crumbleT * 70) * 3;
         if (p.crumbleT >= TOWER.crumbleDelay) {
           p.gone = true;
-          this.tweens.add({ targets: p.g, alpha: 0, y: p.top + 80, duration: 350, ease: 'Quad.in' });
+          this.tweens.add({ targets: p.img, alpha: 0, y: p.top - PAD.top + 80, duration: 350, ease: 'Quad.in' });
         }
       }
       if (p.coin) {
@@ -333,11 +336,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateCamera(dt) {
+    if (!this.camStarted && this.time0 >= CAMERA.startAfter) this.camStarted = true;
     if (this.camStarted) {
       this.levelTimer += dt;
       if (this.levelTimer >= CAMERA.levelEvery && this.camLevel < CAMERA.maxLevel) {
         this.levelTimer = 0;
         this.camLevel += 1;
+        music.setLevel(this.camLevel);
         this.popup('Schneller!', null, '#ff8a5c');
         sfx.hurry();
       }
@@ -427,12 +432,14 @@ export class GameScene extends Phaser.Scene {
   pauseGame() {
     if (this.state !== 'play' || this.scene.isPaused()) return;
     this.scene.pause();
+    music.stop();
     this.scene.launch('Pause');
   }
 
   gameOver() {
     this.state = 'dead';
     this.combo.end();
+    music.stop();
     sfx.gameOver();
     if (save.get().settings.vibration) vibrate(180);
 
