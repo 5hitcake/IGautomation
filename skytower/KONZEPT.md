@@ -1,8 +1,7 @@
-# Sky Tower – Game-Design-Konzept (Entwurf v0.1)
+# Sky Tower – Game-Design-Konzept (Entwurf v0.2)
 
-> Status: **zum Absegnen**. Punkte mit ❓ sind offene Entscheidungen, jeweils mit
-> Optionen und einer Empfehlung (⭐). Alles andere ist ein Vorschlag, den du
-> einfach streichen oder ändern kannst.
+> Status: **v0.2**. Entschieden: Steuerung, Zwischenwerbung, Sound-Quelle (✅).
+> Punkte mit ❓ sind noch offen, jeweils mit Optionen und einer Empfehlung (⭐).
 
 ---
 
@@ -38,8 +37,8 @@ herausfällt, hat verloren.
   Profi-Trick für große Combos.
 
 ### 2.2 Steuerung
-❓ **Steuerungsart** (weitere als Option in den Einstellungen):
-- ⭐ **A) Halten links/rechts:** linke oder rechte Bildschirmhälfte gedrückt
+✅ **Steuerungsart:** Standard ist A, B und C gibt es als Option in den Einstellungen.
+- **A) Halten links/rechts:** linke oder rechte Bildschirmhälfte gedrückt
   halten = beschleunigen, loslassen = abbremsen. Einfach und präzise.
 - **B) Finger-Folgen:** Die Figur läuft Richtung Fingerposition. Sehr intuitiv,
   aber weniger Kontrolle über den Anlauf.
@@ -176,11 +175,8 @@ in einer Runde · 1.000 Münzen gesammelt · 100 Runden gespielt · alle Zonen g
   - **Weiterleben** nach Game Over (1× pro Runde, Figur startet auf einer
     Rettungswolke)
   - **Münzen verdoppeln** am Rundenende
-- ❓ **Zwischenwerbung** (Vollbild zwischen Runden):
-  - **A)** gar nicht, nur belohnte Werbung (spielerfreundlich, weniger Einnahmen)
-  - ⭐ **B)** sparsam: frühestens ab Runde 5, danach max. alle 3 Runden und
-    mindestens 3 Minuten Abstand
-  - **C)** nach jeder Runde (viel Einnahme, schlechte Bewertungen)
+- ✅ **Zwischenwerbung** (Vollbild zwischen Runden): **sparsam**, frühestens ab
+  Runde 5, danach max. alle 3 Runden und mindestens 3 Minuten Abstand.
 - **Kein Banner** während des Spiels (stört auf kleinen Bildschirmen).
 
 ### 7.2 In-App-Käufe (Google Play Billing)
@@ -233,10 +229,8 @@ Konturen, freundlicher Ausdruck, leichte Schattierung. Alle Assets mit
 - **Combo-Rufe:** gesprochene Stimme für die Rufe aus Kapitel 3.
 - **Musik:** ein fröhlicher, loopbarer Haupttrack, der mit der Kamerastufe
   schneller/intensiver wird, plus ein ruhiger Menütrack.
-- ❓ **Quelle:**
-  - ⭐ **A)** KI-generiert über das verbundene Tool (passt zum Grafik-Workflow)
-  - **B)** lizenzfreie CC0-Bibliotheken (z. B. Kenney, OpenGameArt)
-  - **C)** gemischt: Effekte aus CC0, Musik und Stimme per KI
+- ✅ **Quelle: gemischt**. Soundeffekte aus CC0-Bibliotheken (z. B. Kenney,
+  OpenGameArt), Musik und Combo-Stimme per KI.
 - Getrennte Lautstärke-Regler für Musik/Effekte, Vibration an/aus.
 
 ---
@@ -317,9 +311,9 @@ Tage** durchführen. Am besten Tester früh sammeln (Freunde, Familie, Follower)
 
 ## 14. Offene Entscheidungen – Übersicht
 
-1. **Steuerung** (2.2): ⭐ Halten links/rechts · Finger-Folgen · Neigen
+1. ~~Steuerung~~ ✅ Halten links/rechts
 2. **Wind ab Etage 300** (4): ⭐ ja, schwach · nein
-3. **Zwischenwerbung** (7.1): keine · ⭐ sparsam · nach jeder Runde
+3. ~~Zwischenwerbung~~ ✅ sparsam
 4. **Starterpaket** (7.2): ja · nein
-5. **Sound-Quelle** (9): ⭐ KI · CC0 · gemischt
+5. ~~Sound-Quelle~~ ✅ gemischt (CC0-Effekte, KI-Musik/Stimme)
 6. **Skin-Liste & Preise** (5.2, 7.2): so übernehmen oder anpassen?
