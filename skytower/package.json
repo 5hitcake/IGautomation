@@ -12,10 +12,14 @@
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
     "@fontsource/baloo-2": "^5.3.0",
     "phaser": "~3.90.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
     "vite": "^8.3.1",
     "vite-plugin-singlefile": "^2.3.3"
   }

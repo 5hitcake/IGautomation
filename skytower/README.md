@@ -13,6 +13,7 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - 7 Himmelszonen mit Farbübergängen, zerfallende Regenwolken, bewegliche Plattformen
 - Wolki mit 6 Gesichtern (Übersicht: `design/wolki-gesichter.png`); das ^^-Gesicht
   im Menü sowie bei Combos ab 25 Etagen und beim Erreichen einer neuen Zone
+- Bei „Neuer Rekord!“ jubelt Wolki über dem Ergebnis
 - Münzen, lokaler Highscore, Tutorial-Hinweise, Pause, Game-Over-Bildschirm
 - Hintergrundmusik (live erzeugt), wird mit jeder Kamerastufe schneller und voller
 - Grafiken im Code gezeichnet (`src/art.js`), Sounds und Musik live synthetisiert
@@ -29,3 +30,21 @@ npm run build:preview  # eine einzige HTML-Datei zum Testen (dist-single/preview
 ```
 
 Balancing-Werte (Physik, Kamera, Combos, Zonen) stehen alle in `src/config.js`.
+
+## Android-App (Phase 3)
+
+- Capacitor-Projekt in `android/`, App-ID `de.wolki.skytower`, nur Hochformat
+- Zurück-Taste: im Spiel Pause, in der Pause weiter, im Menü App schließen (`src/services/native.js`)
+- App-Icon und Startbildschirm mit Wolki: `PLAYWRIGHT=… node scripts/make-icons.mjs`
+- **Test-APK automatisch:** Der Workflow `.github/workflows/skytower-apk.yml` baut bei jeder
+  Änderung an `skytower/` eine APK und legt sie unter *Releases → Sky Tower Testversion* ab.
+- Test-APKs sind mit einem festen Test-Schlüssel (`android/app/debug.keystore`) signiert,
+  damit Updates die installierte App überschreiben. Für den Play Store kommt ein
+  eigener, geheimer Release-Schlüssel.
+
+Lokal bauen (braucht Java 21 und das Android SDK):
+
+```bash
+npm run build && npx cap sync android
+cd android && ./gradlew assembleDebug   # -> app/build/outputs/apk/debug/app-debug.apk
+```

@@ -1,0 +1,9 @@
+{
+  "appId": "de.wolki.skytower",
+  "appName": "Sky Tower",
+  "webDir": "dist",
+  "backgroundColor": "#7ec8f2",
+  "android": {
+    "backgroundColor": "#7ec8f2"
+  }
+}

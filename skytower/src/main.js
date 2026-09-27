@@ -5,6 +5,7 @@ import { BootScene } from './scenes/Boot.js';
 import { MenuScene } from './scenes/Menu.js';
 import { GameScene } from './scenes/Game.js';
 import { PauseScene, GameOverScene } from './scenes/Overlays.js';
+import { setupNative } from './services/native.js';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -16,6 +17,8 @@ const game = new Phaser.Game({
   input: { activePointers: 3 },
   scene: [BootScene, MenuScene, GameScene, GameOverScene, PauseScene],
 });
+
+setupNative(game);
 
 // Für automatisierte Tests im Browser
 window.__skytower = game;

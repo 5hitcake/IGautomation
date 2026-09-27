@@ -1,0 +1,85 @@
+name: Sky Tower – Test-APK bauen
+
+# Baut bei jeder Änderung an skytower/ eine installierbare Test-APK und legt
+# sie unter Releases als "Sky Tower Testversion" ab (zum Laden aufs Handy).
+# Kein Play-Store-Build: dafür kommt später ein eigener Workflow mit
+# geheimem Release-Schlüssel.
+on:
+  push:
+    paths:
+      - "skytower/**"
+      - ".github/workflows/skytower-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: skytower-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skytower
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: skytower/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Web-Build + Capacitor-Sync
+        run: |
+          npm run build
+          npx cap sync android
+
+      - name: APK bauen
+        working-directory: skytower/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: APK benennen
+        id: apk
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME="sky-tower-v${VERSION}-build${{ github.run_number }}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "$NAME"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: skytower/${{ steps.apk.outputs.name }}
+
+      - name: Als Testversion unter Releases ablegen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: skytower-test
+          target_commitish: ${{ github.sha }}
+          name: Sky Tower Testversion
+          prerelease: true
+          files: skytower/${{ steps.apk.outputs.name }}
+          body: |
+            Aktuelle Test-APK von Sky Tower (v${{ steps.apk.outputs.version }}, Build ${{ github.run_number }}, Commit ${{ github.sha }}).
+
+            **Installieren:** Die neueste `.apk`-Datei unten am Handy antippen und herunterladen,
+            dann öffnen. Beim ersten Mal fragt Android, ob der Browser/Dateimanager
+            „unbekannte Apps installieren“ darf – einmal erlauben.
