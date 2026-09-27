@@ -36,6 +36,7 @@ export class GameScene extends Phaser.Scene {
     this.vx = 0;
     this.vy = 0;
     this.squash = 0;
+    this.happyUntil = 0; // bis dahin zeigt Wolki das ^^-Gesicht
     this.spin = { angle: 0 };
     this.lastWallBounce = -1;
 
@@ -332,6 +333,7 @@ export class GameScene extends Phaser.Scene {
       this.zoneShown = zi;
       this.popup(ZONES[zi].name, `Etage ${ZONES[zi].from}`, '#bfe6ff');
       sfx.zone();
+      this.celebrate();
     }
   }
 
@@ -360,6 +362,11 @@ export class GameScene extends Phaser.Scene {
       this.sparks.explode(Math.min(40, 10 + r.floors), this.px, this.py);
       if (save.get().settings.vibration) vibrate(r.floors >= 25 ? 60 : 25);
     }
+    if (r.floors >= COMBO.celebrateFrom) this.celebrate();
+  }
+
+  celebrate() {
+    this.happyUntil = this.time0 + COMBO.celebrateTime;
   }
 
   popup(text, sub, color) {
@@ -389,6 +396,7 @@ export class GameScene extends Phaser.Scene {
   renderPlayer(dt) {
     let pose = 'up';
     if (this.state === 'dead') pose = 'dead';
+    else if (this.time0 < this.happyUntil) pose = 'happy';
     else if (this.vy > 150) pose = 'fall';
     else if (this.combo.active) pose = 'combo';
     const key = `wolki_${pose}`;

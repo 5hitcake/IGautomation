@@ -31,7 +31,7 @@ export class MenuScene extends Phaser.Scene {
     const baseY = VIEW_H * 0.52;
     const pg = this.add.graphics({ x: W / 2 - 110, y: baseY }).setDepth(3);
     drawPlatform(pg, 'cloud', 220);
-    const wolki = this.add.image(W / 2, baseY, 'wolki_idle').setOrigin(0.5, 0.96).setScale(1.5 / ZOOM).setDepth(4);
+    const wolki = this.add.image(W / 2, baseY, 'wolki_happy').setOrigin(0.5, 0.96).setScale(1.5 / ZOOM).setDepth(4);
     this.tweens.add({
       targets: wolki,
       y: baseY - 190,

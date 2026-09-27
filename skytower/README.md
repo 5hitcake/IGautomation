@@ -11,6 +11,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - Kamera startet ab Etage 5 (spätestens nach 8 s) und wird alle 30 s schneller
 - Combos nach Icy-Tower-Regeln (Punkte = Etagen²) mit Combo-Rufen
 - 7 Himmelszonen mit Farbübergängen, zerfallende Regenwolken, bewegliche Plattformen
+- Wolki mit 6 Gesichtern (Übersicht: `design/wolki-gesichter.png`); das ^^-Gesicht
+  im Menü sowie bei Combos ab 25 Etagen und beim Erreichen einer neuen Zone
 - Münzen, lokaler Highscore, Tutorial-Hinweise, Pause, Game-Over-Bildschirm
 - Hintergrundmusik (live erzeugt), wird mit jeder Kamerastufe schneller und voller
 - Grafiken im Code gezeichnet (`src/art.js`), Sounds und Musik live synthetisiert

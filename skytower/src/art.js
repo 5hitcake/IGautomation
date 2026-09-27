@@ -20,6 +20,7 @@ const BODY = [
 
 const ARMS = {
   idle: [[20, 84, 30], [100, 84, -30]],
+  happy: [[20, 46, -40], [100, 46, 40]],
   up: [[22, 42, -35], [98, 42, 35]],
   fall: [[18, 60, -65], [102, 60, 65]],
   combo: [[24, 38, -20], [96, 38, 20]],
@@ -28,6 +29,7 @@ const ARMS = {
 
 const FEET = {
   idle: [[47, 106], [73, 106]],
+  happy: [[47, 106], [73, 106]],
   up: [[48, 104], [72, 104]],
   fall: [[44, 111], [76, 111]],
   combo: [[50, 102], [70, 102]],
@@ -53,6 +55,13 @@ function face(pose, s) {
         cheeks +
         `<path d="M48 73 Q60 92 72 73 Z" fill="${o}" stroke="${o}" stroke-width="2" stroke-linejoin="round"/>` +
         `<ellipse cx="60" cy="82" rx="6" ry="3.2" fill="#ff7a8a"/>`;
+    case 'happy':
+      // ^^-Augen: für das Hauptmenü und besondere Momente
+      return `<path d="M42 67 L49 58 L56 67" fill="none" stroke="${o}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<path d="M64 67 L71 58 L78 67" fill="none" stroke="${o}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<ellipse cx="37" cy="76" rx="7.5" ry="4.5" fill="${s.cheek}"/><ellipse cx="83" cy="76" rx="7.5" ry="4.5" fill="${s.cheek}"/>` +
+        `<path d="M53 74 Q60 83 67 74 Z" fill="${o}" stroke="${o}" stroke-width="2" stroke-linejoin="round"/>` +
+        `<ellipse cx="60" cy="79" rx="3.5" ry="2" fill="#ff7a8a"/>`;
     case 'dead':
       return `<path d="M44 58 L54 68 M54 58 L44 68 M66 58 L76 68 M76 58 L66 68" stroke="${o}" stroke-width="4" stroke-linecap="round"/>` +
         `<path d="M50 82 Q55 77 60 82 Q65 87 70 82" fill="none" stroke="${o}" stroke-width="3.5" stroke-linecap="round"/>`;
@@ -62,7 +71,7 @@ function face(pose, s) {
   }
 }
 
-/** Wolki in einer Pose (idle, up, fall, combo, dead), 120×120-Viewbox. */
+/** Wolki in einer Pose (idle, up, fall, combo, happy, dead), 120×120-Viewbox. */
 export function wolkiSvg(pose = 'idle', skin = SKINS.wolki) {
   const s = skin;
   const o = s.outline;

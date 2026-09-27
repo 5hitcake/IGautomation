@@ -47,6 +47,8 @@ export const COMBO = {
   minFloors: 2, // Sprung muss mind. so viele Etagen schaffen
   minJumps: 2, // Combo zählt erst ab so vielen Combo-Sprüngen
   timer: 3, // Sekunden bis zum nächsten Combo-Sprung
+  celebrateFrom: 25, // ab so vielen Etagen strahlt Wolki mit ^^-Augen
+  celebrateTime: 1.6, // Sekunden
 };
 
 export const SCORE = {

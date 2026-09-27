@@ -5,7 +5,7 @@ import {
 } from '../art.js';
 
 export const PLAYER_SIZE = 104;
-const POSES = ['idle', 'up', 'fall', 'combo', 'dead'];
+const POSES = ['idle', 'up', 'fall', 'combo', 'happy', 'dead'];
 
 // Größe jeweils in Welt-Einheiten; gerastert wird mit ZOOM für scharfe Kanten.
 // Im Spiel werden die Bilder deshalb mit setScale(1 / ZOOM) dargestellt.
