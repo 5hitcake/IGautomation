@@ -76,7 +76,8 @@
     4,
     10,
     7,
-    1
+    1,
+    3
   ],
   "recent_backgrounds": [
     "bg_01_mountain_dawn.png",
@@ -86,10 +87,10 @@
     "bg_06_desert_road.png"
   ],
   "recent_bg_videos": [
-    "reel_01_mountain_drone.mp4",
     "reel_05_rain_window.mp4",
     "reel_07_rooftop.mp4",
     "reel_06_clouds_dawn.mp4",
-    "reel_04_mountain_walk.mp4"
+    "reel_04_mountain_walk.mp4",
+    "reel_08_night_road.mp4"
   ]
 }
