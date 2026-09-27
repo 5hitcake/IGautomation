@@ -12,6 +12,9 @@ const FH = TOWER.floorHeight;
 const WALL = TOWER.wallWidth;
 const HUD_Y = 74;
 const PAD = PLATFORM_PAD;
+const STEP = 1 / 120; // Physik-Schritt in Sekunden
+const WIDTH_STEP = 16; // Plattformbreiten in 16er-Schritten (weniger Texturen)
+const PREPARE_FLOORS = 30; // so viele Etagen vor einer neuen Zone Grafiken vorbereiten
 const PAUSE_BTN = { x: 58, y: HUD_Y, r: 40 };
 
 const TUTORIAL = [
@@ -37,6 +40,9 @@ export class GameScene extends Phaser.Scene {
     this.vy = 0;
     this.squash = 0;
     this.happyUntil = 0; // bis dahin zeigt Wolki das ^^-Gesicht
+    this.acc = 0;
+    this.texQueue = [];
+    this.warmedZones = new Set();
     this.spin = { angle: 0 };
     this.lastWallBounce = -1;
 
@@ -54,6 +60,7 @@ export class GameScene extends Phaser.Scene {
     this.platforms = [];
     this.nextFloor = 0;
     this.generate();
+    this.prepareZone(0);
 
     this.player = this.add.image(this.px, this.py, 'wolki_up').setOrigin(0.5, 0.55).setScale(1 / ZOOM).setDepth(7);
     this.sparks = this.add.particles(0, 0, 'spark', {
@@ -158,7 +165,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       const f = Math.min(1, floor / TOWER.shrinkUntilFloor);
       w = TOWER.startWidth * (1 - f * (1 - TOWER.minWidthFactor)) * (0.85 + Math.random() * 0.3);
-      w = Math.round(w / 8) * 8; // Breiten bündeln, damit Texturen wiederverwendet werden
+      w = Math.round(w / WIDTH_STEP) * WIDTH_STEP; // Breiten bündeln, damit Texturen wiederverwendet werden
       x = WALL + Math.random() * (inner - w);
       if (floor >= TOWER.crumbleFromFloor && Math.random() < TOWER.crumbleChance) {
         type = 'crumble';
@@ -236,22 +243,69 @@ export class GameScene extends Phaser.Scene {
   // Spielschleife
 
   update(_t, deltaMs) {
-    const dt = Math.min(deltaMs / 1000, 1 / 30);
-    this.time0 += dt;
-
-    if (this.state === 'play') {
-      this.updatePlayer(dt);
-      this.combo.update(dt);
-      this.updateCamera(dt);
-      this.updatePlatforms(dt);
-      this.generate();
-      if (this.py - R > this.scrollY + VIEW_H + 40) this.gameOver();
+    // Physik in festen Schritten: bei kurzen Rucklern holt das Spiel die Zeit
+    // nach, statt in Zeitlupe zu laufen (max. 0,1 s pro Frame).
+    const frame = Math.min(deltaMs / 1000, 0.1);
+    this.acc += frame;
+    while (this.acc >= STEP) {
+      this.tick(STEP);
+      this.acc -= STEP;
     }
 
+    this.warmNextTexture();
     this.cam.scrollY = this.scrollY;
     this.sky.update(this.scrollY, Math.max(0, -(this.scrollY + VIEW_H / 2) / FH));
-    this.renderPlayer(dt);
+    this.renderPlayer(frame);
     this.renderHud();
+  }
+
+  tick(dt) {
+    this.time0 += dt;
+    if (this.state !== 'play') return;
+    this.updatePlayer(dt);
+    this.combo.update(dt);
+    this.updateCamera(dt);
+    this.updatePlatforms(dt);
+    this.generate();
+    if (this.py - R > this.scrollY + VIEW_H + 40) this.gameOver();
+  }
+
+  // --------------------------------------------------------------------------
+  // Plattform-Grafiken vorab erzeugen und alte Zonen freigeben
+
+  /** Alle Texturen, die Plattformen einer Zone brauchen können. */
+  zoneTextures(zi) {
+    const z = ZONES[zi];
+    const to = (ZONES[zi + 1]?.from ?? z.from + 500) - 1;
+    const widthAt = (floor) => TOWER.startWidth * (1 - Math.min(1, floor / TOWER.shrinkUntilFloor) * (1 - TOWER.minWidthFactor));
+    const lo = Math.round((widthAt(to) * 0.85) / WIDTH_STEP) * WIDTH_STEP;
+    const hi = Math.round((widthAt(z.from) * 1.15) / WIDTH_STEP) * WIDTH_STEP;
+    const list = [];
+    for (let w = lo; w <= hi; w += WIDTH_STEP) {
+      list.push([z.platform, w, false]);
+      if (to >= TOWER.movingFromFloor) list.push([z.platform, w, true]);
+      if (to >= TOWER.crumbleFromFloor) list.push(['rain', w, false]);
+    }
+    return list;
+  }
+
+  warmNextTexture() {
+    const job = this.texQueue.shift();
+    if (job) platformTexture(this, job[0], job[1], job[2], ZOOM);
+  }
+
+  prepareZone(zi) {
+    if (zi >= ZONES.length || this.warmedZones.has(zi)) return;
+    this.warmedZones.add(zi);
+    this.texQueue.push(...this.zoneTextures(zi));
+  }
+
+  releaseZone(zi) {
+    if (zi < 0) return;
+    const prefix = `plat_${ZONES[zi].platform}_`;
+    for (const key of this.textures.getTextureKeys()) {
+      if (key.startsWith(prefix)) this.textures.remove(key);
+    }
   }
 
   updatePlayer(dt) {
@@ -329,8 +383,11 @@ export class GameScene extends Phaser.Scene {
   onNewFloor(floor) {
     if (!this.camStarted && floor >= CAMERA.startFloor) this.camStarted = true;
     const zi = zoneIndexForFloor(floor);
+    const next = ZONES[zi + 1];
+    if (next && floor >= next.from - PREPARE_FLOORS) this.prepareZone(zi + 1);
     if (zi > this.zoneShown) {
       this.zoneShown = zi;
+      this.releaseZone(zi - 2);
       this.popup(ZONES[zi].name, `Etage ${ZONES[zi].from}`, '#bfe6ff');
       sfx.zone();
       this.celebrate();

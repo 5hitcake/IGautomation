@@ -118,7 +118,11 @@ function bpm() {
   return mode === 'menu' ? MUSIC.menuBpm : MUSIC.gameBpm + level * MUSIC.bpmPerLevel;
 }
 
-function note(m, t, dur, type, vol, cutoff) {
+// Gemeinsame Klangwege (werden in music.start angelegt), damit nicht für
+// jeden einzelnen Ton ein neuer Filter entsteht.
+let bus = null;
+
+function note(m, t, dur, type, vol, soft = false) {
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
   osc.type = type;
@@ -126,35 +130,36 @@ function note(m, t, dur, type, vol, cutoff) {
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  let out = osc.connect(g);
-  if (cutoff) {
-    const f = ctx.createBiquadFilter();
-    f.type = 'lowpass';
-    f.frequency.value = cutoff;
-    out = out.connect(f);
-  }
-  out.connect(musicGain);
+  osc.connect(g).connect(soft ? bus.soft : musicGain);
   osc.start(t);
   osc.stop(t + dur + 0.02);
 }
 
-function noise(t, dur, vol, freq, type = 'highpass') {
+function noise(t, dur, vol, target) {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(g).connect(target);
+  src.start(t);
+  src.stop(t + dur + 0.02);
+}
+
+function makeBus() {
   if (!noiseBuf) {
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   }
-  const src = ctx.createBufferSource();
-  src.buffer = noiseBuf;
-  const f = ctx.createBiquadFilter();
-  f.type = type;
-  f.frequency.value = freq;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  src.connect(f).connect(g).connect(musicGain);
-  src.start(t);
-  src.stop(t + dur + 0.02);
+  const filter = (type, freq) => {
+    const f = ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    f.connect(musicGain);
+    return f;
+  };
+  return { soft: filter('lowpass', 2600), snare: filter('bandpass', 1800), hat: filter('highpass', 7000) };
 }
 
 function kick(t) {
@@ -183,7 +188,7 @@ function playStep(i, t) {
   if (s % 2 === 0) {
     const m = MELODY[bar][s / 2];
     if (m) {
-      note(m, t, sixteenth * 1.8, game ? 'square' : 'triangle', game ? 0.07 : 0.14, 2600);
+      note(m, t, sixteenth * 1.8, game ? 'square' : 'triangle', game ? 0.07 : 0.14, true);
       if (game && level >= 4) note(m - 12, t, sixteenth * 1.8, 'triangle', 0.08);
     }
   }
@@ -191,9 +196,9 @@ function playStep(i, t) {
   if (!game) return;
   // Schlagzeug wird mit der Kamerastufe voller
   if (s % 8 === 0) kick(t);
-  if (level >= 1 && s % 8 === 4) noise(t, 0.12, 0.22, 1800, 'bandpass');
-  if (level >= 2 && s % 2 === 0) noise(t, 0.04, 0.08, 7000);
-  if (level >= 5 && s % 2 === 1) noise(t, 0.03, 0.05, 8000);
+  if (level >= 1 && s % 8 === 4) noise(t, 0.12, 0.22, bus.snare);
+  if (level >= 2 && s % 2 === 0) noise(t, 0.04, 0.08, bus.hat);
+  if (level >= 5 && s % 2 === 1) noise(t, 0.03, 0.05, bus.hat);
   if (level >= 3 && s === 14) kick(t);
 }
 
@@ -217,6 +222,7 @@ export const music = {
     musicGain = ctx.createGain();
     musicGain.gain.value = MUSIC.volume;
     musicGain.connect(master);
+    bus = makeBus();
     step = 0;
     nextTime = ctx.currentTime + 0.06;
     timer = setInterval(schedule, 25);

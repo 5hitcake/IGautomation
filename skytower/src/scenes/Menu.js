@@ -63,7 +63,7 @@ export class MenuScene extends Phaser.Scene {
       sfx.click();
     }, { w: 260, h: 78, size: 34, fill: 0xbfe6ff });
 
-    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.2 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
+    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.2.1 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
   }
 
   soundLabel() {
