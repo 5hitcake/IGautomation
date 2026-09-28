@@ -116,7 +116,7 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 | 600–699 | **Stratosphäre**: Erdkrümmung, Wind | Satellitenteile |
 | 700–799 | **Weltall**: Sterne, Planeten | Asteroiden |
 | 800–899 | **Asteroidengürtel**: Meteoriteneinschläge | Glühende Meteoriten |
-| 900+ | **Galaxie**: Farbnebel, Warp-Sterne, Himmelstor bei 1000, danach endlos | Sternenstaub |
+| 900–1000 | **Galaxie**: Farbnebel, Warp-Sterne; ab 999 heller Wolkenhimmel, Himmelstor bei 1000 = Ziel | Sternenstaub |
 
 **Schwierigkeit steigt mit der Höhe:**
 - Plattformen werden schmaler (100 % → 45 % der Startbreite).
@@ -128,7 +128,8 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 ### 4.1 Umgesetzt in v0.6/v0.7
 - **Ziel:** Himmelstor bei Etage 1000: kurze Szene (ca. 6 s), +1.000 Münzen und der geheime
-  Skin **Engel-Wolki** (nur dort freischaltbar), danach endlos weiter.
+  Skin **Engel-Wolki** (nur dort freischaltbar). Das Tor ist die letzte Plattform, darüber
+  heller Wolkenhimmel; Wolki fliegt hindurch und die Runde endet mit „Geschafft!“.
 - **Regenschirm-Vorrat** (max. 3, bleibt gespeichert): einsammeln oder per Werbung nach Game Over.
 - **Power-ups ab Etage 40:** Raketen-Wolke, Regenschirm-Schild, Münz-Magnet, Warp-Stern (Galaxie).
 - **Münzen:** Silber (5), Gold (10), Diamant (25) werden mit der Höhe häufiger.

@@ -4,7 +4,7 @@
 //   Wolki automatisch auf, wenn sie aus dem Bild fällt
 // - Magnet: zieht eine Weile alle Münzen in der Nähe an
 // - Warp-Stern (nur Galaxie): teleportiert ein paar Etagen nach oben
-import { POWERUPS, PHYSICS, TOWER } from '../config.js';
+import { POWERUPS, PHYSICS, TOWER, GATE } from '../config.js';
 import { ZOOM, txt } from '../view.js';
 import { sfx, vibrate } from '../services/audio.js';
 import { save } from '../services/storage.js';
@@ -94,6 +94,8 @@ export class Powerups {
       if (dx * dx + dy * dy < (R + 38) ** 2) this.collect(p);
     }
 
+    // Über dem Himmelstor gibt es nichts mehr: Rakete brennt dort sofort aus
+    if (this.rocketActive && g.floorUnderPlayer() >= GATE.floor) this.rocketUntil = g.time0;
     if (this.rocketActive) {
       g.vy = -this.rocketSpeed;
       if (Math.random() < 0.8) this.flames.emitParticleAt(g.px + (Math.random() - 0.5) * 16, g.py + 100, 1);

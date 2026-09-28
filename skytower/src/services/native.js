@@ -11,6 +11,8 @@ export function setupNative(game) {
       sm.getScene('Pause').resumeGame();
     } else if (sm.isActive('Game') && sm.getScene('Game').state === 'play') {
       sm.getScene('Game').pauseGame();
+    } else if (sm.isActive('Game') && ['cutscene', 'won'].includes(sm.getScene('Game').state) && !sm.isActive('GameOver')) {
+      // Himmelstor-Szene läuft: nicht abbrechen, sonst gehen die Münzen verloren
     } else if (sm.isActive('GameOver') || sm.isActive('Game')) {
       sm.stop('GameOver');
       sm.stop('Game');

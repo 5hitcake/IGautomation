@@ -52,14 +52,19 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create(data) {
-    const { score, floor, combo, coins, isNew } = data;
+    const { score, floor, combo, coins, isNew, won, angel } = data;
     this.initData = data;
     setupCamera(this);
     const y = panel(this, 760);
     const record = isNew.score;
-    txt(this, W / 2, y + 62, record ? 'Neuer Rekord!' : 'Game Over', 60, { color: record ? '#ffe066' : '#ffffff' });
-    if (record) {
-      // Wolki jubelt mit ^^-Gesicht über dem Rekord
+    const title = won ? 'Geschafft!' : record ? 'Neuer Rekord!' : 'Game Over';
+    txt(this, W / 2, y + 62, title, 60, { color: won || record ? '#ffe066' : '#ffffff' });
+    if (won) {
+      txt(this, W / 2, y + 122, record ? 'Himmelstor erreicht · Neuer Rekord!' : 'Himmelstor erreicht', 30,
+        { color: '#5a6a8a', stroke: '#ffffff', strokeThickness: 0 });
+    }
+    if (record || won) {
+      // Wolki jubelt mit ^^-Gesicht über dem Rekord bzw. dem Ziel
       const wy = y - 6;
       const wolki = this.add.image(W / 2, wy, skinKey(save.get().selectedSkin, 'happy')).setOrigin(0.5, 0.92).setScale(1.5 / ZOOM).setDepth(11);
       this.tweens.add({ targets: wolki, y: wy - 44, duration: 420, ease: 'Quad.out', yoyo: true, repeat: -1 });
@@ -88,9 +93,10 @@ export class GameOverScene extends Phaser.Scene {
       txt(this, W / 2 + 230, ry, fresh ? `${value} ★` : value, 38, { ...dark, ox: 1, color: fresh ? '#e08a00' : '#2d3a5a' });
     });
 
-    if (isNew.unlocked?.length) {
+    const unlocked = [...(angel ? ['Engel-Wolki'] : []), ...(isNew.unlocked ?? [])];
+    if (unlocked.length) {
       // Neu freigeschaltete Skins unter dem Ergebnis ankündigen
-      const t = txt(this, W / 2, y + 760 + 64, `Neuer Skin: ${isNew.unlocked.join(', ')}!`, 38,
+      const t = txt(this, W / 2, y + 760 + 64, `Neuer Skin: ${unlocked.join(', ')}!`, 38,
         { color: '#ffe066', wrap: W - 80 }).setDepth(12);
       this.tweens.add({ targets: t, scale: { from: 0.6, to: 1 }, duration: 400, ease: 'Back.out' });
       sfx.zone();
@@ -108,7 +114,7 @@ export class GameOverScene extends Phaser.Scene {
     }, { fill: 0xbfe6ff, h: 88, size: 38 });
 
     // Regenschirm per Werbung (bis AdMob angebunden ist: Test-Werbung, nur in Test-Versionen)
-    if (TEST_TOOLS) this.umbrellaOffer(y + 760 + (isNew.unlocked?.length ? 150 : 84));
+    if (TEST_TOOLS) this.umbrellaOffer(y + 760 + (unlocked.length ? 150 : 84));
   }
 
   umbrellaOffer(by) {

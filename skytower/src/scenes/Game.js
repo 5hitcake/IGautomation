@@ -221,9 +221,59 @@ export class GameScene extends Phaser.Scene {
       p.deco = [
         this.add.image(W / 2, top + 4, 'gate').setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(4),
         txt(this, W / 2, top - 470, 'Himmelstor', 56, { color: '#ffe066', strokeThickness: 10 }).setDepth(6),
+        ...this.buildHeaven(top),
       ];
     }
     this.platforms.push(p);
+  }
+
+  /**
+   * Heller Wolkenhimmel rund ums Himmelstor. Er beginnt knapp unter der letzten
+   * Plattform (Etage 999) und verdeckt dort die Galaxie. Liegt in der Welt,
+   * scrollt also ganz normal mit.
+   */
+  buildHeaven(gy) {
+    const objs = [];
+    const g = this.add.graphics().setDepth(2.5);
+    const warm = 0xfff4d6;
+    const blue = 0xa8dcff;
+    const fadeFrom = gy + FH + 200; // unter der Plattform von Etage 999
+    const solid = gy - 40;
+    g.fillGradientStyle(warm, warm, warm, warm, 1, 1, 0, 0).fillRect(0, solid, W, fadeFrom - solid);
+    g.fillGradientStyle(blue, blue, warm, warm, 1).fillRect(0, gy - 1300, W, 1240);
+    g.fillStyle(blue).fillRect(0, gy - 5000, W, 3700);
+    // weiches Leuchten hinter dem Tor
+    for (let i = 0; i < 5; i++) g.fillStyle(0xffffff, 0.14).fillCircle(W / 2, gy - 200, 140 + i * 70);
+    objs.push(g);
+
+    const cloud = (x, y, s, depth, alpha = 1, tint = null) => {
+      const c = this.add.image(x, y, 'bgcloud').setScale(s / ZOOM).setDepth(depth).setAlpha(alpha).setFlipX(Math.random() < 0.5);
+      if (tint) c.setTint(tint);
+      objs.push(c);
+      return c;
+    };
+    // dichte Wolkenbank, auf der das Tor steht
+    for (let i = 0; i < 10; i++) cloud(-40 + i * 88, gy + 40 + (i % 2) * 24, 1 + (i % 3) * 0.2, 3);
+    for (let i = 0; i < 6; i++) cloud(20 + i * 136, gy - 10 - (i % 2) * 20, 0.8 + (i % 2) * 0.3, 3, 0.95, 0xfff3d9);
+    // ausfransende Wolkenfetzen nach unten, damit der Übergang weich wird
+    for (let i = 0; i < 9; i++) {
+      cloud(Math.random() * W, gy + 130 + Math.random() * 150, 0.5 + Math.random() * 0.5, 3, 0.35 + Math.random() * 0.3);
+    }
+    // lockere Wolken weiter oben, teils rosa/golden angehaucht
+    const tints = [null, 0xffe3ec, 0xfff0c9];
+    for (let i = 0; i < 12; i++) {
+      const side = i % 2 ? 1 : -1;
+      const x = W / 2 + side * (180 + Math.random() * 220);
+      cloud(x, gy - 260 - i * 110 - Math.random() * 60, 0.6 + Math.random() * 0.7, 3, 0.8 + Math.random() * 0.2, tints[i % 3]);
+    }
+    // funkelnde Lichtpunkte
+    for (let i = 0; i < 16; i++) {
+      const sp = this.add.image(40 + Math.random() * (W - 80), gy - 60 - Math.random() * 1100, 'spark')
+        .setScale((0.4 + Math.random() * 0.5) / ZOOM).setDepth(3.5).setTint(0xffe89a).setAlpha(0.2);
+      this.tweens.add({ targets: sp, alpha: 0.95, duration: 500 + Math.random() * 700, yoyo: true, repeat: -1, delay: Math.random() * 800 });
+      objs.push(sp);
+    }
+    return objs;
   }
 
   /** Welche Münze auf einer Plattform liegt (weiter oben öfter wertvollere). */
@@ -238,7 +288,8 @@ export class GameScene extends Phaser.Scene {
 
   generate() {
     const topFloor = Math.ceil(-(this.scrollY - 400) / FH);
-    while (this.nextFloor <= topFloor) this.spawnPlatform(this.nextFloor++);
+    // Das Himmelstor ist die letzte Plattform: darüber nur noch Himmel
+    while (this.nextFloor <= Math.min(topFloor, GATE.floor)) this.spawnPlatform(this.nextFloor++);
 
     const bottomY = this.scrollY + VIEW_H + 240;
     this.platforms = this.platforms.filter((p) => {
@@ -363,6 +414,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Warp-Stern: ein paar Etagen nach oben teleportieren */
   warp(floors) {
+    floors = Math.min(floors, GATE.floor - this.floorUnderPlayer()); // nicht übers Tor hinaus
     this.sparks.explode(24, this.px, this.py);
     this.py -= floors * FH;
     this.vy = -700;
@@ -557,15 +609,27 @@ export class GameScene extends Phaser.Scene {
       callback: () => this.sparks.explode(22, 80 + Math.random() * (W - 160), this.scrollY + 140 + Math.random() * 560),
     });
     this.time.delayedCall(3400, () => {
-      this.popup(firstTime ? 'Engel-Wolki!' : 'Willkommen zurück!', firstTime ? 'Ultimativer Skin freigeschaltet' : 'Weiter geht\'s in die Galaxie', '#ffffff');
+      this.popup(firstTime ? 'Engel-Wolki!' : 'Willkommen zurück!', firstTime ? 'Ultimativer Skin freigeschaltet' : 'Das Tor öffnet sich wieder', '#ffffff');
     });
-    this.time.delayedCall(6000, () => {
-      this.tweens.add({ targets: this.rays, alpha: 0, duration: 500, onComplete: () => { this.rays?.g.destroy(); this.rays = null; } });
-      this.state = 'play';
-      this.vy = -1400;
-      music.start('game', this.camLevel);
-      music.setZone(zoneIndexForFloor(GATE.floor));
+    // Zum Schluss fliegt Wolki durchs Tor ins Licht – das Ziel ist erreicht
+    this.time.delayedCall(5400, () => {
+      this.tweens.add({ targets: this.rays, alpha: 0, duration: 900 });
+      this.tweens.add({ targets: this, py: cy - 760, duration: 1500, ease: 'Quad.in' });
+      const glow = this.add.rectangle(0, 0, W, VIEW_H, 0xfffbe8, 0).setOrigin(0).setScrollFactor(0).setDepth(9);
+      this.tweens.add({
+        targets: glow, alpha: 0.75, delay: 700, duration: 900,
+        onComplete: () => this.winRun(firstTime),
+      });
     });
+  }
+
+  /** Runde endet siegreich am Himmelstor */
+  winRun(firstTime) {
+    this.state = 'won';
+    this.rays?.g.destroy();
+    this.rays = null;
+    sfx.zone();
+    this.scene.launch('GameOver', { ...this.recordResult(), won: true, angel: firstTime });
   }
 
   /** Drehende Lichtstrahlen hinter Wolki während der Himmelstor-Szene */
@@ -700,6 +764,18 @@ export class GameScene extends Phaser.Scene {
     sfx.gameOver();
     if (save.get().settings.vibration) vibrate(180);
 
+    const result = this.recordResult();
+
+    // Wolki hüpft noch einmal traurig ins Bild und fällt dann heraus
+    this.py = this.scrollY + VIEW_H - 40;
+    this.tweens.add({
+      targets: this, py: this.scrollY + VIEW_H - 260, duration: 380, ease: 'Quad.out', yoyo: true,
+      onComplete: () => this.scene.launch('GameOver', result),
+    });
+  }
+
+  /** Ergebnis der Runde speichern (Rekorde, Münzen, Erfolge) */
+  recordResult() {
     const result = {
       score: this.combo.score,
       floor: this.combo.maxFloor,
@@ -708,12 +784,6 @@ export class GameScene extends Phaser.Scene {
     };
     const isNew = save.recordRun(result);
     if (!save.get().tutorialSeen) save.update((d) => { d.tutorialSeen = true; });
-
-    // Wolki hüpft noch einmal traurig ins Bild und fällt dann heraus
-    this.py = this.scrollY + VIEW_H - 40;
-    this.tweens.add({
-      targets: this, py: this.scrollY + VIEW_H - 260, duration: 380, ease: 'Quad.out', yoyo: true,
-      onComplete: () => this.scene.launch('GameOver', { ...result, isNew }),
-    });
+    return { ...result, isNew };
   }
 }
