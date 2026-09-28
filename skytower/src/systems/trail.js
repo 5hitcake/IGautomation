@@ -1,10 +1,70 @@
 // Schweife hinter Wolki: Regenbogen (6 Farbbänder, leicht wellig) und
 // Sternschnuppe (leuchtende Spur mit funkelnden Sternchen).
+//
+// Gezeichnet wird jedes Band als durchgehender Streifen aus Dreiecken (statt
+// aus einzelnen Linienstücken), mit stufenlos auslaufender Transparenz – so
+// gibt es keine Kanten, Kerben oder doppelt dunklen Übergänge.
 import { ZOOM } from '../view.js';
 
 export const RAINBOW = [0xff4d4d, 0xff9f1a, 0xffe23d, 0x4cd964, 0x3fa9ff, 0x8e5cff];
 const BAND = 7; // Breite eines Farbbands
 const LIFE = 0.42; // so lange (s) bleibt ein Punkt des Schweifs sichtbar
+
+/** Senkrechte zur Bewegungsrichtung je Punkt, geglättet gegen Knicke. */
+function normalsFor(pts, flat) {
+  if (flat) return pts.map(() => [0, 1]);
+  let nx = 0;
+  let ny = 1;
+  const raw = pts.map((p, i) => {
+    const a = pts[Math.max(0, i - 1)];
+    const b = pts[Math.min(pts.length - 1, i + 1)];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    if (len > 0.5) { nx = -dy / len; ny = dx / len; }
+    return [nx, ny];
+  });
+  return raw.map((n, i) => {
+    const p = raw[Math.max(0, i - 1)];
+    const q = raw[Math.min(raw.length - 1, i + 1)];
+    const sx = p[0] + 2 * n[0] + q[0];
+    const sy = p[1] + 2 * n[1] + q[1];
+    const len = Math.hypot(sx, sy) || 1;
+    return [sx / len, sy / len];
+  });
+}
+
+/**
+ * Füllt einen Streifen entlang `pts` zwischen den Abständen `o1` und `o2` von
+ * der Mittellinie. `alpha(i)` gibt die Deckkraft am Punkt i an.
+ */
+function fillStrip(g, pts, normals, o1, o2, color, alpha, wave) {
+  const at = (i, off) => {
+    const o = off + (wave ? wave[i] : 0);
+    return [pts[i].x + normals[i][0] * o, pts[i].y + normals[i][1] * o];
+  };
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = at(i, o1);
+    const [bx, by] = at(i, o2);
+    const [cx, cy] = at(i + 1, o2);
+    const [dx, dy] = at(i + 1, o1);
+    g.fillStyle(color, (alpha(i) + alpha(i + 1)) / 2);
+    g.fillTriangle(ax, ay, bx, by, cx, cy);
+    g.fillTriangle(ax, ay, cx, cy, dx, dy);
+  }
+}
+
+function drawRainbow(g, pts, normals, alpha, wave, band = BAND) {
+  RAINBOW.forEach((color, b) => {
+    const o1 = (b - 3) * band;
+    fillStrip(g, pts, normals, o1, o1 + band, color, alpha, wave);
+  });
+}
+
+function drawStreak(g, pts, normals, alpha, scale = 1) {
+  fillStrip(g, pts, normals, -11 * scale, 11 * scale, 0xfff3a0, (i) => alpha(i) * 0.25);
+  fillStrip(g, pts, normals, -4.5 * scale, 4.5 * scale, 0xffffff, (i) => alpha(i) * 0.75);
+}
 
 export class Trail {
   /**
@@ -58,42 +118,18 @@ export class Trail {
     const g = this.g;
     g.clear();
     const pts = this.pts;
-    if (pts.length < 2) return;
-    // Senkrechte zur Bewegungsrichtung je Punkt (für die Farbbänder)
-    let nx = 0;
-    let ny = 1;
-    const normals = pts.map((p, i) => {
-      if (this.flat) return [0, 1];
-      const a = pts[Math.max(0, i - 1)];
-      const b = pts[Math.min(pts.length - 1, i + 1)];
-      const dx = b.x - a.x;
-      const dy = b.y - a.y;
-      const len = Math.hypot(dx, dy);
-      if (len > 0.5) { nx = -dy / len; ny = dx / len; }
-      return [nx, ny];
-    });
-    // In drei Stücken zeichnen: je älter, desto durchsichtiger
-    const pieces = [[0, 0.3], [Math.floor(pts.length / 3), 0.6], [Math.floor((pts.length * 2) / 3), 1]];
-    pieces.forEach(([from, alpha], k) => {
-      const to = k < 2 ? pieces[k + 1][0] + 1 : pts.length;
-      if (to - from < 2) return;
-      if (this.kind === 'rainbow') {
-        RAINBOW.forEach((color, b) => {
-          const off = (b - 2.5) * BAND;
-          const line = [];
-          for (let i = from; i < to; i++) {
-            // Welle aus der Position statt aus dem Punkt-Index: gleich bei jeder Bildrate
-            const wave = Math.sin(this.time * 14 - (pts[i].x + pts[i].y) * 0.06) * 3;
-            line.push({ x: pts[i].x + normals[i][0] * (off + wave), y: pts[i].y + normals[i][1] * (off + wave) });
-          }
-          g.lineStyle(BAND + 1, color, alpha).strokePoints(line);
-        });
-      } else {
-        const line = pts.slice(from, to);
-        g.lineStyle(22, 0xfff3a0, alpha * 0.25).strokePoints(line);
-        g.lineStyle(9, 0xffffff, alpha * 0.7).strokePoints(line);
-      }
-    });
+    const n = pts.length;
+    if (n < 2) return;
+    const normals = normalsFor(pts, this.flat);
+    // stufenlos: ältester Punkt durchsichtig, Kopf voll deckend
+    const alpha = (i) => (i / (n - 1)) ** 0.8;
+    if (this.kind === 'rainbow') {
+      // Welle aus der Position statt aus dem Punkt-Index: gleich bei jeder Bildrate
+      const wave = pts.map((p) => Math.sin(this.time * 14 - (p.x + p.y) * 0.06) * 3);
+      drawRainbow(g, pts, normals, alpha, wave);
+    } else {
+      drawStreak(g, pts, normals, alpha);
+    }
   }
 
   destroy() {
@@ -105,16 +141,15 @@ export class Trail {
 /** Kleine, feste Vorschau eines Schweifs (für den Shop), endet bei (x, y). */
 export function drawTrailPreview(scene, kind, x, y, len, depth = 6) {
   const g = scene.add.graphics().setDepth(depth);
+  const pts = [];
+  for (let i = 0; i <= 12; i++) pts.push({ x: x - len + (len * i) / 12, y });
+  const normals = pts.map(() => [0, 1]);
+  const alpha = (i) => 0.35 + 0.65 * (i / 12);
   if (kind === 'rainbow') {
-    RAINBOW.forEach((color, b) => {
-      const off = (b - 2.5) * 5;
-      const line = [];
-      for (let i = 0; i <= 8; i++) line.push({ x: x - (len * i) / 8, y: y + off + (i % 2 ? 3 : -3) });
-      g.lineStyle(6, color, 1).strokePoints(line);
-    });
+    const wave = pts.map((_, i) => Math.sin(i * 0.9) * 2.5);
+    drawRainbow(g, pts, normals, alpha, wave, 5);
   } else if (kind === 'stars') {
-    g.lineStyle(12, 0xfff3a0, 0.35).lineBetween(x - len, y + 4, x, y);
-    g.lineStyle(5, 0xffffff, 0.8).lineBetween(x - len, y + 4, x, y);
+    drawStreak(g, pts, normals, alpha, 0.6);
     [[0.3, -10], [0.6, 12], [0.85, -4]].forEach(([f, dy]) => {
       scene.add.image(x - len * f, y + dy, 'spark').setScale(0.9 / ZOOM).setDepth(depth).setTint(0xffe680);
     });
