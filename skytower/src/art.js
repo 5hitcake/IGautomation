@@ -203,6 +203,101 @@ export const PLANET_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 </svg>`;
 
 // ---------------------------------------------------------------------------
+// Wertvollere Münzen (weiter oben im Turm)
+
+const star = (fill) => `<path d="M24 14 l3 6.3 6.9 1 -5 4.8 1.2 6.9 -6.1 -3.3 -6.1 3.3 1.2 -6.9 -5 -4.8 6.9 -1z" fill="${fill}"/>`;
+
+export const COIN_SILVER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+<circle cx="24" cy="24" r="21" fill="#34414f"/><circle cx="24" cy="24" r="17.5" fill="#c9d3de"/>
+<circle cx="24" cy="24" r="12.5" fill="#f1f5f9"/>${star('#8e9bab')}
+<ellipse cx="17" cy="14" rx="5" ry="2.5" transform="rotate(-35 17 14)" fill="#fff"/>
+</svg>`;
+
+export const COIN_GOLD_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+<circle cx="24" cy="24" r="22" fill="#ffd23f" opacity=".35"/>
+<circle cx="24" cy="24" r="20" fill="#6b3a00"/><circle cx="24" cy="24" r="16.5" fill="#ffb300"/>
+<circle cx="24" cy="24" r="12" fill="#ffd23f"/>
+<path d="M15 29 L15 18 L20 23 L24 15 L28 23 L33 18 L33 29Z" fill="#e07b00" stroke="#6b3a00" stroke-width="1.5" stroke-linejoin="round"/>
+<ellipse cx="16" cy="13" rx="5" ry="2.5" transform="rotate(-35 16 13)" fill="#fff" opacity=".9"/>
+</svg>`;
+
+export const DIAMOND_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+<path d="M12 6 L36 6 L46 18 L24 44 L2 18Z" fill="#1d4f6b"/>
+<path d="M13.5 9 L34.5 9 L42 18 L24 39 L6 18Z" fill="#6fe3ff"/>
+<path d="M6 18 L42 18 L24 39Z" fill="#35c3f0"/>
+<path d="M13.5 9 L19 18 L24 9 L29 18 L34.5 9" fill="none" stroke="#bff4ff" stroke-width="2"/>
+<path d="M11 14 l2.5 -3" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+</svg>`;
+
+// ---------------------------------------------------------------------------
+// Power-ups
+
+export const ROCKET_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<path d="M24 50 Q32 64 40 50Z" fill="#ff9f1a" stroke="#2d3a5a" stroke-width="2.5"/>
+<path d="M27 50 Q32 58 37 50Z" fill="#ffe23d"/>
+<path d="M18 40 L10 50 L22 48Z M46 40 L54 50 L42 48Z" fill="#ff4d4d" stroke="#2d3a5a" stroke-width="3" stroke-linejoin="round"/>
+<path d="M32 4 C44 12 46 30 42 50 L22 50 C18 30 20 12 32 4Z" fill="#fff" stroke="#2d3a5a" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M32 4 C38 8 41 13 42 18 L22 18 C23 13 26 8 32 4Z" fill="#ff4d4d"/>
+<circle cx="32" cy="29" r="6.5" fill="#5cc3ff" stroke="#2d3a5a" stroke-width="3"/>
+<circle cx="30" cy="27" r="2" fill="#fff"/>
+</svg>`;
+
+export const UMBRELLA_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<path d="M32 30 L32 52 Q32 58 26 58 Q21 58 21 53" fill="none" stroke="#2d3a5a" stroke-width="4" stroke-linecap="round"/>
+<path d="M4 32 Q6 8 32 6 Q58 8 60 32 Q53 27 46 32 Q39 27 32 32 Q25 27 18 32 Q11 27 4 32Z" fill="#2d3a5a"/>
+<path d="M8 29 Q11 11 32 10 L32 29 Q25 25 18 29 Q13 25 8 29Z" fill="#ff6b9d"/>
+<path d="M32 10 Q53 11 56 29 Q51 25 46 29 Q39 25 32 29Z" fill="#5cc3ff"/>
+<path d="M32 10 Q40 12 44 28 Q39 25 32 29Z" fill="#ffe23d"/>
+<circle cx="32" cy="6" r="3" fill="#2d3a5a"/>
+</svg>`;
+
+export const MAGNET_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<path d="M10 8 L26 8 L26 34 Q26 42 32 42 Q38 42 38 34 L38 8 L54 8 L54 34 Q54 58 32 58 Q10 58 10 34Z" fill="#2d3a5a"/>
+<path d="M14 12 L22 12 L22 34 Q22 46 32 46 Q42 46 42 34 L42 12 L50 12 L50 34 Q50 54 32 54 Q14 54 14 34Z" fill="#ff4d4d"/>
+<rect x="14" y="12" width="8" height="9" fill="#e8eef8"/><rect x="42" y="12" width="8" height="9" fill="#e8eef8"/>
+<path d="M18 30 Q18 44 26 48" fill="none" stroke="#ff9a9a" stroke-width="3" stroke-linecap="round"/>
+</svg>`;
+
+export const WARP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<circle cx="32" cy="32" r="28" fill="#b57bff" opacity=".35"/>
+<path d="M32 4 L38 24 L58 26 L42 38 L48 58 L32 46 L16 58 L22 38 L6 26 L26 24Z" fill="#2a1450"/>
+<path d="M32 10 L36.5 26 L52 27.5 L39.5 36.5 L44 51 L32 42 L20 51 L24.5 36.5 L12 27.5 L27.5 26Z" fill="#e3c9ff"/>
+<circle cx="32" cy="32" r="7" fill="#fff"/><circle cx="32" cy="32" r="3.5" fill="#b57bff"/>
+</svg>`;
+
+// ---------------------------------------------------------------------------
+// Deko und Himmelstor
+
+export const NEBULA_SVG = (c1, c2) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220">
+<defs><radialGradient id="n" cx="50%" cy="50%" r="50%">
+<stop offset="0" stop-color="${c1}" stop-opacity=".55"/><stop offset=".55" stop-color="${c2}" stop-opacity=".22"/>
+<stop offset="1" stop-color="${c2}" stop-opacity="0"/></radialGradient></defs>
+<ellipse cx="150" cy="110" rx="150" ry="110" fill="url(#n)"/></svg>`;
+
+export const GATE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+<defs>
+<radialGradient id="glow" cx="50%" cy="60%" r="55%">
+<stop offset="0" stop-color="#fffbe0"/><stop offset=".5" stop-color="#ffe680" stop-opacity=".85"/>
+<stop offset="1" stop-color="#ffb3f0" stop-opacity=".25"/></radialGradient>
+<linearGradient id="pillar" x1="0" x2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3dcff"/></linearGradient>
+</defs>
+<path d="M150 400 L150 190 A170 170 0 0 1 490 190 L490 400Z" fill="url(#glow)"/>
+<g fill="#fff" opacity=".9"><circle cx="250" cy="160" r="4"/><circle cx="400" cy="130" r="3"/><circle cx="330" cy="250" r="5"/><circle cx="440" cy="300" r="3"/><circle cx="210" cy="290" r="3"/></g>
+<path d="M110 400 L110 190 A210 210 0 0 1 530 190 L530 400 L490 400 L490 190 A170 170 0 0 0 150 190 L150 400Z" fill="#2d3a5a"/>
+<path d="M118 400 L118 190 A202 202 0 0 1 522 190 L522 400 L498 400 L498 190 A178 178 0 0 0 142 190 L142 400Z" fill="#ffd23f"/>
+<path d="M130 190 A190 190 0 0 1 510 190" fill="none" stroke="#fff4b8" stroke-width="5"/>
+<rect x="86" y="160" width="74" height="244" rx="14" fill="#2d3a5a"/><rect x="92" y="166" width="62" height="232" rx="10" fill="url(#pillar)"/>
+<rect x="480" y="160" width="74" height="244" rx="14" fill="#2d3a5a"/><rect x="486" y="166" width="62" height="232" rx="10" fill="url(#pillar)"/>
+<rect x="78" y="146" width="90" height="24" rx="10" fill="#2d3a5a"/><rect x="83" y="150" width="80" height="16" rx="7" fill="#ffd23f"/>
+<rect x="472" y="146" width="90" height="24" rx="10" fill="#2d3a5a"/><rect x="477" y="150" width="80" height="16" rx="7" fill="#ffd23f"/>
+<path d="M320 8 l9 20 22 3 -16 15 4 22 -19 -11 -19 11 4 -22 -16 -15 22 -3z" fill="#ffd23f" stroke="#2d3a5a" stroke-width="5" stroke-linejoin="round"/>
+<g fill="#fff" stroke="#2d3a5a" stroke-width="5">
+<path d="M40 420 Q30 380 70 376 Q80 346 120 360 Q150 340 175 372 Q210 370 205 420Z"/>
+<path d="M600 420 Q610 380 570 376 Q560 346 520 360 Q490 340 465 372 Q430 370 435 420Z"/>
+</g>
+</svg>`;
+
+// ---------------------------------------------------------------------------
 // Plattformen (Phaser Graphics, lokale Koordinaten: links oben = 0,0)
 
 const hex = (s) => parseInt(s.slice(1), 16);

@@ -3,7 +3,7 @@
 Endless-Jumper fürs Handy, angelehnt an den PC-Klassiker *Icy Tower*.
 Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 
-## Stand: Prototyp v0.5 (Phasen 1, 3 und 5)
+## Stand: Prototyp v0.6 (Phasen 1, 3 und 5)
 
 - Automatisches Springen, Sprunghöhe hängt vom Anlauf ab
 - Steuerung: linke/rechte Bildschirmhälfte halten (am PC: Pfeiltasten oder A/D, P = Pause)
@@ -20,6 +20,16 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   Logik in `src/systems/progress.js`, Grafiken in `src/art.js` (`SKINS`)
 - Schweife (`src/systems/trail.js`): Regenbogenschweif (Nyan-Stil) und Sternschnuppe (Mond),
   im Spiel, im Menü (Wolki fliegt dann statt zu hüpfen) und als Vorschau im Shop
+- **Ziel: Himmelstor bei Etage 1000** – Feuerwerk, +1.000 Münzen, im Menü als ✓ vermerkt;
+  danach geht es endlos weiter
+- **Power-ups ab Etage 40** (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
+  Combo), Regenschirm (rettet einmal vorm Absturz), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
+- **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)
+- **Zonen-Mechaniken** (`ZONE_RULES` in `src/config.js`): Gewitter mit Blitzeinschlägen
+  (`src/systems/hazards.js`), rutschiges Eis im Polarlicht, weniger Schwerkraft im Weltall
+- **Mehr Atmosphäre:** Nordlichter, Wetterleuchten, Sternschnuppen, Nebel (Übersicht:
+  `design/zonen-uebersicht.png`, `design/neu-oben.png`)
+- **Musik je Zone:** eigene Klangfarbe, im Gewitter in Moll, im Weltall schwebend (lydisch)
 - Münzen, lokaler Highscore, Tutorial-Hinweise, Pause, Game-Over-Bildschirm
 - Hintergrundmusik (live erzeugt, `src/services/music.js`): 32-Takt-Song mit Strophe,
   Überleitung und Refrain; wird mit jeder Kamerastufe schneller und voller und wechselt

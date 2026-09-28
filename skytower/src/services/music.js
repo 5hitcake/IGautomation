@@ -108,6 +108,38 @@ let level = 0;
 let step = 0;
 let nextTime = 0;
 let transpose = 0;
+let zone = 0; // aktive Zonen-Klangfarbe
+let pendingZone = 0; // wechselt erst am nächsten Taktanfang
+
+// Klangfarbe je Zone (Index wie ZONES in config.js)
+const ZONE_STYLE = [
+  { scale: 'major', lead: ['square', 'sawtooth'], cut: 3400, fb: 0.3 }, // Stadtdächer
+  { scale: 'major', lead: ['triangle', 'square'], cut: 4200, fb: 0.32, arpUp: 12 }, // Wolkenmeer: heller
+  { scale: 'major', lead: ['sawtooth', 'sawtooth'], cut: 2600, fb: 0.35, pad: true }, // Sonnenuntergang: warm
+  { scale: 'minor', lead: ['square', 'sawtooth'], cut: 2300, fb: 0.28, heavy: true }, // Gewitter: Moll, wuchtig
+  { scale: 'major', lead: ['triangle', 'sine'], cut: 3000, fb: 0.5, pad: true, arpType: 'sine' }, // Polarlicht: verträumt
+  { scale: 'lydian', lead: ['sine', 'triangle'], cut: 2600, fb: 0.55, pad: true, sparse: true, arpType: 'sine' }, // Weltall: schwebend
+  { scale: 'lydian', lead: ['square', 'triangle'], cut: 4600, fb: 0.45, pad: true, arpUp: 12 }, // Galaxie: funkelnd
+];
+const style = () => ZONE_STYLE[zone] ?? ZONE_STYLE[0];
+/** Filter und Echo an die aktuelle Zone anpassen (sofort). */
+function applyStyle() {
+  bus.lead.frequency.value = style().cut;
+  bus.fb.gain.value = style().fb;
+}
+
+// Tonleitern: Dur (unverändert), natürliches Moll (Terz/Sexte/Septime tiefer), Lydisch (Quarte höher)
+const SCALE_MAP = {
+  major: {},
+  minor: { 4: 3, 9: 8, 11: 10 },
+  lydian: { 5: 6 },
+};
+function mapNote(m, { bass = false } = {}) {
+  const sc = style().scale;
+  if (bass && sc === 'lydian') return m; // Bass bleibt stabil
+  const to = SCALE_MAP[sc][m % 12];
+  return to === undefined ? m : m - (m % 12) + to;
+}
 
 const bpm = () => (mode === 'menu' ? CFG.menuBpm : CFG.gameBpm + level * CFG.bpmPerLevel);
 const sixteenth = () => 60 / bpm() / 4;
@@ -157,7 +189,7 @@ function makeBus() {
   hat.connect(out);
   const click = filter('highpass', 3000);
   click.connect(out);
-  return { delay, pump, lead, arp, stab, bass, pad, snare, hat, click };
+  return { delay, fb, pump, lead, arp, stab, bass, pad, snare, hat, click };
 }
 
 function env(t, attack, hold, release, vol) {
@@ -185,15 +217,16 @@ function leadNote(m, t, dur, vol, soft) {
   if (soft) {
     osc('triangle', m, t, t + dur + 0.14, g);
   } else {
-    osc('square', m, t, t + dur + 0.14, g, -7);
-    osc('sawtooth', m, t, t + dur + 0.14, g, 7);
+    const [a, b] = style().lead;
+    osc(a, m, t, t + dur + 0.14, g, -7);
+    osc(b, m, t, t + dur + 0.14, g, 7);
   }
 }
 
-function pluck(m, t, vol) {
+function pluck(m, t, vol, type = 'triangle') {
   const g = env(t, 0.004, 0, 0.16, vol);
   g.connect(bus.arp);
-  osc('triangle', m, t, t + 0.2, g);
+  osc(type, m, t, t + 0.2, g);
 }
 
 function bassNote(m, t, dur, vol) {
@@ -302,19 +335,29 @@ function playStep(i, t) {
   const x = sixteenth();
   const game = mode === 'game';
 
-  // Tonart nur am Taktanfang wechseln
-  if (s === 0) transpose = game ? (level >= 6 ? 2 : level >= 3 ? 1 : 0) : 0;
+  // Tonart und Zonen-Klang nur am Taktanfang wechseln
+  if (s === 0) {
+    transpose = game ? (level >= 6 ? 2 : level >= 3 ? 1 : 0) : 0;
+    if (zone !== pendingZone) {
+      zone = game ? pendingZone : 0;
+      bus.lead.frequency.setTargetAtTime(style().cut, t, 0.2);
+      bus.fb.gain.setTargetAtTime(style().fb, t, 0.2);
+    }
+  }
+  const st = game ? style() : ZONE_STYLE[0];
   const tr = transpose;
-  const root = bar.chord[0] + tr;
+  const chord = bar.chord.map((n) => mapNote(n));
+  const root = mapNote(bar.chord[0], { bass: true }) + tr;
 
   // Melodie
   if (s % 2 === 0) {
     const n = bar.melody[s / 2];
     if (n) {
-      const [m, len] = n;
+      const [raw, len] = n;
+      const m = mapNote(raw);
       const dur = len * 2 * x * 0.92;
       leadNote(m + tr, t, dur, game ? 0.09 : 0.13, !game);
-      if (game && bar.section === 'C') leadNote(thirdAbove(m) + tr, t, dur, 0.05, false);
+      if (game && bar.section === 'C') leadNote(mapNote(thirdAbove(raw)) + tr, t, dur, 0.05, false);
       if (game && level >= 4) leadNote(m + tr - 12, t, dur, 0.05, true);
     }
   }
@@ -333,24 +376,27 @@ function playStep(i, t) {
   if (s % 2 === 0) bassNote(s % 4 === 0 ? root : root + 12, t, x * 1.7, s % 4 === 0 ? 0.22 : 0.16);
 
   // Akkord-Stöße auf der Nachschlag-Zählung (im Refrain immer, sonst ab Stufe 2)
-  if (s % 4 === 2 && (bar.section === 'C' || level >= 2)) stab(bar.chord, t, 0.035);
+  if (s % 4 === 2 && !st.sparse && (bar.section === 'C' || level >= 2)) stab(chord, t, 0.035);
+  // Flächen in ruhigeren Zonen
+  if (st.pad && s === 0) padChord(chord, t, 16 * x, 0.035);
 
   // Arpeggio ab Stufe 1
   if (level >= 1) {
-    const tones = [bar.chord[0] + 24, bar.chord[1] + 24, bar.chord[2] + 24, bar.chord[0] + 36];
-    pluck(tones[s % 4] + tr, t, 0.045);
+    const tones = [chord[0] + 24, chord[1] + 24, chord[2] + 24, chord[0] + 36];
+    pluck(tones[s % 4] + tr + (st.arpUp ?? 0), t, 0.045, st.arpType);
   }
 
   // Schlagzeug: durchgehende Bassdrum, Clap + Snare auf 2 und 4
   if (s % 4 === 0 && !(fillBar && s >= 12)) kick(t, s % 8 === 0 ? 0.95 : 0.8);
-  if (level >= 3 && (s === 14 || s === 7) && !fillBar) kick(t, 0.45);
+  if ((level >= 3 || st.heavy) && (s === 14 || s === 7) && !fillBar) kick(t, st.heavy ? 0.6 : 0.45);
+  if (st.heavy && s === 10) kick(t, 0.55);
   if ((s === 4 || s === 12) && !(fillBar && s === 12)) {
-    snare(t);
+    snare(t, st.heavy ? 0.7 : 0.55);
     clap(t, 0.4);
   }
   if (s % 4 === 2) noise(t, 0.05, 0.14, bus.hat);
-  if (level >= 1 && s % 2 === 0 && s % 4 !== 2) noise(t, 0.03, 0.07, bus.hat);
-  if (level >= 4 && s % 2 === 1) noise(t, 0.025, 0.05, bus.hat);
+  if (!st.sparse && level >= 1 && s % 2 === 0 && s % 4 !== 2) noise(t, 0.03, 0.07, bus.hat);
+  if (!st.sparse && level >= 4 && s % 2 === 1) noise(t, 0.025, 0.05, bus.hat);
   if (level >= 2 && (s === 6 || s === 14)) noise(t, 0.2, 0.08, bus.hat);
 
   // Übergang: Trommelwirbel in der zweiten Hälfte des letzten Takts
@@ -387,11 +433,17 @@ export const music = {
     comp.ratio.value = 4;
     gain.connect(comp).connect(a.master);
     out = gain;
+    if (mode === 'menu') { zone = 0; pendingZone = 0; }
     bus = makeBus();
+    applyStyle();
     step = 0;
     nextTime = ctx.currentTime + 0.06;
     timer = setInterval(schedule, 25);
     schedule();
+  },
+  /** Klangfarbe der Zone (wird am nächsten Taktanfang übernommen). */
+  setZone(z) {
+    pendingZone = z;
   },
   setLevel(l) {
     level = l;
@@ -418,8 +470,8 @@ export const music = {
  * Rendert die Musik ohne Lautsprecher in einen AudioBuffer (für Hörproben
  * und Tests). Beeinflusst eine gerade laufende Musik nicht.
  */
-export async function renderPreview(previewMode, previewLevel, seconds, startBar = 0, sampleRate = 32000) {
-  const saved = { ctx, out, bus, mode, level, step, nextTime, transpose };
+export async function renderPreview(previewMode, previewLevel, seconds, startBar = 0, previewZone = 0, sampleRate = 32000) {
+  const saved = { ctx, out, bus, mode, level, step, nextTime, transpose, zone, pendingZone };
   const off = new OfflineAudioContext(1, Math.ceil(sampleRate * seconds), sampleRate);
   try {
     ctx = off;
@@ -432,7 +484,10 @@ export async function renderPreview(previewMode, previewLevel, seconds, startBar
     comp.ratio.value = 4;
     gain.connect(comp).connect(off.destination);
     out = gain;
+    zone = previewZone;
+    pendingZone = previewZone;
     bus = makeBus();
+    applyStyle();
     step = startBar * 16;
     nextTime = 0.05;
     while (nextTime < seconds - 0.3) {
@@ -441,7 +496,7 @@ export async function renderPreview(previewMode, previewLevel, seconds, startBar
       step = (step + 1) % (SONGS[mode].length * 16);
     }
   } finally {
-    ({ ctx, out, bus, mode, level, step, nextTime, transpose } = saved);
+    ({ ctx, out, bus, mode, level, step, nextTime, transpose, zone, pendingZone } = saved);
   }
   return off.startRendering();
 }

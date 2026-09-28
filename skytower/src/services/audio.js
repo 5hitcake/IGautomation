@@ -39,6 +39,30 @@ function tone({ freq = 440, to = freq, dur = 0.12, type = 'sine', vol = 0.3, del
   osc.stop(t0 + dur + 0.02);
 }
 
+let noiseBuf = null;
+/** Rauschen durch einen Filter, dessen Frequenz von `from` nach `to` wandert. */
+function noise({ dur = 0.3, vol = 0.2, from = 800, to = from, type = 'bandpass', delay = 0 }) {
+  if (!ctx || !enabled) return;
+  if (!noiseBuf) {
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 1.5, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const t0 = ctx.currentTime + delay;
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  const f = ctx.createBiquadFilter();
+  f.type = type;
+  f.frequency.setValueAtTime(from, t0);
+  f.frequency.exponentialRampToValueAtTime(Math.max(20, to), t0 + dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(f).connect(g).connect(master);
+  src.start(t0);
+  src.stop(t0 + dur + 0.02);
+}
+
 export const sfx = {
   /** power 0..1 = wie kräftig der Sprung ist */
   jump(power) {
@@ -70,6 +94,30 @@ export const sfx = {
   },
   click() {
     tone({ freq: 660, dur: 0.05, type: 'sine', vol: 0.12 });
+  },
+  powerup() {
+    [523, 784, 1047, 1568].forEach((f, i) => tone({ freq: f, dur: 0.12, type: 'square', vol: 0.06, delay: i * 0.05 }));
+  },
+  rocket() {
+    noise({ dur: 1.2, vol: 0.25, from: 300, to: 3000 });
+    tone({ freq: 150, to: 900, dur: 1.1, type: 'sawtooth', vol: 0.06 });
+  },
+  shield() {
+    tone({ freq: 392, to: 784, dur: 0.3, type: 'triangle', vol: 0.2 });
+    tone({ freq: 587, to: 1175, dur: 0.3, type: 'triangle', vol: 0.12, delay: 0.08 });
+  },
+  thunder() {
+    noise({ dur: 0.9, vol: 0.45, from: 1800, to: 120, type: 'lowpass' });
+    noise({ dur: 0.08, vol: 0.3, from: 6000, type: 'highpass' });
+  },
+  warp() {
+    tone({ freq: 1600, to: 200, dur: 0.35, type: 'sine', vol: 0.15 });
+    tone({ freq: 200, to: 1800, dur: 0.35, type: 'triangle', vol: 0.12, delay: 0.3 });
+  },
+  gate() {
+    [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) =>
+      tone({ freq: f, dur: i === 6 ? 0.8 : 0.18, type: 'triangle', vol: 0.2, delay: i * 0.12 }));
+    noise({ dur: 1.2, vol: 0.12, from: 8000, type: 'highpass', delay: 0.84 });
   },
 };
 

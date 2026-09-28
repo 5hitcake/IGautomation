@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
-import { PHYSICS, TOWER, CAMERA, COMBO, ZONES, zoneIndexForFloor } from '../config.js';
+import {
+  PHYSICS, TOWER, CAMERA, COMBO, ZONES, ZONE_RULES, COIN_TIERS, COIN_TIER_CHANCE, POWERUPS, GATE, zoneIndexForFloor,
+} from '../config.js';
 import { W, VIEW_H, ZOOM, setupCamera, txt } from '../view.js';
 import { platformTexture, PLATFORM_H, PLATFORM_PAD } from '../art.js';
 import { Sky } from '../systems/sky.js';
@@ -10,6 +12,8 @@ import { music } from '../services/music.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { Trail } from '../systems/trail.js';
 import { skinById } from '../systems/progress.js';
+import { Powerups } from '../systems/powerups.js';
+import { Lightning } from '../systems/hazards.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
@@ -58,12 +62,14 @@ export class GameScene extends Phaser.Scene {
     this.levelTimer = 0;
     this.coinsRun = 0;
     this.zoneShown = 0;
+    this.gateDone = false;
 
     this.sky = new Sky(this, { city: true, scrollY: this.scrollY });
     this.drawWalls();
 
     this.platforms = [];
     this.nextFloor = 0;
+    this.items = new Powerups(this);
     this.generate();
     this.prepareZone(0);
 
@@ -78,12 +84,14 @@ export class GameScene extends Phaser.Scene {
       emitting: false,
     }).setDepth(8);
 
+    this.lightning = new Lightning(this);
     this.combo = new ComboTracker((r) => this.onComboEnd(r));
     this.createHud();
     this.createInput();
 
     if (!save.get().tutorialSeen) this.showTutorial();
     music.start('game', 0);
+    music.setZone(0);
 
     this.game.events.on('hidden', this.autoPause, this);
     this.events.once('shutdown', () => this.game.events.off('hidden', this.autoPause, this));
@@ -158,7 +166,8 @@ export class GameScene extends Phaser.Scene {
 
   spawnPlatform(floor) {
     const inner = W - 2 * WALL;
-    const zone = ZONES[zoneIndexForFloor(floor)];
+    const zi = zoneIndexForFloor(floor);
+    const zone = ZONES[zi];
     let style = zone.platform;
     let type = 'normal';
     let x = WALL;
@@ -189,11 +198,30 @@ export class GameScene extends Phaser.Scene {
     if (style === 'milestone') {
       p.label = txt(this, x + w / 2, top + PLATFORM_H / 2, `${floor}`, 34, { color: '#5a3a00', stroke: '#fff0a8', strokeThickness: 6 }).setDepth(6);
     }
-    if (floor > 0 && style !== 'milestone' && Math.random() < TOWER.coinChance) {
-      p.coin = this.add.image(x + w / 2, top - 58, 'coin').setScale(1 / ZOOM).setDepth(6);
+    if (floor > 0 && style !== 'milestone' && !this.items.maybeSpawn(p, ZONE_RULES[zi])
+      && Math.random() < TOWER.coinChance) {
+      const tier = this.coinTier(zi);
+      p.coin = this.add.image(x + w / 2, top - 58, tier.texture).setScale(1 / ZOOM).setDepth(6);
+      p.coinValue = tier.value;
       p.coinBaseY = top - 58;
     }
+    if (floor === GATE.floor) {
+      p.deco = [
+        this.add.image(W / 2, top + 4, 'gate').setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(4),
+        txt(this, W / 2, top - 470, 'Himmelstor', 56, { color: '#ffe066', strokeThickness: 10 }).setDepth(6),
+      ];
+    }
     this.platforms.push(p);
+  }
+
+  /** Welche Münze auf einer Plattform liegt (weiter oben öfter wertvollere). */
+  coinTier(zi) {
+    let r = Math.random();
+    for (const [key, chance] of Object.entries(COIN_TIER_CHANCE[zi] ?? {})) {
+      if (r < chance) return COIN_TIERS[key];
+      r -= chance;
+    }
+    return { value: 1, texture: 'coin' };
   }
 
   generate() {
@@ -206,6 +234,8 @@ export class GameScene extends Phaser.Scene {
       p.img.destroy();
       p.label?.destroy();
       p.coin?.destroy();
+      p.deco?.forEach((d) => d.destroy());
+      this.items.destroyItem(p);
       return false;
     });
   }
@@ -217,7 +247,7 @@ export class GameScene extends Phaser.Scene {
         if (p.x < WALL) { p.x = WALL; p.vx *= -1; }
         if (p.x + p.w > W - WALL) { p.x = W - WALL - p.w; p.vx *= -1; }
         p.img.x = p.x - PAD.x;
-        if (p.coin) p.coin.x = p.x + p.w / 2;
+        if (p.coin && !p.coinPulled) p.coin.x = p.x + p.w / 2;
       }
       if (p.crumbleT >= 0 && !p.gone) {
         p.crumbleT += dt;
@@ -228,6 +258,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
       if (p.coin) {
+        if (this.items.magnetActive) this.pullCoin(p, dt);
         p.coin.y = p.coinBaseY + Math.sin(this.time0 * 4 + p.floor) * 6;
         const dx = p.coin.x - this.px;
         const dy = p.coin.y - this.py;
@@ -236,12 +267,25 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Münz-Magnet: Münze zu Wolki ziehen */
+  pullCoin(p, dt) {
+    const dx = this.px - p.coin.x;
+    const dy = this.py - p.coin.y;
+    if (dx * dx + dy * dy > POWERUPS.magnet.radius ** 2) return;
+    const k = Math.min(1, dt * 9);
+    p.coin.x += dx * k;
+    p.coinBaseY += dy * k;
+    p.coinPulled = true;
+  }
+
   collectCoin(p) {
     const c = p.coin;
+    const value = p.coinValue ?? 1;
     p.coin = null;
-    this.coinsRun += 1;
+    this.coinsRun += value;
     this.hud.coins.setText(`${this.coinsRun}`);
     sfx.coin();
+    if (value > 1) this.items.floatText(c.x, c.y, `+${value}`);
     this.tweens.add({ targets: c, y: c.y - 60, alpha: 0, scale: 1.6 / ZOOM, duration: 260, onComplete: () => c.destroy() });
   }
 
@@ -260,8 +304,9 @@ export class GameScene extends Phaser.Scene {
 
     this.warmNextTexture();
     this.cam.scrollY = this.scrollY;
-    this.sky.update(this.scrollY, Math.max(0, -(this.scrollY + VIEW_H / 2) / FH));
+    this.sky.update(this.scrollY, Math.max(0, -(this.scrollY + VIEW_H / 2) / FH), frame);
     this.renderPlayer(frame);
+    this.items.render();
     this.trail.update(this.px, this.py - 4, frame);
     this.renderHud();
   }
@@ -269,12 +314,44 @@ export class GameScene extends Phaser.Scene {
   tick(dt) {
     this.time0 += dt;
     if (this.state !== 'play') return;
+    this.rules = ZONE_RULES[zoneIndexForFloor(this.floorUnderPlayer())] ?? {};
+    this.items.update(dt);
     this.updatePlayer(dt);
     this.combo.update(dt);
     this.updateCamera(dt);
     this.updatePlatforms(dt);
+    this.lightning.update(dt, !!this.rules.lightning);
     this.generate();
-    if (this.py - R > this.scrollY + VIEW_H + 40) this.gameOver();
+    if (this.py - R > this.scrollY + VIEW_H + 40) {
+      if (this.items.useShield()) this.rescue();
+      else this.gameOver();
+    }
+  }
+
+  /** Etage, über der Wolki gerade ist */
+  floorUnderPlayer() {
+    return Math.max(0, Math.floor(-(this.py + R) / FH + 0.001));
+  }
+
+  /** Regenschirm: Wolki wird vom unteren Rand wieder nach oben geschleudert */
+  rescue() {
+    this.py = this.scrollY + VIEW_H - 40;
+    this.vy = -2350;
+    this.vx *= 0.4;
+    this.popup('Gerettet!', null, '#8fd3ff');
+    this.sparks.explode(24, this.px, this.py);
+  }
+
+  /** Warp-Stern: ein paar Etagen nach oben teleportieren */
+  warp(floors) {
+    this.sparks.explode(24, this.px, this.py);
+    this.py -= floors * FH;
+    this.vy = -700;
+    this.scrollY = Math.min(this.scrollY, this.py - VIEW_H * 0.45);
+    this.trail.clear();
+    sfx.warp();
+    this.reachFloor(this.floorUnderPlayer());
+    this.sparks.explode(24, this.px, this.py);
   }
 
   // --------------------------------------------------------------------------
@@ -317,12 +394,14 @@ export class GameScene extends Phaser.Scene {
 
   updatePlayer(dt) {
     const P = PHYSICS;
+    const z = this.rules ?? {};
+    const rocket = this.items.rocketActive;
     const dir = this.readInput();
     if (dir !== 0) {
       const turning = this.vx !== 0 && Math.sign(this.vx) !== dir;
-      this.vx += dir * (turning ? P.turnAccel : P.accel) * dt;
+      this.vx += dir * (turning ? P.turnAccel * (z.turnAccel ?? 1) : P.accel * (z.accel ?? 1)) * dt;
     } else {
-      const d = P.friction * dt;
+      const d = P.friction * (z.friction ?? 1) * dt;
       this.vx = Math.abs(this.vx) <= d ? 0 : this.vx - Math.sign(this.vx) * d;
     }
     this.vx = Phaser.Math.Clamp(this.vx, -P.maxRunSpeed, P.maxRunSpeed);
@@ -334,11 +413,11 @@ export class GameScene extends Phaser.Scene {
     else if (this.px > maxX) { this.px = maxX; this.hitWall(-1); }
 
     const prevFeet = this.py + R;
-    this.vy = Math.min(this.vy + P.gravity * dt, 2400);
+    if (!rocket) this.vy = Math.min(this.vy + P.gravity * (z.gravity ?? 1) * dt, 2400);
     this.py += this.vy * dt;
     const feet = this.py + R;
 
-    if (this.vy > 0) {
+    if (this.vy > 0 && !rocket) {
       let hit = null;
       for (const p of this.platforms) {
         if (p.gone || p.top < prevFeet - 1 || p.top > feet) continue;
@@ -372,8 +451,7 @@ export class GameScene extends Phaser.Scene {
     this.squash = 0.22;
     sfx.jump(power);
 
-    const before = this.combo.maxFloor;
-    this.combo.land(p.floor);
+    this.reachFloor(p.floor);
     if (this.combo.active) {
       sfx.comboStep(this.combo.jumps);
       if (power > 0.55 && this.spin.angle === 0) {
@@ -384,6 +462,12 @@ export class GameScene extends Phaser.Scene {
       }
     }
     if (p.type === 'crumble' && p.crumbleT < 0) p.crumbleT = 0;
+  }
+
+  /** Wolki kommt auf Etage `floor` an (Landung, Rakete oder Warp). */
+  reachFloor(floor) {
+    const before = this.combo.maxFloor;
+    this.combo.land(floor);
     if (this.combo.maxFloor > before) this.onNewFloor(this.combo.maxFloor);
   }
 
@@ -395,10 +479,31 @@ export class GameScene extends Phaser.Scene {
     if (zi > this.zoneShown) {
       this.zoneShown = zi;
       this.releaseZone(zi - 2);
-      this.popup(ZONES[zi].name, `Etage ${ZONES[zi].from}`, '#bfe6ff');
+      this.popup(ZONES[zi].name, ZONE_RULES[zi]?.hint ?? `Etage ${ZONES[zi].from}`, '#bfe6ff');
       sfx.zone();
+      music.setZone(zi);
       this.celebrate();
     }
+    if (!this.gateDone && floor >= GATE.floor) this.reachGate();
+  }
+
+  /** Das große Ziel: Himmelstor bei Etage 1000 */
+  reachGate() {
+    this.gateDone = true;
+    this.coinsRun += GATE.bonusCoins;
+    this.hud.coins.setText(`${this.coinsRun}`);
+    save.update((d) => { d.gateCount = (d.gateCount ?? 0) + 1; });
+    this.happyUntil = this.time0 + 3;
+    this.time.delayedCall(1300, () => {
+      this.popup('Himmelstor erreicht!', `+${GATE.bonusCoins.toLocaleString('de-DE')} Münzen`, '#ffe066');
+      sfx.gate();
+    });
+    this.time.addEvent({
+      delay: 220,
+      repeat: 10,
+      callback: () => this.sparks.explode(26, 90 + Math.random() * (W - 180), this.scrollY + 160 + Math.random() * 520),
+    });
+    if (save.get().settings.vibration) vibrate([60, 60, 120]);
   }
 
   updateCamera(dt) {
@@ -415,7 +520,8 @@ export class GameScene extends Phaser.Scene {
       this.scrollY -= (CAMERA.baseSpeed + this.camLevel * CAMERA.speedPerLevel) * dt;
     }
     const followY = this.py - VIEW_H * CAMERA.followZone;
-    if (followY < this.scrollY) this.scrollY += (followY - this.scrollY) * Math.min(1, dt * 8);
+    const rate = this.items.rocketActive ? 22 : 8; // bei der Rakete schneller nachziehen
+    if (followY < this.scrollY) this.scrollY += (followY - this.scrollY) * Math.min(1, dt * rate);
   }
 
   onComboEnd(r) {
@@ -460,6 +566,7 @@ export class GameScene extends Phaser.Scene {
   renderPlayer(dt) {
     let pose = 'up';
     if (this.state === 'dead') pose = 'dead';
+    else if (this.items.rocketActive) pose = 'combo';
     else if (this.time0 < this.happyUntil) pose = 'happy';
     else if (this.vy > 150) pose = 'fall';
     else if (this.combo.active) pose = 'combo';

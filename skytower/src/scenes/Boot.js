@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
-import { COIN_SVG, SPARK_SVG, BGCLOUD_SVG, BALLOON_SVG, BIRD_SVG, PLANET_SVG } from '../art.js';
+import {
+  COIN_SVG, SPARK_SVG, BGCLOUD_SVG, BALLOON_SVG, BIRD_SVG, PLANET_SVG,
+  COIN_SILVER_SVG, COIN_GOLD_SVG, DIAMOND_SVG, ROCKET_SVG, UMBRELLA_SVG, MAGNET_SVG, WARP_SVG,
+  NEBULA_SVG, GATE_SVG,
+} from '../art.js';
 import { ensureSkin, svgToImage } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
 
@@ -12,6 +16,17 @@ const TEXTURES = [
   { key: 'balloon', svg: BALLOON_SVG, w: 80, h: 120 },
   { key: 'bird', svg: BIRD_SVG, w: 60, h: 40 },
   { key: 'planet', svg: PLANET_SVG, w: 160, h: 110 },
+  { key: 'coin_silver', svg: COIN_SILVER_SVG, w: 46, h: 46 },
+  { key: 'coin_gold', svg: COIN_GOLD_SVG, w: 54, h: 54 },
+  { key: 'diamond', svg: DIAMOND_SVG, w: 50, h: 50 },
+  { key: 'pu_rocket', svg: ROCKET_SVG, w: 64, h: 64 },
+  { key: 'pu_shield', svg: UMBRELLA_SVG, w: 64, h: 64 },
+  { key: 'pu_magnet', svg: MAGNET_SVG, w: 60, h: 60 },
+  { key: 'pu_warp', svg: WARP_SVG, w: 64, h: 64 },
+  { key: 'nebula_0', svg: NEBULA_SVG('#ff7ad9', '#8e5cff'), w: 300, h: 220 },
+  { key: 'nebula_1', svg: NEBULA_SVG('#6fe3ff', '#3f5bff'), w: 300, h: 220 },
+  { key: 'nebula_2', svg: NEBULA_SVG('#ffd27a', '#ff5c8a'), w: 300, h: 220 },
+  { key: 'gate', svg: GATE_SVG, w: 620, h: 407 },
 ];
 
 export class BootScene extends Phaser.Scene {

@@ -16,7 +16,7 @@ const DECO_BY_ZONE = {
   city: null,
   balloon: 'balloon',
   bird: 'bird',
-  bolt: 'bird',
+  bolt: null,
   aurora: null,
   planet: 'planet',
   nebula: 'planet',
@@ -43,6 +43,20 @@ export class Sky {
       const d = scene.add.image(0, 0, 'balloon').setScrollFactor(0.4).setDepth(2).setVisible(false);
       this.layers.push({ obj: d, sf: 0.4, kind: 'deco' });
     }
+    for (let i = 0; i < 3; i++) {
+      const n = scene.add.image(0, 0, `nebula_${i}`).setScrollFactor(0.1).setDepth(1).setAlpha(0);
+      n.setScale((1.4 + Math.random()) / ZOOM);
+      this.layers.push({ obj: n, sf: 0.1, kind: 'nebula' });
+    }
+    // Effekte, die fest am Bildschirm hängen: Nordlichter, Wetterleuchten, Sternschnuppen
+    this.aurora = scene.add.graphics().setScrollFactor(0).setDepth(1);
+    this.fx = scene.add.graphics().setScrollFactor(0).setDepth(1);
+    this.flash = scene.add.rectangle(0, 0, W, VIEW_H, 0xffffff, 0).setOrigin(0).setScrollFactor(0).setDepth(1);
+    this.time = 0;
+    this.nextBolt = 2;
+    this.bgBolt = null;
+    this.nextShot = 1.5;
+    this.shots = [];
     for (const l of this.layers) {
       l.obj.x = Math.random() * W;
       l.obj.y = scrollY * l.sf + Math.random() * VIEW_H;
@@ -76,8 +90,9 @@ export class Sky {
     }
   }
 
-  /** scrollY = Kamera-Position, floor = aktuelle Höhe in Etagen (Kommazahl). */
-  update(scrollY, floor) {
+  /** scrollY = Kamera-Position, floor = aktuelle Höhe in Etagen (Kommazahl), dt = Sekunden. */
+  update(scrollY, floor, dt = 0) {
+    this.time += dt;
     const idx = zoneIndexForFloor(Math.floor(floor));
     const z = ZONES[idx];
     const next = ZONES[idx + 1];
@@ -110,9 +125,89 @@ export class Sky {
       }
       if (l.kind === 'star') o.setAlpha(starAlpha * (0.5 + 0.5 * Math.sin(o.x + scrollY * 0.002)));
       else if (l.kind === 'cloud') o.setAlpha(cloudAlpha);
+      else if (l.kind === 'nebula') o.setAlpha(Math.max(zoneWeight(6, floor), 0.35 * zoneWeight(5, floor)));
       if (l.kind === 'cloud' && idx === 3) o.setTint(0x8f98b5);
       else if (l.kind === 'cloud') o.clearTint();
     }
     this.zoneIdx = idx;
+    this.drawEffects(floor, dt);
   }
+
+  drawEffects(floor, dt) {
+    const t = this.time;
+    // Nordlichter im Polarlicht (und schwach im Weltall)
+    const aw = Math.max(zoneWeight(4, floor), 0.3 * zoneWeight(5, floor));
+    this.aurora.clear();
+    if (aw > 0.01) {
+      [0x7dffb2, 0x5ce1e6, 0xb07bff].forEach((color, k) => {
+        const base = VIEW_H * (0.16 + 0.13 * k);
+        const col = (x) => ({
+          y: base + Math.sin(x * 0.008 + t * 0.6 + k * 2) * 50 + Math.sin(x * 0.021 - t * 0.9) * 18,
+          h: 90 + 40 * Math.sin(x * 0.013 + t * 0.8 + k),
+        });
+        for (let x = -30; x < W + 30; x += 30) {
+          const a = col(x);
+          const b = col(x + 30);
+          this.aurora.fillGradientStyle(color, color, color, color, 0, 0, 0.32 * aw, 0.32 * aw);
+          this.aurora.fillTriangle(x, a.y, x + 30, b.y, x + 30, b.y + b.h);
+          this.aurora.fillTriangle(x, a.y, x + 30, b.y + b.h, x, a.y + a.h);
+        }
+      });
+    }
+
+    this.fx.clear();
+    if (this.flash.alpha > 0) this.flash.setAlpha(Math.max(0, this.flash.alpha - dt * 2));
+    // Wetterleuchten in der Gewitterfront
+    const sw = zoneWeight(3, floor);
+    if (sw > 0.5 && dt > 0) {
+      this.nextBolt -= dt;
+      if (this.nextBolt <= 0) {
+        this.nextBolt = 2 + Math.random() * 3.5;
+        const pts = [];
+        let x = 60 + Math.random() * (W - 120);
+        for (let y = -10; y < VIEW_H * (0.3 + Math.random() * 0.3); y += 40 + Math.random() * 30) {
+          pts.push({ x, y });
+          x += (Math.random() - 0.5) * 70;
+        }
+        this.bgBolt = { pts, life: 0.18 };
+        this.flash.setAlpha(0.16);
+      }
+    }
+    if (this.bgBolt) {
+      this.bgBolt.life -= dt;
+      if (this.bgBolt.life <= 0) this.bgBolt = null;
+      else {
+        const a = this.bgBolt.life / 0.18;
+        this.fx.lineStyle(10, 0xdde6ff, 0.25 * a).strokePoints(this.bgBolt.pts);
+        this.fx.lineStyle(3, 0xffffff, 0.8 * a).strokePoints(this.bgBolt.pts);
+      }
+    }
+    // Sternschnuppen im Weltall und in der Galaxie
+    if (floor > 480 && dt > 0) {
+      this.nextShot -= dt;
+      if (this.nextShot <= 0) {
+        this.nextShot = 1.2 + Math.random() * 2.5;
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        this.shots.push({ x: dir > 0 ? -40 : W + 40, y: Math.random() * VIEW_H * 0.6, vx: dir * (700 + Math.random() * 400), vy: 260 + Math.random() * 160, life: 1.4 });
+      }
+    }
+    this.shots = this.shots.filter((sh) => {
+      sh.life -= dt;
+      sh.x += sh.vx * dt;
+      sh.y += sh.vy * dt;
+      const a = Math.min(1, sh.life);
+      this.fx.lineStyle(3, 0xffffff, 0.85 * a).lineBetween(sh.x, sh.y, sh.x - sh.vx * 0.12, sh.y - sh.vy * 0.12);
+      this.fx.fillStyle(0xfff6c2, a).fillCircle(sh.x, sh.y, 3.5);
+      return sh.life > 0;
+    });
+  }
+}
+
+/** 0..1: wie stark eine Zone bei dieser Höhe zu sehen ist (mit weichen Übergängen). */
+function zoneWeight(i, floor) {
+  const from = ZONES[i].from;
+  const to = ZONES[i + 1]?.from ?? Infinity;
+  const fadeIn = Math.max(0, Math.min(1, (floor - (from - 20)) / 20));
+  const fadeOut = Math.max(0, Math.min(1, (to - floor) / 20));
+  return Math.min(fadeIn, fadeOut);
 }

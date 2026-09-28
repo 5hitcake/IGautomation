@@ -123,6 +123,13 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 ---
 
+### 4.1 Umgesetzt in v0.6
+- **Ziel:** Himmelstor bei Etage 1000 (Feuerwerk, +1.000 Münzen), danach endlos weiter.
+- **Power-ups ab Etage 40:** Raketen-Wolke, Regenschirm-Schild, Münz-Magnet, Warp-Stern (Galaxie).
+- **Münzen:** Silber (5), Gold (10), Diamant (25) werden mit der Höhe häufiger.
+- **Zonen:** Gewitter = Blitzeinschläge mit Vorwarnung · Polarlicht = glatt ·
+  Weltall/Galaxie = weniger Schwerkraft · eigene Deko und Musik-Klangfarbe je Zone.
+
 ## 5. Münzen, Erfolge & Skins
 
 ### 5.1 Münzen

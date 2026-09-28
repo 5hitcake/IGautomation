@@ -85,6 +85,51 @@ export const ZONES = [
   { from: 1000, name: 'Galaxie', skyTop: '#1a0630', skyBottom: '#4a1a6e', platform: 'stardust', deco: 'nebula' },
 ];
 
+// Besonderheiten je Zone (Index wie in ZONES). Physik-Faktoren wirken auf PHYSICS.
+export const ZONE_RULES = {
+  3: { hint: 'Vorsicht, Blitze!', lightning: true },
+  4: { hint: 'Achtung, glatt!', friction: 0.22, accel: 0.7, turnAccel: 0.45 },
+  5: { hint: 'Fast schwerelos!', gravity: 0.78 },
+  6: { hint: 'Warp-Sterne!', gravity: 0.78, warp: true },
+};
+
+export const LIGHTNING = {
+  every: [3.2, 5.5], // Sekunden zwischen zwei Blitzen (zufällig im Bereich)
+  warning: 1.1, // Vorwarnzeit, in der die Plattform blinkt
+  minFloorsAbove: 2, // trifft nur Plattformen mind. so weit über Wolki
+};
+
+// Münzen: Wert und Wahrscheinlichkeit je Zone (Rest = normale Münze mit Wert 1)
+export const COIN_TIERS = {
+  silver: { value: 5, texture: 'coin_silver' },
+  gold: { value: 10, texture: 'coin_gold' },
+  diamond: { value: 25, texture: 'diamond' },
+};
+export const COIN_TIER_CHANCE = [
+  {},
+  { silver: 0.2 },
+  { silver: 0.35, gold: 0.1 },
+  { silver: 0.35, gold: 0.15 },
+  { silver: 0.3, gold: 0.25, diamond: 0.05 },
+  { gold: 0.35, diamond: 0.12 },
+  { gold: 0.35, diamond: 0.2 },
+];
+
+export const POWERUPS = {
+  fromFloor: 40, // ab dieser Etage können Power-ups auftauchen
+  chance: 0.045, // je Plattform
+  weights: { rocket: 1, shield: 1, magnet: 1.2 },
+  rocket: { floors: 30, duration: 1.3 },
+  magnet: { duration: 10, radius: 340 },
+  warp: { floors: 12, chance: 0.08 }, // nur in der Galaxie
+};
+
+// Das große Ziel
+export const GATE = {
+  floor: 1000,
+  bonusCoins: 1000,
+};
+
 export function zoneIndexForFloor(floor) {
   let idx = 0;
   for (let i = 0; i < ZONES.length; i++) if (floor >= ZONES[i].from) idx = i;
