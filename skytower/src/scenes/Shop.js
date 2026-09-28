@@ -7,6 +7,7 @@ import { ensureSkin, skinKey } from '../systems/skinTextures.js';
 import {
   SKIN_LIST, GOAL_TEXT, skinById, skinState, buySkin, selectSkin, goalProgress,
 } from '../systems/progress.js';
+import { drawTrailPreview } from '../systems/trail.js';
 
 const INK = '#2d3a5a';
 const COLS = 3;
@@ -82,6 +83,9 @@ export class ShopScene extends Phaser.Scene {
       const img = this.add.image(x + cw / 2, y + (ch - 56) / 2 + 6, skinKey(skin.id, 'happy'))
         .setScale(imgScale / ZOOM).setDepth(6);
       if (locked) img.setAlpha(0.5);
+      if (skin.trail) {
+        drawTrailPreview(this, skin.trail, img.x - 30 * imgScale, img.y + 4, cw * 0.36, 5.5).setAlpha(locked ? 0.5 : 1);
+      }
 
       txt(this, x + cw / 2, y + ch - 48, skin.short ?? skin.name, 22, { color: INK, strokeThickness: 0 }).setDepth(7);
       this.statusLabel(x + cw / 2, y + ch - 20, skin, state);
@@ -122,6 +126,7 @@ export class ShopScene extends Phaser.Scene {
 
     this.add.image(140, y + PANEL_H / 2, skinKey(skin.id, 'happy')).setScale(1.7 / ZOOM).setDepth(6)
       .setAlpha(state === 'goal' || state === 'premium' ? 0.55 : 1);
+    if (skin.trail) drawTrailPreview(this, skin.trail, 100, y + PANEL_H / 2 + 6, 60, 5.5);
     const tx = 250;
     txt(this, tx, y + 50, skin.name, 38, { color: INK, strokeThickness: 0, ox: 0 }).setDepth(7);
 

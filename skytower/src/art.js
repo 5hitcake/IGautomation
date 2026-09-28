@@ -27,10 +27,12 @@ export const SKINS = {
     back: (o) => `<path d="M96 84 L116 76 L110 88 L118 96 L98 96Z" fill="#6cc3f2" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
     front: (o) => `<path d="M54 28 Q50 12 62 8 Q58 16 62 20 Q66 10 78 12 Q68 16 66 28Z" fill="#9ddcff" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
   },
-  papier: {
-    body: '#fbfbf5', shade: '#e3e1d3', outline: '#3a3a4a', cheek: '#ff9eb5', shoe: '#e74c3c', sole: '#ffffff',
-    front: (o) => `<path d="M34 28 L96 6 L66 34 Z" fill="#ffffff" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
-      `<path d="M96 6 L56 30 L60 40 Z" fill="#dfe6f0" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
+  rainbow: {
+    // rosa "Törtchen" mit bunten Streuseln; der Regenbogen-Schweif kommt aus src/systems/trail.js
+    body: '#ffe0f0', shade: '#ffb8d9', outline: '#4a2350', cheek: '#ff6b9d', shoe: '#ff6b9d', sole: '#ffffff',
+    belly: () => [[34, 52, '#ff4d4d', 20], [84, 48, '#3fa9ff', -30], [40, 92, '#4cd964', 40], [82, 94, '#ffe23d', -10],
+      [30, 76, '#8e5cff', 70], [92, 70, '#ff9f1a', 10], [62, 100, '#3fa9ff', 80]]
+      .map(([x, y, c, r]) => `<rect x="${x - 4}" y="${y - 1.5}" width="8" height="3" rx="1.5" fill="${c}" transform="rotate(${r} ${x} ${y})"/>`).join(''),
   },
   ballon: {
     body: '#fff4e6', shade: '#f1dcc2', outline: '#4a2e1a', cheek: '#ff9e8a', shoe: '#8b5a2b', sole: '#f1dcc2',

@@ -6,6 +6,8 @@ import { save } from '../services/storage.js';
 import { unlockAudio, setSoundEnabled, sfx } from '../services/audio.js';
 import { music } from '../services/music.js';
 import { skinKey } from '../systems/skinTextures.js';
+import { Trail } from '../systems/trail.js';
+import { skinById } from '../systems/progress.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -29,19 +31,21 @@ export class MenuScene extends Phaser.Scene {
     this.tweens.add({ targets: title, angle: { from: -2, to: 2 }, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     txt(this, W / 2, VIEW_H * 0.17 + 92, 'Hüpf in den Himmel!', 38, { color: '#fff6c2', strokeThickness: 7 });
 
-    // Wolki hüpft auf einer Wolke
+    // Wolki hüpft auf einer Wolke – oder fliegt mit ihrem Schweif (Nyan-Stil)
     const baseY = VIEW_H * 0.52;
-    const pg = this.add.graphics({ x: W / 2 - 110, y: baseY }).setDepth(3);
-    drawPlatform(pg, 'cloud', 220);
-    const wolki = this.add.image(W / 2, baseY, skinKey(s.selectedSkin, 'happy')).setOrigin(0.5, 0.96).setScale(1.5 / ZOOM).setDepth(4);
-    this.tweens.add({
-      targets: wolki,
-      y: baseY - 190,
-      duration: 480,
-      ease: 'Quad.out',
-      yoyo: true,
-      repeat: -1,
-    });
+    const trailKind = skinById(s.selectedSkin).trail;
+    this.trail = new Trail(this, trailKind, { depth: 3.5, drift: -360, flat: true, life: 0.6 });
+    const wolki = this.add.image(W / 2, baseY, skinKey(s.selectedSkin, 'happy'))
+      .setOrigin(0.5, 0.96).setScale(1.5 / ZOOM).setDepth(4);
+    this.wolki = wolki;
+    if (trailKind) {
+      wolki.setPosition(W / 2 + 60, baseY - 90);
+      this.tweens.add({ targets: wolki, y: baseY - 118, duration: 420, ease: 'Sine.inOut', yoyo: true, repeat: -1 });
+    } else {
+      const pg = this.add.graphics({ x: W / 2 - 110, y: baseY }).setDepth(3);
+      drawPlatform(pg, 'cloud', 220);
+      this.tweens.add({ targets: wolki, y: baseY - 190, duration: 480, ease: 'Quad.out', yoyo: true, repeat: -1 });
+    }
 
     const stats = [
       `Rekord: ${s.highscore.toLocaleString('de-DE')}`,
@@ -71,14 +75,16 @@ export class MenuScene extends Phaser.Scene {
       sfx.click();
     }, { w: 260, h: 78, size: 34, fill: 0xbfe6ff });
 
-    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.4 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
+    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.5 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
   }
 
   soundLabel() {
     return save.get().settings.sound ? 'Ton: an' : 'Ton: aus';
   }
 
-  update() {
+  update(_t, deltaMs) {
     this.sky.update(0, 0);
+    // Schweif "fliegt" nach links, während Wolki auf der Stelle schwebt
+    this.trail.update(this.wolki.x - 40, this.wolki.y - 64, Math.min(deltaMs / 1000, 0.1));
   }
 }

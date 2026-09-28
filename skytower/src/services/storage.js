@@ -25,7 +25,11 @@ function load() {
     if (raw) {
       const parsed = JSON.parse(raw);
       const base = structuredClone(DEFAULTS); // eigene Kopie, z. B. von ownedSkins
-      return { ...base, ...parsed, settings: { ...base.settings, ...parsed.settings } };
+      const d = { ...base, ...parsed, settings: { ...base.settings, ...parsed.settings } };
+      // v0.4 -> v0.5: Papierflieger wurde durch Regenbogenschweif ersetzt
+      d.ownedSkins = d.ownedSkins.map((id) => (id === 'papier' ? 'rainbow' : id));
+      if (d.selectedSkin === 'papier') d.selectedSkin = 'rainbow';
+      return d;
     }
   } catch { /* privater Modus o. Ä. */ }
   return structuredClone(DEFAULTS);

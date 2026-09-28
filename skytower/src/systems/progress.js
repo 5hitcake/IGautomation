@@ -2,18 +2,19 @@
 //
 // Jeder Skin ist entweder von Anfang an da, für Münzen kaufbar, durch einen
 // Erfolg freischaltbar oder Premium (In-App-Kauf ab Phase 6). Die Goldene
-// Wolke gibt es auch über 1.000.000 gesammelte Punkte.
+// Wolke gibt es auch über 1.000.000 gesammelte Punkte. `trail` = Schweif hinter
+// Wolki (siehe src/systems/trail.js).
 
 export const SKIN_LIST = [
   { id: 'wolki', name: 'Wolki' },
   { id: 'regen', name: 'Regenwolke', price: 500 },
   { id: 'sonne', name: 'Sonnenschein', price: 1000 },
   { id: 'pip', name: 'Vogel Pip', price: 1500 },
-  { id: 'papier', name: 'Papierflieger', price: 2500 },
+  { id: 'rainbow', name: 'Regenbogenschweif', short: 'Regenbogen', price: 2500, trail: 'rainbow' },
   { id: 'ballon', name: 'Heißluftballon', goal: { type: 'bestFloor', value: 200 } },
   { id: 'blitz', name: 'Blitz', goal: { type: 'bestCombo', value: 50 } },
   { id: 'astro', name: 'Astronaut', goal: { type: 'bestFloor', value: 500 } },
-  { id: 'mond', name: 'Mond', goal: { type: 'runs', value: 100 } },
+  { id: 'mond', name: 'Mond', goal: { type: 'runs', value: 100 }, trail: 'stars' },
   { id: 'einhorn', name: 'Regenbogen-Einhorn', short: 'Einhorn', premium: true },
   { id: 'drache', name: 'Mini-Drache', premium: true },
   { id: 'gold', name: 'Goldene Wolke', premium: true, goal: { type: 'totalScore', value: 1_000_000 } },

@@ -3,7 +3,7 @@
 Endless-Jumper fürs Handy, angelehnt an den PC-Klassiker *Icy Tower*.
 Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 
-## Stand: Prototyp v0.4 (Phasen 1, 3 und 5)
+## Stand: Prototyp v0.5 (Phasen 1, 3 und 5)
 
 - Automatisches Springen, Sprunghöhe hängt vom Anlauf ab
 - Steuerung: linke/rechte Bildschirmhälfte halten (am PC: Pfeiltasten oder A/D, P = Pause)
@@ -18,6 +18,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   4 über Erfolge (Etage 200/500, 50er-Combo, 100 Runden), 3 Premium (In-App-Käufe folgen
   in Phase 6; die Goldene Wolke gibt es alternativ für 1.000.000 gesammelte Punkte).
   Logik in `src/systems/progress.js`, Grafiken in `src/art.js` (`SKINS`)
+- Schweife (`src/systems/trail.js`): Regenbogenschweif (Nyan-Stil) und Sternschnuppe (Mond),
+  im Spiel, im Menü (Wolki fliegt dann statt zu hüpfen) und als Vorschau im Shop
 - Münzen, lokaler Highscore, Tutorial-Hinweise, Pause, Game-Over-Bildschirm
 - Hintergrundmusik (live erzeugt, `src/services/music.js`): 32-Takt-Song mit Strophe,
   Überleitung und Refrain; wird mit jeder Kamerastufe schneller und voller und wechselt

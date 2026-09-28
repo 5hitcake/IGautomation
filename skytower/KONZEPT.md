@@ -137,11 +137,11 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 | Regenwolke | 500 Münzen |
 | Sonnenschein | 1.000 Münzen |
 | Vogel Pip | 1.500 Münzen |
-| Papierflieger | 2.500 Münzen |
+| Regenbogenschweif (mit Regenbogen-Schweif) | 2.500 Münzen |
 | Heißluftballon | Erfolg: Etage 200 erreichen |
 | Blitz | Erfolg: 50er-Combo |
 | Astronaut | Erfolg: Etage 500 erreichen |
-| Mond | Erfolg: 100 Runden gespielt |
+| Mond (mit Sternschnuppen-Schweif) | Erfolg: 100 Runden gespielt |
 | Regenbogen-Einhorn | Premium (In-App-Kauf) |
 | Mini-Drache | Premium (In-App-Kauf) |
 | Goldene Wolke | Premium oder Erfolg: 1.000.000 Punkte |

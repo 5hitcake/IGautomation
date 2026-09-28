@@ -8,6 +8,8 @@ import { save } from '../services/storage.js';
 import { sfx, vibrate } from '../services/audio.js';
 import { music } from '../services/music.js';
 import { skinKey } from '../systems/skinTextures.js';
+import { Trail } from '../systems/trail.js';
+import { skinById } from '../systems/progress.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
@@ -66,6 +68,7 @@ export class GameScene extends Phaser.Scene {
     this.prepareZone(0);
 
     this.player = this.add.image(this.px, this.py, skinKey(this.skin, 'up')).setOrigin(0.5, 0.55).setScale(1 / ZOOM).setDepth(7);
+    this.trail = new Trail(this, skinById(this.skin).trail);
     this.sparks = this.add.particles(0, 0, 'spark', {
       speed: { min: 180, max: 520 },
       lifespan: 650,
@@ -259,6 +262,7 @@ export class GameScene extends Phaser.Scene {
     this.cam.scrollY = this.scrollY;
     this.sky.update(this.scrollY, Math.max(0, -(this.scrollY + VIEW_H / 2) / FH));
     this.renderPlayer(frame);
+    this.trail.update(this.px, this.py - 4, frame);
     this.renderHud();
   }
 
