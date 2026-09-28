@@ -3,6 +3,12 @@
 
 export const WORLD_W = 720;
 
+// Test-Werkzeuge: 10.000 Start-Münzen, im Shop 5× auf die Münzen tippen = +10.000,
+// 5× auf "Skins" tippen = alle Skins frei. Beim Store-Build aus (SKYTOWER_RELEASE=1).
+/* global __TEST_TOOLS__ */
+export const TEST_TOOLS = typeof __TEST_TOOLS__ === 'undefined' ? true : __TEST_TOOLS__;
+export const TEST_COINS = 10000;
+
 export const PHYSICS = {
   gravity: 2900,
   jumpBase: 1200, // Sprunggeschwindigkeit aus dem Stand (~1,6 Etagen)

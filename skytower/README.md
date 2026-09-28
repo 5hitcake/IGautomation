@@ -27,6 +27,16 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - Grafiken im Code gezeichnet (`src/art.js`), Sounds und Musik live synthetisiert
   (`src/services/audio.js`, `src/services/music.js`), beides Platzhalter und später austauschbar
 
+## Test-Werkzeuge
+
+In Test-Versionen (Browser-Testseite, Test-APK) aktiv, im Store-Build aus:
+
+- Beim ersten Start einmalig **10.000 Münzen**
+- Im Shop **5× auf den Münzstand** tippen: +10.000 Münzen
+- Im Shop **5× auf „Skins“** tippen: alle Skins freischalten
+
+Store-Build ohne Test-Werkzeuge: `SKYTOWER_RELEASE=1 npm run build`
+
 ## Entwickeln
 
 ```bash

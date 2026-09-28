@@ -1,6 +1,7 @@
 // Spielstand lokal speichern. Im Prototyp über localStorage; in der Android-
 // App später über Capacitor Preferences (gleiche Schnittstelle).
-import { unlockGoals } from '../systems/progress.js';
+import { unlockGoals, SKIN_LIST } from '../systems/progress.js';
+import { TEST_TOOLS, TEST_COINS } from '../config.js';
 
 const KEY = 'skytower.save.v1';
 
@@ -18,6 +19,13 @@ const DEFAULTS = {
 };
 
 let data = load();
+
+// Test-Versionen: einmalig Start-Münzen gutschreiben (nicht im Store-Build)
+if (TEST_TOOLS && !data.testCoinsGranted) {
+  data.coins += TEST_COINS;
+  data.testCoinsGranted = true;
+  persist();
+}
 
 function load() {
   try {
@@ -43,6 +51,16 @@ export const save = {
   get: () => data,
   update(fn) {
     fn(data);
+    persist();
+  },
+  /** Test-Werkzeug: Münzen gutschreiben */
+  addTestCoins() {
+    data.coins += TEST_COINS;
+    persist();
+  },
+  /** Test-Werkzeug: alle Skins freischalten */
+  unlockAllSkins() {
+    data.ownedSkins = SKIN_LIST.map((s) => s.id).filter((id) => id !== 'wolki');
     persist();
   },
   /** Rundenergebnis eintragen; gibt neue Rekorde und neu freigeschaltete Skins zurück. */

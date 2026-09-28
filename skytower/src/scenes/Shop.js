@@ -8,6 +8,7 @@ import {
   SKIN_LIST, GOAL_TEXT, skinById, skinState, buySkin, selectSkin, goalProgress,
 } from '../systems/progress.js';
 import { drawTrailPreview } from '../systems/trail.js';
+import { TEST_TOOLS } from '../config.js';
 
 const INK = '#2d3a5a';
 const COLS = 3;
@@ -42,6 +43,11 @@ export class ShopScene extends Phaser.Scene {
     txt(this, W / 2, 74, 'Skins', 64);
     this.add.image(W - 58, 74, 'coin').setScale(0.9 / ZOOM).setDepth(10);
     txt(this, W - 90, 74, data.coins.toLocaleString('de-DE'), 40, { ox: 1, color: '#ffe680' });
+    if (TEST_TOOLS) {
+      // Test-Werkzeuge: 5× schnell tippen
+      this.multiTap(W - 110, 74, 200, 100, () => { save.addTestCoins(); sfx.coin(); });
+      this.multiTap(W / 2, 74, 220, 100, () => { save.unlockAllSkins(); sfx.zone(); });
+    }
 
     // Vorschaubilder aller Skins (je nur die ^^-Pose)
     await Promise.all(SKIN_LIST.map((s) => ensureSkin(this, s.id, ['happy'])));
@@ -52,6 +58,20 @@ export class ShopScene extends Phaser.Scene {
 
   update() {
     this.sky.update(0, 0);
+  }
+
+  /** Löst `action` aus, wenn die Fläche 5× innerhalb von 2 Sekunden angetippt wird. */
+  multiTap(x, y, w, h, action) {
+    let taps = [];
+    this.add.zone(x, y, w, h).setInteractive().on('pointerup', () => {
+      const now = this.time.now;
+      taps = [...taps.filter((t) => now - t < 2000), now];
+      if (taps.length >= 5) {
+        taps = [];
+        action();
+        this.scene.restart({ focus: this.focus });
+      }
+    });
   }
 
   leave() {
