@@ -74,7 +74,12 @@ export const save = {
     return true;
   },
   /** Rundenergebnis eintragen; gibt neue Rekorde und neu freigeschaltete Skins zurück. */
-  recordRun({ score, floor, combo, coins }) {
+  /**
+   * Runde speichern. Nach „Weiterspielen per Werbung“ wird dieselbe Runde ein
+   * zweites Mal gespeichert: dann nur die neu dazugekommenen Münzen/Punkte
+   * (coins, scoreDelta) und keine weitere gezählte Runde (continued).
+   */
+  recordRun({ score, floor, combo, coins, scoreDelta = score, continued = false }) {
     const isNew = {
       score: score > data.highscore,
       floor: floor > data.bestFloor,
@@ -84,8 +89,8 @@ export const save = {
     data.bestFloor = Math.max(data.bestFloor, floor);
     data.bestCombo = Math.max(data.bestCombo, combo);
     data.coins += coins;
-    data.runs += 1;
-    data.totalScore += score;
+    if (!continued) data.runs += 1;
+    data.totalScore += scoreDelta;
     isNew.unlocked = unlockGoals(data).map((s) => s.name);
     persist();
     return isNew;

@@ -113,8 +113,22 @@ export class GameOverScene extends Phaser.Scene {
       this.scene.start('Menu');
     }, { fill: 0xbfe6ff, h: 88, size: 38 });
 
-    // Regenschirm per Werbung (bis AdMob angebunden ist: Test-Werbung, nur in Test-Versionen)
-    if (TEST_TOOLS) this.umbrellaOffer(y + 760 + (unlocked.length ? 150 : 84));
+    // Regenschirm per Werbung (bis AdMob angebunden ist: Test-Werbung, nur in Test-Versionen):
+    // beim ersten Absturz einer Runde direkt weiterspielen, sonst für den Vorrat
+    if (TEST_TOOLS) {
+      const by = y + 760 + (unlocked.length ? 150 : 84);
+      if (!won && !this.scene.get('Game').revived) this.reviveOffer(by);
+      else this.umbrellaOffer(by);
+    }
+  }
+
+  reviveOffer(by) {
+    button(this, W / 2 + 20, by, 'Weiterspielen per Werbung', () => this.playFakeAd(() => {
+      this.scene.stop();
+      this.scene.get('Game').revive();
+    }), { w: 520, h: 80, size: 30, fill: 0x9ff0b0 }).setDepth(12);
+    this.add.image(W / 2 - 262, by, 'pu_shield').setScale(0.8 / ZOOM).setDepth(13);
+    txt(this, W / 2, by + 62, 'Ein Regenschirm fängt dich auf · Test-Werbung', 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
   }
 
   umbrellaOffer(by) {
@@ -124,14 +138,17 @@ export class GameOverScene extends Phaser.Scene {
       txt(this, W / 2, by, `Regenschirm-Vorrat voll (${max}/${max})`, 30, { color: '#bfe6ff', strokeThickness: 6 }).setDepth(12);
       return;
     }
-    button(this, W / 2 + 20, by, 'Regenschirm per Werbung', () => this.playFakeAd(), { w: 500, h: 80, size: 30, fill: 0xbfe6ff })
+    button(this, W / 2 + 20, by, 'Regenschirm per Werbung', () => this.playFakeAd(() => {
+      save.addUmbrella(POWERUPS.shieldMax);
+      this.scene.restart(this.initData);
+    }), { w: 500, h: 80, size: 30, fill: 0xbfe6ff })
       .setDepth(12);
     this.add.image(W / 2 - 250, by, 'pu_shield').setScale(0.8 / ZOOM).setDepth(13);
     txt(this, W / 2, by + 62, `Vorrat: ${stock}/${max} · Test-Werbung`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
   }
 
   /** Platzhalter für eine belohnte Werbung (wird in Phase 6 durch AdMob ersetzt) */
-  playFakeAd() {
+  playFakeAd(onReward) {
     sfx.click();
     const layer = this.add.container(0, 0).setDepth(50);
     layer.add(this.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.94).setOrigin(0).setInteractive());
@@ -146,10 +163,9 @@ export class GameOverScene extends Phaser.Scene {
       callback: () => {
         left -= 1;
         if (left > 0) { show(); return; }
-        save.addUmbrella(POWERUPS.shieldMax);
         sfx.shield();
         layer.destroy();
-        this.scene.restart(this.initData);
+        onReward();
       },
     });
   }

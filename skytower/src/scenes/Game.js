@@ -63,6 +63,8 @@ export class GameScene extends Phaser.Scene {
     this.camLevel = 0;
     this.levelTimer = 0;
     this.coinsRun = 0;
+    this.revived = false; // „Weiterspielen per Werbung“ gibt es einmal pro Runde
+    this.banked = null; // schon gespeicherter Stand dieser Runde (nach Weiterspielen)
     this.zoneShown = 0;
     this.gateDone = false;
 
@@ -410,6 +412,19 @@ export class GameScene extends Phaser.Scene {
     this.vx *= 0.4;
     this.popup('Gerettet!', null, '#8fd3ff');
     this.sparks.explode(24, this.px, this.py);
+  }
+
+  /** Nach der Werbung: Regenschirm fängt Wolki auf, die Runde geht an derselben Stelle weiter */
+  revive() {
+    this.revived = true;
+    this.tweens.killTweensOf(this);
+    this.state = 'play';
+    this.acc = 0;
+    this.rescue();
+    this.popup('Weiter geht\'s!', 'Der Regenschirm hat dich gerettet', '#8fd3ff');
+    sfx.shield();
+    music.start('game', this.camLevel);
+    music.setZone(zoneIndexForFloor(this.floorUnderPlayer()));
   }
 
   /** Warp-Stern: ein paar Etagen nach oben teleportieren */
@@ -782,7 +797,16 @@ export class GameScene extends Phaser.Scene {
       combo: this.combo.bestCombo,
       coins: this.coinsRun,
     };
-    const isNew = save.recordRun(result);
+    const prev = this.banked;
+    const isNew = save.recordRun({
+      ...result,
+      coins: result.coins - (prev?.coins ?? 0),
+      scoreDelta: result.score - (prev?.score ?? 0),
+      continued: !!prev,
+    });
+    // Rekorde aus dem ersten Teil der Runde bleiben Rekorde
+    if (prev) for (const k of ['score', 'floor', 'combo']) isNew[k] = isNew[k] || prev.isNew[k];
+    this.banked = { score: result.score, coins: result.coins, isNew };
     if (!save.get().tutorialSeen) save.update((d) => { d.tutorialSeen = true; });
     return { ...result, isNew };
   }

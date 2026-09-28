@@ -27,7 +27,9 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   ab Etage 999 wird der Himmel hell und wolkig, Wolki fliegt durchs Tor und die Runde endet mit „Geschafft!“
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten – einsammeln
-  oder nach Game Over per Werbung holen, bis Phase 6 eine 3-s-Test-Werbung), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
+  oder per Werbung: beim ersten Absturz einer Runde „Weiterspielen per Werbung“ – der
+  Regenschirm fängt Wolki auf und die Runde geht weiter; danach „Regenschirm per Werbung“ für
+  den Vorrat. Bis Phase 6 eine 3-s-Test-Werbung), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
 - **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)
 - **Zonen-Mechaniken** (`ZONE_RULES` in `src/config.js`): Gewitter mit Blitzeinschlägen
   (`src/systems/hazards.js`), rutschiges Eis im Polarlicht, Wind in der Stratosphäre,
