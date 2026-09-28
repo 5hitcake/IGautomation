@@ -22,9 +22,9 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   im Spiel, im Menü (Wolki fliegt dann statt zu hüpfen) und als Vorschau im Shop
 - **Ziel: Himmelstor bei Etage 1000** – kurze Szene (Lichtstrahlen, Blitz, Feuerwerk), +1.000 Münzen
   und der geheime Skin **Engel-Wolki** (Flügel, Heiligenschein, goldener Schweif), der im Shop
-  vorher nicht freischaltbar ist (`design/himmelstor-szene.png`). Das Tor ist die letzte Plattform:
+  vorher gar nicht zu sehen ist (`design/himmelstor-szene.png`). Das Tor ist die letzte Plattform:
   ab Etage 999 wird der Himmel hell und wolkig, Wolki fliegt durchs Tor und die Runde endet mit „Geschafft!“
-- **Power-ups ab Etage 40** (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
+- **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten – einsammeln
   oder nach Game Over per Werbung holen, bis Phase 6 eine 3-s-Test-Werbung), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
 - **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)

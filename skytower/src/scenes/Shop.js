@@ -5,7 +5,7 @@ import { save } from '../services/storage.js';
 import { sfx, vibrate } from '../services/audio.js';
 import { ensureSkin, skinKey } from '../systems/skinTextures.js';
 import {
-  SKIN_LIST, GOAL_TEXT, skinById, skinState, buySkin, selectSkin, goalProgress,
+  SKIN_LIST, isOwned, GOAL_TEXT, skinById, skinState, buySkin, selectSkin, goalProgress,
 } from '../systems/progress.js';
 import { drawTrailPreview } from '../systems/trail.js';
 import { TEST_TOOLS } from '../config.js';
@@ -50,8 +50,10 @@ export class ShopScene extends Phaser.Scene {
       this.multiTap(W / 2, 74, 220, 100, () => { save.unlockAllSkins(); sfx.zone(); });
     }
 
+    // Geheime Skins erscheinen erst, wenn man sie besitzt – vorher gar nicht
+    this.list = SKIN_LIST.filter((s) => !s.secret || isOwned(save.get(), s.id));
     // Vorschaubilder aller Skins (je nur die ^^-Pose)
-    await Promise.all(SKIN_LIST.map((s) => ensureSkin(this, s.id, ['happy'])));
+    await Promise.all(this.list.map((s) => ensureSkin(this, s.id, ['happy'])));
     if (!this.sys.isActive()) return; // Szene wurde inzwischen verlassen
     const gridBottom = this.buildGrid(data);
     this.buildPanel(data, Math.min(VIEW_H - PANEL_H - 24, gridBottom + 28));
@@ -83,15 +85,15 @@ export class ShopScene extends Phaser.Scene {
   /** Baut das Skin-Raster und gibt dessen Unterkante zurück. */
   buildGrid(data) {
     const panelY = VIEW_H - PANEL_H - 24;
-    const rows = Math.ceil(SKIN_LIST.length / COLS);
+    const rows = Math.ceil(this.list.length / COLS);
     const cw = (W - 2 * 40 - (COLS - 1) * GAP) / COLS;
     const ch = Math.min(230, (panelY - 16 - TOP - (rows - 1) * GAP) / rows);
     const imgScale = Math.min(1.2, (ch - 70) / 104);
 
-    SKIN_LIST.forEach((skin, i) => {
+    this.list.forEach((skin, i) => {
       // eine unvollständige letzte Reihe wird mittig gesetzt
       const row = Math.floor(i / COLS);
-      const inRow = Math.min(COLS, SKIN_LIST.length - row * COLS);
+      const inRow = Math.min(COLS, this.list.length - row * COLS);
       const x = 40 + ((COLS - inRow) / 2 + (i % COLS)) * (cw + GAP);
       const y = TOP + row * (ch + GAP);
       const state = skinState(data, skin);

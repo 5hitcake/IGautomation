@@ -131,12 +131,13 @@ export const COIN_TIER_CHANCE = [
 
 export const POWERUPS = {
   fromFloor: 40, // ab dieser Etage können Power-ups auftauchen
-  chance: 0.045, // je Plattform
-  weights: { rocket: 1, shield: 0.45, magnet: 1.2 }, // Regenschirme sind selten
+  chance: 0.014, // je Plattform – bewusst selten, damit Power-ups etwas Besonderes bleiben
+  minGap: 60, // mindestens so viele Etagen zwischen zwei Power-ups
+  weights: { rocket: 1, shield: 0.6, magnet: 1 },
   shieldMax: 3, // so viele Regenschirme kann man auf Vorrat haben
   rocket: { floors: 30, duration: 1.3 },
   magnet: { duration: 10, radius: 340 },
-  warp: { floors: 12, chance: 0.08 }, // nur in der Galaxie
+  warp: { floors: 12, chance: 0.05 }, // nur in der Galaxie
 };
 
 // Test-Werbung (bis AdMob in Phase 6 angebunden ist): so lange läuft die Attrappe

@@ -62,7 +62,8 @@ export const save = {
   },
   /** Test-Werkzeug: alle Skins freischalten */
   unlockAllSkins() {
-    data.ownedSkins = SKIN_LIST.map((s) => s.id).filter((id) => id !== 'wolki');
+    // geheime Skins (Engel) bleiben auch hier verborgen, bis man sie wirklich erspielt
+    data.ownedSkins = SKIN_LIST.filter((s) => s.id !== 'wolki' && (!s.secret || data.ownedSkins.includes(s.id))).map((s) => s.id);
     persist();
   },
   /** Regenschirm gutschreiben (z. B. nach Werbung); gibt false zurück, wenn der Vorrat voll ist. */

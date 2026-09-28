@@ -31,6 +31,7 @@ export class Powerups {
     this.game = game;
     this.magnetUntil = -1;
     this.rocketUntil = -1;
+    this.lastItemFloor = -Infinity;
     this.rocketSpeed = 0;
 
     // Anzeige direkt an Wolki
@@ -60,9 +61,12 @@ export class Powerups {
     if (p.floor < POWERUPS.fromFloor) return false;
     let kind = null;
     if (rules?.warp && Math.random() < POWERUPS.warp.chance) kind = 'warp';
-    else if (Math.random() < POWERUPS.chance) kind = pickWeighted(POWERUPS.weights);
+    else if (p.floor - this.lastItemFloor >= POWERUPS.minGap && Math.random() < POWERUPS.chance) {
+      kind = pickWeighted(POWERUPS.weights);
+      if (kind === 'shield' && umbrellaStock() >= POWERUPS.shieldMax) kind = null; // Vorrat voll
+      if (kind) this.lastItemFloor = p.floor;
+    }
     if (!kind) return false;
-    if (kind === 'shield' && umbrellaStock() >= POWERUPS.shieldMax) kind = 'magnet';
     const y = p.top - 70;
     const halo = this.game.add.graphics().setDepth(6);
     halo.fillStyle(0xffffff, 0.35).fillCircle(0, 0, 40);

@@ -128,10 +128,11 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 ### 4.1 Umgesetzt in v0.6/v0.7
 - **Ziel:** Himmelstor bei Etage 1000: kurze Szene (ca. 6 s), +1.000 Münzen und der geheime
-  Skin **Engel-Wolki** (nur dort freischaltbar). Das Tor ist die letzte Plattform, darüber
+  Skin **Engel-Wolki** (nur dort freischaltbar, im Shop bis dahin unsichtbar). Das Tor ist die letzte Plattform, darüber
   heller Wolkenhimmel; Wolki fliegt hindurch und die Runde endet mit „Geschafft!“.
 - **Regenschirm-Vorrat** (max. 3, bleibt gespeichert): einsammeln oder per Werbung nach Game Over.
 - **Power-ups ab Etage 40:** Raketen-Wolke, Regenschirm-Schild, Münz-Magnet, Warp-Stern (Galaxie).
+  Selten (min. 60 Etagen Abstand, Ø etwa alle 130 Etagen), damit sie etwas Besonderes bleiben.
 - **Münzen:** Silber (5), Gold (10), Diamant (25) werden mit der Höhe häufiger.
 - **Zonen:** Gewitter = Blitze · Polarlicht = glatt · Stratosphäre = Wind · Asteroidengürtel =
   Meteoriten · Galaxie = Warp-Sterne · keine niedrigere Schwerkraft (wäre zu leicht) ·
