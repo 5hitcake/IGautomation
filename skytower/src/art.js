@@ -77,6 +77,7 @@ export const SKINS = {
   alien: {
     // geheim: Etage 800 erreichen
     body: '#9dff8a', shade: '#63d96b', outline: '#1d4a24', cheek: '#c78bff', shoe: '#8f5cff', sole: '#e6ffe0',
+    eyes: (pose, o) => alienEyes(pose, o),
     belly: () => `<circle cx="32" cy="66" r="5" fill="#63d96b"/><circle cx="88" cy="88" r="6" fill="#63d96b"/><circle cx="40" cy="98" r="3.5" fill="#63d96b"/>`,
     front: (o) => {
       const antenna = (x1, x2, y2) => `<path d="M${x1} 28 Q${(x1 + x2) / 2} 16 ${x2} ${y2}" fill="none" stroke="${o}" stroke-width="7" stroke-linecap="round"/>`
@@ -89,6 +90,7 @@ export const SKINS = {
   roboter: {
     // geheim: 100er-Combo
     body: '#d3dde9', shade: '#a9b7c9', outline: '#27324a', cheek: '#6fe3ff', shoe: '#ff8a3d', sole: '#d3dde9',
+    eyes: (pose, o) => robotEyes(pose, o),
     back: (o) => `<rect x="2" y="54" width="18" height="26" rx="5" fill="#8b98ad" stroke="${o}" stroke-width="3"/>`
       + `<rect x="100" y="54" width="18" height="26" rx="5" fill="#8b98ad" stroke="${o}" stroke-width="3"/>`,
     belly: (o) => `<rect x="42" y="88" width="36" height="18" rx="4" fill="#8b98ad" stroke="${o}" stroke-width="2.5"/>`
@@ -153,35 +155,84 @@ function face(pose, s) {
   const o = s.outline;
   const eye = (x) => `<ellipse cx="${x}" cy="64" rx="5.5" ry="7.5" fill="${o}"/><circle cx="${x + 1.8}" cy="61" r="2.2" fill="#fff"/>`;
   const cheeks = `<ellipse cx="38" cy="76" rx="6.5" ry="3.8" fill="${s.cheek}" opacity=".85"/><ellipse cx="82" cy="76" rx="6.5" ry="3.8" fill="${s.cheek}" opacity=".85"/>`;
+  const bigCheeks = `<ellipse cx="37" cy="76" rx="7.5" ry="4.5" fill="${s.cheek}"/><ellipse cx="83" cy="76" rx="7.5" ry="4.5" fill="${s.cheek}"/>`;
+  const eyes = {
+    up: eye(49) + eye(71),
+    fall: `<circle cx="49" cy="63" r="7.5" fill="#fff" stroke="${o}" stroke-width="3"/><circle cx="49" cy="64" r="3.8" fill="${o}"/>`
+      + `<circle cx="71" cy="63" r="7.5" fill="#fff" stroke="${o}" stroke-width="3"/><circle cx="71" cy="64" r="3.8" fill="${o}"/>`,
+    combo: `<path d="M42 66 Q49 56 56 66" fill="none" stroke="${o}" stroke-width="4" stroke-linecap="round"/>`
+      + `<path d="M64 66 Q71 56 78 66" fill="none" stroke="${o}" stroke-width="4" stroke-linecap="round"/>`,
+    // ^^-Augen: für das Hauptmenü und besondere Momente
+    happy: `<path d="M42 67 L49 58 L56 67" fill="none" stroke="${o}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>`
+      + `<path d="M64 67 L71 58 L78 67" fill="none" stroke="${o}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+    dead: `<path d="M44 58 L54 68 M54 58 L44 68 M66 58 L76 68 M76 58 L66 68" stroke="${o}" stroke-width="4" stroke-linecap="round"/>`,
+    idle: eye(49) + eye(71),
+  };
+  // Skins mit eigenen Augen (Alien, Roboter) überschreiben einzelne Posen
+  const eyeSvg = s.eyes?.(pose, o) ?? eyes[pose] ?? eyes.idle;
   switch (pose) {
     case 'up':
-      return eye(49) + eye(71) + cheeks +
+      return eyeSvg + cheeks +
         `<path d="M51 74 Q60 86 69 74 Z" fill="${o}" stroke="${o}" stroke-width="2" stroke-linejoin="round"/>` +
         `<ellipse cx="60" cy="80.5" rx="4.5" ry="2.6" fill="#ff7a8a"/>`;
     case 'fall':
-      return `<circle cx="49" cy="63" r="7.5" fill="#fff" stroke="${o}" stroke-width="3"/><circle cx="49" cy="64" r="3.8" fill="${o}"/>` +
-        `<circle cx="71" cy="63" r="7.5" fill="#fff" stroke="${o}" stroke-width="3"/><circle cx="71" cy="64" r="3.8" fill="${o}"/>` +
-        cheeks + `<ellipse cx="60" cy="80" rx="4.5" ry="5.5" fill="${o}"/>`;
+      return eyeSvg + cheeks + `<ellipse cx="60" cy="80" rx="4.5" ry="5.5" fill="${o}"/>`;
     case 'combo':
-      return `<path d="M42 66 Q49 56 56 66" fill="none" stroke="${o}" stroke-width="4" stroke-linecap="round"/>` +
-        `<path d="M64 66 Q71 56 78 66" fill="none" stroke="${o}" stroke-width="4" stroke-linecap="round"/>` +
-        cheeks +
+      return eyeSvg + cheeks +
         `<path d="M48 73 Q60 92 72 73 Z" fill="${o}" stroke="${o}" stroke-width="2" stroke-linejoin="round"/>` +
         `<ellipse cx="60" cy="82" rx="6" ry="3.2" fill="#ff7a8a"/>`;
     case 'happy':
-      // ^^-Augen: für das Hauptmenü und besondere Momente
-      return `<path d="M42 67 L49 58 L56 67" fill="none" stroke="${o}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>` +
-        `<path d="M64 67 L71 58 L78 67" fill="none" stroke="${o}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>` +
-        `<ellipse cx="37" cy="76" rx="7.5" ry="4.5" fill="${s.cheek}"/><ellipse cx="83" cy="76" rx="7.5" ry="4.5" fill="${s.cheek}"/>` +
+      return eyeSvg + bigCheeks +
         `<path d="M53 74 Q60 83 67 74 Z" fill="${o}" stroke="${o}" stroke-width="2" stroke-linejoin="round"/>` +
         `<ellipse cx="60" cy="79" rx="3.5" ry="2" fill="#ff7a8a"/>`;
     case 'dead':
-      return `<path d="M44 58 L54 68 M54 58 L44 68 M66 58 L76 68 M76 58 L66 68" stroke="${o}" stroke-width="4" stroke-linecap="round"/>` +
+      return eyeSvg +
         `<path d="M50 82 Q55 77 60 82 Q65 87 70 82" fill="none" stroke="${o}" stroke-width="3.5" stroke-linecap="round"/>`;
     default:
-      return eye(49) + eye(71) + cheeks +
+      return eyeSvg + cheeks +
         `<path d="M53 76 Q60 82 67 76" fill="none" stroke="${o}" stroke-width="3.5" stroke-linecap="round"/>`;
   }
+}
+
+/** Große, schräge Mandelaugen im Alien-Stil (null = Standardaugen der Pose) */
+function alienEyes(pose, o) {
+  if (pose === 'dead') return null;
+  // side = -1 links, 1 rechts; innen (zur Nase) tief, außen hoch gezogen
+  const pts = (cx, side, k) => ({
+    ix: cx - side * 10 * k, iy: 71, ox: cx + side * 12 * k, oy: 53,
+  });
+  const almond = (cx, side, k) => {
+    const { ix, iy, ox, oy } = pts(cx, side, k);
+    const d = `M${ix} ${iy} C${ix - side * 3} ${iy - 14} ${ox - side * 12} ${oy - 6} ${ox} ${oy}`
+      + ` C${ox + side * 2} ${oy + 12} ${ix + side * 12} ${iy + 6} ${ix} ${iy}Z`;
+    return `<path d="${d}" fill="#0e1a10" stroke="${o}" stroke-width="2.5" stroke-linejoin="round"/>`
+      + `<ellipse cx="${cx + side * 3}" cy="58.5" rx="4" ry="2.4" transform="rotate(${side * -35} ${cx + side * 3} 58.5)" fill="#fff"/>`
+      + `<circle cx="${cx - side * 3}" cy="66" r="1.6" fill="#c7a2ff"/>`;
+  };
+  // lächelnde Alienaugen: nach oben gewölbte, schräge Bögen
+  const smile = (cx, side) => {
+    const { ix, iy, ox, oy } = pts(cx, side, 1);
+    return `<path d="M${ix} ${iy - 3} Q${cx - side * 4} ${oy - 6} ${ox} ${oy + 6}" fill="none" stroke="${o}" stroke-width="5" stroke-linecap="round"/>`;
+  };
+  if (pose === 'happy' || pose === 'combo') return smile(46, -1) + smile(74, 1);
+  const k = pose === 'fall' ? 1.1 : 1;
+  return almond(46, -1, k) + almond(74, 1, k);
+}
+
+/** Rot leuchtende LED-Augen für den Roboter (null = Standardaugen der Pose) */
+function robotEyes(pose, o) {
+  const glow = (d) => `<path d="${d}" fill="none" stroke="#ff3b3b" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".28"/>`
+    + `<path d="${d}" fill="none" stroke="#ff4d4d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<path d="${d}" fill="none" stroke="#ffd0d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (pose === 'happy') return glow('M42 67 L49 58 L56 67') + glow('M64 67 L71 58 L78 67');
+  if (pose === 'combo') return glow('M42 66 Q49 56 56 66') + glow('M64 66 Q71 56 78 66');
+  if (pose === 'dead') return glow('M44 58 L54 68 M54 58 L44 68') + glow('M66 58 L76 68 M76 58 L66 68');
+  // geöffnet: dunkles Visier mit zwei leuchtenden LED-Augen
+  const r = pose === 'fall' ? 7.5 : 6;
+  const led = (x) => `<circle cx="${x}" cy="63" r="${r + 5}" fill="#ff3b3b" opacity=".28"/>`
+    + `<circle cx="${x}" cy="63" r="${r}" fill="#ff4d4d"/>`
+    + `<circle cx="${x}" cy="63" r="${r * 0.45}" fill="#ffe0e0"/>`;
+  return `<rect x="36" y="53" width="48" height="21" rx="10.5" fill="#1e2638" stroke="${o}" stroke-width="2.5"/>` + led(49) + led(71);
 }
 
 /** Wolki in einer Pose (idle, up, fall, combo, happy, dead), 120×120-Viewbox. */
