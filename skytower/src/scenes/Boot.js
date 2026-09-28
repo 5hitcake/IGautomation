@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {
   COIN_SVG, SPARK_SVG, BGCLOUD_SVG, BALLOON_SVG, BIRD_SVG, PLANET_SVG,
   COIN_SILVER_SVG, COIN_GOLD_SVG, DIAMOND_SVG, ROCKET_SVG, UMBRELLA_SVG, MAGNET_SVG, WARP_SVG,
-  NEBULA_SVG, GATE_SVG,
+  NEBULA_SVG, GATE_SVG, planetSvg, PLANET_COUNT, BIGMOON_SVG, SATELLITE_SVG, ROCK_SVG, METEOR_SVG,
 } from '../art.js';
 import { ensureSkin, svgToImage } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
@@ -27,6 +27,11 @@ const TEXTURES = [
   { key: 'nebula_1', svg: NEBULA_SVG('#6fe3ff', '#3f5bff'), w: 300, h: 220 },
   { key: 'nebula_2', svg: NEBULA_SVG('#ffd27a', '#ff5c8a'), w: 300, h: 220 },
   { key: 'gate', svg: GATE_SVG, w: 620, h: 407 },
+  ...Array.from({ length: PLANET_COUNT }, (_, i) => ({ key: `planet_${i}`, svg: planetSvg(i), w: 160, h: 110 })),
+  { key: 'bigmoon', svg: BIGMOON_SVG, w: 220, h: 220 },
+  { key: 'satellite', svg: SATELLITE_SVG, w: 120, h: 60 },
+  { key: 'rock', svg: ROCK_SVG, w: 80, h: 64 },
+  { key: 'meteor', svg: METEOR_SVG, w: 120, h: 120 },
 ];
 
 export class BootScene extends Phaser.Scene {

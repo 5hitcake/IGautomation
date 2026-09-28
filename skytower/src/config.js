@@ -74,27 +74,38 @@ export const COMBO_CALLOUTS = [
   [4, 'Gut!'],
 ];
 
-// Zonen: ab Etage `from`. Farben: Himmel oben/unten, Plattform-Stil.
+// Zonen: je 100 Etagen, bei Etage 1000 wartet das Himmelstor; danach geht es in
+// der Galaxie endlos weiter. Farben: Himmel oben/unten, Plattform-Stil, Deko.
 export const ZONES = [
   { from: 0, name: 'Stadtdächer', skyTop: '#8fd3ff', skyBottom: '#ffd6a5', platform: 'roof', deco: 'city' },
   { from: 100, name: 'Wolkenmeer', skyTop: '#5fb8f5', skyBottom: '#bfe6ff', platform: 'cloud', deco: 'balloon' },
   { from: 200, name: 'Sonnenuntergang', skyTop: '#ff7eb3', skyBottom: '#ffc36b', platform: 'rainbow', deco: 'bird' },
   { from: 300, name: 'Gewitterfront', skyTop: '#3d4a6b', skyBottom: '#7a86a8', platform: 'storm', deco: 'bolt' },
-  { from: 400, name: 'Polarlicht', skyTop: '#101d45', skyBottom: '#2b6f7a', platform: 'ice', deco: 'aurora' },
-  { from: 500, name: 'Weltall', skyTop: '#07081c', skyBottom: '#1c1a4a', platform: 'asteroid', deco: 'planet' },
-  { from: 1000, name: 'Galaxie', skyTop: '#1a0630', skyBottom: '#4a1a6e', platform: 'stardust', deco: 'nebula' },
+  { from: 400, name: 'Mondnacht', skyTop: '#16224f', skyBottom: '#3b4d8c', platform: 'moonrock', deco: 'moon' },
+  { from: 500, name: 'Polarlicht', skyTop: '#101d45', skyBottom: '#2b6f7a', platform: 'ice', deco: 'aurora' },
+  { from: 600, name: 'Stratosphäre', skyTop: '#0b1030', skyBottom: '#2466b0', platform: 'satellite', deco: 'satellite' },
+  { from: 700, name: 'Weltall', skyTop: '#07081c', skyBottom: '#1c1a4a', platform: 'asteroid', deco: 'planet' },
+  { from: 800, name: 'Asteroidengürtel', skyTop: '#140a1e', skyBottom: '#3d2130', platform: 'meteor', deco: 'rock' },
+  { from: 900, name: 'Galaxie', skyTop: '#1a0630', skyBottom: '#4a1a6e', platform: 'stardust', deco: 'nebula' },
 ];
 
-// Besonderheiten je Zone (Index wie in ZONES). Physik-Faktoren wirken auf PHYSICS.
+// Besonderheiten je Zone (Index wie in ZONES)
 export const ZONE_RULES = {
-  3: { hint: 'Vorsicht, Blitze!', lightning: true },
-  4: { hint: 'Achtung, glatt!', friction: 0.22, accel: 0.7, turnAccel: 0.45 },
-  5: { hint: 'Fast schwerelos!', gravity: 0.78 },
-  6: { hint: 'Warp-Sterne!', gravity: 0.78, warp: true },
+  3: { hint: 'Vorsicht, Blitze!', hazard: 'lightning' },
+  4: { hint: 'Gute Nacht, Wolki!' },
+  5: { hint: 'Achtung, glatt!', friction: 0.22, accel: 0.7, turnAccel: 0.45 },
+  6: { hint: 'Achtung, Wind!', wind: 260 },
+  7: { hint: 'Ab ins All!' },
+  8: { hint: 'Meteoriten!', hazard: 'meteor' },
+  9: { hint: 'Warp-Sterne!', warp: true },
 };
 
+// Wind in der Stratosphäre: Böen wechseln langsam die Richtung
+export const WIND = { period: 7 }; // Sekunden für einmal hin und her
+
+// Gefahren (Blitze im Gewitter, Meteoriten im Asteroidengürtel)
 export const LIGHTNING = {
-  every: [3.2, 5.5], // Sekunden zwischen zwei Blitzen (zufällig im Bereich)
+  every: [3.2, 5.5], // Sekunden zwischen zwei Einschlägen (zufällig im Bereich)
   warning: 1.1, // Vorwarnzeit, in der die Plattform blinkt
   minFloorsAbove: 2, // trifft nur Plattformen mind. so weit über Wolki
 };
@@ -108,26 +119,34 @@ export const COIN_TIERS = {
 export const COIN_TIER_CHANCE = [
   {},
   { silver: 0.2 },
-  { silver: 0.35, gold: 0.1 },
-  { silver: 0.35, gold: 0.15 },
-  { silver: 0.3, gold: 0.25, diamond: 0.05 },
-  { gold: 0.35, diamond: 0.12 },
+  { silver: 0.3, gold: 0.08 },
+  { silver: 0.35, gold: 0.12 },
+  { silver: 0.35, gold: 0.18 },
+  { silver: 0.3, gold: 0.25, diamond: 0.04 },
+  { silver: 0.25, gold: 0.3, diamond: 0.07 },
+  { gold: 0.35, diamond: 0.1 },
+  { gold: 0.35, diamond: 0.14 },
   { gold: 0.35, diamond: 0.2 },
 ];
 
 export const POWERUPS = {
   fromFloor: 40, // ab dieser Etage können Power-ups auftauchen
   chance: 0.045, // je Plattform
-  weights: { rocket: 1, shield: 1, magnet: 1.2 },
+  weights: { rocket: 1, shield: 0.45, magnet: 1.2 }, // Regenschirme sind selten
+  shieldMax: 3, // so viele Regenschirme kann man auf Vorrat haben
   rocket: { floors: 30, duration: 1.3 },
   magnet: { duration: 10, radius: 340 },
   warp: { floors: 12, chance: 0.08 }, // nur in der Galaxie
 };
 
+// Test-Werbung (bis AdMob in Phase 6 angebunden ist): so lange läuft die Attrappe
+export const FAKE_AD_SECONDS = 3;
+
 // Das große Ziel
 export const GATE = {
   floor: 1000,
   bonusCoins: 1000,
+  skin: 'engel', // der ultimative Skin, nur hier freischaltbar
 };
 
 export function zoneIndexForFloor(floor) {

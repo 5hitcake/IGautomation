@@ -1,5 +1,6 @@
-// Schweife hinter Wolki: Regenbogen (6 Farbbänder, leicht wellig) und
-// Sternschnuppe (leuchtende Spur mit funkelnden Sternchen).
+// Schweife hinter Wolki: Regenbogen (6 Farbbänder, leicht wellig),
+// Sternschnuppe (leuchtende Spur mit funkelnden Sternchen) und Engel
+// (breite goldene Lichtspur mit goldenem Funkeln).
 //
 // Gezeichnet wird jedes Band als durchgehender Streifen aus Dreiecken (statt
 // aus einzelnen Linienstücken), mit stufenlos auslaufender Transparenz – so
@@ -61,10 +62,21 @@ function drawRainbow(g, pts, normals, alpha, wave, band = BAND) {
   });
 }
 
-function drawStreak(g, pts, normals, alpha, scale = 1) {
-  fillStrip(g, pts, normals, -11 * scale, 11 * scale, 0xfff3a0, (i) => alpha(i) * 0.25);
-  fillStrip(g, pts, normals, -4.5 * scale, 4.5 * scale, 0xffffff, (i) => alpha(i) * 0.75);
+const STREAK = {
+  stars: { glow: 0xfff3a0, core: 0xffffff, w: 11, cw: 4.5, ga: 0.25 },
+  angel: { glow: 0xffd23f, core: 0xfffbe6, w: 16, cw: 6, ga: 0.35 },
+};
+
+function drawStreak(g, pts, normals, alpha, scale = 1, kind = 'stars') {
+  const c = STREAK[kind];
+  fillStrip(g, pts, normals, -c.w * scale, c.w * scale, c.glow, (i) => alpha(i) * c.ga);
+  fillStrip(g, pts, normals, -c.cw * scale, c.cw * scale, c.core, (i) => alpha(i) * 0.8);
 }
+
+const SPARK_TINTS = {
+  stars: [0xffffff, 0xfff3a0, 0xffd23f],
+  angel: [0xffd23f, 0xffe680, 0xffffff],
+};
 
 export class Trail {
   /**
@@ -82,14 +94,14 @@ export class Trail {
     this.time = 0;
     if (!kind) return;
     this.g = scene.add.graphics().setDepth(depth);
-    if (kind === 'stars') {
+    if (kind === 'stars' || kind === 'angel') {
       this.sparks = scene.add.particles(0, 0, 'spark', {
         speed: { min: 10, max: 70 },
         lifespan: 750,
         scale: { start: 0.95 / ZOOM, end: 0 },
         alpha: { start: 1, end: 0 },
         rotate: { min: 0, max: 360 },
-        tint: [0xffffff, 0xfff3a0, 0xffd23f],
+        tint: SPARK_TINTS[kind],
         emitting: false,
       }).setDepth(depth);
     }
@@ -103,7 +115,7 @@ export class Trail {
     const last = this.pts[this.pts.length - 1];
     if (!last || Math.abs(last.x - x) + Math.abs(last.y - y) > 2) this.pts.push({ x, y, t: this.time });
     while (this.pts.length && this.time - this.pts[0].t > this.life) this.pts.shift();
-    if (this.kind === 'stars' && this.pts.length > 1 && Math.random() < 0.7) {
+    if (this.sparks && this.pts.length > 1 && Math.random() < 0.7) {
       this.sparks.emitParticleAt(x + (Math.random() - 0.5) * 30, y + (Math.random() - 0.5) * 30, 1);
     }
     this.draw();
@@ -128,7 +140,7 @@ export class Trail {
       const wave = pts.map((p) => Math.sin(this.time * 14 - (p.x + p.y) * 0.06) * 3);
       drawRainbow(g, pts, normals, alpha, wave);
     } else {
-      drawStreak(g, pts, normals, alpha);
+      drawStreak(g, pts, normals, alpha, 1, this.kind);
     }
   }
 
@@ -148,8 +160,8 @@ export function drawTrailPreview(scene, kind, x, y, len, depth = 6) {
   if (kind === 'rainbow') {
     const wave = pts.map((_, i) => Math.sin(i * 0.9) * 2.5);
     drawRainbow(g, pts, normals, alpha, wave, 5);
-  } else if (kind === 'stars') {
-    drawStreak(g, pts, normals, alpha, 0.6);
+  } else if (kind === 'stars' || kind === 'angel') {
+    drawStreak(g, pts, normals, alpha, 0.6, kind);
     [[0.3, -10], [0.6, 12], [0.85, -4]].forEach(([f, dy]) => {
       scene.add.image(x - len * f, y + dy, 'spark').setScale(0.9 / ZOOM).setDepth(depth).setTint(0xffe680);
     });

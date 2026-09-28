@@ -1,6 +1,7 @@
 // Power-ups, die weiter oben im Turm auftauchen:
 // - Raketen-Wolke: schießt Wolki ~30 Etagen nach oben (zählt als Combo-Sprung)
-// - Regenschirm: fängt Wolki einmal auf, wenn sie aus dem Bild fällt
+// - Regenschirm: kommt in den Vorrat (max. 3, auch per Werbung) und fängt
+//   Wolki automatisch auf, wenn sie aus dem Bild fällt
 // - Magnet: zieht eine Weile alle Münzen in der Nähe an
 // - Warp-Stern (nur Galaxie): teleportiert ein paar Etagen nach oben
 import { POWERUPS, PHYSICS, TOWER } from '../config.js';
@@ -10,7 +11,10 @@ import { save } from '../services/storage.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
-const LABEL = { rocket: 'Raketen-Wolke!', shield: 'Regenschirm!', magnet: 'Münz-Magnet!', warp: 'Warp!' };
+const LABEL = { rocket: 'Raketen-Wolke!', shield: 'Regenschirm +1', magnet: 'Münz-Magnet!', warp: 'Warp!' };
+
+/** Regenschirme im Vorrat (gespeichert, gilt über Runden hinweg) */
+export const umbrellaStock = () => save.get().umbrellas ?? 0;
 
 function pickWeighted(weights) {
   const entries = Object.entries(weights);
@@ -25,7 +29,6 @@ function pickWeighted(weights) {
 export class Powerups {
   constructor(game) {
     this.game = game;
-    this.shield = false;
     this.magnetUntil = -1;
     this.rocketUntil = -1;
     this.rocketSpeed = 0;
@@ -59,6 +62,7 @@ export class Powerups {
     if (rules?.warp && Math.random() < POWERUPS.warp.chance) kind = 'warp';
     else if (Math.random() < POWERUPS.chance) kind = pickWeighted(POWERUPS.weights);
     if (!kind) return false;
+    if (kind === 'shield' && umbrellaStock() >= POWERUPS.shieldMax) kind = 'magnet';
     const y = p.top - 70;
     const halo = this.game.add.graphics().setDepth(6);
     halo.fillStyle(0xffffff, 0.35).fillCircle(0, 0, 40);
@@ -105,7 +109,7 @@ export class Powerups {
   render() {
     const g = this.game;
     const bob = Math.sin(g.time0 * 4) * 4;
-    this.shieldIcon.setVisible(this.shield).setPosition(g.px, g.py - 78 + bob);
+    this.shieldIcon.setVisible(umbrellaStock() > 0).setPosition(g.px, g.py - 78 + bob);
     const magnetLeft = this.magnetUntil - g.time0;
     this.magnetIcon.setVisible(magnetLeft > 0 && (magnetLeft > 2 || Math.floor(g.time0 * 6) % 2 === 0))
       .setPosition(g.px + 50, g.py - 44 + bob);
@@ -128,7 +132,8 @@ export class Powerups {
       this.rocketUntil = g.time0 + POWERUPS.rocket.duration;
       sfx.rocket();
     } else if (kind === 'shield') {
-      this.shield = true;
+      save.update((d) => { d.umbrellas = Math.min(POWERUPS.shieldMax, (d.umbrellas ?? 0) + 1); });
+      g.renderUmbrellas?.();
     } else if (kind === 'magnet') {
       this.magnetUntil = g.time0 + POWERUPS.magnet.duration;
     } else if (kind === 'warp') {
@@ -136,10 +141,11 @@ export class Powerups {
     }
   }
 
-  /** Regenschirm verbrauchen, falls vorhanden (Rettung vor dem Game Over). */
+  /** Regenschirm aus dem Vorrat verbrauchen, falls vorhanden (Rettung vor dem Game Over). */
   useShield() {
-    if (!this.shield) return false;
-    this.shield = false;
+    if (umbrellaStock() <= 0) return false;
+    save.update((d) => { d.umbrellas -= 1; });
+    this.game.renderUmbrellas?.();
     sfx.shield();
     return true;
   }

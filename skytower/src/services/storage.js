@@ -14,6 +14,8 @@ const DEFAULTS = {
   totalScore: 0,
   ownedSkins: [],
   selectedSkin: 'wolki',
+  umbrellas: 0, // Regenschirme im Vorrat
+  gateCount: 0, // wie oft das Himmelstor erreicht wurde
   settings: { sound: true, vibration: true },
   tutorialSeen: false,
 };
@@ -62,6 +64,13 @@ export const save = {
   unlockAllSkins() {
     data.ownedSkins = SKIN_LIST.map((s) => s.id).filter((id) => id !== 'wolki');
     persist();
+  },
+  /** Regenschirm gutschreiben (z. B. nach Werbung); gibt false zurück, wenn der Vorrat voll ist. */
+  addUmbrella(max) {
+    if ((data.umbrellas ?? 0) >= max) return false;
+    data.umbrellas = (data.umbrellas ?? 0) + 1;
+    persist();
+    return true;
   },
   /** Rundenergebnis eintragen; gibt neue Rekorde und neu freigeschaltete Skins zurück. */
   recordRun({ score, floor, combo, coins }) {

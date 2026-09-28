@@ -110,6 +110,9 @@ export const sfx = {
     noise({ dur: 0.9, vol: 0.45, from: 1800, to: 120, type: 'lowpass' });
     noise({ dur: 0.08, vol: 0.3, from: 6000, type: 'highpass' });
   },
+  meteor() {
+    noise({ dur: 0.5, vol: 0.3, from: 4000, to: 300 });
+  },
   warp() {
     tone({ freq: 1600, to: 200, dur: 0.35, type: 'sine', vol: 0.15 });
     tone({ freq: 200, to: 1800, dur: 0.35, type: 'triangle', vol: 0.12, delay: 0.3 });

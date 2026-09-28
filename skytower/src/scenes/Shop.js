@@ -21,6 +21,7 @@ const STATUS = {
   owned: ['Gehört dir', '#5a6a8a'],
   goal: ['Erfolg', '#b35c00'],
   premium: ['Premium', '#9c36b5'],
+  secret: ['Geheim', '#b35c00'],
 };
 
 export class ShopScene extends Phaser.Scene {
@@ -88,11 +89,15 @@ export class ShopScene extends Phaser.Scene {
     const imgScale = Math.min(1.2, (ch - 70) / 104);
 
     SKIN_LIST.forEach((skin, i) => {
-      const x = 40 + (i % COLS) * (cw + GAP);
-      const y = TOP + Math.floor(i / COLS) * (ch + GAP);
+      // eine unvollständige letzte Reihe wird mittig gesetzt
+      const row = Math.floor(i / COLS);
+      const inRow = Math.min(COLS, SKIN_LIST.length - row * COLS);
+      const x = 40 + ((COLS - inRow) / 2 + (i % COLS)) * (cw + GAP);
+      const y = TOP + row * (ch + GAP);
       const state = skinState(data, skin);
       const focused = skin.id === this.focus;
-      const locked = state === 'goal' || state === 'premium' || state === 'tooExpensive' || state === 'buyable';
+      const secret = state === 'secret';
+      const locked = secret || state === 'goal' || state === 'premium' || state === 'tooExpensive' || state === 'buyable';
 
       const g = this.add.graphics().setDepth(5);
       g.fillStyle(0x2d3a5a).fillRoundedRect(x - 4, y - 4, cw + 8, ch + 8, 26);
@@ -103,11 +108,12 @@ export class ShopScene extends Phaser.Scene {
       const img = this.add.image(x + cw / 2, y + (ch - 56) / 2 + 6, skinKey(skin.id, 'happy'))
         .setScale(imgScale / ZOOM).setDepth(6);
       if (locked) img.setAlpha(0.5);
-      if (skin.trail) {
+      if (secret) img.setTint(0x2d3a5a).setAlpha(0.7);
+      if (skin.trail && !secret) {
         drawTrailPreview(this, skin.trail, img.x - 30 * imgScale, img.y + 4, cw * 0.36, 5.5).setAlpha(locked ? 0.5 : 1);
       }
 
-      txt(this, x + cw / 2, y + ch - 48, skin.short ?? skin.name, 22, { color: INK, strokeThickness: 0 }).setDepth(7);
+      txt(this, x + cw / 2, y + ch - 48, secret ? '???' : skin.short ?? skin.name, 22, { color: INK, strokeThickness: 0 }).setDepth(7);
       this.statusLabel(x + cw / 2, y + ch - 20, skin, state);
       if (locked && !skin.price) this.lockBadge(x + cw - 28, y + 28);
 
@@ -144,11 +150,13 @@ export class ShopScene extends Phaser.Scene {
     g.fillStyle(0x2d3a5a).fillRoundedRect(32, y - 6, W - 64, PANEL_H + 12, 34);
     g.fillStyle(0xffffff).fillRoundedRect(38, y, W - 76, PANEL_H, 30);
 
-    this.add.image(140, y + PANEL_H / 2, skinKey(skin.id, 'happy')).setScale(1.7 / ZOOM).setDepth(6)
+    const secret = state === 'secret';
+    const preview = this.add.image(140, y + PANEL_H / 2, skinKey(skin.id, 'happy')).setScale(1.7 / ZOOM).setDepth(6)
       .setAlpha(state === 'goal' || state === 'premium' ? 0.55 : 1);
-    if (skin.trail) drawTrailPreview(this, skin.trail, 100, y + PANEL_H / 2 + 6, 60, 5.5);
+    if (secret) preview.setTint(0x2d3a5a).setAlpha(0.7);
+    if (skin.trail && !secret) drawTrailPreview(this, skin.trail, 100, y + PANEL_H / 2 + 6, 60, 5.5);
     const tx = 250;
-    txt(this, tx, y + 50, skin.name, 38, { color: INK, strokeThickness: 0, ox: 0 }).setDepth(7);
+    txt(this, tx, y + 50, secret ? '???' : skin.name, 38, { color: INK, strokeThickness: 0, ox: 0 }).setDepth(7);
 
     const line = (s, yy, color = '#5a6a8a', size = 26) =>
       txt(this, tx, yy, s, size, { color, strokeThickness: 0, ox: 0, align: 'left', wrap: W - tx - 60 }).setDepth(7);
@@ -167,6 +175,8 @@ export class ShopScene extends Phaser.Scene {
     } else if (state === 'tooExpensive') {
       line(`Kostet ${skin.price.toLocaleString('de-DE')} Münzen.`, y + 100);
       this.disabledButton(tx + 170, actionY, `Noch ${(skin.price - data.coins).toLocaleString('de-DE')} Münzen`);
+    } else if (secret) {
+      line('Geheimer Skin. Er wird nur am Himmelstor (Etage 1.000) freigeschaltet.', y + 100, INK, 26);
     } else {
       if (skin.premium) line('Premium-Skin: kommt mit dem Shop für In-App-Käufe.', y + 96, '#9c36b5', 24);
       const p = goalProgress(data, skin);

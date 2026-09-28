@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  PHYSICS, TOWER, CAMERA, COMBO, ZONES, ZONE_RULES, COIN_TIERS, COIN_TIER_CHANCE, POWERUPS, GATE, zoneIndexForFloor,
+  PHYSICS, TOWER, CAMERA, COMBO, ZONES, ZONE_RULES, COIN_TIERS, COIN_TIER_CHANCE, POWERUPS, GATE, WIND, zoneIndexForFloor,
 } from '../config.js';
 import { W, VIEW_H, ZOOM, setupCamera, txt } from '../view.js';
 import { platformTexture, PLATFORM_H, PLATFORM_PAD } from '../art.js';
@@ -13,7 +13,9 @@ import { skinKey } from '../systems/skinTextures.js';
 import { Trail } from '../systems/trail.js';
 import { skinById } from '../systems/progress.js';
 import { Powerups } from '../systems/powerups.js';
-import { Lightning } from '../systems/hazards.js';
+import { Hazards } from '../systems/hazards.js';
+import { ensureSkin } from '../systems/skinTextures.js';
+import { umbrellaStock } from '../systems/powerups.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
@@ -84,7 +86,7 @@ export class GameScene extends Phaser.Scene {
       emitting: false,
     }).setDepth(8);
 
-    this.lightning = new Lightning(this);
+    this.hazards = new Hazards(this);
     this.combo = new ComboTracker((r) => this.onComboEnd(r));
     this.createHud();
     this.createInput();
@@ -122,11 +124,21 @@ export class GameScene extends Phaser.Scene {
     this.hud.score = hudText(W - 44, HUD_Y, '0', 48, { ox: 1 });
     this.add.image(W - 58, HUD_Y + 58, 'coin').setScrollFactor(0).setDepth(d).setScale(0.8 / ZOOM);
     this.hud.coins = hudText(W - 88, HUD_Y + 58, '0', 34, { ox: 1, color: '#ffe680' });
+    this.hud.umbrellaIcon = this.add.image(W - 58, HUD_Y + 112, 'pu_shield').setScrollFactor(0).setDepth(d).setScale(0.62 / ZOOM);
+    this.hud.umbrellas = hudText(W - 88, HUD_Y + 112, '', 34, { ox: 1, color: '#bfe6ff' });
+    this.renderUmbrellas();
 
     this.hud.combo = hudText(W / 2, HUD_Y + 118, '', 46, { color: '#ffe066' }).setVisible(false);
     this.hud.bar = this.add.graphics().setScrollFactor(0).setDepth(d);
     this.hud.center = hudText(W / 2, VIEW_H * 0.36, '', 76, { strokeThickness: 12 }).setAlpha(0);
     this.hud.sub = hudText(W / 2, VIEW_H * 0.36 + 76, '', 38, { color: '#fff6c2' }).setAlpha(0);
+  }
+
+  /** Regenschirm-Vorrat oben rechts anzeigen */
+  renderUmbrellas() {
+    const n = umbrellaStock();
+    this.hud.umbrellaIcon.setVisible(n > 0);
+    this.hud.umbrellas.setVisible(n > 0).setText(`${n}`);
   }
 
   createInput() {
@@ -304,7 +316,9 @@ export class GameScene extends Phaser.Scene {
 
     this.warmNextTexture();
     this.cam.scrollY = this.scrollY;
+    this.sky.wind = this.rules?.wind ? this.windNow() : 0;
     this.sky.update(this.scrollY, Math.max(0, -(this.scrollY + VIEW_H / 2) / FH), frame);
+    if (this.rays) this.drawRays(frame);
     this.renderPlayer(frame);
     this.items.render();
     this.trail.update(this.px, this.py - 4, frame);
@@ -320,12 +334,17 @@ export class GameScene extends Phaser.Scene {
     this.combo.update(dt);
     this.updateCamera(dt);
     this.updatePlatforms(dt);
-    this.lightning.update(dt, !!this.rules.lightning);
+    this.hazards.update(dt, this.rules.hazard);
     this.generate();
     if (this.py - R > this.scrollY + VIEW_H + 40) {
       if (this.items.useShield()) this.rescue();
       else this.gameOver();
     }
+  }
+
+  /** Windrichtung und -stärke gerade (-1..1) */
+  windNow() {
+    return Math.sin((this.time0 * 2 * Math.PI) / WIND.period);
   }
 
   /** Etage, über der Wolki gerade ist */
@@ -404,6 +423,7 @@ export class GameScene extends Phaser.Scene {
       const d = P.friction * (z.friction ?? 1) * dt;
       this.vx = Math.abs(this.vx) <= d ? 0 : this.vx - Math.sign(this.vx) * d;
     }
+    if (z.wind) this.vx += z.wind * this.windNow() * dt; // Böen in der Stratosphäre
     this.vx = Phaser.Math.Clamp(this.vx, -P.maxRunSpeed, P.maxRunSpeed);
 
     this.px += this.vx * dt;
@@ -487,23 +507,81 @@ export class GameScene extends Phaser.Scene {
     if (!this.gateDone && floor >= GATE.floor) this.reachGate();
   }
 
-  /** Das große Ziel: Himmelstor bei Etage 1000 */
+  /**
+   * Das große Ziel: Himmelstor bei Etage 1000. Kurze Szene (~6 s): Kamera auf
+   * das Tor, Wolki schwebt hinein, Lichtblitz, Verwandlung in Engel-Wolki.
+   */
   reachGate() {
     this.gateDone = true;
+    this.state = 'cutscene';
+    this.combo.end();
     this.coinsRun += GATE.bonusCoins;
     this.hud.coins.setText(`${this.coinsRun}`);
-    save.update((d) => { d.gateCount = (d.gateCount ?? 0) + 1; });
-    this.happyUntil = this.time0 + 3;
-    this.time.delayedCall(1300, () => {
+    const firstTime = !save.get().ownedSkins.includes(GATE.skin);
+    save.update((d) => {
+      d.gateCount = (d.gateCount ?? 0) + 1;
+      if (!d.ownedSkins.includes(GATE.skin)) d.ownedSkins.push(GATE.skin);
+      d.selectedSkin = GATE.skin;
+    });
+    const skinReady = ensureSkin(this, GATE.skin);
+    music.stop();
+    sfx.gate();
+    if (save.get().settings.vibration) vibrate([60, 60, 120]);
+
+    // Kamera aufs Tor, Wolki schwebt in die Mitte des Tors
+    const gy = -GATE.floor * FH;
+    const cx = W / 2;
+    const cy = gy - 190;
+    this.vx = 0;
+    this.vy = 0;
+    this.tweens.add({ targets: this, scrollY: gy - VIEW_H * 0.6, duration: 1000, ease: 'Sine.inOut' });
+    this.tweens.add({ targets: this, px: cx, py: cy, duration: 1500, ease: 'Sine.inOut' });
+    this.happyUntil = this.time0 + 8;
+    this.rays = { cx, cy, a: 0, alpha: 0, g: this.add.graphics().setDepth(4.5) };
+    this.tweens.add({ targets: this.rays, alpha: 1, duration: 1400 });
+
+    const white = this.add.rectangle(0, 0, W, VIEW_H, 0xffffff, 0).setOrigin(0).setScrollFactor(0).setDepth(30);
+    this.time.delayedCall(1600, async () => {
+      await skinReady;
+      white.setAlpha(1);
+      this.tweens.add({ targets: white, alpha: 0, duration: 1100, onComplete: () => white.destroy() });
+      // Verwandlung in Engel-Wolki
+      this.skin = GATE.skin;
+      this.trail.destroy();
+      this.trail = new Trail(this, skinById(GATE.skin).trail);
+      this.sparks.explode(60, cx, cy);
       this.popup('Himmelstor erreicht!', `+${GATE.bonusCoins.toLocaleString('de-DE')} Münzen`, '#ffe066');
-      sfx.gate();
     });
     this.time.addEvent({
-      delay: 220,
-      repeat: 10,
-      callback: () => this.sparks.explode(26, 90 + Math.random() * (W - 180), this.scrollY + 160 + Math.random() * 520),
+      delay: 260, repeat: 14, startAt: 0,
+      callback: () => this.sparks.explode(22, 80 + Math.random() * (W - 160), this.scrollY + 140 + Math.random() * 560),
     });
-    if (save.get().settings.vibration) vibrate([60, 60, 120]);
+    this.time.delayedCall(3400, () => {
+      this.popup(firstTime ? 'Engel-Wolki!' : 'Willkommen zurück!', firstTime ? 'Ultimativer Skin freigeschaltet' : 'Weiter geht\'s in die Galaxie', '#ffffff');
+    });
+    this.time.delayedCall(6000, () => {
+      this.tweens.add({ targets: this.rays, alpha: 0, duration: 500, onComplete: () => { this.rays?.g.destroy(); this.rays = null; } });
+      this.state = 'play';
+      this.vy = -1400;
+      music.start('game', this.camLevel);
+      music.setZone(zoneIndexForFloor(GATE.floor));
+    });
+  }
+
+  /** Drehende Lichtstrahlen hinter Wolki während der Himmelstor-Szene */
+  drawRays(dt) {
+    const r = this.rays;
+    r.a += dt * 0.6;
+    const g = r.g;
+    g.clear();
+    for (let i = 0; i < 12; i++) {
+      const a1 = r.a + (i / 12) * Math.PI * 2;
+      const a2 = a1 + 0.16;
+      const L = 700;
+      g.fillStyle(i % 2 ? 0xfff6c2 : 0xffe066, 0.28 * r.alpha);
+      g.fillTriangle(r.cx, r.cy, r.cx + Math.cos(a1) * L, r.cy + Math.sin(a1) * L, r.cx + Math.cos(a2) * L, r.cy + Math.sin(a2) * L);
+    }
+    g.fillStyle(0xffffff, 0.35 * r.alpha).fillCircle(r.cx, r.cy, 90);
   }
 
   updateCamera(dt) {

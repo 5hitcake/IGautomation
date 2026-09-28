@@ -18,6 +18,8 @@ export const SKIN_LIST = [
   { id: 'einhorn', name: 'Regenbogen-Einhorn', short: 'Einhorn', premium: true },
   { id: 'drache', name: 'Mini-Drache', premium: true },
   { id: 'gold', name: 'Goldene Wolke', premium: true, goal: { type: 'totalScore', value: 1_000_000 } },
+  // Der ultimative Skin: geheim, nur am Himmelstor (Etage 1000) freischaltbar
+  { id: 'engel', name: 'Engel-Wolki', short: 'Engel', secret: true, trail: 'angel', goal: { type: 'gateCount', value: 1 } },
 ];
 
 export const GOAL_TEXT = {
@@ -25,6 +27,7 @@ export const GOAL_TEXT = {
   bestCombo: (v) => `${v}er-Combo schaffen`,
   runs: (v) => `${v} Runden spielen`,
   totalScore: (v) => `${v.toLocaleString('de-DE')} Punkte sammeln`,
+  gateCount: () => 'Das Himmelstor erreichen',
 };
 
 export const skinById = (id) => SKIN_LIST.find((s) => s.id === id) ?? SKIN_LIST[0];
@@ -43,6 +46,7 @@ export function goalProgress(data, skin) {
 /** Status für die Anzeige im Shop */
 export function skinState(data, skin) {
   if (isOwned(data, skin.id)) return data.selectedSkin === skin.id ? 'selected' : 'owned';
+  if (skin.secret) return 'secret';
   if (skin.price) return data.coins >= skin.price ? 'buyable' : 'tooExpensive';
   if (skin.premium) return 'premium'; // ggf. zusätzlich per Erfolg freischaltbar
   return 'goal';

@@ -4,6 +4,8 @@ import { sfx } from '../services/audio.js';
 import { music } from '../services/music.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
+import { TEST_TOOLS, POWERUPS, FAKE_AD_SECONDS } from '../config.js';
+import { umbrellaStock } from '../systems/powerups.js';
 
 function panel(scene, h) {
   scene.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.5).setOrigin(0);
@@ -49,7 +51,9 @@ export class GameOverScene extends Phaser.Scene {
     super('GameOver');
   }
 
-  create({ score, floor, combo, coins, isNew }) {
+  create(data) {
+    const { score, floor, combo, coins, isNew } = data;
+    this.initData = data;
     setupCamera(this);
     const y = panel(this, 760);
     const record = isNew.score;
@@ -102,5 +106,45 @@ export class GameOverScene extends Phaser.Scene {
       this.scene.stop('Game');
       this.scene.start('Menu');
     }, { fill: 0xbfe6ff, h: 88, size: 38 });
+
+    // Regenschirm per Werbung (bis AdMob angebunden ist: Test-Werbung, nur in Test-Versionen)
+    if (TEST_TOOLS) this.umbrellaOffer(y + 760 + (isNew.unlocked?.length ? 150 : 84));
+  }
+
+  umbrellaOffer(by) {
+    const stock = umbrellaStock();
+    const max = POWERUPS.shieldMax;
+    if (stock >= max) {
+      txt(this, W / 2, by, `Regenschirm-Vorrat voll (${max}/${max})`, 30, { color: '#bfe6ff', strokeThickness: 6 }).setDepth(12);
+      return;
+    }
+    button(this, W / 2 + 20, by, 'Regenschirm per Werbung', () => this.playFakeAd(), { w: 500, h: 80, size: 30, fill: 0xbfe6ff })
+      .setDepth(12);
+    this.add.image(W / 2 - 250, by, 'pu_shield').setScale(0.8 / ZOOM).setDepth(13);
+    txt(this, W / 2, by + 62, `Vorrat: ${stock}/${max} · Test-Werbung`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
+  }
+
+  /** Platzhalter für eine belohnte Werbung (wird in Phase 6 durch AdMob ersetzt) */
+  playFakeAd() {
+    sfx.click();
+    const layer = this.add.container(0, 0).setDepth(50);
+    layer.add(this.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.94).setOrigin(0).setInteractive());
+    const t = txt(this, W / 2, VIEW_H / 2, '', 52, { strokeThickness: 9 });
+    layer.add(t);
+    let left = FAKE_AD_SECONDS;
+    const show = () => t.setText(`Werbung (Test)\n${left}`);
+    show();
+    this.time.addEvent({
+      delay: 1000,
+      repeat: FAKE_AD_SECONDS - 1,
+      callback: () => {
+        left -= 1;
+        if (left > 0) { show(); return; }
+        save.addUmbrella(POWERUPS.shieldMax);
+        sfx.shield();
+        layer.destroy();
+        this.scene.restart(this.initData);
+      },
+    });
   }
 }

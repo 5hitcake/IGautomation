@@ -16,6 +16,10 @@ const game = new Phaser.Game({
   backgroundColor: '#7ec8f2',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 3 },
+  // Phasers Glättung kappt die Frame-Zeit auf 16,7 ms, sobald ein Frame länger
+  // dauert – auf langsamen Geräten lief das Spiel dadurch in Zeitlupe.
+  // Wir nehmen die echte Zeit (Game.js begrenzt sie selbst auf 0,1 s).
+  fps: { smoothStep: false },
   scene: [BootScene, MenuScene, GameScene, GameOverScene, PauseScene, ShopScene],
 });
 

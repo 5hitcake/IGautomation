@@ -117,8 +117,11 @@ const ZONE_STYLE = [
   { scale: 'major', lead: ['triangle', 'square'], cut: 4200, fb: 0.32, arpUp: 12 }, // Wolkenmeer: heller
   { scale: 'major', lead: ['sawtooth', 'sawtooth'], cut: 2600, fb: 0.35, pad: true }, // Sonnenuntergang: warm
   { scale: 'minor', lead: ['square', 'sawtooth'], cut: 2300, fb: 0.28, heavy: true }, // Gewitter: Moll, wuchtig
+  { scale: 'major', lead: ['triangle', 'triangle'], cut: 2200, fb: 0.45, pad: true, sparse: true, arpType: 'sine' }, // Mondnacht: Wiegenlied
   { scale: 'major', lead: ['triangle', 'sine'], cut: 3000, fb: 0.5, pad: true, arpType: 'sine' }, // Polarlicht: verträumt
+  { scale: 'lydian', lead: ['square', 'triangle'], cut: 3800, fb: 0.4, arpUp: 12 }, // Stratosphäre: hell, luftig
   { scale: 'lydian', lead: ['sine', 'triangle'], cut: 2600, fb: 0.55, pad: true, sparse: true, arpType: 'sine' }, // Weltall: schwebend
+  { scale: 'minor', lead: ['sawtooth', 'square'], cut: 2800, fb: 0.35, heavy: true }, // Asteroidengürtel: düster
   { scale: 'lydian', lead: ['square', 'triangle'], cut: 4600, fb: 0.45, pad: true, arpUp: 12 }, // Galaxie: funkelnd
 ];
 const style = () => ZONE_STYLE[zone] ?? ZONE_STYLE[0];

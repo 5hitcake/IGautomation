@@ -3,30 +3,34 @@
 Endless-Jumper fürs Handy, angelehnt an den PC-Klassiker *Icy Tower*.
 Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 
-## Stand: Prototyp v0.6 (Phasen 1, 3 und 5)
+## Stand: Prototyp v0.7 (Phasen 1, 3 und 5)
 
 - Automatisches Springen, Sprunghöhe hängt vom Anlauf ab
 - Steuerung: linke/rechte Bildschirmhälfte halten (am PC: Pfeiltasten oder A/D, P = Pause)
 - Wandabpraller mit Höhenbonus
 - Kamera startet ab Etage 5 (spätestens nach 8 s) und wird alle 30 s schneller
 - Combos nach Icy-Tower-Regeln (Punkte = Etagen²) mit Combo-Rufen
-- 7 Himmelszonen mit Farbübergängen, zerfallende Regenwolken, bewegliche Plattformen
+- 10 Himmelszonen (je 100 Etagen, Übersicht: `design/zonen-10.png`) mit Farbübergängen, zerfallende Regenwolken, bewegliche Plattformen
 - Wolki mit 6 Gesichtern (Übersicht: `design/wolki-gesichter.png`); das ^^-Gesicht
   im Menü sowie bei Combos ab 25 Etagen und beim Erreichen einer neuen Zone
 - Bei „Neuer Rekord!“ jubelt Wolki über dem Ergebnis
-- **Skins-Shop (Phase 5):** 12 Skins (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
+- **Skins-Shop (Phase 5):** 12 Skins plus ein geheimer (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
   4 über Erfolge (Etage 200/500, 50er-Combo, 100 Runden), 3 Premium (In-App-Käufe folgen
   in Phase 6; die Goldene Wolke gibt es alternativ für 1.000.000 gesammelte Punkte).
   Logik in `src/systems/progress.js`, Grafiken in `src/art.js` (`SKINS`)
 - Schweife (`src/systems/trail.js`): Regenbogenschweif (Nyan-Stil) und Sternschnuppe (Mond),
   im Spiel, im Menü (Wolki fliegt dann statt zu hüpfen) und als Vorschau im Shop
-- **Ziel: Himmelstor bei Etage 1000** – Feuerwerk, +1.000 Münzen, im Menü als ✓ vermerkt;
-  danach geht es endlos weiter
+- **Ziel: Himmelstor bei Etage 1000** – kurze Szene (Lichtstrahlen, Blitz, Feuerwerk), +1.000 Münzen
+  und der geheime Skin **Engel-Wolki** (Flügel, Heiligenschein, goldener Schweif), der im Shop
+  vorher nicht freischaltbar ist (`design/himmelstor-szene.png`); danach geht es endlos weiter
 - **Power-ups ab Etage 40** (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
-  Combo), Regenschirm (rettet einmal vorm Absturz), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
+  Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten – einsammeln
+  oder nach Game Over per Werbung holen, bis Phase 6 eine 3-s-Test-Werbung), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
 - **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)
 - **Zonen-Mechaniken** (`ZONE_RULES` in `src/config.js`): Gewitter mit Blitzeinschlägen
-  (`src/systems/hazards.js`), rutschiges Eis im Polarlicht, weniger Schwerkraft im Weltall
+  (`src/systems/hazards.js`), rutschiges Eis im Polarlicht, Wind in der Stratosphäre,
+  Meteoriteneinschläge im Asteroidengürtel, Warp-Sterne in der Galaxie (Schwerkraft bleibt überall gleich)
+- 5 verschiedene Planeten, großer Mond, Satelliten und Felsbrocken – bewusst sparsam verteilt
 - **Mehr Atmosphäre:** Nordlichter, Wetterleuchten, Sternschnuppen, Nebel (Übersicht:
   `design/zonen-uebersicht.png`, `design/neu-oben.png`)
 - **Musik je Zone:** eigene Klangfarbe, im Gewitter in Moll, im Weltall schwebend (lydisch)

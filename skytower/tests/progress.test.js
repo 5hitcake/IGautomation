@@ -41,6 +41,15 @@ test('Nur eigene Skins lassen sich auswählen', () => {
   assert.equal(skinState(d, skinById('astro')), 'selected');
 });
 
+test('Engel-Wolki bleibt geheim, bis das Himmelstor erreicht ist', () => {
+  const d = fresh({ coins: 99999 });
+  assert.equal(skinState(d, skinById('engel')), 'secret');
+  assert.equal(buySkin(d, 'engel'), false);
+  d.gateCount = 1;
+  assert.deepEqual(unlockGoals(d).map((s) => s.id), ['engel']);
+  assert.equal(skinState(d, skinById('engel')), 'owned');
+});
+
 test('Erfolge schalten Skins frei, auch die Goldene Wolke über Punkte', () => {
   const d = fresh({ bestFloor: 230, bestCombo: 49, totalScore: 1_000_000 });
   const got = unlockGoals(d).map((s) => s.id).sort();

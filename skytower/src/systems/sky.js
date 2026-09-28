@@ -1,4 +1,5 @@
 import { ZONES, zoneIndexForFloor } from '../config.js';
+import { PLANET_COUNT } from '../art.js';
 import { W, VIEW_H, ZOOM } from '../view.js';
 
 const BLEND_FLOORS = 25; // so viele Etagen vor einer neuen Zone beginnt der Farbübergang
@@ -11,15 +12,18 @@ function mix(h1, h2, t) {
   return (Math.round(lerp(a[0], b[0], t)) << 16) | (Math.round(lerp(a[1], b[1], t)) << 8) | Math.round(lerp(a[2], b[2], t));
 }
 
-// Welche Deko in welcher Zone vorbeizieht (Texturname)
+// Welche Deko in welcher Zone vorbeizieht: Textur(en) und wie oft (0..1 je Durchlauf)
 const DECO_BY_ZONE = {
   city: null,
-  balloon: 'balloon',
-  bird: 'bird',
+  balloon: { keys: ['balloon'], chance: 0.7 },
+  bird: { keys: ['bird'], chance: 0.7 },
   bolt: null,
+  moon: null, // großer Mond, siehe drawEffects
   aurora: null,
-  planet: 'planet',
-  nebula: 'planet',
+  satellite: { keys: ['satellite'], chance: 0.45 },
+  planet: { keys: Array.from({ length: PLANET_COUNT }, (_, i) => `planet_${i}`), chance: 0.28 },
+  rock: { keys: ['rock'], chance: 0.8 },
+  nebula: { keys: Array.from({ length: PLANET_COUNT }, (_, i) => `planet_${i}`), chance: 0.15 },
 };
 
 /** Himmel mit Farbverlauf je Zone, Parallax-Wolken, Sternen und Deko. */
@@ -48,7 +52,17 @@ export class Sky {
       n.setScale((1.4 + Math.random()) / ZOOM);
       this.layers.push({ obj: n, sf: 0.1, kind: 'nebula' });
     }
-    // Effekte, die fest am Bildschirm hängen: Nordlichter, Wetterleuchten, Sternschnuppen
+    // Effekte, die fest am Bildschirm hängen: Mond, Erdkrümmung, Nordlichter,
+    // Wetterleuchten, Wind, Sternschnuppen
+    this.moon = scene.add.image(W * 0.74, VIEW_H * 0.2, 'bigmoon').setScrollFactor(0).setDepth(1).setScale(1 / ZOOM).setAlpha(0);
+    this.earth = scene.add.graphics().setScrollFactor(0).setDepth(1);
+    this.earth.fillStyle(0x4fa3ff, 0.18).fillCircle(W / 2, VIEW_H + 1500, 1640);
+    this.earth.fillStyle(0x2f7fe0, 0.9).fillCircle(W / 2, VIEW_H + 1500, 1600);
+    this.earth.fillStyle(0x3fbf7a, 0.9).fillEllipse(W * 0.3, VIEW_H - 40, 260, 60);
+    this.earth.fillStyle(0x3fbf7a, 0.9).fillEllipse(W * 0.8, VIEW_H - 20, 200, 40);
+    this.earth.setAlpha(0);
+    this.wind = 0; // wird vom Spiel gesetzt (-1..1)
+    this.streaks = Array.from({ length: 14 }, () => ({ x: Math.random() * W, y: Math.random() * VIEW_H, len: 40 + Math.random() * 80 }));
     this.aurora = scene.add.graphics().setScrollFactor(0).setDepth(1);
     this.fx = scene.add.graphics().setScrollFactor(0).setDepth(1);
     this.flash = scene.add.rectangle(0, 0, W, VIEW_H, 0xffffff, 0).setOrigin(0).setScrollFactor(0).setDepth(1);
@@ -107,10 +121,10 @@ export class Sky {
       this.g.fillRect(0, 0, W, VIEW_H);
     }
 
-    const space = idx >= 4;
     const starAlpha = Math.max(0, Math.min(1, (floor - 330) / 120));
-    const cloudAlpha = space ? 0.12 : idx === 3 ? 0.35 : 0.75;
-    const decoKey = DECO_BY_ZONE[z.deco];
+    const cloudAlpha = idx >= 5 ? 0.1 : idx === 4 ? 0.28 : idx === 3 ? 0.35 : 0.75;
+    const cloudTint = idx === 3 ? 0x8f98b5 : idx === 4 ? 0x6a7fc0 : null;
+    const deco = DECO_BY_ZONE[z.deco];
 
     for (const l of this.layers) {
       const o = l.obj;
@@ -119,14 +133,17 @@ export class Sky {
         o.y -= VIEW_H + 320 + Math.random() * 200;
         o.x = Math.random() * W;
         if (l.kind === 'deco') {
-          o.setVisible(!!decoKey && Math.random() < 0.7);
-          if (decoKey) o.setTexture(decoKey).setScale((0.7 + Math.random() * 0.5) / ZOOM);
+          o.setVisible(!!deco && Math.random() < deco.chance);
+          if (deco) {
+            o.setTexture(deco.keys[Math.floor(Math.random() * deco.keys.length)]);
+            o.setScale((0.6 + Math.random() * 0.6) / ZOOM).setRotation(deco.keys[0] === 'rock' ? Math.random() * 6 : 0);
+          }
         }
       }
       if (l.kind === 'star') o.setAlpha(starAlpha * (0.5 + 0.5 * Math.sin(o.x + scrollY * 0.002)));
       else if (l.kind === 'cloud') o.setAlpha(cloudAlpha);
-      else if (l.kind === 'nebula') o.setAlpha(Math.max(zoneWeight(6, floor), 0.35 * zoneWeight(5, floor)));
-      if (l.kind === 'cloud' && idx === 3) o.setTint(0x8f98b5);
+      else if (l.kind === 'nebula') o.setAlpha(Math.max(zoneWeight(9, floor), 0.35 * zoneWeight(8, floor)));
+      if (l.kind === 'cloud' && cloudTint) o.setTint(cloudTint);
       else if (l.kind === 'cloud') o.clearTint();
     }
     this.zoneIdx = idx;
@@ -135,8 +152,11 @@ export class Sky {
 
   drawEffects(floor, dt) {
     const t = this.time;
-    // Nordlichter im Polarlicht (und schwach im Weltall)
-    const aw = Math.max(zoneWeight(4, floor), 0.3 * zoneWeight(5, floor));
+    // großer Mond in der Mondnacht, Erdkrümmung in der Stratosphäre
+    this.moon.setAlpha(zoneWeight(4, floor));
+    this.earth.setAlpha(zoneWeight(6, floor));
+    // Nordlichter im Polarlicht (und schwach in der Stratosphäre)
+    const aw = Math.max(zoneWeight(5, floor), 0.3 * zoneWeight(6, floor));
     this.aurora.clear();
     if (aw > 0.01) {
       [0x7dffb2, 0x5ce1e6, 0xb07bff].forEach((color, k) => {
@@ -182,8 +202,18 @@ export class Sky {
         this.fx.lineStyle(3, 0xffffff, 0.8 * a).strokePoints(this.bgBolt.pts);
       }
     }
-    // Sternschnuppen im Weltall und in der Galaxie
-    if (floor > 480 && dt > 0) {
+    // Windstreifen in der Stratosphäre
+    const ww = zoneWeight(6, floor);
+    if (ww > 0.01 && Math.abs(this.wind) > 0.15) {
+      for (const st of this.streaks) {
+        st.x += this.wind * 900 * dt;
+        if (st.x > W + 100) st.x = -100;
+        if (st.x < -100) st.x = W + 100;
+        this.fx.lineStyle(3, 0xffffff, 0.3 * ww * Math.abs(this.wind)).lineBetween(st.x, st.y, st.x - Math.sign(this.wind) * st.len, st.y);
+      }
+    }
+    // Sternschnuppen ab der Stratosphäre
+    if (floor > 580 && dt > 0) {
       this.nextShot -= dt;
       if (this.nextShot <= 0) {
         this.nextShot = 1.2 + Math.random() * 2.5;

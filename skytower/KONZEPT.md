@@ -107,13 +107,16 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 | Etagen | Zone | Plattformen |
 |---|---|---|
-| 0–99 | **Stadtdächer**: Morgendämmerung, Tauben, Antennen | Dachziegel, Holzbretter |
+| 0–99 | **Stadtdächer**: Morgendämmerung, Tauben, Antennen | Dachziegel |
 | 100–199 | **Wolkenmeer**: blauer Himmel, Heißluftballons | Flauschwolken |
 | 200–299 | **Sonnenuntergang**: orange/rosa, Zugvögel | Regenbogenstücke |
-| 300–399 | **Gewitterfront**: dunkel, Blitze im Hintergrund | Graue Sturmwolken |
-| 400–499 | **Polarlicht**: Stratosphäre, Nordlichter | Eiskristalle |
-| 500–999 | **Weltall**: Sterne, Planeten, Satelliten | Asteroiden, Satellitenteile |
-| 1000+ | **Galaxie**: Farbnebel, Endlos-Zone | Sternenstaub |
+| 300–399 | **Gewitterfront**: Blitzeinschläge | Graue Sturmwolken |
+| 400–499 | **Mondnacht**: großer Mond, Schlaflied-Musik | Mondgestein |
+| 500–599 | **Polarlicht**: Nordlichter, glatt | Eiskristalle |
+| 600–699 | **Stratosphäre**: Erdkrümmung, Wind | Satellitenteile |
+| 700–799 | **Weltall**: Sterne, Planeten | Asteroiden |
+| 800–899 | **Asteroidengürtel**: Meteoriteneinschläge | Glühende Meteoriten |
+| 900+ | **Galaxie**: Farbnebel, Warp-Sterne, Himmelstor bei 1000, danach endlos | Sternenstaub |
 
 **Schwierigkeit steigt mit der Höhe:**
 - Plattformen werden schmaler (100 % → 45 % der Startbreite).
@@ -123,12 +126,15 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 ---
 
-### 4.1 Umgesetzt in v0.6
-- **Ziel:** Himmelstor bei Etage 1000 (Feuerwerk, +1.000 Münzen), danach endlos weiter.
+### 4.1 Umgesetzt in v0.6/v0.7
+- **Ziel:** Himmelstor bei Etage 1000: kurze Szene (ca. 6 s), +1.000 Münzen und der geheime
+  Skin **Engel-Wolki** (nur dort freischaltbar), danach endlos weiter.
+- **Regenschirm-Vorrat** (max. 3, bleibt gespeichert): einsammeln oder per Werbung nach Game Over.
 - **Power-ups ab Etage 40:** Raketen-Wolke, Regenschirm-Schild, Münz-Magnet, Warp-Stern (Galaxie).
 - **Münzen:** Silber (5), Gold (10), Diamant (25) werden mit der Höhe häufiger.
-- **Zonen:** Gewitter = Blitzeinschläge mit Vorwarnung · Polarlicht = glatt ·
-  Weltall/Galaxie = weniger Schwerkraft · eigene Deko und Musik-Klangfarbe je Zone.
+- **Zonen:** Gewitter = Blitze · Polarlicht = glatt · Stratosphäre = Wind · Asteroidengürtel =
+  Meteoriten · Galaxie = Warp-Sterne · keine niedrigere Schwerkraft (wäre zu leicht) ·
+  eigene Deko und Musik-Klangfarbe je Zone.
 
 ## 5. Münzen, Erfolge & Skins
 
@@ -221,8 +227,8 @@ Konturen, freundlicher Ausdruck, leichte Schattierung. Alle Assets mit
 | Asset | Umfang |
 |---|---|
 | Figur (pro Skin) | Stehen, Sprung aufwärts, Fallen, Combo-Salto (Animation), Game Over |
-| Plattformen | 7 Zonen × 3 Varianten (normal, zerfallend, beweglich) + Meilenstein-Plattform |
-| Hintergründe | 7 Zonen × 3 Parallax-Ebenen (fern, mittel, nah), nahtlos vertikal kachelbar |
+| Plattformen | 10 Zonen × 3 Varianten (normal, zerfallend, beweglich) + Meilenstein-Plattform |
+| Hintergründe | 10 Zonen × 3 Parallax-Ebenen (fern, mittel, nah), nahtlos vertikal kachelbar |
 | Deko | Vögel, Ballons, Blitze, Sterne, Planeten |
 | UI | Logo, Buttons, Münze, Combo-Balken, Etagenschild, Icons |
 | Store | App-Icon 512², Feature-Grafik 1024×500, 4–8 Screenshots |

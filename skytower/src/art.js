@@ -74,6 +74,21 @@ export const SKINS = {
     front: (o) => `<path d="M44 32 L38 12 L54 26Z" fill="#fff4d6" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
       `<path d="M76 28 L86 10 L68 24Z" fill="#fff4d6" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
   },
+  engel: {
+    // der ultimative Skin vom Himmelstor: Flügel, Heiligenschein (Schweif: trail.js)
+    body: '#fffdf4', shade: '#f3e3b0', outline: '#4a3a10', cheek: '#ffa8c0', shoe: '#ffe680', sole: '#ffffff',
+    back: (o) => {
+      const wing = (d) => `<path d="${d}" fill="#ffffff" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`;
+      const lines = (d) => `<path d="${d}" fill="none" stroke="#e8d9a8" stroke-width="2.5" stroke-linecap="round"/>`;
+      return wing('M32 58 Q0 54 0 20 Q10 28 16 24 Q10 36 22 36 Q16 46 34 46Z')
+        + wing('M88 58 Q120 54 120 20 Q110 28 104 24 Q110 36 98 36 Q104 46 86 46Z')
+        + lines('M10 30 Q18 40 30 44 M8 40 Q18 48 30 52') + lines('M110 30 Q102 40 90 44 M112 40 Q102 48 90 52');
+    },
+    front: (o) => `<ellipse cx="60" cy="13" rx="23" ry="6.5" fill="none" stroke="#fff6c2" stroke-width="12" opacity=".45"/>`
+      + `<ellipse cx="60" cy="13" rx="22" ry="6" fill="none" stroke="${o}" stroke-width="8"/>`
+      + `<ellipse cx="60" cy="13" rx="22" ry="6" fill="none" stroke="#ffd23f" stroke-width="4.5"/>`
+      + `<path d="M104 70 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z M14 84 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5z" fill="#ffd23f"/>`,
+  },
   gold: {
     body: '#ffd84a', shade: '#f0b400', outline: '#5a3c00', cheek: '#ff9e6b', shoe: '#ffffff', sole: '#ffd84a',
     front: (o) => `<path d="M40 28 L42 8 L52 20 L60 4 L68 20 L78 8 L80 28 Z" fill="#ffe680" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
@@ -268,6 +283,67 @@ export const WARP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64
 // ---------------------------------------------------------------------------
 // Deko und Himmelstor
 
+/** Planeten in verschiedenen Varianten (Farbe, Streifen, Ring, Krater). */
+const PLANET_VARIANTS = [
+  { body: '#8f7bff', spot: '#a998ff', ring: '#ffd23f' },
+  { body: '#ff9f5a', spot: '#ffc38a', stripes: '#e0703a' },
+  { body: '#4fd1c5', spot: '#8fede4', ring: '#e3c9ff' },
+  { body: '#e0604f', spot: '#b8402f', craters: true },
+  { body: '#3fa9ff', spot: '#6fe38a', swirl: true },
+];
+export const PLANET_COUNT = PLANET_VARIANTS.length;
+export function planetSvg(i) {
+  const v = PLANET_VARIANTS[i];
+  const o = '#2d3a5a';
+  const ringBack = v.ring ? `<ellipse cx="80" cy="58" rx="76" ry="18" fill="none" stroke="${o}" stroke-width="10"/>` : '';
+  const ringFront = v.ring
+    ? `<path d="M8 58 Q80 90 152 58" fill="none" stroke="${o}" stroke-width="10"/><path d="M8 58 Q80 90 152 58" fill="none" stroke="${v.ring}" stroke-width="5"/>`
+    : '';
+  let detail = `<circle cx="68" cy="45" r="7" fill="${v.spot}"/><circle cx="92" cy="66" r="5" fill="${v.spot}" opacity=".7"/>`;
+  if (v.stripes) detail = `<g clip-path="url(#p${i})"><rect x="40" y="36" width="80" height="6" fill="${v.stripes}"/><rect x="40" y="52" width="80" height="9" fill="${v.stripes}"/><rect x="40" y="70" width="80" height="5" fill="${v.stripes}"/></g>`;
+  if (v.craters) detail = `<circle cx="66" cy="44" r="8" fill="${v.spot}"/><circle cx="92" cy="62" r="6" fill="${v.spot}"/><circle cx="74" cy="72" r="4" fill="${v.spot}"/>`;
+  if (v.swirl) detail = `<path d="M52 44 Q70 34 84 46 Q96 56 108 50" fill="none" stroke="${v.spot}" stroke-width="9" stroke-linecap="round"/><path d="M58 70 Q76 62 96 72" fill="none" stroke="${v.spot}" stroke-width="7" stroke-linecap="round"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 110">
+<defs><clipPath id="p${i}"><circle cx="80" cy="55" r="33"/></clipPath></defs>
+${ringBack}<circle cx="80" cy="55" r="38" fill="${o}"/><circle cx="80" cy="55" r="33" fill="${v.body}"/>${detail}
+<ellipse cx="66" cy="36" rx="10" ry="5" transform="rotate(-25 66 36)" fill="#fff" opacity=".45"/>${ringFront}
+</svg>`;
+}
+
+export const BIGMOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+<circle cx="110" cy="110" r="104" fill="#fff6c2" opacity=".18"/>
+<circle cx="110" cy="110" r="82" fill="#fdf6d8"/>
+<circle cx="80" cy="84" r="16" fill="#ece2b4"/><circle cx="138" cy="126" r="22" fill="#ece2b4"/>
+<circle cx="96" cy="150" r="10" fill="#ece2b4"/><circle cx="146" cy="76" r="8" fill="#ece2b4"/>
+</svg>`;
+
+export const SATELLITE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 60">
+<rect x="2" y="16" width="38" height="28" rx="3" fill="#15264a"/><rect x="5" y="19" width="32" height="22" fill="#3f7fd6"/>
+<path d="M13 19 V41 M21 19 V41 M29 19 V41 M5 30 H37" stroke="#9fd0ff" stroke-width="1.5"/>
+<rect x="80" y="16" width="38" height="28" rx="3" fill="#15264a"/><rect x="83" y="19" width="32" height="22" fill="#3f7fd6"/>
+<path d="M91 19 V41 M99 19 V41 M107 19 V41 M83 30 H115" stroke="#9fd0ff" stroke-width="1.5"/>
+<rect x="40" y="27" width="40" height="6" fill="#15264a"/>
+<rect x="46" y="14" width="28" height="32" rx="6" fill="#15264a"/><rect x="49" y="17" width="22" height="26" rx="4" fill="#d5dbe8"/>
+<path d="M60 14 V4" stroke="#15264a" stroke-width="3"/><circle cx="60" cy="4" r="3.5" fill="#ff4d4d"/>
+</svg>`;
+
+export const ROCK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 64">
+<path d="M14 8 L48 4 L74 22 L68 52 L34 60 L6 44 Z" fill="#1e1110"/>
+<path d="M17 12 L47 8 L69 24 L64 49 L35 56 L10 42 Z" fill="#6a4038"/>
+<circle cx="32" cy="28" r="7" fill="#40241f"/><circle cx="52" cy="40" r="5" fill="#40241f"/>
+<path d="M22 18 L38 14" stroke="#94604f" stroke-width="4" stroke-linecap="round"/>
+</svg>`;
+
+/** Fallender Meteor (Gefahr im Asteroidengürtel), Flugrichtung nach unten links */
+export const METEOR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<path d="M110 10 L52 58 L62 68Z" fill="#ffd23f" opacity=".55"/>
+<path d="M100 8 L46 52 L58 64 L112 20Z" fill="#ff9f1a" opacity=".6"/>
+<circle cx="44" cy="76" r="30" fill="#ff9f1a" opacity=".35"/>
+<path d="M22 60 L44 48 L66 62 L64 88 L40 100 L18 86Z" fill="#1e1110"/>
+<path d="M26 62 L44 52 L62 64 L60 85 L41 95 L22 83Z" fill="#6a4038"/>
+<circle cx="38" cy="70" r="6" fill="#40241f"/><circle cx="50" cy="82" r="4" fill="#ffd23f"/>
+</svg>`;
+
 export const NEBULA_SVG = (c1, c2) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220">
 <defs><radialGradient id="n" cx="50%" cy="50%" r="50%">
 <stop offset="0" stop-color="${c1}" stop-opacity=".55"/><stop offset=".55" stop-color="${c2}" stop-opacity=".22"/>
@@ -310,6 +386,9 @@ const STYLE = {
   ice: { fill: '#bdf1ff', light: '#ffffff', dark: '#7fd0ea', outline: '#1f4a66' },
   asteroid: { fill: '#9a8574', light: '#b39f8e', dark: '#6f5e50', outline: '#2a2020' },
   stardust: { fill: '#b57bff', light: '#e3c9ff', dark: '#7d4ad6', outline: '#2a1450' },
+  moonrock: { fill: '#e9e4c9', light: '#fffbe6', dark: '#bdb593', outline: '#3d3a2a' },
+  satellite: { fill: '#3f7fd6', light: '#9fd0ff', dark: '#2a5aa8', outline: '#15264a' },
+  meteor: { fill: '#6a4038', light: '#94604f', dark: '#40241f', outline: '#1e1110' },
   rain: { fill: '#aab6cc', light: '#c6d0e0', dark: '#8390aa', outline: '#2d3a5a' },
   milestone: { fill: '#ffcf4a', light: '#fff0a8', dark: '#e0a020', outline: '#5a3a00' },
 };
@@ -374,6 +453,20 @@ export function drawPlatform(g, style, w, opts = {}) {
     } else if (style === 'stardust') {
       g.fillStyle(0xffffff);
       for (let x = 18; x < w - 10; x += 28) g.fillCircle(x, 20 + ((x / 28) % 2) * 6, 2.5);
+    } else if (style === 'moonrock') {
+      g.fillStyle(hex(c.dark));
+      for (let x = 22; x < w - 14; x += 38) g.fillEllipse(x, 19 + ((x / 38) % 2) * 5, 14, 8);
+    } else if (style === 'satellite') {
+      // Solarpanel-Raster
+      g.fillStyle(hex(c.light), 0.7);
+      for (let x = 16; x < w - 8; x += 20) g.fillRect(x, 6, 2, h - 18);
+      g.fillRect(8, h / 2 - 5, w - 16, 2);
+    } else if (style === 'meteor') {
+      // glühende Risse
+      g.lineStyle(3, 0xff9f1a, 0.95);
+      for (let x = 20; x < w - 20; x += 44) g.lineBetween(x, 8, x + 12, 20).lineBetween(x + 12, 20, x + 6, 30);
+      g.fillStyle(0xffd23f, 0.9);
+      for (let x = 34; x < w - 20; x += 44) g.fillCircle(x, 24, 2.5);
     }
   }
   if (opts.moving) {
