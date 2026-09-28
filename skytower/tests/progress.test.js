@@ -57,3 +57,16 @@ test('Erfolge schalten Skins frei, auch die Goldene Wolke über Punkte', () => {
   assert.deepEqual(unlockGoals(d), [], 'kein zweites Mal');
   assert.deepEqual(goalProgress(d, skinById('blitz')), { current: 49, target: 50, done: false });
 });
+
+test('Alien und Roboter bleiben geheim, bis Etage 800 bzw. eine 100er-Combo geschafft ist', () => {
+  const d = fresh({ coins: 99999, bestFloor: 799, bestCombo: 99 });
+  assert.equal(skinState(d, skinById('alien')), 'secret');
+  assert.equal(skinState(d, skinById('roboter')), 'secret');
+  assert.equal(buySkin(d, 'alien'), false);
+  assert.ok(!unlockGoals(d).some((s) => ['alien', 'roboter'].includes(s.id)));
+  d.bestFloor = 800;
+  d.bestCombo = 100;
+  const got = unlockGoals(d).map((s) => s.id);
+  assert.ok(got.includes('alien') && got.includes('roboter'));
+  assert.equal(skinState(d, skinById('alien')), 'owned');
+});

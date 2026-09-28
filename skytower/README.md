@@ -14,7 +14,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - Wolki mit 6 Gesichtern (Übersicht: `design/wolki-gesichter.png`); das ^^-Gesicht
   im Menü sowie bei Combos ab 25 Etagen und beim Erreichen einer neuen Zone
 - Bei „Neuer Rekord!“ jubelt Wolki über dem Ergebnis
-- **Skins-Shop (Phase 5):** 12 Skins plus ein geheimer (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
+- **Skins-Shop (Phase 5):** 12 Skins plus 3 geheime (Alien-Wolki ab Etage 800, Roboter-Wolki
+  für eine 100er-Combo, Engel-Wolki am Himmelstor – im Shop erst sichtbar, wenn freigeschaltet) (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
   4 über Erfolge (Etage 200/500, 50er-Combo, 100 Runden), 3 Premium (In-App-Käufe folgen
   in Phase 6; die Goldene Wolke gibt es alternativ für 1.000.000 gesammelte Punkte).
   Logik in `src/systems/progress.js`, Grafiken in `src/art.js` (`SKINS`)

@@ -74,6 +74,31 @@ export const SKINS = {
     front: (o) => `<path d="M44 32 L38 12 L54 26Z" fill="#fff4d6" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
       `<path d="M76 28 L86 10 L68 24Z" fill="#fff4d6" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
   },
+  alien: {
+    // geheim: Etage 800 erreichen
+    body: '#9dff8a', shade: '#63d96b', outline: '#1d4a24', cheek: '#c78bff', shoe: '#8f5cff', sole: '#e6ffe0',
+    belly: () => `<circle cx="32" cy="66" r="5" fill="#63d96b"/><circle cx="88" cy="88" r="6" fill="#63d96b"/><circle cx="40" cy="98" r="3.5" fill="#63d96b"/>`,
+    front: (o) => {
+      const antenna = (x1, x2, y2) => `<path d="M${x1} 28 Q${(x1 + x2) / 2} 16 ${x2} ${y2}" fill="none" stroke="${o}" stroke-width="7" stroke-linecap="round"/>`
+        + `<path d="M${x1} 28 Q${(x1 + x2) / 2} 16 ${x2} ${y2}" fill="none" stroke="#63d96b" stroke-width="3" stroke-linecap="round"/>`
+        + `<circle cx="${x2}" cy="${y2}" r="10" fill="#fff36b" opacity=".35"/>`
+        + `<circle cx="${x2}" cy="${y2}" r="6.5" fill="#fff36b" stroke="${o}" stroke-width="3"/>`;
+      return antenna(46, 34, 6) + antenna(74, 86, 6);
+    },
+  },
+  roboter: {
+    // geheim: 100er-Combo
+    body: '#d3dde9', shade: '#a9b7c9', outline: '#27324a', cheek: '#6fe3ff', shoe: '#ff8a3d', sole: '#d3dde9',
+    back: (o) => `<rect x="2" y="54" width="18" height="26" rx="5" fill="#8b98ad" stroke="${o}" stroke-width="3"/>`
+      + `<rect x="100" y="54" width="18" height="26" rx="5" fill="#8b98ad" stroke="${o}" stroke-width="3"/>`,
+    belly: (o) => `<rect x="42" y="88" width="36" height="18" rx="4" fill="#8b98ad" stroke="${o}" stroke-width="2.5"/>`
+      + `<circle cx="51" cy="97" r="3.5" fill="#ff5c5c"/><circle cx="60" cy="97" r="3.5" fill="#ffd23f"/><circle cx="69" cy="97" r="3.5" fill="#6fe39a"/>`
+      + `<circle cx="24" cy="52" r="3" fill="#8b98ad"/><circle cx="96" cy="52" r="3" fill="#8b98ad"/>`,
+    front: (o) => `<path d="M60 26 L60 8" stroke="${o}" stroke-width="5" stroke-linecap="round"/>`
+      + `<circle cx="60" cy="7" r="10" fill="#ff5c5c" opacity=".3"/>`
+      + `<circle cx="60" cy="7" r="6" fill="#ff5c5c" stroke="${o}" stroke-width="3"/>`
+      + `<path d="M24 34 L30 40 M96 34 L90 40" stroke="${o}" stroke-width="3" stroke-linecap="round"/>`,
+  },
   engel: {
     // der ultimative Skin vom Himmelstor: Flügel, Heiligenschein (Schweif: trail.js)
     body: '#fffdf4', shade: '#f3e3b0', outline: '#4a3a10', cheek: '#ffa8c0', shoe: '#ffe680', sole: '#ffffff',

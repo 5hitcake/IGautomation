@@ -21,6 +21,9 @@ export const SKIN_LIST = [
   { id: 'einhorn', name: 'Regenbogen-Einhorn', short: 'Einhorn', premium: true },
   { id: 'drache', name: 'Mini-Drache', premium: true },
   { id: 'gold', name: 'Goldene Wolke', premium: true, goal: { type: 'totalScore', value: 1_000_000 } },
+  // Geheime Skins: im Shop unsichtbar, bis man sie erspielt hat
+  { id: 'alien', name: 'Alien-Wolki', short: 'Alien', secret: true, goal: { type: 'bestFloor', value: 800 } },
+  { id: 'roboter', name: 'Roboter-Wolki', short: 'Roboter', secret: true, goal: { type: 'bestCombo', value: 100 } },
   // Der ultimative Skin: geheim, nur am Himmelstor (Etage 1000) freischaltbar
   { id: 'engel', name: 'Engel-Wolki', short: 'Engel', secret: true, trail: 'angel', goal: { type: 'gateCount', value: 1 } },
 ];
