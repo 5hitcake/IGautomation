@@ -18,9 +18,9 @@ test('Skin kaufen zieht Münzen ab, zu teuer klappt nicht', () => {
   assert.equal(buySkin(d, 'sonne'), false);
   assert.equal(skinState(d, skinById('regen')), 'buyable');
   assert.equal(buySkin(d, 'regen'), true);
-  assert.equal(d.coins, 100);
+  assert.equal(d.coins, 300);
   assert.equal(buySkin(d, 'regen'), false, 'nicht doppelt kaufen');
-  assert.equal(d.coins, 100);
+  assert.equal(d.coins, 300);
   assert.equal(skinState(d, skinById('regen')), 'owned');
 });
 

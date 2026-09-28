@@ -5,12 +5,15 @@
 // Wolke gibt es auch über 1.000.000 gesammelte Punkte. `trail` = Schweif hinter
 // Wolki (siehe src/systems/trail.js).
 
+// Preise nach gemessenen Münzen pro Runde (Test-Bot, v0.7): bis Etage ~200
+// etwa 40–80 Münzen, bei Etage 400–500 etwa 130–290. Der erste Skin ist so
+// nach wenigen Runden drin, der Regenbogenschweif ist ein längeres Ziel.
 export const SKIN_LIST = [
   { id: 'wolki', name: 'Wolki' },
-  { id: 'regen', name: 'Regenwolke', price: 500 },
-  { id: 'sonne', name: 'Sonnenschein', price: 1000 },
+  { id: 'regen', name: 'Regenwolke', price: 300 },
+  { id: 'sonne', name: 'Sonnenschein', price: 750 },
   { id: 'pip', name: 'Vogel Pip', price: 1500 },
-  { id: 'rainbow', name: 'Regenbogenschweif', short: 'Regenbogen', price: 2500, trail: 'rainbow' },
+  { id: 'rainbow', name: 'Regenbogenschweif', short: 'Regenbogen', price: 3000, trail: 'rainbow' },
   { id: 'ballon', name: 'Heißluftballon', goal: { type: 'bestFloor', value: 200 } },
   { id: 'blitz', name: 'Blitz', goal: { type: 'bestCombo', value: 50 } },
   { id: 'astro', name: 'Astronaut', goal: { type: 'bestFloor', value: 500 } },

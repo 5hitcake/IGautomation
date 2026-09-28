@@ -141,17 +141,19 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 ### 5.1 Münzen
 - Liegen auf einzelnen Plattformen, häufiger bei Combos (Belohnung für Risiko).
-- Richtwert: ~40–80 Münzen pro durchschnittlicher Runde.
+- Gemessen (v0.7): ~40–80 Münzen pro Runde bis Etage 200, ~130–290 bei Etage 400–500
+  (Silber/Gold/Diamant weiter oben); Himmelstor +1.000.
+- Preise: erster Skin nach ~5 Runden, Regenbogenschweif als Langzeitziel (~15–50 Runden).
 - Werden für Skins im Shop ausgegeben.
 
 ### 5.2 Skins (Startauswahl, 12 Stück)
 | Skin | Freischaltung |
 |---|---|
 | **Wolki** (Standard-Wölkchen) | von Anfang an |
-| Regenwolke | 500 Münzen |
-| Sonnenschein | 1.000 Münzen |
+| Regenwolke | 300 Münzen |
+| Sonnenschein | 750 Münzen |
 | Vogel Pip | 1.500 Münzen |
-| Regenbogenschweif (mit Regenbogen-Schweif) | 2.500 Münzen |
+| Regenbogenschweif (mit Regenbogen-Schweif) | 3.000 Münzen |
 | Heißluftballon | Erfolg: Etage 200 erreichen |
 | Blitz | Erfolg: 50er-Combo |
 | Astronaut | Erfolg: Etage 500 erreichen |
