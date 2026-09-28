@@ -7,6 +7,7 @@ import { ComboTracker } from '../systems/combo.js';
 import { save } from '../services/storage.js';
 import { sfx, vibrate } from '../services/audio.js';
 import { music } from '../services/music.js';
+import { skinKey } from '../systems/skinTextures.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
@@ -32,6 +33,7 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.cam = setupCamera(this);
     this.state = 'play';
+    this.skin = save.get().selectedSkin;
     this.time0 = 0;
 
     // Spieler (Mittelpunkt px/py, Füße bei py + R)
@@ -63,7 +65,7 @@ export class GameScene extends Phaser.Scene {
     this.generate();
     this.prepareZone(0);
 
-    this.player = this.add.image(this.px, this.py, 'wolki_up').setOrigin(0.5, 0.55).setScale(1 / ZOOM).setDepth(7);
+    this.player = this.add.image(this.px, this.py, skinKey(this.skin, 'up')).setOrigin(0.5, 0.55).setScale(1 / ZOOM).setDepth(7);
     this.sparks = this.add.particles(0, 0, 'spark', {
       speed: { min: 180, max: 520 },
       lifespan: 650,
@@ -457,7 +459,7 @@ export class GameScene extends Phaser.Scene {
     else if (this.time0 < this.happyUntil) pose = 'happy';
     else if (this.vy > 150) pose = 'fall';
     else if (this.combo.active) pose = 'combo';
-    const key = `wolki_${pose}`;
+    const key = skinKey(this.skin, pose);
     if (this.player.texture.key !== key) this.player.setTexture(key);
 
     this.squash *= Math.exp(-12 * dt);

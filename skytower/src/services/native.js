@@ -2,7 +2,7 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 
-/** Zurück-Taste: im Spiel pausieren, in der Pause weiterspielen, sonst App schließen. */
+/** Zurück-Taste: im Spiel pausieren, in der Pause weiterspielen, im Shop zum Menü, sonst App schließen. */
 export function setupNative(game) {
   if (!Capacitor.isNativePlatform()) return;
   App.addListener('backButton', () => {
@@ -14,6 +14,9 @@ export function setupNative(game) {
     } else if (sm.isActive('GameOver') || sm.isActive('Game')) {
       sm.stop('GameOver');
       sm.stop('Game');
+      sm.start('Menu');
+    } else if (sm.isActive('Shop')) {
+      sm.stop('Shop');
       sm.start('Menu');
     } else {
       App.exitApp();

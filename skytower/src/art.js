@@ -3,10 +3,81 @@
 // werden; Plattformen und Kulissen zeichnet Phaser direkt als Vektorgrafik.
 // Später können hier einfach eigene PNGs an ihre Stelle treten.
 
+// Skins: Farben plus optionale Extras. `back` liegt hinter Wolki, `belly` auf
+// dem Körper (unter dem Gesicht), `front` ganz vorne (Hüte, Helm, Krone).
+const drop = (x, y) => `<path d="M${x} ${y} q7 10 0 14 q-7 -4 0 -14z" fill="#5cc3ff" stroke="#2d3a5a" stroke-width="2"/>`;
+const rays = (o) => Array.from({ length: 12 }, (_, i) => {
+  const a = (i / 12) * Math.PI * 2;
+  const p = (r, d) => `${(60 + Math.cos(a + d) * r).toFixed(1)} ${(64 + Math.sin(a + d) * r).toFixed(1)}`;
+  return `<path d="M${p(40, -0.13)} L${p(57, 0)} L${p(40, 0.13)}Z" fill="#ffb020" stroke="${o}" stroke-width="2.5" stroke-linejoin="round"/>`;
+}).join('');
+
 export const SKINS = {
   wolki: { body: '#ffffff', shade: '#dce8ff', outline: '#2d3a5a', cheek: '#ff9eb5', shoe: '#5cc3ff', sole: '#ffffff' },
-  regen: { body: '#c9d6ea', shade: '#a8b8d4', outline: '#2d3a5a', cheek: '#8fb2ff', shoe: '#ffd23f', sole: '#ffffff' },
-  sonne: { body: '#ffe36b', shade: '#ffc53d', outline: '#6b3a12', cheek: '#ff8a5c', shoe: '#ff6b6b', sole: '#ffffff' },
+  regen: {
+    body: '#c9d6ea', shade: '#a8b8d4', outline: '#2d3a5a', cheek: '#8fb2ff', shoe: '#ffd23f', sole: '#ffffff',
+    back: () => drop(10, 58) + drop(104, 50) + drop(8, 88) + drop(108, 84),
+  },
+  sonne: {
+    body: '#ffe36b', shade: '#ffc53d', outline: '#6b3a12', cheek: '#ff8a5c', shoe: '#ff6b6b', sole: '#ffffff',
+    back: (o) => rays(o),
+  },
+  pip: {
+    body: '#9ddcff', shade: '#6cc3f2', outline: '#1f3f66', cheek: '#ff9eb5', shoe: '#ff9f43', sole: '#ffe0b8',
+    back: (o) => `<path d="M96 84 L116 76 L110 88 L118 96 L98 96Z" fill="#6cc3f2" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
+    front: (o) => `<path d="M54 28 Q50 12 62 8 Q58 16 62 20 Q66 10 78 12 Q68 16 66 28Z" fill="#9ddcff" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
+  },
+  papier: {
+    body: '#fbfbf5', shade: '#e3e1d3', outline: '#3a3a4a', cheek: '#ff9eb5', shoe: '#e74c3c', sole: '#ffffff',
+    front: (o) => `<path d="M34 28 L96 6 L66 34 Z" fill="#ffffff" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<path d="M96 6 L56 30 L60 40 Z" fill="#dfe6f0" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
+  },
+  ballon: {
+    body: '#fff4e6', shade: '#f1dcc2', outline: '#4a2e1a', cheek: '#ff9e8a', shoe: '#8b5a2b', sole: '#f1dcc2',
+    back: (o) => `<path d="M98 44 L100 30" stroke="${o}" stroke-width="2"/>` +
+      `<path d="M100 2 C114 2 118 14 114 22 C111 28 104 30 102 30 L98 30 C96 30 89 28 86 22 C82 14 86 2 100 2Z" fill="#ff6b6b" stroke="${o}" stroke-width="2.5"/>` +
+      `<path d="M100 3 C104 10 104 22 101 30 L99 30 C96 22 96 10 100 3Z" fill="#ffd23f"/>` +
+      `<rect x="95" y="30" width="10" height="7" rx="2" fill="#b0773b" stroke="${o}" stroke-width="2"/>`,
+    front: (o) => `<path d="M34 40 Q36 14 62 14 Q88 14 88 38 Q62 30 34 40Z" fill="#8b5a2b" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<circle cx="50" cy="31" r="7" fill="#9be7ff" stroke="${o}" stroke-width="3"/><circle cx="71" cy="30" r="7" fill="#9be7ff" stroke="${o}" stroke-width="3"/>`,
+  },
+  blitz: {
+    body: '#5b6485', shade: '#434b69', outline: '#161a2c', cheek: '#ff9eb5', shoe: '#ffd23f', sole: '#ffffff',
+    front: (o) => `<path d="M62 2 L50 22 L59 22 L52 38 L72 16 L62 16 L68 2Z" fill="#ffd23f" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
+  },
+  astro: {
+    body: '#f4f6fb', shade: '#cdd5e6', outline: '#2d3a5a', cheek: '#ff9eb5', shoe: '#8a94a8', sole: '#f4f6fb',
+    front: () => `<circle cx="60" cy="64" r="53" fill="#bfe8ff" fill-opacity=".22" stroke="#e8eef8" stroke-width="5"/>` +
+      `<circle cx="60" cy="64" r="56" fill="none" stroke="#2d3a5a" stroke-width="2.5"/>` +
+      `<path d="M26 40 Q36 20 58 16" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"/>`,
+  },
+  mond: {
+    body: '#fff3c4', shade: '#f0dc8c', outline: '#4a3f1a', cheek: '#ffb38a', shoe: '#8f7bff', sole: '#ffffff',
+    belly: () => `<circle cx="34" cy="58" r="4.5" fill="#f0dc8c"/><circle cx="90" cy="92" r="5" fill="#f0dc8c"/><circle cx="44" cy="99" r="3.5" fill="#f0dc8c"/>`,
+    front: (o) => `<path d="M36 38 Q46 12 76 14 Q94 16 104 10 Q100 30 86 34 Q60 26 36 38Z" fill="#6c5ce7" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<circle cx="104" cy="10" r="6" fill="#fff" stroke="${o}" stroke-width="2.5"/>`,
+  },
+  einhorn: {
+    body: '#fbe3ff', shade: '#e9c2f5', outline: '#4a2350', cheek: '#ff8fb8', shoe: '#b57bff', sole: '#ffffff',
+    front: (o) => `<circle cx="44" cy="30" r="7" fill="#ff8fb8" stroke="${o}" stroke-width="2.5"/>` +
+      `<circle cx="36" cy="38" r="6" fill="#8fd3ff" stroke="${o}" stroke-width="2.5"/>` +
+      `<circle cx="50" cy="24" r="6" fill="#a6f0b0" stroke="${o}" stroke-width="2.5"/>` +
+      `<path d="M55 26 L63 0 L71 24Z" fill="#ffd23f" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<path d="M58 18 L68 14 M60 11 L67 8" stroke="${o}" stroke-width="2"/>`,
+  },
+  drache: {
+    body: '#8fe3a0', shade: '#5fc57a', outline: '#1f4a2a', cheek: '#ffb38a', shoe: '#ff8a5c', sole: '#fff4d6',
+    back: (o) => `<path d="M26 58 Q2 44 4 20 Q14 34 22 30 Q20 44 32 50Z" fill="#5fc57a" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<path d="M94 58 Q118 44 116 20 Q106 34 98 30 Q100 44 88 50Z" fill="#5fc57a" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
+    front: (o) => `<path d="M44 32 L38 12 L54 26Z" fill="#fff4d6" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<path d="M76 28 L86 10 L68 24Z" fill="#fff4d6" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`,
+  },
+  gold: {
+    body: '#ffd84a', shade: '#f0b400', outline: '#5a3c00', cheek: '#ff9e6b', shoe: '#ffffff', sole: '#ffd84a',
+    front: (o) => `<path d="M40 28 L42 8 L52 20 L60 4 L68 20 L78 8 L80 28 Z" fill="#ffe680" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>` +
+      `<circle cx="60" cy="20" r="3.5" fill="#ff6b6b"/>` +
+      `<path d="M104 30 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#fff" stroke="${o}" stroke-width="1.5"/>`,
+  },
 };
 
 const BODY = [
@@ -88,11 +159,11 @@ export function wolkiSvg(pose = 'idle', skin = SKINS.wolki) {
     : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
 <defs><clipPath id="b">${fill}</clipPath></defs>
-${arms}${feet}${outline}
+${s.back?.(o) ?? ''}${arms}${feet}${outline}
 <g fill="${s.body}">${fill}</g>
 <g clip-path="url(#b)"><ellipse cx="60" cy="104" rx="64" ry="22" fill="${s.shade}"/></g>
 <ellipse cx="50" cy="36" rx="12" ry="6" transform="rotate(-20 50 36)" fill="#fff" opacity=".9"/>
-${face(pose, s)}${sparkles}
+${s.belly?.(o) ?? ''}${face(pose, s)}${s.front?.(o) ?? ''}${sparkles}
 </svg>`;
 }
 

@@ -1,5 +1,6 @@
 // Spielstand lokal speichern. Im Prototyp über localStorage; in der Android-
 // App später über Capacitor Preferences (gleiche Schnittstelle).
+import { unlockGoals } from '../systems/progress.js';
 
 const KEY = 'skytower.save.v1';
 
@@ -9,6 +10,9 @@ const DEFAULTS = {
   bestCombo: 0,
   coins: 0,
   runs: 0,
+  totalScore: 0,
+  ownedSkins: [],
+  selectedSkin: 'wolki',
   settings: { sound: true, vibration: true },
   tutorialSeen: false,
 };
@@ -20,7 +24,8 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...DEFAULTS, ...parsed, settings: { ...DEFAULTS.settings, ...parsed.settings } };
+      const base = structuredClone(DEFAULTS); // eigene Kopie, z. B. von ownedSkins
+      return { ...base, ...parsed, settings: { ...base.settings, ...parsed.settings } };
     }
   } catch { /* privater Modus o. Ä. */ }
   return structuredClone(DEFAULTS);
@@ -36,7 +41,7 @@ export const save = {
     fn(data);
     persist();
   },
-  /** Rundenergebnis eintragen; gibt zurück, welche Rekorde neu sind. */
+  /** Rundenergebnis eintragen; gibt neue Rekorde und neu freigeschaltete Skins zurück. */
   recordRun({ score, floor, combo, coins }) {
     const isNew = {
       score: score > data.highscore,
@@ -48,6 +53,8 @@ export const save = {
     data.bestCombo = Math.max(data.bestCombo, combo);
     data.coins += coins;
     data.runs += 1;
+    data.totalScore += score;
+    isNew.unlocked = unlockGoals(data).map((s) => s.name);
     persist();
     return isNew;
   },

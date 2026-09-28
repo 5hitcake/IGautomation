@@ -5,6 +5,7 @@ import { BootScene } from './scenes/Boot.js';
 import { MenuScene } from './scenes/Menu.js';
 import { GameScene } from './scenes/Game.js';
 import { PauseScene, GameOverScene } from './scenes/Overlays.js';
+import { ShopScene } from './scenes/Shop.js';
 import { setupNative } from './services/native.js';
 
 const game = new Phaser.Game({
@@ -15,7 +16,7 @@ const game = new Phaser.Game({
   backgroundColor: '#7ec8f2',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 3 },
-  scene: [BootScene, MenuScene, GameScene, GameOverScene, PauseScene],
+  scene: [BootScene, MenuScene, GameScene, GameOverScene, PauseScene, ShopScene],
 });
 
 setupNative(game);

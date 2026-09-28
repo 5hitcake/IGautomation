@@ -5,6 +5,7 @@ import { drawPlatform } from '../art.js';
 import { save } from '../services/storage.js';
 import { unlockAudio, setSoundEnabled, sfx } from '../services/audio.js';
 import { music } from '../services/music.js';
+import { skinKey } from '../systems/skinTextures.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -32,7 +33,7 @@ export class MenuScene extends Phaser.Scene {
     const baseY = VIEW_H * 0.52;
     const pg = this.add.graphics({ x: W / 2 - 110, y: baseY }).setDepth(3);
     drawPlatform(pg, 'cloud', 220);
-    const wolki = this.add.image(W / 2, baseY, 'wolki_happy').setOrigin(0.5, 0.96).setScale(1.5 / ZOOM).setDepth(4);
+    const wolki = this.add.image(W / 2, baseY, skinKey(s.selectedSkin, 'happy')).setOrigin(0.5, 0.96).setScale(1.5 / ZOOM).setDepth(4);
     this.tweens.add({
       targets: wolki,
       y: baseY - 190,
@@ -56,7 +57,13 @@ export class MenuScene extends Phaser.Scene {
       this.scene.start('Game');
     }, { w: 420, h: 116, size: 54 });
 
-    const soundBtn = button(this, W / 2, VIEW_H * 0.76 + 130, this.soundLabel(), () => {
+    button(this, W / 2 - 145, VIEW_H * 0.76 + 130, 'Skins', () => {
+      unlockAudio();
+      sfx.click();
+      this.scene.start('Shop');
+    }, { w: 260, h: 78, size: 34, fill: 0xffc2e0 });
+
+    const soundBtn = button(this, W / 2 + 145, VIEW_H * 0.76 + 130, this.soundLabel(), () => {
       unlockAudio();
       save.update((d) => { d.settings.sound = !d.settings.sound; });
       setSoundEnabled(save.get().settings.sound);
@@ -64,7 +71,7 @@ export class MenuScene extends Phaser.Scene {
       sfx.click();
     }, { w: 260, h: 78, size: 34, fill: 0xbfe6ff });
 
-    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.3 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
+    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.4 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
   }
 
   soundLabel() {

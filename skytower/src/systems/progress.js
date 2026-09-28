@@ -1,0 +1,76 @@
+// Skins und ihre Freischaltung, ohne Phaser-Abhängigkeit (testbar).
+//
+// Jeder Skin ist entweder von Anfang an da, für Münzen kaufbar, durch einen
+// Erfolg freischaltbar oder Premium (In-App-Kauf ab Phase 6). Die Goldene
+// Wolke gibt es auch über 1.000.000 gesammelte Punkte.
+
+export const SKIN_LIST = [
+  { id: 'wolki', name: 'Wolki' },
+  { id: 'regen', name: 'Regenwolke', price: 500 },
+  { id: 'sonne', name: 'Sonnenschein', price: 1000 },
+  { id: 'pip', name: 'Vogel Pip', price: 1500 },
+  { id: 'papier', name: 'Papierflieger', price: 2500 },
+  { id: 'ballon', name: 'Heißluftballon', goal: { type: 'bestFloor', value: 200 } },
+  { id: 'blitz', name: 'Blitz', goal: { type: 'bestCombo', value: 50 } },
+  { id: 'astro', name: 'Astronaut', goal: { type: 'bestFloor', value: 500 } },
+  { id: 'mond', name: 'Mond', goal: { type: 'runs', value: 100 } },
+  { id: 'einhorn', name: 'Regenbogen-Einhorn', short: 'Einhorn', premium: true },
+  { id: 'drache', name: 'Mini-Drache', premium: true },
+  { id: 'gold', name: 'Goldene Wolke', premium: true, goal: { type: 'totalScore', value: 1_000_000 } },
+];
+
+export const GOAL_TEXT = {
+  bestFloor: (v) => `Etage ${v.toLocaleString('de-DE')} erreichen`,
+  bestCombo: (v) => `${v}er-Combo schaffen`,
+  runs: (v) => `${v} Runden spielen`,
+  totalScore: (v) => `${v.toLocaleString('de-DE')} Punkte sammeln`,
+};
+
+export const skinById = (id) => SKIN_LIST.find((s) => s.id === id) ?? SKIN_LIST[0];
+
+export function isOwned(data, id) {
+  return id === 'wolki' || data.ownedSkins.includes(id);
+}
+
+/** Fortschritt eines Erfolgs-Skins: { current, target, done } oder null */
+export function goalProgress(data, skin) {
+  if (!skin.goal) return null;
+  const current = data[skin.goal.type] ?? 0;
+  return { current, target: skin.goal.value, done: current >= skin.goal.value };
+}
+
+/** Status für die Anzeige im Shop */
+export function skinState(data, skin) {
+  if (isOwned(data, skin.id)) return data.selectedSkin === skin.id ? 'selected' : 'owned';
+  if (skin.price) return data.coins >= skin.price ? 'buyable' : 'tooExpensive';
+  if (skin.premium) return 'premium'; // ggf. zusätzlich per Erfolg freischaltbar
+  return 'goal';
+}
+
+/** Kauft einen Skin für Münzen. Gibt true zurück, wenn es geklappt hat. */
+export function buySkin(data, id) {
+  const skin = skinById(id);
+  if (isOwned(data, id) || !skin.price || data.coins < skin.price) return false;
+  data.coins -= skin.price;
+  data.ownedSkins.push(id);
+  return true;
+}
+
+export function selectSkin(data, id) {
+  if (!isOwned(data, id)) return false;
+  data.selectedSkin = id;
+  return true;
+}
+
+/** Schaltet alle erreichten Erfolgs-Skins frei; gibt die neu freigeschalteten zurück. */
+export function unlockGoals(data) {
+  const fresh = [];
+  for (const skin of SKIN_LIST) {
+    if (isOwned(data, skin.id)) continue;
+    if (goalProgress(data, skin)?.done) {
+      data.ownedSkins.push(skin.id);
+      fresh.push(skin);
+    }
+  }
+  return fresh;
+}
