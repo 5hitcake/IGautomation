@@ -420,13 +420,33 @@ export class GameScene extends Phaser.Scene {
     this.revives += 1;
     this.tweens.killTweensOf(this);
     // Countdown: Spiel steht still, Wolki wartet mit Regenschirm am unteren Rand
-    this.state = 'countdown';
-    this.acc = 0;
     this.vx = 0;
     this.vy = 0;
     this.py = this.scrollY + VIEW_H - 150;
     this.trail.clear?.();
     this.items.shieldShowUntil = Infinity;
+    this.countdown(() => {
+      this.vy = -2350; // der Regenschirm schleudert Wolki hoch
+      this.items.shieldShowUntil = this.time0 + 0.8;
+      this.sparks.explode(24, this.px, this.py);
+      sfx.shield();
+    });
+  }
+
+  /** Nach der Pause: erst Countdown, dann genau dort weiter, wo man war */
+  resumeWithCountdown() {
+    const { vx, vy } = this;
+    this.state = 'countdown';
+    this.countdown(() => {
+      this.vx = vx;
+      this.vy = vy;
+    });
+  }
+
+  /** 3 – 2 – 1 – Los! Währenddessen steht das Spiel (state 'countdown'). */
+  countdown(onGo) {
+    this.state = 'countdown';
+    this.acc = 0;
     const steps = COUNTDOWN.from;
     for (let i = 0; i < steps; i++) {
       this.time.delayedCall(i * COUNTDOWN.stepMs, () => {
@@ -436,11 +456,8 @@ export class GameScene extends Phaser.Scene {
     }
     this.time.delayedCall(steps * COUNTDOWN.stepMs, () => {
       this.state = 'play';
-      this.vy = -2350; // der Regenschirm schleudert Wolki hoch
-      this.items.shieldShowUntil = this.time0 + 0.8;
-      this.sparks.explode(24, this.px, this.py);
+      onGo();
       this.popup('Los!', null, '#9ff0b0');
-      sfx.shield();
       music.start('game', this.camLevel);
       music.setZone(zoneIndexForFloor(this.floorUnderPlayer()));
     });

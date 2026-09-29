@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { W, VIEW_H, ZOOM, setupCamera, txt, button } from '../view.js';
 import { sfx } from '../services/audio.js';
-import { music } from '../services/music.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
 import { TEST_TOOLS, FAKE_AD_SECONDS, MAX_REVIVES } from '../config.js';
@@ -41,7 +40,7 @@ export class PauseScene extends Phaser.Scene {
   resumeGame() {
     this.scene.stop();
     this.scene.resume('Game');
-    music.start('game', this.scene.get('Game').camLevel);
+    this.scene.get('Game').resumeWithCountdown(); // Musik startet bei „Los!“
   }
 }
 
