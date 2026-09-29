@@ -26,8 +26,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   vorher gar nicht zu sehen ist (`design/himmelstor-szene.png`). Das Tor ist die letzte Plattform:
   ab Etage 999 wird der Himmel hell und wolkig, Wolki fliegt durchs Tor und die Runde endet mit „Geschafft!“
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
-  Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten – einsammeln
-  Vorrat oben rechts im HUD).
+  Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,
+  wird eingesammelt; Anzeige oben rechts im HUD).
   Ohne Regenschirm nach dem Absturz: „Weiterspielen per Werbung“ (bis zu 3× pro Runde) – ein
   Regenschirm fängt Wolki auf und die Runde geht weiter. Bis Phase 6 eine 3-s-Test-Werbung, Münz-Magnet (10 s), in der Galaxie Warp-Sterne
 - **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)
