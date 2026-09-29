@@ -4,8 +4,7 @@ import { sfx } from '../services/audio.js';
 import { music } from '../services/music.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
-import { TEST_TOOLS, POWERUPS, FAKE_AD_SECONDS } from '../config.js';
-import { umbrellaStock } from '../systems/powerups.js';
+import { TEST_TOOLS, FAKE_AD_SECONDS, MAX_REVIVES } from '../config.js';
 
 function panel(scene, h) {
   scene.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.5).setOrigin(0);
@@ -113,38 +112,23 @@ export class GameOverScene extends Phaser.Scene {
       this.scene.start('Menu');
     }, { fill: 0xbfe6ff, h: 88, size: 38 });
 
-    // Regenschirm per Werbung (bis AdMob angebunden ist: Test-Werbung, nur in Test-Versionen):
-    // beim ersten Absturz einer Runde direkt weiterspielen, sonst für den Vorrat
+    // Weiterspielen per Werbung (bis AdMob angebunden ist: Test-Werbung, nur in Test-Versionen):
+    // ein Regenschirm fängt Wolki auf und die Runde geht an derselben Stelle weiter
     if (TEST_TOOLS) {
       const by = y + 760 + (unlocked.length ? 150 : 84);
-      if (!won && !this.scene.get('Game').revived) this.reviveOffer(by);
-      else this.umbrellaOffer(by);
+      const revives = this.scene.get('Game').revives ?? 0;
+      if (!won && revives < MAX_REVIVES) this.reviveOffer(by, MAX_REVIVES - revives);
+      else if (!won) txt(this, W / 2, by, 'Keine Rettung mehr in dieser Runde', 28, { color: '#e8f4ff', strokeThickness: 6 }).setDepth(12);
     }
   }
 
-  reviveOffer(by) {
+  reviveOffer(by, left) {
     button(this, W / 2 + 20, by, 'Weiterspielen per Werbung', () => this.playFakeAd(() => {
       this.scene.stop();
       this.scene.get('Game').revive();
     }), { w: 520, h: 80, size: 30, fill: 0x9ff0b0 }).setDepth(12);
     this.add.image(W / 2 - 262, by, 'pu_shield').setScale(0.8 / ZOOM).setDepth(13);
-    txt(this, W / 2, by + 62, 'Ein Regenschirm fängt dich auf · Test-Werbung', 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
-  }
-
-  umbrellaOffer(by) {
-    const stock = umbrellaStock();
-    const max = POWERUPS.shieldMax;
-    if (stock >= max) {
-      txt(this, W / 2, by, `Regenschirm-Vorrat voll (${max}/${max})`, 30, { color: '#bfe6ff', strokeThickness: 6 }).setDepth(12);
-      return;
-    }
-    button(this, W / 2 + 20, by, 'Regenschirm per Werbung', () => this.playFakeAd(() => {
-      save.addUmbrella(POWERUPS.shieldMax);
-      this.scene.restart(this.initData);
-    }), { w: 500, h: 80, size: 30, fill: 0xbfe6ff })
-      .setDepth(12);
-    this.add.image(W / 2 - 250, by, 'pu_shield').setScale(0.8 / ZOOM).setDepth(13);
-    txt(this, W / 2, by + 62, `Vorrat: ${stock}/${max} · Test-Werbung`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
+    txt(this, W / 2, by + 62, `Regenschirm fängt dich auf · noch ${left}× · Test-Werbung`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
   }
 
   /** Platzhalter für eine belohnte Werbung (wird in Phase 6 durch AdMob ersetzt) */

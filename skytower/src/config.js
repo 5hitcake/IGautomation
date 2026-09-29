@@ -142,6 +142,8 @@ export const POWERUPS = {
 
 // Test-Werbung (bis AdMob in Phase 6 angebunden ist): so lange läuft die Attrappe
 export const FAKE_AD_SECONDS = 3;
+// So oft kann man pro Runde nach einem Absturz per Werbung weiterspielen
+export const MAX_REVIVES = 3;
 
 // Das große Ziel
 export const GATE = {

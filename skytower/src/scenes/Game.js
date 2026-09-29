@@ -63,7 +63,7 @@ export class GameScene extends Phaser.Scene {
     this.camLevel = 0;
     this.levelTimer = 0;
     this.coinsRun = 0;
-    this.revived = false; // „Weiterspielen per Werbung“ gibt es einmal pro Runde
+    this.revives = 0; // wie oft in dieser Runde per Werbung weitergespielt wurde
     this.banked = null; // schon gespeicherter Stand dieser Runde (nach Weiterspielen)
     this.zoneShown = 0;
     this.gateDone = false;
@@ -411,12 +411,13 @@ export class GameScene extends Phaser.Scene {
     this.vy = -2350;
     this.vx *= 0.4;
     this.popup('Gerettet!', null, '#8fd3ff');
+    this.items.shieldShowUntil = this.time0 + 1.2; // Schirm kurz über Wolki zeigen
     this.sparks.explode(24, this.px, this.py);
   }
 
   /** Nach der Werbung: Regenschirm fängt Wolki auf, die Runde geht an derselben Stelle weiter */
   revive() {
-    this.revived = true;
+    this.revives += 1;
     this.tweens.killTweensOf(this);
     this.state = 'play';
     this.acc = 0;

@@ -32,6 +32,7 @@ export class Powerups {
     this.magnetUntil = -1;
     this.rocketUntil = -1;
     this.lastItemFloor = -Infinity;
+    this.shieldShowUntil = -1;
     this.rocketSpeed = 0;
 
     // Anzeige direkt an Wolki
@@ -115,7 +116,8 @@ export class Powerups {
   render() {
     const g = this.game;
     const bob = Math.sin(g.time0 * 4) * 4;
-    this.shieldIcon.setVisible(umbrellaStock() > 0).setPosition(g.px, g.py - 78 + bob);
+    // Regenschirm-Vorrat steht oben rechts im HUD; bei Wolki nur kurz beim Retten
+    this.shieldIcon.setVisible(g.time0 < this.shieldShowUntil).setPosition(g.px, g.py - 78 + bob);
     const magnetLeft = this.magnetUntil - g.time0;
     this.magnetIcon.setVisible(magnetLeft > 0 && (magnetLeft > 2 || Math.floor(g.time0 * 6) % 2 === 0))
       .setPosition(g.px + 50, g.py - 44 + bob);
