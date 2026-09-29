@@ -131,7 +131,7 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
   Skin **Engel-Wolki** (nur dort freischaltbar, im Shop bis dahin unsichtbar). Das Tor ist die letzte Plattform, darüber
   heller Wolkenhimmel; Wolki fliegt hindurch und die Runde endet mit „Geschafft!“.
 - **Regenschirm-Vorrat** (max. 3, bleibt gespeichert, Anzeige oben rechts): einsammeln.
-- **Weiterspielen per Werbung** (bis zu 3× pro Runde, `MAX_REVIVES`): Regenschirm fängt Wolki auf, die Runde läuft weiter
+- **Weiterspielen per Werbung** (bis zu 3× pro Runde, `MAX_REVIVES`): Regenschirm fängt Wolki auf, nach Countdown 3 – 2 – 1 – Los! läuft die Runde weiter
   (Münzen/Punkte werden nicht doppelt gezählt, es bleibt eine Runde).
 - **Power-ups ab Etage 40:** Raketen-Wolke, Regenschirm-Schild, Münz-Magnet, Warp-Stern (Galaxie).
   Selten (min. 60 Etagen Abstand, Ø etwa alle 130 Etagen), damit sie etwas Besonderes bleiben.

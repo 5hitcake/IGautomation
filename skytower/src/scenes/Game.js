@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  PHYSICS, TOWER, CAMERA, COMBO, ZONES, ZONE_RULES, COIN_TIERS, COIN_TIER_CHANCE, POWERUPS, GATE, WIND, zoneIndexForFloor,
+  PHYSICS, TOWER, CAMERA, COMBO, COUNTDOWN, ZONES, ZONE_RULES, COIN_TIERS, COIN_TIER_CHANCE, POWERUPS, GATE, WIND, zoneIndexForFloor,
 } from '../config.js';
 import { W, VIEW_H, ZOOM, setupCamera, txt } from '../view.js';
 import { platformTexture, PLATFORM_H, PLATFORM_PAD } from '../art.js';
@@ -419,13 +419,31 @@ export class GameScene extends Phaser.Scene {
   revive() {
     this.revives += 1;
     this.tweens.killTweensOf(this);
-    this.state = 'play';
+    // Countdown: Spiel steht still, Wolki wartet mit Regenschirm am unteren Rand
+    this.state = 'countdown';
     this.acc = 0;
-    this.rescue();
-    this.popup('Weiter geht\'s!', 'Der Regenschirm hat dich gerettet', '#8fd3ff');
-    sfx.shield();
-    music.start('game', this.camLevel);
-    music.setZone(zoneIndexForFloor(this.floorUnderPlayer()));
+    this.vx = 0;
+    this.vy = 0;
+    this.py = this.scrollY + VIEW_H - 150;
+    this.trail.clear?.();
+    this.items.shieldShowUntil = Infinity;
+    const steps = COUNTDOWN.from;
+    for (let i = 0; i < steps; i++) {
+      this.time.delayedCall(i * COUNTDOWN.stepMs, () => {
+        this.popup(`${steps - i}`, i === 0 ? 'Mach dich bereit!' : null, '#ffffff');
+        sfx.comboStep(i * 3);
+      });
+    }
+    this.time.delayedCall(steps * COUNTDOWN.stepMs, () => {
+      this.state = 'play';
+      this.vy = -2350; // der Regenschirm schleudert Wolki hoch
+      this.items.shieldShowUntil = this.time0 + 0.8;
+      this.sparks.explode(24, this.px, this.py);
+      this.popup('Los!', null, '#9ff0b0');
+      sfx.shield();
+      music.start('game', this.camLevel);
+      music.setZone(zoneIndexForFloor(this.floorUnderPlayer()));
+    });
   }
 
   /** Warp-Stern: ein paar Etagen nach oben teleportieren */

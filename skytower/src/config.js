@@ -144,6 +144,8 @@ export const POWERUPS = {
 export const FAKE_AD_SECONDS = 3;
 // So oft kann man pro Runde nach einem Absturz per Werbung weiterspielen
 export const MAX_REVIVES = 3;
+// Countdown nach „Weiterspielen per Werbung“: 3 – 2 – 1 – Los!
+export const COUNTDOWN = { from: 3, stepMs: 800 };
 
 // Das große Ziel
 export const GATE = {

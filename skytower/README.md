@@ -29,7 +29,7 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,
   wird eingesammelt; Anzeige oben rechts im HUD).
   Ohne Regenschirm nach dem Absturz: „Weiterspielen per Werbung“ (bis zu 3× pro Runde) – ein
-  Regenschirm fängt Wolki auf und die Runde geht weiter. Bis Phase 6 eine 3-s-Test-Werbung, Münz-Magnet (10 s), in der Galaxie Warp-Sterne
+  Regenschirm fängt Wolki auf, nach einem Countdown (3 – 2 – 1 – Los!) geht die Runde weiter. Bis Phase 6 eine 3-s-Test-Werbung, Münz-Magnet (10 s), in der Galaxie Warp-Sterne
 - **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)
 - **Zonen-Mechaniken** (`ZONE_RULES` in `src/config.js`): Gewitter mit Blitzeinschlägen
   (`src/systems/hazards.js`), rutschiges Eis im Polarlicht, Wind in der Stratosphäre,
