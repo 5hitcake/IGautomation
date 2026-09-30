@@ -24,6 +24,7 @@ const DECO_BY_ZONE = {
   planet: { keys: Array.from({ length: PLANET_COUNT }, (_, i) => `planet_${i}`), chance: 0.28 },
   rock: { keys: ['rock'], chance: 0.8 },
   nebula: { keys: Array.from({ length: PLANET_COUNT }, (_, i) => `planet_${i}`), chance: 0.15 },
+  heaven: null,
 };
 
 /** Himmel mit Farbverlauf je Zone, Parallax-Wolken, Sternen und Deko. */
@@ -120,7 +121,9 @@ export class Sky {
     const idx = zoneIndexForFloor(Math.floor(floor));
     const z = ZONES[idx];
     const next = ZONES[idx + 1];
-    const t = next ? Math.max(0, Math.min(1, (floor - (next.from - BLEND_FLOORS)) / BLEND_FLOORS)) : 0;
+    // Übergang zur nächsten Zone; ins Himmelreich (instant) erst direkt über dem Tor
+    const blend = next?.instant ? 2 : BLEND_FLOORS;
+    const t = next ? Math.max(0, Math.min(1, (floor - (next.from - blend)) / blend)) : 0;
     const top = mix(z.skyTop, next ? next.skyTop : z.skyTop, t);
     const bottom = mix(z.skyBottom, next ? next.skyBottom : z.skyBottom, t);
     if (top !== this.lastTop || bottom !== this.lastBottom) {
@@ -131,8 +134,9 @@ export class Sky {
       this.g.fillRect(0, 0, W, VIEW_H);
     }
 
-    const starAlpha = Math.max(0, Math.min(1, (floor - 330) / 120));
-    const cloudAlpha = idx >= 5 ? 0.1 : idx === 4 ? 0.28 : idx === 3 ? 0.35 : 0.75;
+    const heaven = idx >= 10;
+    const starAlpha = heaven ? 0 : Math.max(0, Math.min(1, (floor - 330) / 120));
+    const cloudAlpha = heaven ? 0.9 : idx >= 5 ? 0.1 : idx === 4 ? 0.28 : idx === 3 ? 0.35 : 0.75;
     const cloudTint = idx === 3 ? 0x8f98b5 : idx === 4 ? 0x6a7fc0 : null;
     const deco = DECO_BY_ZONE[z.deco];
 
@@ -223,7 +227,7 @@ export class Sky {
       }
     }
     // Sternschnuppen ab der Stratosphäre
-    if (floor > 580 && dt > 0) {
+    if (floor > 580 && floor < 1000 && dt > 0) {
       this.nextShot -= dt;
       if (this.nextShot <= 0) {
         this.nextShot = 1.2 + Math.random() * 2.5;

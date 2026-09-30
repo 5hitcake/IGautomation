@@ -508,6 +508,7 @@ const STYLE = {
   meteor: { fill: '#6a4038', light: '#94604f', dark: '#40241f', outline: '#1e1110' },
   rain: { fill: '#aab6cc', light: '#c6d0e0', dark: '#8390aa', outline: '#2d3a5a' },
   milestone: { fill: '#ffcf4a', light: '#fff0a8', dark: '#e0a020', outline: '#5a3a00' },
+  heaven: { fill: '#fffdf4', light: '#ffffff', dark: '#f5e2a8', outline: '#c8952a' },
 };
 
 export const PLATFORM_H = 40;
@@ -536,8 +537,13 @@ export function drawPlatform(g, style, w, opts = {}) {
   // Versatz und Vergrößerung als Zeichenbefehle (für das Vorberechnen als Textur)
   if (opts.offset) g.translateCanvas(opts.offset[0], opts.offset[1]);
   if (opts.zoom) g.scaleCanvas(opts.zoom, opts.zoom);
-  if (style === 'cloud' || style === 'storm' || style === 'rain') {
+  if (style === 'cloud' || style === 'storm' || style === 'rain' || style === 'heaven') {
     puffy(g, c, w, h);
+    if (style === 'heaven') {
+      // Einmal-Wolke: goldenes Funkeln
+      g.fillStyle(0xffd23f);
+      for (let x = 22; x < w - 12; x += 44) g.fillCircle(x, 22 + ((x / 44) % 2) * 6, 3);
+    }
     if (style === 'rain') {
       g.fillStyle(0x5cb8ff);
       for (let x = 20; x < w - 10; x += 34) g.fillEllipse(x, h + 16 + ((x / 34) % 2) * 6, 7, 11);

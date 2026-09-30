@@ -96,10 +96,12 @@ export class GameOverScene extends Phaser.Scene {
     });
 
     const unlocked = [...(angel ? [skinById('engel').name] : []), ...(star ? [skinById('sterne').name] : []), ...(isNew.unlocked ?? [])];
+    let unlockedH = 0; // Höhe der Skin-Ankündigung (kann mehrzeilig sein)
     if (unlocked.length) {
       // Neu freigeschaltete Skins unter dem Ergebnis ankündigen
-      const t = txt(this, W / 2, y + 760 + 64, tr(`Neuer Skin: ${unlocked.join(', ')}!`, `New skin: ${unlocked.join(', ')}!`), 38,
-        { color: '#ffe066', wrap: W - 80 }).setDepth(12);
+      const t = txt(this, W / 2, y + 760 + 28, tr(`Neuer Skin: ${unlocked.join(', ')}!`, `New skin: ${unlocked.join(', ')}!`), 38,
+        { color: '#ffe066', wrap: W - 80, oy: 0 }).setDepth(12);
+      unlockedH = t.height;
       this.tweens.add({ targets: t, scale: { from: 0.6, to: 1 }, duration: 400, ease: 'Back.out' });
       sfx.zone();
     }
@@ -117,8 +119,8 @@ export class GameOverScene extends Phaser.Scene {
 
     // Weiterspielen: ein Regenschirm fängt Wolki auf und die Runde geht an derselben
     // Stelle weiter (zum Start gratis, später per belohnter Werbung – siehe REVIVE)
-    if (!won) {
-      const by = y + 760 + (unlocked.length ? 150 : 84);
+    {
+      const by = y + 760 + (unlocked.length ? 28 + unlockedH + 56 : 84);
       const revives = this.scene.get('Game').revives ?? 0;
       if (revives < REVIVE.max) this.reviveOffer(by, REVIVE.max - revives);
       else txt(this, W / 2, by, tr('Keine Rettung mehr in dieser Runde', 'No more rescues this round'), 28, { color: '#e8f4ff', strokeThickness: 6 }).setDepth(12);

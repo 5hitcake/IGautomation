@@ -89,6 +89,8 @@ export const ZONES = [
   { from: 700, name: tr('Weltall', 'Outer Space'), skyTop: '#07081c', skyBottom: '#1c1a4a', platform: 'asteroid', deco: 'planet' },
   { from: 800, name: tr('Asteroidengürtel', 'Asteroid Belt'), skyTop: '#140a1e', skyBottom: '#3d2130', platform: 'meteor', deco: 'rock' },
   { from: 900, name: tr('Galaxie', 'Galaxy'), skyTop: '#1a0630', skyBottom: '#4a1a6e', platform: 'stardust', deco: 'nebula' },
+  // hinter dem Himmelstor, endlos; beginnt direkt über dem Tor (ohne langen Farbübergang)
+  { from: 1001, name: tr('Himmelreich', 'Heaven'), skyTop: '#a8dcff', skyBottom: '#fff4d6', platform: 'heaven', deco: 'heaven', instant: true },
 ];
 
 // Besonderheiten je Zone (Index wie in ZONES)
@@ -100,6 +102,7 @@ export const ZONE_RULES = {
   7: { hint: tr('Ab ins All!', 'Off to space!') },
   8: { hint: tr('Meteoriten!', 'Meteorites!'), hazard: 'meteor' },
   9: { hint: tr('Warp-Sterne!', 'Warp stars!'), warp: true },
+  10: { hint: tr('Wolken puffen nach dem Sprung weg!', 'Clouds go poof after each jump!'), puff: true, coinChance: 0.85 },
 };
 
 // Wind in der Stratosphäre: Böen wechseln langsam die Richtung
@@ -129,6 +132,7 @@ export const COIN_TIER_CHANCE = [
   { gold: 0.35, diamond: 0.1 },
   { gold: 0.35, diamond: 0.14 },
   { gold: 0.35, diamond: 0.2 },
+  { gold: 0.45, diamond: 0.3 }, // Himmelreich: viele wertvolle Münzen
 ];
 
 export const POWERUPS = {

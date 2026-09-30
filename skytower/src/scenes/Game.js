@@ -195,9 +195,12 @@ export class GameScene extends Phaser.Scene {
   // Turm
 
   spawnPlatform(floor) {
+    // direkt über dem Tor frei lassen: Wolki fliegt durch den Torbogen hinauf
+    if (floor > GATE.floor && floor <= GATE.floor + 3) return;
     const inner = W - 2 * WALL;
     const zi = zoneIndexForFloor(floor);
     const zone = ZONES[zi];
+    const rules = ZONE_RULES[zi] ?? {};
     let style = zone.platform;
     let type = 'normal';
     let x = WALL;
@@ -210,9 +213,12 @@ export class GameScene extends Phaser.Scene {
     } else {
       const f = Math.min(1, floor / TOWER.shrinkUntilFloor);
       w = TOWER.startWidth * (1 - f * (1 - TOWER.minWidthFactor)) * (0.85 + Math.random() * 0.3);
+      if (rules.puff) w *= 1.3; // Einmal-Wolken etwas breiter
       w = Math.round(w / WIDTH_STEP) * WIDTH_STEP; // Breiten bündeln, damit Texturen wiederverwendet werden
       x = WALL + Math.random() * (inner - w);
-      if (floor >= TOWER.crumbleFromFloor && Math.random() < TOWER.crumbleChance) {
+      if (rules.puff) {
+        type = 'puff'; // trägt genau einen Sprung
+      } else if (floor >= TOWER.crumbleFromFloor && Math.random() < TOWER.crumbleChance) {
         type = 'crumble';
         style = 'rain';
       } else if (floor >= TOWER.movingFromFloor && Math.random() < TOWER.movingChance) {
@@ -229,7 +235,7 @@ export class GameScene extends Phaser.Scene {
       p.label = txt(this, x + w / 2, top + PLATFORM_H / 2, `${floor}`, 34, { color: '#5a3a00', stroke: '#fff0a8', strokeThickness: 6 }).setDepth(6);
     }
     if (floor > 0 && style !== 'milestone' && !this.items.maybeSpawn(p, ZONE_RULES[zi])
-      && Math.random() < TOWER.coinChance) {
+      && Math.random() < (rules.coinChance ?? TOWER.coinChance)) {
       const tier = this.coinTier(zi);
       p.coin = this.add.image(x + w / 2, top - 58, tier.texture).setScale(1 / ZOOM).setDepth(6);
       p.coinValue = tier.value;
@@ -259,7 +265,8 @@ export class GameScene extends Phaser.Scene {
     const solid = gy - 40;
     g.fillGradientStyle(warm, warm, warm, warm, 1, 1, 0, 0).fillRect(0, solid, W, fadeFrom - solid);
     g.fillGradientStyle(blue, blue, warm, warm, 1).fillRect(0, gy - 1300, W, 1240);
-    g.fillStyle(blue).fillRect(0, gy - 5000, W, 3700);
+    // darüber weich ausblenden: dort zeigt der Himmel selbst schon das Himmelreich
+    g.fillGradientStyle(blue, blue, blue, blue, 0, 0, 1, 1).fillRect(0, gy - 2300, W, 1000);
     objs.push(g);
     // weiches Leuchten hinter dem Tor (als Bild statt großer Vektor-Kreise)
     if (!this.textures.exists('heaven_glow')) {
@@ -318,8 +325,9 @@ export class GameScene extends Phaser.Scene {
 
   generate() {
     const topFloor = Math.ceil(-(this.scrollY - 400) / FH);
-    // Das Himmelstor ist die letzte Plattform: darüber nur noch Himmel
-    while (this.nextFloor <= Math.min(topFloor, GATE.floor)) this.spawnPlatform(this.nextFloor++);
+    // Bis zur Tor-Szene ist das Himmelstor die letzte Plattform; danach geht es ins Himmelreich
+    const limit = this.heavenOpen ? topFloor : Math.min(topFloor, GATE.floor);
+    while (this.nextFloor <= limit) this.spawnPlatform(this.nextFloor++);
 
     const bottomY = this.scrollY + VIEW_H + 240;
     this.platforms = this.platforms.filter((p) => {
@@ -514,8 +522,9 @@ export class GameScene extends Phaser.Scene {
     const z = ZONES[zi];
     const to = (ZONES[zi + 1]?.from ?? z.from + 500) - 1;
     const widthAt = (floor) => TOWER.startWidth * (1 - Math.min(1, floor / TOWER.shrinkUntilFloor) * (1 - TOWER.minWidthFactor));
-    const lo = Math.round((widthAt(to) * 0.85) / WIDTH_STEP) * WIDTH_STEP;
-    const hi = Math.round((widthAt(z.from) * 1.15) / WIDTH_STEP) * WIDTH_STEP;
+    const k = ZONE_RULES[zi]?.puff ? 1.3 : 1; // Einmal-Wolken sind breiter
+    const lo = Math.round((widthAt(to) * 0.85 * k) / WIDTH_STEP) * WIDTH_STEP;
+    const hi = Math.round((widthAt(z.from) * 1.15 * k) / WIDTH_STEP) * WIDTH_STEP;
     const list = [];
     for (let w = lo; w <= hi; w += WIDTH_STEP) {
       list.push([z.platform, w, false]);
@@ -587,6 +596,17 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Einmal-Wolke im Himmelreich: löst sich beim Absprung mit ein paar Münzen auf */
+  puffPlatform(p) {
+    p.gone = true;
+    const cx = p.x + p.w / 2;
+    this.tweens.add({ targets: p.img, alpha: 0, scaleX: 1.25 / ZOOM, scaleY: 0.6 / ZOOM, x: p.img.x - p.w * 0.12, duration: 260, ease: 'Quad.out' });
+    this.sparks.explode(14, cx, p.top);
+    this.coinsRun += 3;
+    this.hud.coins.setText(`${this.coinsRun}`);
+    this.items.floatText(cx, p.top - 10, '+3');
+  }
+
   hitWall(side) {
     const P = PHYSICS;
     if (Math.abs(this.vx) >= P.wallBounceMinSpeed && this.time0 - this.lastWallBounce > 0.15) {
@@ -621,6 +641,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     if (p.type === 'crumble' && p.crumbleT < 0) p.crumbleT = 0;
+    if (p.type === 'puff') this.puffPlatform(p);
   }
 
   /** Wolki kommt auf Etage `floor` an (Landung, Rakete oder Warp). */
@@ -717,25 +738,27 @@ export class GameScene extends Phaser.Scene {
         sfx.comboEnd(30);
       });
     }
-    // Zum Schluss fliegt Wolki durchs Tor ins Licht – das Ziel ist erreicht
-    this.time.delayedCall(perfect ? 6600 : 5400, () => {
-      this.tweens.add({ targets: this.rays, alpha: 0, duration: 900 });
-      this.tweens.add({ targets: this, py: cy - 760, duration: 1500, ease: 'Quad.in' });
-      const glow = this.add.rectangle(0, 0, W, VIEW_H, 0xfffbe8, 0).setOrigin(0).setScrollFactor(0).setDepth(9);
-      this.tweens.add({
-        targets: glow, alpha: 0.75, delay: 700, duration: 900,
-        onComplete: () => this.winRun(firstTime, perfect, firstPerfect),
-      });
-    });
+    // Merken fürs Rundenende (Siegerbildschirm, neue Skins)
+    this.gateInfo = { angel: firstTime, perfect, star: firstPerfect };
+    // Zum Schluss fliegt Wolki durchs Tor hinauf ins Himmelreich – dort geht es endlos weiter
+    this.time.delayedCall(perfect ? 6600 : 5400, () => this.enterHeaven());
   }
 
-  /** Runde endet siegreich am Himmelstor */
-  winRun(firstTime, perfect, firstPerfect) {
-    this.state = 'won';
-    this.rays?.g.destroy();
-    this.rays = null;
+  /** Nach der Tor-Szene: Wolki schießt durch den Torbogen ins Himmelreich, die Runde läuft weiter */
+  enterHeaven() {
+    this.tweens.add({ targets: this.rays, alpha: 0, duration: 900, onComplete: () => { this.rays?.g.destroy(); this.rays = null; } });
+    this.heavenOpen = true;
+    this.zoneShown = ZONES.length - 1; // Einblendung kommt hier, nicht noch einmal beim Aufstieg
+    this.generate();
+    this.state = 'play';
+    this.acc = 0;
+    this.vx = 0;
+    this.vy = -2700;
+    this.happyUntil = this.time0 + 2;
+    this.popup(ZONES[ZONES.length - 1].name, ZONE_RULES[ZONES.length - 1]?.hint, '#fff6c2');
     sfx.zone();
-    this.scene.launch('GameOver', { ...this.recordResult(), won: true, angel: firstTime, perfect, star: firstPerfect });
+    music.start('game', this.camLevel);
+    music.setZone(ZONES.length - 1);
   }
 
   /** Drehende Lichtstrahlen hinter Wolki während der Himmelstor-Szene */
@@ -879,7 +902,9 @@ export class GameScene extends Phaser.Scene {
     sfx.gameOver();
     if (save.get().settings.vibration) vibrate(180);
 
-    const result = this.recordResult();
+    // Wer das Himmelstor erreicht hat, bekommt den Siegerbildschirm (auch nach dem Himmelreich)
+    const result = { ...this.recordResult(), ...(this.gateInfo ? { won: true, ...this.gateInfo } : {}) };
+    if (this.gateInfo) this.gateInfo = { ...this.gateInfo, angel: false, star: false }; // nur einmal ankündigen
 
     // Wolki hüpft noch einmal traurig ins Bild und fällt dann heraus
     this.py = this.scrollY + VIEW_H - 40;

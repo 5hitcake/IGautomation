@@ -19,8 +19,17 @@ export function unlockAudio() {
     master = ctx.createGain();
     master.gain.value = enabled ? 0.5 : 0;
     master.connect(ctx.destination);
+    // Android kann die Tonausgabe jederzeit anhalten (Anruf, Benachrichtigung,
+    // Rückkehr aus dem Hintergrund) – dann sofort wieder anwerfen, solange die App sichtbar ist
+    ctx.onstatechange = () => resumeAudio();
   }
-  if (ctx.state === 'suspended') ctx.resume();
+  resumeAudio();
+}
+
+/** Tonausgabe wieder anwerfen, falls sie angehalten wurde (nur wenn die App sichtbar ist). */
+export function resumeAudio() {
+  if (!ctx || document.hidden) return;
+  if (ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume().catch(() => {});
 }
 
 function tone({ freq = 440, to = freq, dur = 0.12, type = 'sine', vol = 0.3, delay = 0 }) {
@@ -137,5 +146,8 @@ export function audioOut() {
 document.addEventListener('visibilitychange', () => {
   if (!ctx) return;
   if (document.hidden) ctx.suspend();
-  else ctx.resume();
+  else resumeAudio();
 });
+// Jede Berührung darf den Ton wieder aufwecken (Browser erlauben das nur bei einer Geste)
+document.addEventListener('pointerdown', () => unlockAudio(), { passive: true });
+document.addEventListener('touchstart', () => unlockAudio(), { passive: true });

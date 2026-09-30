@@ -1,10 +1,13 @@
 // Anbindung an die Android-App (Capacitor). Im Browser passiert hier nichts.
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import { resumeAudio } from './audio.js';
 
 /** Zurück-Taste: im Spiel pausieren, in der Pause weiterspielen, im Shop zum Menü, sonst App schließen. */
 export function setupNative(game) {
   if (!Capacitor.isNativePlatform()) return;
+  // App kommt aus dem Hintergrund zurück: Ton wieder anwerfen
+  App.addListener('resume', () => resumeAudio());
   App.addListener('backButton', () => {
     const sm = game.scene;
     if (sm.isActive('Pause')) {

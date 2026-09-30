@@ -27,11 +27,11 @@ Wolki ist ein kleines Wölkchen mit einem großen Traum: ganz nach oben, bis zum
 
 Halte links oder rechts gedrückt oder neige einfach dein Handy – Wolki springt von selbst. Je mehr Anlauf, desto höher der Sprung. Überspringe mehrere Etagen auf einmal für Combos und sammle Punkte, bis der Bildschirm dich einholt. Denn der Himmel wird immer schneller!
 
-☁️ 10 Himmelszonen
+☁️ 10 Himmelszonen + Himmelreich
 Von den Dächern der Stadt über Wolkenmeer, Sonnenuntergang und Gewitterfront bis in Mondnacht, Polarlicht, Stratosphäre, Weltall, Asteroidengürtel und Galaxie. Jede Zone hat eigene Plattformen, eigene Musik – und eigene Überraschungen: Blitze, glattes Eis, Wind, Meteoriten und Warp-Sterne.
 
 🚪 Ein echtes Ziel
-Auf Etage 1000 wartet das Himmelstor. Wer es erreicht, erlebt eine kleine Szene und schaltet einen ganz besonderen Skin frei. Und wer es sogar ohne einen einzigen Regenschirm schafft, bekommt einen Extra-Bonus …
+Auf Etage 1000 wartet das Himmelstor. Wer es erreicht, erlebt eine kleine Szene und schaltet einen ganz besonderen Skin frei. Und wer es sogar ohne einen einzigen Regenschirm schafft, bekommt einen Extra-Bonus … Dahinter geht es endlos weiter ins Himmelreich: Wolken, die nach jedem Sprung verpuffen, und Münzen, so weit das Auge reicht.
 
 ⭐ Combos wie früher
 Überspringe Etagen, prall von den Wänden ab und bau riesige Combos – „Super!“, „Fantastisch!“, „Himmlisch!“, „LEGENDE!“
@@ -70,11 +70,11 @@ Wolki is a tiny cloud with a big dream: all the way up to the Heaven Gate!
 
 Hold left or right, or simply tilt your phone – Wolki jumps on its own. The longer the run-up, the higher the jump. Skip several floors at once for combos and rack up points before the screen catches you. Because the sky keeps getting faster!
 
-☁️ 10 sky zones
+☁️ 10 sky zones + Heaven
 From the city rooftops through the sea of clouds, sunset and thunderstorm to moonlit night, northern lights, stratosphere, outer space, asteroid belt and galaxy. Every zone has its own platforms, its own music – and its own surprises: lightning, slippery ice, wind, meteorites and warp stars.
 
 🚪 A real goal
-The Heaven Gate awaits on floor 1000. Reach it to see a little scene and unlock a very special skin. And if you make it without a single umbrella, there's an extra bonus …
+The Heaven Gate awaits on floor 1000. Reach it to see a little scene and unlock a very special skin. And if you make it without a single umbrella, there's an extra bonus … Beyond it, the climb goes on forever into Heaven: clouds that go poof after every jump, and coins as far as the eye can see.
 
 ⭐ Classic combos
 Skip floors, bounce off the walls and build huge combos – "Super!", "Fantastic!", "Heavenly!", "LEGENDARY!"

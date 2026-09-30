@@ -128,8 +128,9 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 ### 4.1 Umgesetzt in v0.6/v0.7
 - **Ziel:** Himmelstor bei Etage 1000: kurze Szene (ca. 6 s), +1.000 Münzen und der geheime
-  Skin **Engel-Wolki** (nur dort freischaltbar, im Shop bis dahin unsichtbar). Das Tor ist die letzte Plattform, darüber
-  heller Wolkenhimmel; Wolki fliegt hindurch und die Runde endet mit „Geschafft!“.
+  Skin **Engel-Wolki** (nur dort freischaltbar, im Shop bis dahin unsichtbar). Danach geht es endlos weiter ins **Himmelreich**
+  (Einmal-Wolken puffen nach dem Absprung weg, viele Münzen, Rast-Plattform alle 50 Etagen);
+  am Rundenende Siegerbildschirm „Geschafft!“.
 - **Regenschirm-Vorrat** (max. 3, bleibt gespeichert, Anzeige oben rechts): einsammeln.
 - **Weiterspielen** (`REVIVE`): zum Start 1× pro Runde gratis, später per belohnter Werbung (z. B. bis 3×); Regenschirm fängt Wolki auf, nach Countdown 3 – 2 – 1 – Los! läuft die Runde weiter
   (Münzen/Punkte werden nicht doppelt gezählt, es bleibt eine Runde).

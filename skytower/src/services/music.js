@@ -6,7 +6,7 @@
 // wird er mit jeder Kamerastufe schneller, bekommt mehr Instrumente dazu und
 // wechselt ab Stufe 3 und 6 einen Halbton höher. Im Menü läuft eine ruhige
 // Fassung ohne Schlagzeug.
-import { audioOut } from './audio.js';
+import { audioOut, resumeAudio } from './audio.js';
 
 const CFG = {
   menuBpm: 92,
@@ -123,6 +123,7 @@ const ZONE_STYLE = [
   { scale: 'lydian', lead: ['sine', 'triangle'], cut: 2600, fb: 0.55, pad: true, sparse: true, arpType: 'sine' }, // Weltall: schwebend
   { scale: 'minor', lead: ['sawtooth', 'square'], cut: 2800, fb: 0.35, heavy: true }, // Asteroidengürtel: düster
   { scale: 'lydian', lead: ['square', 'triangle'], cut: 4600, fb: 0.45, pad: true, arpUp: 12 }, // Galaxie: funkelnd
+  { scale: 'major', lead: ['triangle', 'sine'], cut: 5200, fb: 0.55, pad: true, arpUp: 12, arpType: 'sine' }, // Himmelreich: hell, glockig
 ];
 const style = () => ZONE_STYLE[zone] ?? ZONE_STYLE[0];
 /** Filter und Echo an die aktuelle Zone anpassen (sofort). */
@@ -411,6 +412,9 @@ function playStep(i, t) {
 }
 
 function schedule() {
+  if (ctx.state !== 'running') { resumeAudio(); return; }
+  // Nach einer Pause (Hintergrund, Ruckler) nicht alle verpassten Noten auf einmal nachholen
+  if (nextTime < ctx.currentTime - 0.1) nextTime = ctx.currentTime + 0.05;
   while (nextTime < ctx.currentTime + 0.15) {
     playStep(step, nextTime);
     nextTime += sixteenth();
