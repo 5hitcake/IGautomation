@@ -39,4 +39,6 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Für kurze Vibrationen (Combo, Absturz); normale Berechtigung ohne Nachfrage -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 </manifest>

@@ -1,5 +1,14 @@
 apply plugin: 'com.android.application'
 
+// Play-Store-Schlüssel (Upload-Key): Zugangsdaten stehen in android/keystore.properties
+// (nicht im Repository!) oder in Umgebungsvariablen SKYCLIMBER_KEYSTORE,
+// SKYCLIMBER_STORE_PASSWORD, SKYCLIMBER_KEY_ALIAS, SKYCLIMBER_KEY_PASSWORD (für CI).
+def releaseProps = new Properties()
+def releasePropsFile = rootProject.file('keystore.properties')
+if (releasePropsFile.exists()) releasePropsFile.withInputStream { releaseProps.load(it) }
+def releaseValue = { String key, String env -> releaseProps.getProperty(key) ?: System.getenv(env) }
+def releaseStore = releaseValue('storeFile', 'SKYCLIMBER_KEYSTORE')
+
 android {
     namespace = "de.wolki.skytower"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -26,12 +35,21 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (releaseStore) {
+            release {
+                storeFile file(releaseStore)
+                storePassword releaseValue('storePassword', 'SKYCLIMBER_STORE_PASSWORD')
+                keyAlias releaseValue('keyAlias', 'SKYCLIMBER_KEY_ALIAS')
+                keyPassword releaseValue('keyPassword', 'SKYCLIMBER_KEY_PASSWORD')
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
+            if (releaseStore) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

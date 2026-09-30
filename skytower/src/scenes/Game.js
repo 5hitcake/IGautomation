@@ -769,9 +769,13 @@ export class GameScene extends Phaser.Scene {
   popup(text, sub, color) {
     const { center, sub: subT } = this.hud;
     this.tweens.killTweensOf([center, subT]);
-    center.setText(text).setColor(color).setAlpha(1).setScale(0.3).setY(VIEW_H * 0.36);
+    center.setText(text).setColor(color).setAlpha(1).setScale(1).setY(VIEW_H * 0.36);
     subT.setText(sub ?? '').setAlpha(sub ? 1 : 0).setY(VIEW_H * 0.36 + 76);
-    this.tweens.add({ targets: center, scale: 1, duration: 260, ease: 'Back.out' });
+    // lange Texte (z. B. auf Englisch) passend verkleinern, damit nichts abgeschnitten wird
+    const fit = Math.min(1, (W - 60) / center.width);
+    subT.setScale(Math.min(1, (W - 60) / subT.width));
+    center.setScale(0.3 * fit);
+    this.tweens.add({ targets: center, scale: fit, duration: 260, ease: 'Back.out' });
     this.tweens.add({ targets: [center, subT], alpha: 0, y: '-=50', delay: 1000, duration: 450 });
   }
 

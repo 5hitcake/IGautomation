@@ -62,6 +62,14 @@ In Test-Versionen (Browser-Testseite, Test-APK) aktiv, im Store-Build aus:
 
 Store-Build ohne Test-Werkzeuge: `SKYTOWER_RELEASE=1 npm run build`
 
+## Play Store
+
+- Store-Material in `store/`: Icon, Titelbild, Screenshots (DE/EN), Texte und Formular-Antworten
+  (`store/STORE-EINTRAG.md`), Datenschutzerklärung (`store/datenschutz.html`) und die
+  Schritt-für-Schritt-Anleitung `store/ANLEITUNG-PLAY-CONSOLE.md`
+- Store-Build: `SKYTOWER_RELEASE=1 npm run build && npx cap sync android && (cd android && ./gradlew bundleRelease)`;
+  signiert mit dem Upload-Schlüssel aus `android/keystore.properties` (nicht im Repository)
+
 ## Entwickeln
 
 ```bash
