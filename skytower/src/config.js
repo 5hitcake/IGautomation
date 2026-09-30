@@ -152,6 +152,10 @@ export const GATE = {
   floor: 1000,
   bonusCoins: 1000,
   skin: 'engel', // der ultimative Skin, nur hier freischaltbar
+  // „Perfekter Aufstieg“: Tor erreicht, ohne ein einziges Mal gerettet zu werden
+  // (kein Regenschirm, kein Weiterspielen per Werbung)
+  perfectBonus: 2000,
+  perfectSkin: 'sterne',
 };
 
 export function zoneIndexForFloor(floor) {

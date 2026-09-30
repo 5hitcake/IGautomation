@@ -3,7 +3,7 @@
 Endless-Jumper fürs Handy, angelehnt an den PC-Klassiker *Icy Tower*.
 Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 
-## Stand: Prototyp v0.7 (Phasen 1, 3 und 5)
+## Stand: Prototyp v0.8 (Phasen 1, 3 und 5)
 
 - Automatisches Springen, Sprunghöhe hängt vom Anlauf ab
 - Steuerung: linke/rechte Bildschirmhälfte halten (am PC: Pfeiltasten oder A/D, P = Pause)
@@ -14,8 +14,9 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - Wolki mit 6 Gesichtern (Übersicht: `design/wolki-gesichter.png`); das ^^-Gesicht
   im Menü sowie bei Combos ab 25 Etagen und beim Erreichen einer neuen Zone
 - Bei „Neuer Rekord!“ jubelt Wolki über dem Ergebnis
-- **Skins-Shop (Phase 5):** 12 Skins plus 3 geheime (Alien-Wolki ab Etage 800, Roboter-Wolki
-  für eine 100er-Combo, Engel-Wolki am Himmelstor – im Shop erst sichtbar, wenn freigeschaltet) (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
+- **Skins-Shop (Phase 5):** 12 Skins plus 4 geheime (Alien-Wolki ab Etage 800, Roboter-Wolki
+  für eine 100er-Combo, Sternen-Wolki für den perfekten Aufstieg, Engel-Wolki am Himmelstor –
+  im Shop erst sichtbar, wenn freigeschaltet) (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
   4 über Erfolge (Etage 200/500, 50er-Combo, 100 Runden), 3 Premium (In-App-Käufe folgen
   in Phase 6; die Goldene Wolke gibt es alternativ für 1.000.000 gesammelte Punkte).
   Logik in `src/systems/progress.js`, Grafiken in `src/art.js` (`SKINS`)
@@ -23,7 +24,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   im Spiel, im Menü (Wolki fliegt dann statt zu hüpfen) und als Vorschau im Shop
 - **Ziel: Himmelstor bei Etage 1000** – kurze Szene (Lichtstrahlen, Blitz, Feuerwerk), +1.000 Münzen
   und der geheime Skin **Engel-Wolki** (Flügel, Heiligenschein, goldener Schweif), der im Shop
-  vorher gar nicht zu sehen ist (`design/himmelstor-szene.png`). Das Tor ist die letzte Plattform:
+  vorher gar nicht zu sehen ist (`design/himmelstor-szene.png`). **Perfekter Aufstieg** (Tor ohne Regenschirm und ohne Weiterspielen):
+  +2.000 Münzen extra und die geheime Sternen-Wolki. Das Tor ist die letzte Plattform:
   ab Etage 999 wird der Himmel hell und wolkig, Wolki fliegt durchs Tor und die Runde endet mit „Geschafft!“
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,

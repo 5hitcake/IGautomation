@@ -64,6 +64,7 @@ export class GameScene extends Phaser.Scene {
     this.levelTimer = 0;
     this.coinsRun = 0;
     this.revives = 0; // wie oft in dieser Runde per Werbung weitergespielt wurde
+    this.rescues = 0; // wie oft ein Regenschirm aus dem Vorrat gerettet hat
     this.banked = null; // schon gespeicherter Stand dieser Runde (nach Weiterspielen)
     this.zoneShown = 0;
     this.gateDone = false;
@@ -407,6 +408,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Regenschirm: Wolki wird vom unteren Rand wieder nach oben geschleudert */
   rescue() {
+    this.rescues += 1;
     this.py = this.scrollY + VIEW_H - 40;
     this.vy = -2350;
     this.vx *= 0.4;
@@ -621,10 +623,19 @@ export class GameScene extends Phaser.Scene {
     this.coinsRun += GATE.bonusCoins;
     this.hud.coins.setText(`${this.coinsRun}`);
     const firstTime = !save.get().ownedSkins.includes(GATE.skin);
+    // Perfekter Aufstieg: kein Regenschirm und kein Weiterspielen in dieser Runde
+    const perfect = this.rescues === 0 && this.revives === 0;
+    const firstPerfect = perfect && !save.get().ownedSkins.includes(GATE.perfectSkin);
+    if (perfect) this.coinsRun += GATE.perfectBonus;
+    this.hud.coins.setText(`${this.coinsRun}`);
     save.update((d) => {
       d.gateCount = (d.gateCount ?? 0) + 1;
       if (!d.ownedSkins.includes(GATE.skin)) d.ownedSkins.push(GATE.skin);
       d.selectedSkin = GATE.skin;
+      if (perfect) {
+        d.perfectCount = (d.perfectCount ?? 0) + 1;
+        if (!d.ownedSkins.includes(GATE.perfectSkin)) d.ownedSkins.push(GATE.perfectSkin);
+      }
     });
     const skinReady = ensureSkin(this, GATE.skin);
     music.stop();
@@ -662,25 +673,34 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(3400, () => {
       this.popup(firstTime ? 'Engel-Wolki!' : 'Willkommen zurück!', firstTime ? 'Ultimativer Skin freigeschaltet' : 'Das Tor öffnet sich wieder', '#ffffff');
     });
+    if (perfect) {
+      this.time.delayedCall(4700, () => {
+        this.popup('Perfekter Aufstieg!', firstPerfect
+          ? `+${GATE.perfectBonus.toLocaleString('de-DE')} Münzen · Sternen-Wolki freigeschaltet`
+          : `Ohne Regenschirm · +${GATE.perfectBonus.toLocaleString('de-DE')} Münzen`, '#ffe066');
+        this.sparks.explode(50, this.px, this.py);
+        sfx.comboEnd(30);
+      });
+    }
     // Zum Schluss fliegt Wolki durchs Tor ins Licht – das Ziel ist erreicht
-    this.time.delayedCall(5400, () => {
+    this.time.delayedCall(perfect ? 6600 : 5400, () => {
       this.tweens.add({ targets: this.rays, alpha: 0, duration: 900 });
       this.tweens.add({ targets: this, py: cy - 760, duration: 1500, ease: 'Quad.in' });
       const glow = this.add.rectangle(0, 0, W, VIEW_H, 0xfffbe8, 0).setOrigin(0).setScrollFactor(0).setDepth(9);
       this.tweens.add({
         targets: glow, alpha: 0.75, delay: 700, duration: 900,
-        onComplete: () => this.winRun(firstTime),
+        onComplete: () => this.winRun(firstTime, perfect, firstPerfect),
       });
     });
   }
 
   /** Runde endet siegreich am Himmelstor */
-  winRun(firstTime) {
+  winRun(firstTime, perfect, firstPerfect) {
     this.state = 'won';
     this.rays?.g.destroy();
     this.rays = null;
     sfx.zone();
-    this.scene.launch('GameOver', { ...this.recordResult(), won: true, angel: firstTime });
+    this.scene.launch('GameOver', { ...this.recordResult(), won: true, angel: firstTime, perfect, star: firstPerfect });
   }
 
   /** Drehende Lichtstrahlen hinter Wolki während der Himmelstor-Szene */

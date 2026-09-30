@@ -24,6 +24,7 @@ export const SKIN_LIST = [
   // Geheime Skins: im Shop unsichtbar, bis man sie erspielt hat
   { id: 'alien', name: 'Alien-Wolki', short: 'Alien', secret: true, goal: { type: 'bestFloor', value: 800 } },
   { id: 'roboter', name: 'Roboter-Wolki', short: 'Roboter', secret: true, goal: { type: 'bestCombo', value: 100 } },
+  { id: 'sterne', name: 'Sternen-Wolki', short: 'Sterne', secret: true, trail: 'stars', goal: { type: 'perfectCount', value: 1 } },
   // Der ultimative Skin: geheim, nur am Himmelstor (Etage 1000) freischaltbar
   { id: 'engel', name: 'Engel-Wolki', short: 'Engel', secret: true, trail: 'angel', goal: { type: 'gateCount', value: 1 } },
 ];
@@ -34,6 +35,7 @@ export const GOAL_TEXT = {
   runs: (v) => `${v} Runden spielen`,
   totalScore: (v) => `${v.toLocaleString('de-DE')} Punkte sammeln`,
   gateCount: () => 'Das Himmelstor erreichen',
+  perfectCount: () => 'Das Himmelstor ohne Regenschirm erreichen',
 };
 
 export const skinById = (id) => SKIN_LIST.find((s) => s.id === id) ?? SKIN_LIST[0];

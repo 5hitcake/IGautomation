@@ -50,7 +50,7 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create(data) {
-    const { score, floor, combo, coins, isNew, won, angel } = data;
+    const { score, floor, combo, coins, isNew, won, angel, perfect, star } = data;
     this.initData = data;
     setupCamera(this);
     const y = panel(this, 760);
@@ -58,7 +58,8 @@ export class GameOverScene extends Phaser.Scene {
     const title = won ? 'Geschafft!' : record ? 'Neuer Rekord!' : 'Game Over';
     txt(this, W / 2, y + 62, title, 60, { color: won || record ? '#ffe066' : '#ffffff' });
     if (won) {
-      txt(this, W / 2, y + 122, record ? 'Himmelstor erreicht · Neuer Rekord!' : 'Himmelstor erreicht', 30,
+      const sub = perfect ? '★ Perfekter Aufstieg – ohne Regenschirm ★' : record ? 'Himmelstor erreicht · Neuer Rekord!' : 'Himmelstor erreicht';
+      txt(this, W / 2, y + 122, sub, 30,
         { color: '#5a6a8a', stroke: '#ffffff', strokeThickness: 0 });
     }
     if (record || won) {
@@ -91,7 +92,7 @@ export class GameOverScene extends Phaser.Scene {
       txt(this, W / 2 + 230, ry, fresh ? `${value} ★` : value, 38, { ...dark, ox: 1, color: fresh ? '#e08a00' : '#2d3a5a' });
     });
 
-    const unlocked = [...(angel ? ['Engel-Wolki'] : []), ...(isNew.unlocked ?? [])];
+    const unlocked = [...(angel ? ['Engel-Wolki'] : []), ...(star ? ['Sternen-Wolki'] : []), ...(isNew.unlocked ?? [])];
     if (unlocked.length) {
       // Neu freigeschaltete Skins unter dem Ergebnis ankündigen
       const t = txt(this, W / 2, y + 760 + 64, `Neuer Skin: ${unlocked.join(', ')}!`, 38,

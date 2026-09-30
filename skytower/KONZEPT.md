@@ -149,9 +149,10 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 - Preise: erster Skin nach ~5 Runden, Regenbogenschweif als Langzeitziel (~15–50 Runden).
 - Werden für Skins im Shop ausgegeben.
 
-### 5.2 Skins (12 sichtbare + 3 geheime)
+### 5.2 Skins (12 sichtbare + 4 geheime)
 Geheim (im Shop unsichtbar bis zur Freischaltung): **Alien-Wolki** (Etage 800 erreichen),
-**Roboter-Wolki** (100er-Combo), **Engel-Wolki** (Himmelstor).
+**Roboter-Wolki** (100er-Combo), **Sternen-Wolki** (perfekter Aufstieg: Himmelstor ohne
+Regenschirm und ohne Weiterspielen, dazu +2.000 Münzen), **Engel-Wolki** (Himmelstor).
 
 | Skin | Freischaltung |
 |---|---|

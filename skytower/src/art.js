@@ -101,6 +101,17 @@ export const SKINS = {
       + `<circle cx="60" cy="7" r="6" fill="#ff5c5c" stroke="${o}" stroke-width="3"/>`
       + `<path d="M24 34 L30 40 M96 34 L90 40" stroke="${o}" stroke-width="3" stroke-linecap="round"/>`,
   },
+  sterne: {
+    // geheim: Himmelstor ohne einen einzigen Regenschirm („Perfekter Aufstieg“)
+    body: '#5a62d8', shade: '#454cbf', outline: '#141848', cheek: '#ff9ed8', shoe: '#ffd23f', sole: '#fff6c2',
+    belly: () => {
+      const star = (x, y, r, c) => `<path d="M${x} ${y - r} L${x + r * 0.3} ${y - r * 0.3} L${x + r} ${y} L${x + r * 0.3} ${y + r * 0.3} L${x} ${y + r} L${x - r * 0.3} ${y + r * 0.3} L${x - r} ${y} L${x - r * 0.3} ${y - r * 0.3}Z" fill="${c}"/>`;
+      return star(30, 62, 6, '#fff6c2') + star(92, 90, 7, '#ffe066') + star(42, 100, 4.5, '#ffffff')
+        + star(86, 50, 4, '#ffffff') + `<circle cx="72" cy="100" r="2" fill="#fff6c2"/><circle cx="24" cy="84" r="1.8" fill="#ffffff"/>`;
+    },
+    front: (o) => `<path d="M60 2 L66.5 15 L81 16.5 L70 26 L73.5 40 L60 32.5 L46.5 40 L50 26 L39 16.5 L53.5 15Z" fill="#ffe066" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`
+      + `<path d="M55 14 L58 9" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`,
+  },
   engel: {
     // der ultimative Skin vom Himmelstor: Flügel, Heiligenschein (Schweif: trail.js)
     body: '#fffdf4', shade: '#f3e3b0', outline: '#4a3a10', cheek: '#ffa8c0', shoe: '#ffe680', sole: '#ffffff',

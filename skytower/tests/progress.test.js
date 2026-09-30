@@ -70,3 +70,12 @@ test('Alien und Roboter bleiben geheim, bis Etage 800 bzw. eine 100er-Combo gesc
   assert.ok(got.includes('alien') && got.includes('roboter'));
   assert.equal(skinState(d, skinById('alien')), 'owned');
 });
+
+test('Sternen-Wolki gibt es nur für einen perfekten Aufstieg zum Himmelstor', () => {
+  const d = fresh({ coins: 99999, gateCount: 3 });
+  assert.equal(skinState(d, skinById('sterne')), 'secret');
+  assert.equal(buySkin(d, 'sterne'), false);
+  assert.ok(!unlockGoals(d).some((s) => s.id === 'sterne'), 'Tor allein reicht nicht');
+  d.perfectCount = 1;
+  assert.ok(unlockGoals(d).some((s) => s.id === 'sterne'));
+});

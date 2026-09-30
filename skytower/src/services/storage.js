@@ -16,6 +16,7 @@ const DEFAULTS = {
   selectedSkin: 'wolki',
   umbrellas: 0, // Regenschirme im Vorrat
   gateCount: 0, // wie oft das Himmelstor erreicht wurde
+  perfectCount: 0, // wie oft das Tor ohne Rettung erreicht wurde
   settings: { sound: true, vibration: true },
   tutorialSeen: false,
 };

@@ -52,7 +52,8 @@ export class MenuScene extends Phaser.Scene {
       `Beste Etage: ${s.bestFloor}   ·   Beste Combo: ${s.bestCombo}`,
       `Münzen: ${s.coins.toLocaleString('de-DE')}`
         + (s.umbrellas ? `   ·   Regenschirme: ${s.umbrellas}` : '')
-        + (s.gateCount ? `\nHimmelstor erreicht${s.gateCount > 1 ? ` ×${s.gateCount}` : ''}` : ''),
+        + (s.gateCount ? `\nHimmelstor erreicht${s.gateCount > 1 ? ` ×${s.gateCount}` : ''}` : '')
+        + (s.perfectCount ? `   ·   ★ Perfekt${s.perfectCount > 1 ? ` ×${s.perfectCount}` : ''}` : ''),
     ];
     txt(this, W / 2, VIEW_H * 0.63, stats.join('\n'), 34, { strokeThickness: 7 }).setLineSpacing(6);
 
@@ -77,7 +78,7 @@ export class MenuScene extends Phaser.Scene {
       sfx.click();
     }, { w: 260, h: 78, size: 34, fill: 0xbfe6ff });
 
-    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.7 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
+    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.8 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
   }
 
   soundLabel() {
