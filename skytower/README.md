@@ -25,7 +25,7 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - **Ziel: Himmelstor bei Etage 1000** – kurze Szene (Lichtstrahlen, Blitz, Feuerwerk), +1.000 Münzen
   und der geheime Skin **Engel-Wolki** (Flügel, Heiligenschein, goldener Schweif), der im Shop
   vorher gar nicht zu sehen ist (`design/himmelstor-szene.png`). **Perfekter Aufstieg** (Tor ohne Regenschirm und ohne Weiterspielen):
-  +2.000 Münzen extra und die geheime Stern-Wolki (Wolki wird komplett zum Stern ⭐). Das Tor ist die letzte Plattform:
+  +2.000 Münzen extra und die geheime Stern-Wolki (Wolki wird komplett zum Stern ⭐, mit Sternenstaub-Schweif). Das Tor ist die letzte Plattform:
   ab Etage 999 wird der Himmel hell und wolkig, Wolki fliegt durchs Tor und die Runde endet mit „Geschafft!“
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,
