@@ -50,6 +50,7 @@ Die Hintergrundmusik wird mit jeder Stufe schneller und voller und klingt in jed
 ✔ Auf Deutsch und Englisch
 
 **Kategorie:** Spiele → Arcade
+**Kontakt-E-Mail:** 5hitcake92@gmail.com
 **Tags (Vorschläge):** Jump & Run, Arcade, Casual, Endlos-Spiel, Niedlich
 
 ---

@@ -18,7 +18,7 @@ Kostenlose Möglichkeiten:
 - **GitHub Pages**: ein neues *öffentliches* Repository (z. B. `wolki-datenschutz`) mit
   `datenschutz.html` als `index.html`, dann unter Settings → Pages einschalten.
 
-Vorher `[KONTAKT-E-MAIL]` in der Datei durch deine Kontaktadresse ersetzen.
+Die Kontaktadresse (deine Gmail-Adresse) ist schon eingetragen.
 
 ## 1. App anlegen
 
