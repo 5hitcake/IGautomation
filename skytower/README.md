@@ -54,7 +54,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   `design/zonen-uebersicht.png`, `design/neu-oben.png`)
 - **Musik je Zone:** eigene Klangfarbe, im Gewitter in Moll, im Weltall schwebend (lydisch)
 - Münzen, lokaler Highscore, Tutorial-Hinweise, Pause (weiter mit Countdown 3 – 2 – 1 – Los!), Game-Over-Bildschirm
-- Hintergrundmusik (live erzeugt, `src/services/music.js`): 32-Takt-Song mit Strophe,
+- Hintergrundmusik (per Code erzeugt und Takt für Takt vorab im Hintergrund berechnet – eine
+  Klangquelle statt bis zu ~40 gleichzeitig, damit sie auf Handys nicht aussetzt; `src/services/music.js`): 32-Takt-Song mit Strophe,
   Überleitung und Refrain; wird mit jeder Kamerastufe schneller und voller und wechselt
   ab Stufe 3 und 6 einen Halbton höher. Ruhige Fassung im Menü.
 - Grafiken im Code gezeichnet (`src/art.js`), Sounds und Musik live synthetisiert

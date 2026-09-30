@@ -63,7 +63,8 @@ export class MenuScene extends Phaser.Scene {
     txt(this, W / 2, VIEW_H * 0.63, stats.join('\n'), 34, { strokeThickness: 7 }).setLineSpacing(6);
 
     // Himmelreich als eigener Modus, sobald das Himmelstor einmal erreicht wurde
-    const heavenUnlocked = (s.gateCount ?? 0) > 0;
+    // (Engel-Wolki gibt es im Store nur am Tor; in Test-Versionen auch per Test-Freischaltung)
+    const heavenUnlocked = (s.gateCount ?? 0) > 0 || s.ownedSkins.includes('engel');
     const play = (mode) => () => {
       unlockAudio();
       sfx.click();

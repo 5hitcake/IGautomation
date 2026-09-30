@@ -1,4 +1,5 @@
-// Hintergrundmusik, live erzeugt (kostenlos, keine Lizenzfragen).
+// Hintergrundmusik, per Code erzeugt (kostenlos, keine Lizenzfragen); wird
+// Takt für Takt vorab berechnet und abgespielt (siehe „Streaming-Modus“ unten).
 //
 // Ein 32-Takt-Song in C-Dur (Strophe A, Überleitung B, A, Refrain C) im Stil
 // flotter Arcade-/Eurodance-Musik: durchgehende Bassdrum, Oktav-Bass,
@@ -411,6 +412,7 @@ function playStep(i, t) {
   if (s === 0 && bar.barInSection === 0) noise(t, 1.2, 0.13, bus.hat);
 }
 
+// --- Live-Modus (Rückfall, falls OfflineAudioContext fehlt): Note für Note ---
 function schedule() {
   if (ctx.state !== 'running') { resumeAudio(); return; }
   // Nach einer Pause (Hintergrund, Ruckler) nicht alle verpassten Noten auf einmal nachholen
@@ -422,28 +424,105 @@ function schedule() {
   }
 }
 
+// --- Streaming-Modus (Standard): jeden Takt vorab im Hintergrund berechnen ---
+// Live laufen sonst bis zu ~40 Klangquellen gleichzeitig (~80 neue pro Sekunde);
+// damit kommt die Tonausgabe mancher Handys nicht hinterher und setzt aus.
+// Stattdessen wird jeder Takt mit einem OfflineAudioContext zu einem fertigen
+// Tonstück gerechnet und als eine einzige Quelle abgespielt. Jeder Takt bekommt
+// Nachhall (TAIL) mit und überlappt den nächsten, so bleiben Echo und Ausklang erhalten.
+const STREAM = typeof OfflineAudioContext !== 'undefined';
+const STREAM_RATE = 32000;
+const TAIL = 1.2; // Sekunden Nachhall je Takt
+const AHEAD = 2.2; // so weit im Voraus sollen Takte fertig sein
+
+let liveCtx = null; // echter AudioContext
+let liveOut = null; // Kompressor-Eingang dieses Laufs
+let barTime = 0; // Startzeit des nächsten Takts
+let rendering = false;
+let generation = 0; // verwirft fertig gerechnete Takte eines schon gestoppten Laufs
+let sources = [];
+
+/** Den nächsten Takt (16 Sechzehntel ab `step`) offline berechnen. */
+function renderBar() {
+  const dur = 16 * sixteenth();
+  const off = new OfflineAudioContext(1, Math.ceil(STREAM_RATE * (dur + TAIL)), STREAM_RATE);
+  const saved = { ctx, out, bus };
+  try {
+    ctx = off;
+    out = off.createGain();
+    out.gain.value = CFG.volume;
+    out.connect(off.destination);
+    bus = makeBus();
+    applyStyle();
+    let t = 0;
+    for (let i = 0; i < 16; i++) {
+      playStep(step, t);
+      t += sixteenth();
+      step = (step + 1) % (SONGS[mode].length * 16);
+    }
+  } finally {
+    ({ ctx, out, bus } = saved);
+  }
+  return { dur, promise: off.startRendering() };
+}
+
+function streamTick() {
+  if (!liveCtx) return;
+  if (liveCtx.state !== 'running') { resumeAudio(); return; }
+  const now = liveCtx.currentTime;
+  if (barTime < now - 0.05) barTime = now + 0.1; // zurückgefallen (Hintergrund): neu ansetzen
+  if (rendering || barTime > now + AHEAD) return;
+  rendering = true;
+  const gen = generation;
+  const when = barTime;
+  const { dur, promise } = renderBar();
+  barTime += dur;
+  promise.then((buf) => {
+    rendering = false;
+    if (gen !== generation || !liveOut) return;
+    const src = liveCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(liveOut);
+    const t = liveCtx.currentTime;
+    if (when >= t) src.start(when);
+    else src.start(t, Math.min(t - when, buf.duration - 0.01)); // etwas spät fertig: ab passender Stelle
+    sources.push(src);
+    src.onended = () => { sources = sources.filter((x) => x !== src); };
+  }).catch(() => { rendering = false; });
+}
+
 export const music = {
   /** Startet die Musik im Modus 'menu' oder 'game' (setzt unlockAudio voraus). */
   start(newMode, newLevel = 0) {
     const a = audioOut();
     if (!a) return;
-    ctx = a.ctx;
     const changed = newMode !== mode;
     mode = newMode;
     this.setLevel(newLevel);
     if (timer && !changed) return;
     this.stop();
-    const gain = ctx.createGain();
-    gain.gain.value = CFG.volume;
-    const comp = ctx.createDynamicsCompressor();
+    const target = a.ctx;
+    const gain = target.createGain();
+    gain.gain.value = STREAM ? 1 : CFG.volume; // beim Streaming steckt die Lautstärke schon im Takt
+    const comp = target.createDynamicsCompressor();
     comp.threshold.value = -16;
     comp.ratio.value = 4;
     gain.connect(comp).connect(a.master);
-    out = gain;
     if (mode === 'menu') { zone = 0; pendingZone = 0; }
+    step = 0;
+    if (STREAM) {
+      liveCtx = target;
+      liveOut = gain;
+      barTime = target.currentTime + 0.15;
+      rendering = false;
+      timer = setInterval(streamTick, 50);
+      streamTick();
+      return;
+    }
+    ctx = target;
+    out = gain;
     bus = makeBus();
     applyStyle();
-    step = 0;
     nextTime = ctx.currentTime + 0.06;
     timer = setInterval(schedule, 25);
     schedule();
@@ -452,14 +531,24 @@ export const music = {
   setZone(z) {
     pendingZone = z;
   },
+  /** Tempo-Stufe (wirkt ab dem nächsten Takt) */
   setLevel(l) {
     level = l;
-    if (bus && ctx) bus.delay.delayTime.setTargetAtTime(sixteenth() * 3, ctx.currentTime, 0.1);
+    if (!STREAM && bus && ctx) bus.delay.delayTime.setTargetAtTime(sixteenth() * 3, ctx.currentTime, 0.1);
   },
   stop() {
     if (timer) clearInterval(timer);
     timer = null;
-    if (out && ctx) {
+    generation += 1;
+    if (STREAM && liveOut && liveCtx) {
+      const g = liveOut;
+      const t = liveCtx.currentTime;
+      g.gain.setTargetAtTime(0, t, 0.05);
+      const playing = sources;
+      sources = [];
+      playing.forEach((src) => { try { src.stop(t + 0.4); } catch { /* schon beendet */ } });
+      setTimeout(() => g.disconnect(), 600);
+    } else if (out && ctx) {
       const g = out;
       const b = bus;
       g.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
@@ -468,6 +557,7 @@ export const music = {
         b.delay.disconnect(); // Echo-Schleife auflösen
       }, 600);
     }
+    liveOut = null;
     out = null;
     bus = null;
   },
