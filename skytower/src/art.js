@@ -533,6 +533,9 @@ export function drawPlatform(g, style, w, opts = {}) {
   const c = STYLE[style] ?? STYLE.cloud;
   const h = PLATFORM_H;
   g.clear();
+  // Versatz und Vergrößerung als Zeichenbefehle (für das Vorberechnen als Textur)
+  if (opts.offset) g.translateCanvas(opts.offset[0], opts.offset[1]);
+  if (opts.zoom) g.scaleCanvas(opts.zoom, opts.zoom);
   if (style === 'cloud' || style === 'storm' || style === 'rain') {
     puffy(g, c, w, h);
     if (style === 'rain') {
@@ -607,12 +610,18 @@ export function platformTexture(scene, style, w, moving, zoom) {
   if (scene.textures.exists(key)) return key;
   const P = PLATFORM_PAD;
   const g = scene.make.graphics({}, false);
-  drawPlatform(g, style, w, { moving });
-  g.setScale(zoom).setPosition(P.x * zoom, P.top * zoom);
+  // Rand für Schatten/Deko; generateTexture ignoriert Position und Scale des Objekts
+  drawPlatform(g, style, w, { moving, offset: [P.x * zoom, P.top * zoom], zoom });
   const tw = Math.ceil((w + 2 * P.x) * zoom);
   const th = Math.ceil((PLATFORM_H + P.top + P.bottom) * zoom);
-  const tex = scene.textures.addDynamicTexture(key, tw, th);
-  tex.draw(g);
+  // Auf eine Canvas-Fläche zeichnen und einmal hochladen. Eine DynamicTexture
+  // bräuchte je Plattform einen eigenen Framebuffer auf der Grafikkarte – das
+  // Anlegen hat mitten im Spiel spürbar geruckelt.
+  const canvas = document.createElement('canvas');
+  canvas.width = tw;
+  canvas.height = th;
+  g.generateTexture(canvas);
+  scene.textures.addCanvas(key, canvas);
   g.destroy();
   return key;
 }

@@ -245,9 +245,21 @@ export class GameScene extends Phaser.Scene {
     g.fillGradientStyle(warm, warm, warm, warm, 1, 1, 0, 0).fillRect(0, solid, W, fadeFrom - solid);
     g.fillGradientStyle(blue, blue, warm, warm, 1).fillRect(0, gy - 1300, W, 1240);
     g.fillStyle(blue).fillRect(0, gy - 5000, W, 3700);
-    // weiches Leuchten hinter dem Tor
-    for (let i = 0; i < 5; i++) g.fillStyle(0xffffff, 0.14).fillCircle(W / 2, gy - 200, 140 + i * 70);
     objs.push(g);
+    // weiches Leuchten hinter dem Tor (als Bild statt großer Vektor-Kreise)
+    if (!this.textures.exists('heaven_glow')) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 256;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+      grad.addColorStop(0, 'rgba(255,255,255,0.7)');
+      grad.addColorStop(0.35, 'rgba(255,255,255,0.45)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 256, 256);
+      this.textures.addCanvas('heaven_glow', c);
+    }
+    objs.push(this.add.image(W / 2, gy - 200, 'heaven_glow').setDisplaySize(840, 840).setDepth(2.6));
 
     const cloud = (x, y, s, depth, alpha = 1, tint = null) => {
       const c = this.add.image(x, y, 'bgcloud').setScale(s / ZOOM).setDepth(depth).setAlpha(alpha).setFlipX(Math.random() < 0.5);

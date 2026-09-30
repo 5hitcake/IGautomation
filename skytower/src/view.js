@@ -39,6 +39,30 @@ export function txt(scene, x, y, str, size = 40, opts = {}) {
   return t;
 }
 
+let bakeCount = 0;
+/**
+ * Feste Vektorgrafik einmalig als Bild vorberechnen (Canvas 2D, ohne Framebuffer).
+ * Phaser setzt Graphics sonst in jedem Bild neu aus Dreiecken zusammen – bei vielen
+ * Formen (Stadt, Erde) hat das regelmäßig geruckelt. `draw(g)` zeichnet in einem
+ * w×h-Bereich (Welt-Einheiten); zurück kommt ein Image mit Ursprung oben links,
+ * das beim Beenden der Szene samt Textur wieder aufgeräumt wird.
+ */
+export function bakeGraphics(scene, x, y, w, h, draw) {
+  const key = `baked_${++bakeCount}`;
+  const g = scene.make.graphics({}, false);
+  g.scaleCanvas(ZOOM, ZOOM);
+  draw(g);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(w * ZOOM);
+  canvas.height = Math.ceil(h * ZOOM);
+  g.generateTexture(canvas);
+  g.destroy();
+  scene.textures.addCanvas(key, canvas);
+  const img = scene.add.image(x, y, key).setOrigin(0).setScale(1 / ZOOM);
+  scene.events.once('shutdown', () => { img.destroy(); scene.textures.remove(key); });
+  return img;
+}
+
 /** Runder Cartoon-Button; gibt den Container zurück. */
 export function button(scene, x, y, label, onTap, opts = {}) {
   const w = opts.w ?? 380;

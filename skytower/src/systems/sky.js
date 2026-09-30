@@ -1,6 +1,6 @@
 import { ZONES, zoneIndexForFloor } from '../config.js';
 import { PLANET_COUNT } from '../art.js';
-import { W, VIEW_H, ZOOM } from '../view.js';
+import { W, VIEW_H, ZOOM, bakeGraphics } from '../view.js';
 
 const BLEND_FLOORS = 25; // so viele Etagen vor einer neuen Zone beginnt der Farbübergang
 
@@ -55,12 +55,15 @@ export class Sky {
     // Effekte, die fest am Bildschirm hängen: Mond, Erdkrümmung, Nordlichter,
     // Wetterleuchten, Wind, Sternschnuppen
     this.moon = scene.add.image(W * 0.74, VIEW_H * 0.2, 'bigmoon').setScrollFactor(0).setDepth(1).setScale(1 / ZOOM).setAlpha(0);
-    this.earth = scene.add.graphics().setScrollFactor(0).setDepth(1);
-    this.earth.fillStyle(0x4fa3ff, 0.18).fillCircle(W / 2, VIEW_H + 1500, 1640);
-    this.earth.fillStyle(0x2f7fe0, 0.9).fillCircle(W / 2, VIEW_H + 1500, 1600);
-    this.earth.fillStyle(0x3fbf7a, 0.9).fillEllipse(W * 0.3, VIEW_H - 40, 260, 60);
-    this.earth.fillStyle(0x3fbf7a, 0.9).fillEllipse(W * 0.8, VIEW_H - 20, 200, 40);
-    this.earth.setAlpha(0);
+    // Erdkrümmung am unteren Rand (nur der sichtbare Streifen, als Bild vorberechnet)
+    const EH = 170;
+    this.earth = bakeGraphics(scene, 0, VIEW_H - EH, W, EH, (g) => {
+      g.translateCanvas(0, -(VIEW_H - EH));
+      g.fillStyle(0x4fa3ff, 0.18).fillCircle(W / 2, VIEW_H + 1500, 1640);
+      g.fillStyle(0x2f7fe0, 0.9).fillCircle(W / 2, VIEW_H + 1500, 1600);
+      g.fillStyle(0x3fbf7a, 0.9).fillEllipse(W * 0.3, VIEW_H - 40, 260, 60);
+      g.fillStyle(0x3fbf7a, 0.9).fillEllipse(W * 0.8, VIEW_H - 20, 200, 40);
+    }).setScrollFactor(0).setDepth(1).setAlpha(0);
     this.wind = 0; // wird vom Spiel gesetzt (-1..1)
     this.streaks = Array.from({ length: 14 }, () => ({ x: Math.random() * W, y: Math.random() * VIEW_H, len: 40 + Math.random() * 80 }));
     this.aurora = scene.add.graphics().setScrollFactor(0).setDepth(1);
@@ -87,20 +90,27 @@ export class Sky {
       { sf: 0.55, color: 0xefb893, win: 0xffe2b8, min: 110, max: 300, bw: [60, 110] },
     ];
     for (const L of layers) {
-      const g = this.scene.add.graphics().setScrollFactor(L.sf).setDepth(1);
+      // als Bild vorberechnet: Häuser bis 460 über der Grundlinie; die Grundlinie
+      // liegt schon unter dem Bildrand und wandert beim Aufsteigen nur weiter nach unten
       const bottom = VIEW_H + scrollY * L.sf + 40;
-      let x = -20;
-      while (x < W + 20) {
-        const bw = L.bw[0] + Math.random() * (L.bw[1] - L.bw[0]);
-        const bh = L.min + Math.random() * (L.max - L.min);
-        g.fillStyle(L.color).fillRoundedRect(x, bottom - bh, bw - 6, bh + 200, 8);
-        g.fillStyle(L.win);
-        for (let wy = bottom - bh + 24; wy < bottom - 20; wy += 38) {
-          for (let wx = x + 14; wx < x + bw - 26; wx += 26) g.fillRoundedRect(wx, wy, 12, 18, 3);
-        }
-        if (Math.random() < 0.4) g.fillStyle(L.color).fillRect(x + bw / 2 - 3, bottom - bh - 40, 6, 40);
-        x += bw;
+      const top = bottom - 470;
+      bakeGraphics(this.scene, -20, top, W + 40, 490, (g) => { g.translateCanvas(20, -top); this.drawCityLayer(g, L, bottom); })
+        .setScrollFactor(L.sf).setDepth(1);
+    }
+  }
+
+  drawCityLayer(g, L, bottom) {
+    let x = -20;
+    while (x < W + 20) {
+      const bw = L.bw[0] + Math.random() * (L.bw[1] - L.bw[0]);
+      const bh = L.min + Math.random() * (L.max - L.min);
+      g.fillStyle(L.color).fillRoundedRect(x, bottom - bh, bw - 6, bh + 200, 8);
+      g.fillStyle(L.win);
+      for (let wy = bottom - bh + 24; wy < bottom - 20; wy += 38) {
+        for (let wx = x + 14; wx < x + bw - 26; wx += 26) g.fillRoundedRect(wx, wy, 12, 18, 3);
       }
+      if (Math.random() < 0.4) g.fillStyle(L.color).fillRect(x + bw / 2 - 3, bottom - bh - 40, 6, 40);
+      x += bw;
     }
   }
 
