@@ -58,7 +58,7 @@ In Test-Versionen (Browser-Testseite, Test-APK) aktiv, im Store-Build aus:
 
 - Beim ersten Start einmalig **10.000 Münzen**
 - Im Shop **5× auf den Münzstand** tippen: +10.000 Münzen
-- Im Shop **5× auf „Skins“** tippen: alle Skins freischalten
+- Im Shop **5× auf „Skins“** tippen: alle Skins freischalten, auch die geheimen
 
 Store-Build ohne Test-Werkzeuge: `SKYTOWER_RELEASE=1 npm run build`
 
