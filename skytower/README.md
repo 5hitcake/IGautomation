@@ -35,8 +35,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,
   wird eingesammelt; Anzeige oben rechts im HUD), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
-- **Weiterspielen** nach einem Absturz ohne Regenschirm: 1× pro Runde gratis (`REVIVE` in
-  `src/config.js`, später per belohnter Werbung) – ein Regenschirm fängt Wolki auf, nach einem
+- **Weiterspielen** nach einem Absturz ohne Regenschirm (`REVIVE` in `src/config.js`): Store-Version
+  1× pro Runde gratis; Test-Versionen bis 3× per 3-s-Test-Werbung (wie später mit AdMob) – ein Regenschirm fängt Wolki auf, nach einem
   Countdown (3 – 2 – 1 – Los!) geht die Runde weiter
 - **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)
 - **Zonen-Mechaniken** (`ZONE_RULES` in `src/config.js`): Gewitter mit Blitzeinschlägen

@@ -145,7 +145,11 @@ export const POWERUPS = {
 // Weiterspielen nach einem Absturz: ein Regenschirm fängt Wolki auf.
 // Zum Start ohne Werbung: 1× pro Runde gratis. Später (AdMob, Phase 6) per
 // belohnter Werbung: dann viaAd: true und z. B. max: 3.
-export const REVIVE = { max: 1, viaAd: false, fakeAdSeconds: 3 };
+// Test-Versionen: wie später mit AdMob – bis 3× per (3-s-Test-)Werbung.
+// Store-Version: 1× gratis, ohne Werbung.
+export const REVIVE = TEST_TOOLS
+  ? { max: 3, viaAd: true, fakeAdSeconds: 3 }
+  : { max: 1, viaAd: false, fakeAdSeconds: 3 };
 // Countdown nach „Weiterspielen per Werbung“: 3 – 2 – 1 – Los!
 export const COUNTDOWN = { from: 3, stepMs: 800 };
 
