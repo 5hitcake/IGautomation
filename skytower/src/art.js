@@ -102,15 +102,11 @@ export const SKINS = {
       + `<path d="M24 34 L30 40 M96 34 L90 40" stroke="${o}" stroke-width="3" stroke-linecap="round"/>`,
   },
   sterne: {
-    // geheim: Himmelstor ohne einen einzigen Regenschirm („Perfekter Aufstieg“)
-    body: '#5a62d8', shade: '#454cbf', outline: '#141848', cheek: '#ff9ed8', shoe: '#ffd23f', sole: '#fff6c2',
-    belly: () => {
-      const star = (x, y, r, c) => `<path d="M${x} ${y - r} L${x + r * 0.3} ${y - r * 0.3} L${x + r} ${y} L${x + r * 0.3} ${y + r * 0.3} L${x} ${y + r} L${x - r * 0.3} ${y + r * 0.3} L${x - r} ${y} L${x - r * 0.3} ${y - r * 0.3}Z" fill="${c}"/>`;
-      return star(30, 62, 6, '#fff6c2') + star(92, 90, 7, '#ffe066') + star(42, 100, 4.5, '#ffffff')
-        + star(86, 50, 4, '#ffffff') + `<circle cx="72" cy="100" r="2" fill="#fff6c2"/><circle cx="24" cy="84" r="1.8" fill="#ffffff"/>`;
-    },
-    front: (o) => `<path d="M60 2 L66.5 15 L81 16.5 L70 26 L73.5 40 L60 32.5 L46.5 40 L50 26 L39 16.5 L53.5 15Z" fill="#ffe066" stroke="${o}" stroke-width="3" stroke-linejoin="round"/>`
-      + `<path d="M55 14 L58 9" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`,
+    // geheim: Himmelstor ohne einen einzigen Regenschirm („Perfekter Aufstieg“) –
+    // Wolki wird komplett zum Stern, Gesicht und Mimik bleiben
+    body: '#ffd84a', shade: '#f5b400', outline: '#6a4200', cheek: '#ff8f8f', shoe: '#ffd84a', sole: '#ffd84a',
+    shape: starPath(60, 67, 57, 37, 5, 0.16),
+    front: () => `<path d="M104 16 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z M14 26 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5z" fill="#fff6c2"/>`,
   },
   engel: {
     // der ultimative Skin vom Himmelstor: Flügel, Heiligenschein (Schweif: trail.js)
@@ -247,6 +243,30 @@ function robotEyes(pose, o) {
 }
 
 /** Wolki in einer Pose (idle, up, fall, combo, happy, dead), 120×120-Viewbox. */
+/**
+ * Pummeliger Stern als Körperform (SVG-Pfad): n Zacken, Außenradius R, Innenradius r;
+ * die Kanten wölben sich leicht nach außen (bulge), die Spitzen rundet die Kontur ab.
+ */
+function starPath(cx, cy, R, r, n = 5, bulge = 0.12) {
+  const pts = [];
+  for (let i = 0; i < n * 2; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / n;
+    const rad = i % 2 ? r : R;
+    pts.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad]);
+  }
+  const f = (v) => v.toFixed(1);
+  let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
+  for (let i = 0; i < pts.length; i++) {
+    const [x1, y1] = pts[i];
+    const [x2, y2] = pts[(i + 1) % pts.length];
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const k = 1 + bulge;
+    d += ` Q${f(cx + (mx - cx) * k)} ${f(cy + (my - cy) * k)} ${f(x2)} ${f(y2)}`;
+  }
+  return `${d}Z`;
+}
+
 export function wolkiSvg(pose = 'idle', skin = SKINS.wolki) {
   const s = skin;
   const o = s.outline;
@@ -255,18 +275,28 @@ export function wolkiSvg(pose = 'idle', skin = SKINS.wolki) {
   const feet = FEET[pose].map(([x, y]) =>
     `<ellipse cx="${x}" cy="${y}" rx="14" ry="10" fill="${o}"/><ellipse cx="${x}" cy="${y - 1}" rx="10" ry="6.5" fill="${s.shoe}"/>` +
     `<rect x="${x - 10}" y="${y + 2}" width="20" height="3" rx="1.5" fill="${s.sole}"/>`).join('');
-  const outline = BODY.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 4.5}" fill="${o}"/>`).join('');
-  const fill = BODY.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('');
+  // Skins mit eigener Körperform (z. B. Stern): Kontur als Pfad, keine Arme/Füße –
+  // die Zacken übernehmen das; Gesicht und Mimik bleiben gleich
+  const shape = s.shape;
+  const outline = shape
+    ? `<path d="${shape}" fill="${o}" stroke="${o}" stroke-width="9" stroke-linejoin="round"/>`
+    : BODY.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 4.5}" fill="${o}"/>`).join('');
+  const fill = shape
+    ? `<path d="${shape}"/>`
+    : BODY.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('');
+  const shine = shape
+    ? `<g clip-path="url(#b)"><ellipse cx="44" cy="44" rx="11" ry="5.5" transform="rotate(-35 44 44)" fill="#fff" opacity=".8"/></g>`
+    : `<ellipse cx="50" cy="36" rx="12" ry="6" transform="rotate(-20 50 36)" fill="#fff" opacity=".9"/>`;
   const sparkles = pose === 'combo'
     ? `<path d="M12 18 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z" fill="#ffd23f" stroke="${o}" stroke-width="2"/>` +
       `<path d="M104 12 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#ffd23f" stroke="${o}" stroke-width="2"/>`
     : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
 <defs><clipPath id="b">${fill}</clipPath></defs>
-${s.back?.(o) ?? ''}${arms}${feet}${outline}
+${s.back?.(o) ?? ''}${shape ? '' : arms + feet}${outline}
 <g fill="${s.body}">${fill}</g>
-<g clip-path="url(#b)"><ellipse cx="60" cy="104" rx="64" ry="22" fill="${s.shade}"/></g>
-<ellipse cx="50" cy="36" rx="12" ry="6" transform="rotate(-20 50 36)" fill="#fff" opacity=".9"/>
+<g clip-path="url(#b)"><ellipse cx="60" cy="${shape ? 112 : 104}" rx="64" ry="22" fill="${s.shade}"/></g>
+${shine}
 ${s.belly?.(o) ?? ''}${face(pose, s)}${s.front?.(o) ?? ''}${sparkles}
 </svg>`;
 }

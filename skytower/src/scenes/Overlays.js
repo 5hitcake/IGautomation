@@ -92,7 +92,7 @@ export class GameOverScene extends Phaser.Scene {
       txt(this, W / 2 + 230, ry, fresh ? `${value} ★` : value, 38, { ...dark, ox: 1, color: fresh ? '#e08a00' : '#2d3a5a' });
     });
 
-    const unlocked = [...(angel ? ['Engel-Wolki'] : []), ...(star ? ['Sternen-Wolki'] : []), ...(isNew.unlocked ?? [])];
+    const unlocked = [...(angel ? ['Engel-Wolki'] : []), ...(star ? ['Stern-Wolki'] : []), ...(isNew.unlocked ?? [])];
     if (unlocked.length) {
       // Neu freigeschaltete Skins unter dem Ergebnis ankündigen
       const t = txt(this, W / 2, y + 760 + 64, `Neuer Skin: ${unlocked.join(', ')}!`, 38,

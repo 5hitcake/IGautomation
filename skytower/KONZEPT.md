@@ -151,7 +151,7 @@ Alle 50 Etagen gibt es eine breite **Meilenstein-Plattform** mit Etagenschild.
 
 ### 5.2 Skins (12 sichtbare + 4 geheime)
 Geheim (im Shop unsichtbar bis zur Freischaltung): **Alien-Wolki** (Etage 800 erreichen),
-**Roboter-Wolki** (100er-Combo), **Sternen-Wolki** (perfekter Aufstieg: Himmelstor ohne
+**Roboter-Wolki** (100er-Combo), **Stern-Wolki** (perfekter Aufstieg: Himmelstor ohne
 Regenschirm und ohne Weiterspielen, dazu +2.000 Münzen), **Engel-Wolki** (Himmelstor).
 
 | Skin | Freischaltung |

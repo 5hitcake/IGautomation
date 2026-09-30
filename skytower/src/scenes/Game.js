@@ -676,7 +676,7 @@ export class GameScene extends Phaser.Scene {
     if (perfect) {
       this.time.delayedCall(4700, () => {
         this.popup('Perfekter Aufstieg!', firstPerfect
-          ? `+${GATE.perfectBonus.toLocaleString('de-DE')} Münzen · Sternen-Wolki freigeschaltet`
+          ? `+${GATE.perfectBonus.toLocaleString('de-DE')} Münzen · Stern-Wolki freigeschaltet`
           : `Ohne Regenschirm · +${GATE.perfectBonus.toLocaleString('de-DE')} Münzen`, '#ffe066');
         this.sparks.explode(50, this.px, this.py);
         sfx.comboEnd(30);

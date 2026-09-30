@@ -15,7 +15,7 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   im Menü sowie bei Combos ab 25 Etagen und beim Erreichen einer neuen Zone
 - Bei „Neuer Rekord!“ jubelt Wolki über dem Ergebnis
 - **Skins-Shop (Phase 5):** 12 Skins plus 4 geheime (Alien-Wolki ab Etage 800, Roboter-Wolki
-  für eine 100er-Combo, Sternen-Wolki für den perfekten Aufstieg, Engel-Wolki am Himmelstor –
+  für eine 100er-Combo, Stern-Wolki für den perfekten Aufstieg, Engel-Wolki am Himmelstor –
   im Shop erst sichtbar, wenn freigeschaltet) (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
   4 über Erfolge (Etage 200/500, 50er-Combo, 100 Runden), 3 Premium (In-App-Käufe folgen
   in Phase 6; die Goldene Wolke gibt es alternativ für 1.000.000 gesammelte Punkte).
@@ -25,7 +25,7 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - **Ziel: Himmelstor bei Etage 1000** – kurze Szene (Lichtstrahlen, Blitz, Feuerwerk), +1.000 Münzen
   und der geheime Skin **Engel-Wolki** (Flügel, Heiligenschein, goldener Schweif), der im Shop
   vorher gar nicht zu sehen ist (`design/himmelstor-szene.png`). **Perfekter Aufstieg** (Tor ohne Regenschirm und ohne Weiterspielen):
-  +2.000 Münzen extra und die geheime Sternen-Wolki. Das Tor ist die letzte Plattform:
+  +2.000 Münzen extra und die geheime Stern-Wolki (Wolki wird komplett zum Stern ⭐). Das Tor ist die letzte Plattform:
   ab Etage 999 wird der Himmel hell und wolkig, Wolki fliegt durchs Tor und die Runde endet mit „Geschafft!“
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,
