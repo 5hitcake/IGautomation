@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ComboTracker, calloutFor } from '../src/systems/combo.js';
+import { tr } from '../src/i18n.js';
 
 test('kurze Sprünge zählen nur Etagen, keine Combo', () => {
   const c = new ComboTracker();
@@ -57,7 +58,7 @@ test('Landung nach dem Fallen auf eine tiefere Etage beendet die Combo', () => {
 
 test('Combo-Rufe nach Schwellen', () => {
   assert.equal(calloutFor(3), null);
-  assert.equal(calloutFor(4), 'Gut!');
-  assert.equal(calloutFor(50), 'Himmlisch!');
-  assert.equal(calloutFor(999), 'LEGENDE!');
+  assert.equal(calloutFor(4), tr('Gut!', 'Good!'));
+  assert.equal(calloutFor(50), tr('Himmlisch!', 'Heavenly!'));
+  assert.equal(calloutFor(999), tr('LEGENDE!', 'LEGENDARY!'));
 });

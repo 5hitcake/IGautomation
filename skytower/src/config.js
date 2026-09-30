@@ -1,3 +1,5 @@
+import { tr } from './i18n.js';
+
 // Alle Balancing-Werte an einer Stelle. Einheiten: Pixel der logischen
 // Spielwelt (720 breit), Sekunden.
 
@@ -62,42 +64,42 @@ export const SCORE = {
 };
 
 export const COMBO_CALLOUTS = [
-  [200, 'LEGENDE!'],
-  [140, 'Unaufhaltsam!'],
-  [100, 'Kosmisch!'],
-  [70, 'Überirdisch!'],
-  [50, 'Himmlisch!'],
-  [35, 'Wahnsinn!'],
-  [25, 'Fantastisch!'],
-  [15, 'Klasse!'],
-  [7, 'Super!'],
-  [4, 'Gut!'],
+  [200, tr('LEGENDE!', 'LEGENDARY!')],
+  [140, tr('Unaufhaltsam!', 'Unstoppable!')],
+  [100, tr('Kosmisch!', 'Cosmic!')],
+  [70, tr('Überirdisch!', 'Out of this world!')],
+  [50, tr('Himmlisch!', 'Heavenly!')],
+  [35, tr('Wahnsinn!', 'Insane!')],
+  [25, tr('Fantastisch!', 'Fantastic!')],
+  [15, tr('Klasse!', 'Great!')],
+  [7, tr('Super!', 'Super!')],
+  [4, tr('Gut!', 'Good!')],
 ];
 
 // Zonen: je 100 Etagen, bei Etage 1000 wartet das Himmelstor; danach geht es in
 // der Galaxie endlos weiter. Farben: Himmel oben/unten, Plattform-Stil, Deko.
 export const ZONES = [
-  { from: 0, name: 'Stadtdächer', skyTop: '#8fd3ff', skyBottom: '#ffd6a5', platform: 'roof', deco: 'city' },
-  { from: 100, name: 'Wolkenmeer', skyTop: '#5fb8f5', skyBottom: '#bfe6ff', platform: 'cloud', deco: 'balloon' },
-  { from: 200, name: 'Sonnenuntergang', skyTop: '#ff7eb3', skyBottom: '#ffc36b', platform: 'rainbow', deco: 'bird' },
-  { from: 300, name: 'Gewitterfront', skyTop: '#3d4a6b', skyBottom: '#7a86a8', platform: 'storm', deco: 'bolt' },
-  { from: 400, name: 'Mondnacht', skyTop: '#16224f', skyBottom: '#3b4d8c', platform: 'moonrock', deco: 'moon' },
-  { from: 500, name: 'Polarlicht', skyTop: '#101d45', skyBottom: '#2b6f7a', platform: 'ice', deco: 'aurora' },
-  { from: 600, name: 'Stratosphäre', skyTop: '#0b1030', skyBottom: '#2466b0', platform: 'satellite', deco: 'satellite' },
-  { from: 700, name: 'Weltall', skyTop: '#07081c', skyBottom: '#1c1a4a', platform: 'asteroid', deco: 'planet' },
-  { from: 800, name: 'Asteroidengürtel', skyTop: '#140a1e', skyBottom: '#3d2130', platform: 'meteor', deco: 'rock' },
-  { from: 900, name: 'Galaxie', skyTop: '#1a0630', skyBottom: '#4a1a6e', platform: 'stardust', deco: 'nebula' },
+  { from: 0, name: tr('Stadtdächer', 'Rooftops'), skyTop: '#8fd3ff', skyBottom: '#ffd6a5', platform: 'roof', deco: 'city' },
+  { from: 100, name: tr('Wolkenmeer', 'Sea of Clouds'), skyTop: '#5fb8f5', skyBottom: '#bfe6ff', platform: 'cloud', deco: 'balloon' },
+  { from: 200, name: tr('Sonnenuntergang', 'Sunset'), skyTop: '#ff7eb3', skyBottom: '#ffc36b', platform: 'rainbow', deco: 'bird' },
+  { from: 300, name: tr('Gewitterfront', 'Thunderstorm'), skyTop: '#3d4a6b', skyBottom: '#7a86a8', platform: 'storm', deco: 'bolt' },
+  { from: 400, name: tr('Mondnacht', 'Moonlit Night'), skyTop: '#16224f', skyBottom: '#3b4d8c', platform: 'moonrock', deco: 'moon' },
+  { from: 500, name: tr('Polarlicht', 'Northern Lights'), skyTop: '#101d45', skyBottom: '#2b6f7a', platform: 'ice', deco: 'aurora' },
+  { from: 600, name: tr('Stratosphäre', 'Stratosphere'), skyTop: '#0b1030', skyBottom: '#2466b0', platform: 'satellite', deco: 'satellite' },
+  { from: 700, name: tr('Weltall', 'Outer Space'), skyTop: '#07081c', skyBottom: '#1c1a4a', platform: 'asteroid', deco: 'planet' },
+  { from: 800, name: tr('Asteroidengürtel', 'Asteroid Belt'), skyTop: '#140a1e', skyBottom: '#3d2130', platform: 'meteor', deco: 'rock' },
+  { from: 900, name: tr('Galaxie', 'Galaxy'), skyTop: '#1a0630', skyBottom: '#4a1a6e', platform: 'stardust', deco: 'nebula' },
 ];
 
 // Besonderheiten je Zone (Index wie in ZONES)
 export const ZONE_RULES = {
-  3: { hint: 'Vorsicht, Blitze!', hazard: 'lightning' },
-  4: { hint: 'Gute Nacht, Wolki!' },
-  5: { hint: 'Achtung, glatt!', friction: 0.22, accel: 0.7, turnAccel: 0.45 },
-  6: { hint: 'Achtung, Wind!', wind: 260 },
-  7: { hint: 'Ab ins All!' },
-  8: { hint: 'Meteoriten!', hazard: 'meteor' },
-  9: { hint: 'Warp-Sterne!', warp: true },
+  3: { hint: tr('Vorsicht, Blitze!', 'Watch out, lightning!'), hazard: 'lightning' },
+  4: { hint: tr('Gute Nacht, Wolki!', 'Good night, Wolki!') },
+  5: { hint: tr('Achtung, glatt!', 'Careful, slippery!'), friction: 0.22, accel: 0.7, turnAccel: 0.45 },
+  6: { hint: tr('Achtung, Wind!', 'Watch out, wind!'), wind: 260 },
+  7: { hint: tr('Ab ins All!', 'Off to space!') },
+  8: { hint: tr('Meteoriten!', 'Meteorites!'), hazard: 'meteor' },
+  9: { hint: tr('Warp-Sterne!', 'Warp stars!'), warp: true },
 };
 
 // Wind in der Stratosphäre: Böen wechseln langsam die Richtung
@@ -140,10 +142,10 @@ export const POWERUPS = {
   warp: { floors: 12, chance: 0.05 }, // nur in der Galaxie
 };
 
-// Test-Werbung (bis AdMob in Phase 6 angebunden ist): so lange läuft die Attrappe
-export const FAKE_AD_SECONDS = 3;
-// So oft kann man pro Runde nach einem Absturz per Werbung weiterspielen
-export const MAX_REVIVES = 3;
+// Weiterspielen nach einem Absturz: ein Regenschirm fängt Wolki auf.
+// Zum Start ohne Werbung: 1× pro Runde gratis. Später (AdMob, Phase 6) per
+// belohnter Werbung: dann viaAd: true und z. B. max: 3.
+export const REVIVE = { max: 1, viaAd: false, fakeAdSeconds: 3 };
 // Countdown nach „Weiterspielen per Werbung“: 3 – 2 – 1 – Los!
 export const COUNTDOWN = { from: 3, stepMs: 800 };
 

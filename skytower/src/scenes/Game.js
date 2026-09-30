@@ -16,6 +16,7 @@ import { Powerups } from '../systems/powerups.js';
 import { Hazards } from '../systems/hazards.js';
 import { ensureSkin } from '../systems/skinTextures.js';
 import { umbrellaStock } from '../systems/powerups.js';
+import { tr, num } from '../i18n.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
@@ -28,9 +29,9 @@ const PREPARE_FLOORS = 30; // so viele Etagen vor einer neuen Zone Grafiken vorb
 const PAUSE_BTN = { x: 58, y: HUD_Y, r: 40 };
 
 const TUTORIAL = [
-  'Halte links oder rechts gedrückt,\num zu laufen',
-  'Mehr Anlauf = höhere Sprünge!',
-  'Überspringe 2+ Etagen\nfür Combos!',
+  tr('Halte links oder rechts gedrückt,\num zu laufen', 'Hold left or right\nto run'),
+  tr('Mehr Anlauf = höhere Sprünge!', 'More run-up = higher jumps!'),
+  tr('Überspringe 2+ Etagen\nfür Combos!', 'Skip 2+ floors\nfor combos!'),
 ];
 
 export class GameScene extends Phaser.Scene {
@@ -123,7 +124,7 @@ export class GameScene extends Phaser.Scene {
     pg.fillStyle(0x2d3a5a).fillRoundedRect(PAUSE_BTN.x + 5, PAUSE_BTN.y - 15, 9, 30, 3);
 
     const hudText = (x, y, s, size, o) => txt(this, x, y, s, size, o).setScrollFactor(0).setDepth(d);
-    this.hud.floor = hudText(118, HUD_Y, 'Etage 0', 44, { ox: 0 });
+    this.hud.floor = hudText(118, HUD_Y, tr('Etage 0', 'Floor 0'), 44, { ox: 0 });
     this.hud.score = hudText(W - 44, HUD_Y, '0', 48, { ox: 1 });
     this.add.image(W - 58, HUD_Y + 58, 'coin').setScrollFactor(0).setDepth(d).setScale(0.8 / ZOOM);
     this.hud.coins = hudText(W - 88, HUD_Y + 58, '0', 34, { ox: 1, color: '#ffe680' });
@@ -223,7 +224,7 @@ export class GameScene extends Phaser.Scene {
     if (floor === GATE.floor) {
       p.deco = [
         this.add.image(W / 2, top + 4, 'gate').setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(4),
-        txt(this, W / 2, top - 470, 'Himmelstor', 56, { color: '#ffe066', strokeThickness: 10 }).setDepth(6),
+        txt(this, W / 2, top - 470, tr('Himmelstor', 'Heaven Gate'), 56, { color: '#ffe066', strokeThickness: 10 }).setDepth(6),
         ...this.buildHeaven(top),
       ];
     }
@@ -424,7 +425,7 @@ export class GameScene extends Phaser.Scene {
     this.py = this.scrollY + VIEW_H - 40;
     this.vy = -2350;
     this.vx *= 0.4;
-    this.popup('Gerettet!', null, '#8fd3ff');
+    this.popup(tr('Gerettet!', 'Saved!'), null, '#8fd3ff');
     this.items.shieldShowUntil = this.time0 + 1.2; // Schirm kurz über Wolki zeigen
     this.sparks.explode(24, this.px, this.py);
   }
@@ -464,14 +465,14 @@ export class GameScene extends Phaser.Scene {
     const steps = COUNTDOWN.from;
     for (let i = 0; i < steps; i++) {
       this.time.delayedCall(i * COUNTDOWN.stepMs, () => {
-        this.popup(`${steps - i}`, i === 0 ? 'Mach dich bereit!' : null, '#ffffff');
+        this.popup(`${steps - i}`, i === 0 ? tr('Mach dich bereit!', 'Get ready!') : null, '#ffffff');
         sfx.comboStep(i * 3);
       });
     }
     this.time.delayedCall(steps * COUNTDOWN.stepMs, () => {
       this.state = 'play';
       onGo();
-      this.popup('Los!', null, '#9ff0b0');
+      this.popup(tr('Los!', 'Go!'), null, '#9ff0b0');
       music.start('game', this.camLevel);
       music.setZone(zoneIndexForFloor(this.floorUnderPlayer()));
     });
@@ -616,7 +617,7 @@ export class GameScene extends Phaser.Scene {
     if (zi > this.zoneShown) {
       this.zoneShown = zi;
       this.releaseZone(zi - 2);
-      this.popup(ZONES[zi].name, ZONE_RULES[zi]?.hint ?? `Etage ${ZONES[zi].from}`, '#bfe6ff');
+      this.popup(ZONES[zi].name, ZONE_RULES[zi]?.hint ?? tr(`Etage ${ZONES[zi].from}`, `Floor ${ZONES[zi].from}`), '#bfe6ff');
       sfx.zone();
       music.setZone(zi);
       this.celebrate();
@@ -676,20 +677,21 @@ export class GameScene extends Phaser.Scene {
       this.trail.destroy();
       this.trail = new Trail(this, skinById(GATE.skin).trail);
       this.sparks.explode(60, cx, cy);
-      this.popup('Himmelstor erreicht!', `+${GATE.bonusCoins.toLocaleString('de-DE')} Münzen`, '#ffe066');
+      this.popup(tr('Himmelstor erreicht!', 'Heaven Gate reached!'), tr(`+${num(GATE.bonusCoins)} Münzen`, `+${num(GATE.bonusCoins)} coins`), '#ffe066');
     });
     this.time.addEvent({
       delay: 260, repeat: 14, startAt: 0,
       callback: () => this.sparks.explode(22, 80 + Math.random() * (W - 160), this.scrollY + 140 + Math.random() * 560),
     });
     this.time.delayedCall(3400, () => {
-      this.popup(firstTime ? 'Engel-Wolki!' : 'Willkommen zurück!', firstTime ? 'Ultimativer Skin freigeschaltet' : 'Das Tor öffnet sich wieder', '#ffffff');
+      this.popup(firstTime ? tr('Engel-Wolki!', 'Angel Wolki!') : tr('Willkommen zurück!', 'Welcome back!'),
+        firstTime ? tr('Ultimativer Skin freigeschaltet', 'Ultimate skin unlocked') : tr('Das Tor öffnet sich wieder', 'The gate opens once more'), '#ffffff');
     });
     if (perfect) {
       this.time.delayedCall(4700, () => {
-        this.popup('Perfekter Aufstieg!', firstPerfect
-          ? `+${GATE.perfectBonus.toLocaleString('de-DE')} Münzen · Stern-Wolki freigeschaltet`
-          : `Ohne Regenschirm · +${GATE.perfectBonus.toLocaleString('de-DE')} Münzen`, '#ffe066');
+        this.popup(tr('Perfekter Aufstieg!', 'Perfect climb!'), firstPerfect
+          ? tr(`+${num(GATE.perfectBonus)} Münzen · Stern-Wolki freigeschaltet`, `+${num(GATE.perfectBonus)} coins · Star Wolki unlocked`)
+          : tr(`Ohne Regenschirm · +${num(GATE.perfectBonus)} Münzen`, `No umbrella · +${num(GATE.perfectBonus)} coins`), '#ffe066');
         this.sparks.explode(50, this.px, this.py);
         sfx.comboEnd(30);
       });
@@ -739,7 +741,7 @@ export class GameScene extends Phaser.Scene {
         this.levelTimer = 0;
         this.camLevel += 1;
         music.setLevel(this.camLevel);
-        this.popup('Schneller!', null, '#ff8a5c');
+        this.popup(tr('Schneller!', 'Faster!'), null, '#ff8a5c');
         sfx.hurry();
       }
       this.scrollY -= (CAMERA.baseSpeed + this.camLevel * CAMERA.speedPerLevel) * dt;
@@ -753,7 +755,7 @@ export class GameScene extends Phaser.Scene {
     if (!r.counted) return;
     sfx.comboEnd(r.floors);
     if (r.callout) {
-      this.popup(r.callout, `${r.floors} Etagen · +${r.points.toLocaleString('de-DE')}`, '#ffe066');
+      this.popup(r.callout, tr(`${r.floors} Etagen · +${num(r.points)}`, `${r.floors} floors · +${num(r.points)}`), '#ffe066');
       this.sparks.explode(Math.min(40, 10 + r.floors), this.px, this.py);
       if (save.get().settings.vibration) vibrate(r.floors >= 25 ? 60 : 25);
     }
@@ -808,8 +810,8 @@ export class GameScene extends Phaser.Scene {
 
   renderHud() {
     const c = this.combo;
-    this.hud.floor.setText(`Etage ${c.maxFloor}`);
-    this.hud.score.setText(c.score.toLocaleString('de-DE'));
+    this.hud.floor.setText(tr(`Etage ${c.maxFloor}`, `Floor ${c.maxFloor}`));
+    this.hud.score.setText(num(c.score));
     const bar = this.hud.bar;
     bar.clear();
     if (c.active) {

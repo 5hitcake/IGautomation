@@ -1,9 +1,13 @@
-# Sky Tower
+# Wolki: Sky Climber
 
 Endless-Jumper fürs Handy, angelehnt an den PC-Klassiker *Icy Tower*.
 Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 
-## Stand: Prototyp v0.8 (Phasen 1, 3 und 5)
+## Stand: v0.9 – Vorbereitung für den Play Store
+
+- **Sprachen:** Deutsch und Englisch nach Handy-Sprache (`src/i18n.js`, Texte als `tr('Deutsch', 'English')`)
+- **Leistung:** Plattformen als Canvas-Texturen, feste Vektorgrafiken als Bilder vorberechnet
+  (`bakeGraphics` in `src/view.js`) – keine Ruckler mehr beim Start und in höheren Zonen
 
 - Automatisches Springen, Sprunghöhe hängt vom Anlauf ab
 - Steuerung: linke/rechte Bildschirmhälfte halten (am PC: Pfeiltasten oder A/D, P = Pause)
@@ -17,8 +21,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
 - **Skins-Shop (Phase 5):** 12 Skins plus 4 geheime (Alien-Wolki ab Etage 800, Roboter-Wolki
   für eine 100er-Combo, Stern-Wolki für den perfekten Aufstieg, Engel-Wolki am Himmelstor –
   im Shop erst sichtbar, wenn freigeschaltet) (Übersicht: `design/wolki-skins.png`) – 4 für Münzen,
-  4 über Erfolge (Etage 200/500, 50er-Combo, 100 Runden), 3 Premium (In-App-Käufe folgen
-  in Phase 6; die Goldene Wolke gibt es alternativ für 1.000.000 gesammelte Punkte).
+  7 über Erfolge (Etage 200/500/700, 50er-/75er-Combo, 100 Runden, 1.000.000 Punkte). Einhorn,
+  Mini-Drache und Goldene Wolke sind als spätere In-App-Käufe vorgemerkt (`iap`).
   Logik in `src/systems/progress.js`, Grafiken in `src/art.js` (`SKINS`)
 - Schweife (`src/systems/trail.js`): Regenbogenschweif (Nyan-Stil) und Sternschnuppe (Mond),
   im Spiel, im Menü (Wolki fliegt dann statt zu hüpfen) und als Vorschau im Shop
@@ -29,9 +33,10 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   ab Etage 999 wird der Himmel hell und wolkig, Wolki fliegt durchs Tor und die Runde endet mit „Geschafft!“
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,
-  wird eingesammelt; Anzeige oben rechts im HUD).
-  Ohne Regenschirm nach dem Absturz: „Weiterspielen per Werbung“ (bis zu 3× pro Runde) – ein
-  Regenschirm fängt Wolki auf, nach einem Countdown (3 – 2 – 1 – Los!) geht die Runde weiter. Bis Phase 6 eine 3-s-Test-Werbung, Münz-Magnet (10 s), in der Galaxie Warp-Sterne
+  wird eingesammelt; Anzeige oben rechts im HUD), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
+- **Weiterspielen** nach einem Absturz ohne Regenschirm: 1× pro Runde gratis (`REVIVE` in
+  `src/config.js`, später per belohnter Werbung) – ein Regenschirm fängt Wolki auf, nach einem
+  Countdown (3 – 2 – 1 – Los!) geht die Runde weiter
 - **Wertvollere Münzen weiter oben:** Silber (5), Gold (10), Diamant (25)
 - **Zonen-Mechaniken** (`ZONE_RULES` in `src/config.js`): Gewitter mit Blitzeinschlägen
   (`src/systems/hazards.js`), rutschiges Eis im Polarlicht, Wind in der Stratosphäre,
@@ -71,7 +76,7 @@ Balancing-Werte (Physik, Kamera, Combos, Zonen) stehen alle in `src/config.js`.
 
 ## Android-App (Phase 3)
 
-- Capacitor-Projekt in `android/`, App-ID `de.wolki.skytower`, nur Hochformat
+- Capacitor-Projekt in `android/`, App-ID `de.wolki.skyclimber`, nur Hochformat
 - Zurück-Taste: im Spiel Pause, in der Pause weiter, im Menü App schließen (`src/services/native.js`)
 - App-Icon und Startbildschirm mit Wolki: `PLAYWRIGHT=… node scripts/make-icons.mjs`
 - **Test-APK automatisch:** Der Workflow `.github/workflows/skytower-apk.yml` baut bei jeder

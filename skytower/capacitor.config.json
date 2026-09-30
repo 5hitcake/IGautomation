@@ -1,6 +1,6 @@
 {
-  "appId": "de.wolki.skytower",
-  "appName": "Sky Tower",
+  "appId": "de.wolki.skyclimber",
+  "appName": "Wolki: Sky Climber",
   "webDir": "dist",
   "backgroundColor": "#7ec8f2",
   "android": {

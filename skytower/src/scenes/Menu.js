@@ -8,6 +8,7 @@ import { music } from '../services/music.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { Trail } from '../systems/trail.js';
 import { skinById } from '../systems/progress.js';
+import { tr, num } from '../i18n.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -26,10 +27,11 @@ export class MenuScene extends Phaser.Scene {
       music.start('menu');
     });
 
-    const title = txt(this, W / 2, VIEW_H * 0.17, 'Sky Tower', 118, { strokeThickness: 16, color: '#ffffff' });
+    txt(this, W / 2, VIEW_H * 0.17 - 88, 'Wolki', 60, { strokeThickness: 10, color: '#ffe066' });
+    const title = txt(this, W / 2, VIEW_H * 0.17, 'Sky Climber', 104, { strokeThickness: 16, color: '#ffffff' });
     title.setShadow(0, 10, '#2d3a5a', 0, true, false);
     this.tweens.add({ targets: title, angle: { from: -2, to: 2 }, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-    txt(this, W / 2, VIEW_H * 0.17 + 92, 'Hüpf in den Himmel!', 38, { color: '#fff6c2', strokeThickness: 7 });
+    txt(this, W / 2, VIEW_H * 0.17 + 100, tr('Hüpf in den Himmel!', 'Hop into the sky!'), 38, { color: '#fff6c2', strokeThickness: 7 });
 
     // Wolki hüpft auf einer Wolke – oder fliegt mit ihrem Schweif (Nyan-Stil)
     const baseY = VIEW_H * 0.52;
@@ -48,16 +50,16 @@ export class MenuScene extends Phaser.Scene {
     }
 
     const stats = [
-      `Rekord: ${s.highscore.toLocaleString('de-DE')}`,
-      `Beste Etage: ${s.bestFloor}   ·   Beste Combo: ${s.bestCombo}`,
-      `Münzen: ${s.coins.toLocaleString('de-DE')}`
-        + (s.umbrellas ? `   ·   Regenschirme: ${s.umbrellas}` : '')
-        + (s.gateCount ? `\nHimmelstor erreicht${s.gateCount > 1 ? ` ×${s.gateCount}` : ''}` : '')
-        + (s.perfectCount ? `   ·   ★ Perfekt${s.perfectCount > 1 ? ` ×${s.perfectCount}` : ''}` : ''),
+      `${tr('Rekord', 'Best score')}: ${num(s.highscore)}`,
+      `${tr('Beste Etage', 'Best floor')}: ${s.bestFloor}   ·   ${tr('Beste Combo', 'Best combo')}: ${s.bestCombo}`,
+      `${tr('Münzen', 'Coins')}: ${num(s.coins)}`
+        + (s.umbrellas ? `   ·   ${tr('Regenschirme', 'Umbrellas')}: ${s.umbrellas}` : '')
+        + (s.gateCount ? `\n${tr('Himmelstor erreicht', 'Heaven Gate reached')}${s.gateCount > 1 ? ` ×${s.gateCount}` : ''}` : '')
+        + (s.perfectCount ? `   ·   ★ ${tr('Perfekt', 'Perfect')}${s.perfectCount > 1 ? ` ×${s.perfectCount}` : ''}` : ''),
     ];
     txt(this, W / 2, VIEW_H * 0.63, stats.join('\n'), 34, { strokeThickness: 7 }).setLineSpacing(6);
 
-    button(this, W / 2, VIEW_H * 0.76, 'Spielen', () => {
+    button(this, W / 2, VIEW_H * 0.76, tr('Spielen', 'Play'), () => {
       unlockAudio();
       sfx.click();
       music.start('game');
@@ -78,11 +80,11 @@ export class MenuScene extends Phaser.Scene {
       sfx.click();
     }, { w: 260, h: 78, size: 34, fill: 0xbfe6ff });
 
-    txt(this, W / 2, VIEW_H - 70, 'Prototyp v0.8 · Grafiken sind Platzhalter', 24, { strokeThickness: 5, color: '#e8f4ff' });
+    txt(this, W / 2, VIEW_H - 70, `v${__APP_VERSION__}`, 24, { strokeThickness: 5, color: '#e8f4ff' });
   }
 
   soundLabel() {
-    return save.get().settings.sound ? 'Ton: an' : 'Ton: aus';
+    return save.get().settings.sound ? tr('Ton: an', 'Sound: on') : tr('Ton: aus', 'Sound: off');
   }
 
   update(_t, deltaMs) {

@@ -9,6 +9,7 @@ import {
 } from '../systems/progress.js';
 import { drawTrailPreview } from '../systems/trail.js';
 import { TEST_TOOLS } from '../config.js';
+import { tr, num } from '../i18n.js';
 
 const INK = '#2d3a5a';
 const COLS = 3;
@@ -17,11 +18,11 @@ const TOP = 150;
 const PANEL_H = 250;
 
 const STATUS = {
-  selected: ['Ausgewählt', '#2f9e44'],
-  owned: ['Gehört dir', '#5a6a8a'],
-  goal: ['Erfolg', '#b35c00'],
+  selected: [tr('Ausgewählt', 'Selected'), '#2f9e44'],
+  owned: [tr('Gehört dir', 'Owned'), '#5a6a8a'],
+  goal: [tr('Erfolg', 'Achievement'), '#b35c00'],
   premium: ['Premium', '#9c36b5'],
-  secret: ['Geheim', '#b35c00'],
+  secret: [tr('Geheim', 'Secret'), '#b35c00'],
 };
 
 export class ShopScene extends Phaser.Scene {
@@ -43,7 +44,7 @@ export class ShopScene extends Phaser.Scene {
     this.add.zone(58, 74, 110, 110).setInteractive().on('pointerup', () => this.leave());
     txt(this, W / 2, 74, 'Skins', 64);
     this.add.image(W - 58, 74, 'coin').setScale(0.9 / ZOOM).setDepth(10);
-    txt(this, W - 90, 74, data.coins.toLocaleString('de-DE'), 40, { ox: 1, color: '#ffe680' });
+    txt(this, W - 90, 74, num(data.coins), 40, { ox: 1, color: '#ffe680' });
     if (TEST_TOOLS) {
       // Test-Werkzeuge: 5× schnell tippen
       this.multiTap(W - 110, 74, 200, 100, () => { save.addTestCoins(); sfx.coin(); });
@@ -130,7 +131,7 @@ export class ShopScene extends Phaser.Scene {
   statusLabel(x, y, skin, state) {
     if (skin.price && (state === 'buyable' || state === 'tooExpensive')) {
       const color = state === 'buyable' ? '#b35c00' : '#8a93ad';
-      const t = txt(this, x + 14, y, skin.price.toLocaleString('de-DE'), 22, { color, strokeThickness: 0 }).setDepth(7);
+      const t = txt(this, x + 14, y, num(skin.price), 22, { color, strokeThickness: 0 }).setDepth(7);
       this.add.image(x - t.width / 2 - 6, y, 'coin').setScale(0.5 / ZOOM).setDepth(7);
       return;
     }
@@ -166,27 +167,27 @@ export class ShopScene extends Phaser.Scene {
     const act = (label, onTap, fill) => button(this, tx + 170, actionY, label, onTap, { w: 340, h: 88, size: 36, fill });
 
     if (state === 'selected') {
-      line('Diesen Skin trägt Wolki gerade.', y + 100);
-      this.disabledButton(tx + 170, actionY, 'Ausgewählt ✓');
+      line(tr('Diesen Skin trägt Wolki gerade.', 'Wolki is wearing this skin.'), y + 100);
+      this.disabledButton(tx + 170, actionY, tr('Ausgewählt ✓', 'Selected ✓'));
     } else if (state === 'owned') {
-      line('Gehört dir.', y + 100);
-      act('Auswählen', () => this.choose(skin.id), 0x8ce99a);
+      line(tr('Gehört dir.', 'You own this skin.'), y + 100);
+      act(tr('Auswählen', 'Select'), () => this.choose(skin.id), 0x8ce99a);
     } else if (state === 'buyable') {
-      line(`Kostet ${skin.price.toLocaleString('de-DE')} Münzen.`, y + 100);
-      act(`Kaufen · ${skin.price.toLocaleString('de-DE')}`, () => this.buy(skin.id));
+      line(tr(`Kostet ${num(skin.price)} Münzen.`, `Costs ${num(skin.price)} coins.`), y + 100);
+      act(tr(`Kaufen · ${num(skin.price)}`, `Buy · ${num(skin.price)}`), () => this.buy(skin.id));
     } else if (state === 'tooExpensive') {
-      line(`Kostet ${skin.price.toLocaleString('de-DE')} Münzen.`, y + 100);
-      this.disabledButton(tx + 170, actionY, `Noch ${(skin.price - data.coins).toLocaleString('de-DE')} Münzen`);
+      line(tr(`Kostet ${num(skin.price)} Münzen.`, `Costs ${num(skin.price)} coins.`), y + 100);
+      this.disabledButton(tx + 170, actionY, tr(`Noch ${num(skin.price - data.coins)} Münzen`, `${num(skin.price - data.coins)} coins to go`));
     } else if (secret) {
-      line('Geheimer Skin. Er wird nur am Himmelstor (Etage 1.000) freigeschaltet.', y + 100, INK, 26);
+      line(tr('Geheimer Skin.', 'Secret skin.'), y + 100, INK, 26);
     } else {
-      if (skin.premium) line('Premium-Skin: kommt mit dem Shop für In-App-Käufe.', y + 96, '#9c36b5', 24);
+      if (skin.premium) line(tr('Premium-Skin: kommt mit dem Shop für In-App-Käufe.', 'Premium skin: coming with in-app purchases.'), y + 96, '#9c36b5', 24);
       const p = goalProgress(data, skin);
       if (p) {
-        const prefix = skin.premium ? 'Oder: ' : '';
+        const prefix = skin.premium ? tr('Oder: ', 'Or: ') : '';
         line(`${prefix}${GOAL_TEXT[skin.goal.type](p.target)}`, y + (skin.premium ? 150 : 100), INK, 26);
         this.progressBar(tx, actionY + 6, W - tx - 70, p.current / p.target,
-          `${Math.min(p.current, p.target).toLocaleString('de-DE')} / ${p.target.toLocaleString('de-DE')}`);
+          `${num(Math.min(p.current, p.target))} / ${num(p.target)}`);
       }
     }
   }

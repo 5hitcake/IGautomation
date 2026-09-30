@@ -8,10 +8,16 @@ import { POWERUPS, PHYSICS, TOWER, GATE } from '../config.js';
 import { ZOOM, txt } from '../view.js';
 import { sfx, vibrate } from '../services/audio.js';
 import { save } from '../services/storage.js';
+import { tr } from '../i18n.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
-const LABEL = { rocket: 'Raketen-Wolke!', shield: 'Regenschirm +1', magnet: 'Münz-Magnet!', warp: 'Warp!' };
+const LABEL = {
+  rocket: tr('Raketen-Wolke!', 'Rocket Cloud!'),
+  shield: tr('Regenschirm +1', 'Umbrella +1'),
+  magnet: tr('Münz-Magnet!', 'Coin Magnet!'),
+  warp: 'Warp!',
+};
 
 /** Regenschirme im Vorrat (gespeichert, gilt über Runden hinweg) */
 export const umbrellaStock = () => save.get().umbrellas ?? 0;

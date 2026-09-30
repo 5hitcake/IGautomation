@@ -24,12 +24,21 @@ test('Skin kaufen zieht Münzen ab, zu teuer klappt nicht', () => {
   assert.equal(skinState(d, skinById('regen')), 'owned');
 });
 
-test('Erfolgs- und Premium-Skins kann man nicht kaufen', () => {
+test('Erfolgs-Skins kann man nicht kaufen, auch die späteren Kauf-Skins nicht', () => {
   const d = fresh({ coins: 99999 });
   assert.equal(buySkin(d, 'ballon'), false);
   assert.equal(buySkin(d, 'einhorn'), false);
   assert.equal(skinState(d, skinById('ballon')), 'goal');
-  assert.equal(skinState(d, skinById('einhorn')), 'premium');
+  assert.equal(skinState(d, skinById('einhorn')), 'goal');
+});
+
+test('Einhorn ab Etage 700, Mini-Drache für eine 75er-Combo', () => {
+  const d = fresh({ bestFloor: 699, bestCombo: 74 });
+  assert.ok(!unlockGoals(d).some((s) => ['einhorn', 'drache'].includes(s.id)));
+  d.bestFloor = 700;
+  d.bestCombo = 75;
+  const got = unlockGoals(d).map((s) => s.id);
+  assert.ok(got.includes('einhorn') && got.includes('drache'));
 });
 
 test('Nur eigene Skins lassen sich auswählen', () => {

@@ -3,7 +3,9 @@ import { W, VIEW_H, ZOOM, setupCamera, txt, button } from '../view.js';
 import { sfx } from '../services/audio.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
-import { TEST_TOOLS, FAKE_AD_SECONDS, MAX_REVIVES } from '../config.js';
+import { TEST_TOOLS, REVIVE } from '../config.js';
+import { tr, num } from '../i18n.js';
+import { skinById } from '../systems/progress.js';
 
 function panel(scene, h) {
   scene.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.5).setOrigin(0);
@@ -25,12 +27,12 @@ export class PauseScene extends Phaser.Scene {
   create() {
     setupCamera(this);
     const y = panel(this, 460);
-    txt(this, W / 2, y + 62, 'Pause', 64);
-    button(this, W / 2, y + 220, 'Weiter', () => {
+    txt(this, W / 2, y + 62, tr('Pause', 'Paused'), 64);
+    button(this, W / 2, y + 220, tr('Weiter', 'Resume'), () => {
       sfx.click();
       this.resumeGame();
     });
-    button(this, W / 2, y + 350, 'Menü', () => {
+    button(this, W / 2, y + 350, tr('Menü', 'Menu'), () => {
       sfx.click();
       this.scene.stop('Game');
       this.scene.start('Menu');
@@ -55,10 +57,11 @@ export class GameOverScene extends Phaser.Scene {
     setupCamera(this);
     const y = panel(this, 760);
     const record = isNew.score;
-    const title = won ? 'Geschafft!' : record ? 'Neuer Rekord!' : 'Game Over';
+    const title = won ? tr('Geschafft!', 'You made it!') : record ? tr('Neuer Rekord!', 'New record!') : 'Game Over';
     txt(this, W / 2, y + 62, title, 60, { color: won || record ? '#ffe066' : '#ffffff' });
     if (won) {
-      const sub = perfect ? '★ Perfekter Aufstieg – ohne Regenschirm ★' : record ? 'Himmelstor erreicht · Neuer Rekord!' : 'Himmelstor erreicht';
+      const sub = perfect ? tr('★ Perfekter Aufstieg – ohne Regenschirm ★', '★ Perfect climb – no umbrella ★')
+        : record ? tr('Himmelstor erreicht · Neuer Rekord!', 'Heaven Gate reached · New record!') : tr('Himmelstor erreicht', 'Heaven Gate reached');
       txt(this, W / 2, y + 122, sub, 30,
         { color: '#5a6a8a', stroke: '#ffffff', strokeThickness: 0 });
     }
@@ -77,13 +80,13 @@ export class GameOverScene extends Phaser.Scene {
       sparks.explode(28, W / 2, wy - 80);
     }
 
-    txt(this, W / 2, y + 190, score.toLocaleString('de-DE'), 96, { color: '#ffd23f', strokeThickness: 12 });
-    txt(this, W / 2, y + 262, 'Punkte', 32, { color: '#5a6a8a', stroke: '#ffffff', strokeThickness: 0 });
+    txt(this, W / 2, y + 190, num(score), 96, { color: '#ffd23f', strokeThickness: 12 });
+    txt(this, W / 2, y + 262, tr('Punkte', 'Points'), 32, { color: '#5a6a8a', stroke: '#ffffff', strokeThickness: 0 });
 
     const rows = [
-      ['Etage', `${floor}`, isNew.floor],
-      ['Beste Combo', `${combo}`, isNew.combo],
-      ['Münzen', `+${coins}`, false],
+      [tr('Etage', 'Floor'), `${floor}`, isNew.floor],
+      [tr('Beste Combo', 'Best combo'), `${combo}`, isNew.combo],
+      [tr('Münzen', 'Coins'), `+${num(coins)}`, false],
     ];
     rows.forEach(([label, value, fresh], i) => {
       const ry = y + 340 + i * 62;
@@ -92,58 +95,63 @@ export class GameOverScene extends Phaser.Scene {
       txt(this, W / 2 + 230, ry, fresh ? `${value} ★` : value, 38, { ...dark, ox: 1, color: fresh ? '#e08a00' : '#2d3a5a' });
     });
 
-    const unlocked = [...(angel ? ['Engel-Wolki'] : []), ...(star ? ['Stern-Wolki'] : []), ...(isNew.unlocked ?? [])];
+    const unlocked = [...(angel ? [skinById('engel').name] : []), ...(star ? [skinById('sterne').name] : []), ...(isNew.unlocked ?? [])];
     if (unlocked.length) {
       // Neu freigeschaltete Skins unter dem Ergebnis ankündigen
-      const t = txt(this, W / 2, y + 760 + 64, `Neuer Skin: ${unlocked.join(', ')}!`, 38,
+      const t = txt(this, W / 2, y + 760 + 64, tr(`Neuer Skin: ${unlocked.join(', ')}!`, `New skin: ${unlocked.join(', ')}!`), 38,
         { color: '#ffe066', wrap: W - 80 }).setDepth(12);
       this.tweens.add({ targets: t, scale: { from: 0.6, to: 1 }, duration: 400, ease: 'Back.out' });
       sfx.zone();
     }
 
-    button(this, W / 2, y + 560, 'Nochmal', () => {
+    button(this, W / 2, y + 560, tr('Nochmal', 'Play again'), () => {
       sfx.click();
       this.scene.stop();
       this.scene.get('Game').scene.restart();
     });
-    button(this, W / 2, y + 686, 'Menü', () => {
+    button(this, W / 2, y + 686, tr('Menü', 'Menu'), () => {
       sfx.click();
       this.scene.stop('Game');
       this.scene.start('Menu');
     }, { fill: 0xbfe6ff, h: 88, size: 38 });
 
-    // Weiterspielen per Werbung (bis AdMob angebunden ist: Test-Werbung, nur in Test-Versionen):
-    // ein Regenschirm fängt Wolki auf und die Runde geht an derselben Stelle weiter
-    if (TEST_TOOLS) {
+    // Weiterspielen: ein Regenschirm fängt Wolki auf und die Runde geht an derselben
+    // Stelle weiter (zum Start gratis, später per belohnter Werbung – siehe REVIVE)
+    if (!won) {
       const by = y + 760 + (unlocked.length ? 150 : 84);
       const revives = this.scene.get('Game').revives ?? 0;
-      if (!won && revives < MAX_REVIVES) this.reviveOffer(by, MAX_REVIVES - revives);
-      else if (!won) txt(this, W / 2, by, 'Keine Rettung mehr in dieser Runde', 28, { color: '#e8f4ff', strokeThickness: 6 }).setDepth(12);
+      if (revives < REVIVE.max) this.reviveOffer(by, REVIVE.max - revives);
+      else txt(this, W / 2, by, tr('Keine Rettung mehr in dieser Runde', 'No more rescues this round'), 28, { color: '#e8f4ff', strokeThickness: 6 }).setDepth(12);
     }
   }
 
   reviveOffer(by, left) {
-    button(this, W / 2 + 20, by, 'Weiterspielen per Werbung', () => this.playFakeAd(() => {
+    const go = () => {
       this.scene.stop();
       this.scene.get('Game').revive();
-    }), { w: 520, h: 80, size: 30, fill: 0x9ff0b0 }).setDepth(12);
-    this.add.image(W / 2 - 262, by, 'pu_shield').setScale(0.8 / ZOOM).setDepth(13);
-    txt(this, W / 2, by + 62, `Regenschirm fängt dich auf · noch ${left}× · Test-Werbung`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
+    };
+    const viaAd = REVIVE.viaAd && TEST_TOOLS; // echte Werbung kommt mit AdMob (Phase 6)
+    button(this, W / 2, by, viaAd ? tr('Weiterspielen per Werbung', 'Continue (watch ad)') : tr('Weiterspielen', 'Continue'), () => {
+      sfx.click();
+      if (viaAd) this.playFakeAd(go); else go();
+    }, { w: 520, h: 80, size: 30, fill: 0x9ff0b0 }).setDepth(12);
+    this.add.image(W / 2 - 215, by - 2, 'pu_shield').setScale(0.7 / ZOOM).setDepth(13);
+    const sub = REVIVE.max > 1 ? tr(`noch ${left}×`, `${left}× left`) : tr('1× pro Runde', 'once per round');
+    txt(this, W / 2, by + 62, tr('Ein Regenschirm fängt dich auf', 'An umbrella catches you') + ` · ${sub}${viaAd ? tr(' · Test-Werbung', ' · test ad') : ''}`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
   }
 
   /** Platzhalter für eine belohnte Werbung (wird in Phase 6 durch AdMob ersetzt) */
   playFakeAd(onReward) {
-    sfx.click();
     const layer = this.add.container(0, 0).setDepth(50);
     layer.add(this.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.94).setOrigin(0).setInteractive());
     const t = txt(this, W / 2, VIEW_H / 2, '', 52, { strokeThickness: 9 });
     layer.add(t);
-    let left = FAKE_AD_SECONDS;
-    const show = () => t.setText(`Werbung (Test)\n${left}`);
+    let left = REVIVE.fakeAdSeconds;
+    const show = () => t.setText(tr(`Werbung (Test)\n${left}`, `Ad (test)\n${left}`));
     show();
     this.time.addEvent({
       delay: 1000,
-      repeat: FAKE_AD_SECONDS - 1,
+      repeat: REVIVE.fakeAdSeconds - 1,
       callback: () => {
         left -= 1;
         if (left > 0) { show(); return; }

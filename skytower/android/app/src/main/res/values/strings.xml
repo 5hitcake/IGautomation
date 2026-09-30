@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Sky Tower</string>
-    <string name="title_activity_main">Sky Tower</string>
-    <string name="package_name">de.wolki.skytower</string>
-    <string name="custom_url_scheme">de.wolki.skytower</string>
+    <string name="app_name">Wolki: Sky Climber</string>
+    <string name="title_activity_main">Wolki: Sky Climber</string>
+    <string name="package_name">de.wolki.skyclimber</string>
+    <string name="custom_url_scheme">de.wolki.skyclimber</string>
 </resources>
