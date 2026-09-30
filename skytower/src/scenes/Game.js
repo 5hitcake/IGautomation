@@ -17,6 +17,7 @@ import { Hazards } from '../systems/hazards.js';
 import { ensureSkin } from '../systems/skinTextures.js';
 import { umbrellaStock } from '../systems/powerups.js';
 import { tr, num } from '../i18n.js';
+import { startTilt, calibrateTilt, tiltAvailable, tiltValue } from '../services/tilt.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
@@ -94,6 +95,8 @@ export class GameScene extends Phaser.Scene {
     this.combo = new ComboTracker((r) => this.onComboEnd(r));
     this.createHud();
     this.createInput();
+    this.tilt = save.get().settings.control === 'tilt';
+    if (this.tilt) { startTilt(); calibrateTilt(); }
 
     if (!save.get().tutorialSeen) this.showTutorial();
     music.start('game', 0);
@@ -162,6 +165,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   readInput() {
+    // Neigen: stufenlos; ohne Sensordaten wird mit Tippen gesteuert
+    if (this.tilt && tiltAvailable()) {
+      const k = this.keys;
+      if (k && (k.LEFT.isDown || k.A.isDown || k.RIGHT.isDown || k.D.isDown)) return this.readTouch();
+      return tiltValue();
+    }
+    return this.readTouch();
+  }
+
+  readTouch() {
     let left = false;
     let right = false;
     for (const p of this.input.manager.pointers) {
@@ -471,6 +484,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.time.delayedCall(steps * COUNTDOWN.stepMs, () => {
       this.state = 'play';
+      if (this.tilt) calibrateTilt(); // Haltung kann sich in der Pause geändert haben
       onGo();
       this.popup(tr('Los!', 'Go!'), null, '#9ff0b0');
       music.start('game', this.camLevel);
@@ -535,8 +549,14 @@ export class GameScene extends Phaser.Scene {
     const rocket = this.items.rocketActive;
     const dir = this.readInput();
     if (dir !== 0) {
-      const turning = this.vx !== 0 && Math.sign(this.vx) !== dir;
+      const turning = this.vx !== 0 && Math.sign(this.vx) !== Math.sign(dir);
       this.vx += dir * (turning ? P.turnAccel * (z.turnAccel ?? 1) : P.accel * (z.accel ?? 1)) * dt;
+      // leichtes Neigen = langsamer laufen (beim Tippen ist dir immer ±1)
+      const cap = P.maxRunSpeed * Math.abs(dir);
+      if (!turning && Math.abs(this.vx) > cap) {
+        const d = P.friction * (z.friction ?? 1) * dt;
+        this.vx = Math.sign(this.vx) * Math.max(cap, Math.abs(this.vx) - d);
+      }
     } else {
       const d = P.friction * (z.friction ?? 1) * dt;
       this.vx = Math.abs(this.vx) <= d ? 0 : this.vx - Math.sign(this.vx) * d;
@@ -779,11 +799,16 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: [center, subT], alpha: 0, y: '-=50', delay: 1000, duration: 450 });
   }
 
+  tutorialLines() {
+    if (!this.tilt) return TUTORIAL;
+    return [tr('Neige das Handy nach links\noder rechts, um zu laufen', 'Tilt your phone left\nor right to run'), ...TUTORIAL.slice(1)];
+  }
+
   showTutorial() {
     const t = txt(this, W / 2, VIEW_H - 190, '', 40, { strokeThickness: 8 }).setScrollFactor(0).setDepth(20).setAlpha(0);
     this.tweens.chain({
       targets: t,
-      tweens: TUTORIAL.flatMap((line) => [
+      tweens: this.tutorialLines().flatMap((line) => [
         { alpha: 1, duration: 300, onStart: () => t.setText(line) },
         { alpha: 0, duration: 300, delay: 2800 },
       ]),

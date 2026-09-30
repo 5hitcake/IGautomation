@@ -9,6 +9,7 @@ import { skinKey } from '../systems/skinTextures.js';
 import { Trail } from '../systems/trail.js';
 import { skinById } from '../systems/progress.js';
 import { tr, num } from '../i18n.js';
+import { startTilt, tiltAvailable } from '../services/tilt.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -66,21 +67,47 @@ export class MenuScene extends Phaser.Scene {
       this.scene.start('Game');
     }, { w: 420, h: 116, size: 54 });
 
-    button(this, W / 2 - 145, VIEW_H * 0.76 + 130, 'Skins', () => {
+    // untere Reihe: Skins · Steuerung (Tippen/Neigen) · Ton
+    const rowY = VIEW_H * 0.76 + 130;
+    const small = { w: 206, h: 84, size: 30 };
+    button(this, W / 2 - 218, rowY, 'Skins', () => {
       unlockAudio();
       sfx.click();
       this.scene.start('Shop');
-    }, { w: 260, h: 78, size: 34, fill: 0xffc2e0 });
+    }, { ...small, fill: 0xffc2e0 });
 
-    const soundBtn = button(this, W / 2 + 145, VIEW_H * 0.76 + 130, this.soundLabel(), () => {
+    if (s.settings.control === 'tilt') startTilt(); // Sensor schon im Menü einschalten
+    const controlBtn = button(this, W / 2, rowY, this.controlLabel(), () => {
+      unlockAudio();
+      save.update((d) => { d.settings.control = d.settings.control === 'tilt' ? 'touch' : 'tilt'; });
+      controlBtn.list[1].setText(this.controlLabel());
+      sfx.click();
+      if (save.get().settings.control === 'tilt') {
+        startTilt();
+        // kein Lagesensor (z. B. am PC): Hinweis, im Spiel wird dann getippt
+        this.time.delayedCall(900, () => { if (!tiltAvailable()) this.toast(tr('Kein Neigungssensor gefunden –\nim Spiel wird getippt', 'No tilt sensor found –\nthe game will use touch')); });
+      }
+    }, { ...small, size: 24, fill: 0xc9f5c2 });
+
+    const soundBtn = button(this, W / 2 + 218, rowY, this.soundLabel(), () => {
       unlockAudio();
       save.update((d) => { d.settings.sound = !d.settings.sound; });
       setSoundEnabled(save.get().settings.sound);
       soundBtn.list[1].setText(this.soundLabel());
       sfx.click();
-    }, { w: 260, h: 78, size: 34, fill: 0xbfe6ff });
+    }, { ...small, fill: 0xbfe6ff });
 
     txt(this, W / 2, VIEW_H - 70, `v${__APP_VERSION__}`, 24, { strokeThickness: 5, color: '#e8f4ff' });
+  }
+
+  controlLabel() {
+    const tilt = save.get().settings.control === 'tilt';
+    return `${tr('Steuerung', 'Controls')}\n${tilt ? tr('Neigen', 'Tilt') : tr('Tippen', 'Touch')}`;
+  }
+
+  toast(text) {
+    const t = txt(this, W / 2, VIEW_H * 0.76 + 225, text, 26, { strokeThickness: 6, color: '#fff6c2' }).setDepth(20);
+    this.tweens.add({ targets: t, alpha: 0, delay: 2600, duration: 500, onComplete: () => t.destroy() });
   }
 
   soundLabel() {

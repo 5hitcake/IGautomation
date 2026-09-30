@@ -10,7 +10,8 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   (`bakeGraphics` in `src/view.js`) – keine Ruckler mehr beim Start und in höheren Zonen
 
 - Automatisches Springen, Sprunghöhe hängt vom Anlauf ab
-- Steuerung: linke/rechte Bildschirmhälfte halten (am PC: Pfeiltasten oder A/D, P = Pause)
+- Steuerung (im Menü wählbar): linke/rechte Bildschirmhälfte halten **oder Handy neigen**
+  (stufenlos, `src/services/tilt.js`; ohne Sensor automatisch Tippen). Am PC: Pfeiltasten oder A/D, P = Pause
 - Wandabpraller mit Höhenbonus
 - Kamera startet ab Etage 5 (spätestens nach 8 s) und wird alle 30 s schneller
 - Combos nach Icy-Tower-Regeln (Punkte = Etagen²) mit Combo-Rufen

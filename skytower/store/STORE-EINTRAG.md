@@ -25,7 +25,7 @@ Hüpf mit Wolki durch 10 Himmelszonen bis zum Himmelstor – schaffst du Etage 1
 
 Wolki ist ein kleines Wölkchen mit einem großen Traum: ganz nach oben, bis zum Himmelstor!
 
-Halte links oder rechts gedrückt – Wolki springt von selbst. Je mehr Anlauf, desto höher der Sprung. Überspringe mehrere Etagen auf einmal für Combos und sammle Punkte, bis der Bildschirm dich einholt. Denn der Himmel wird immer schneller!
+Halte links oder rechts gedrückt oder neige einfach dein Handy – Wolki springt von selbst. Je mehr Anlauf, desto höher der Sprung. Überspringe mehrere Etagen auf einmal für Combos und sammle Punkte, bis der Bildschirm dich einholt. Denn der Himmel wird immer schneller!
 
 ☁️ 10 Himmelszonen
 Von den Dächern der Stadt über Wolkenmeer, Sonnenuntergang und Gewitterfront bis in Mondnacht, Polarlicht, Stratosphäre, Weltall, Asteroidengürtel und Galaxie. Jede Zone hat eigene Plattformen, eigene Musik – und eigene Überraschungen: Blitze, glattes Eis, Wind, Meteoriten und Warp-Sterne.
@@ -45,6 +45,7 @@ Raketen-Wolke, Münz-Magnet, Warp-Sterne und der Regenschirm, der dich einmal vo
 🎵 Musik, die mitwächst
 Die Hintergrundmusik wird mit jeder Stufe schneller und voller und klingt in jeder Zone anders.
 
+✔ Steuerung wählbar: Tippen oder Neigen
 ✔ Kostenlos, ohne Werbung, ohne Anmeldung
 ✔ Funktioniert offline
 ✔ Auf Deutsch und Englisch
@@ -67,7 +68,7 @@ Hop with Wolki through 10 sky zones to the Heaven Gate – can you reach floor 1
 
 Wolki is a tiny cloud with a big dream: all the way up to the Heaven Gate!
 
-Hold left or right – Wolki jumps on its own. The longer the run-up, the higher the jump. Skip several floors at once for combos and rack up points before the screen catches you. Because the sky keeps getting faster!
+Hold left or right, or simply tilt your phone – Wolki jumps on its own. The longer the run-up, the higher the jump. Skip several floors at once for combos and rack up points before the screen catches you. Because the sky keeps getting faster!
 
 ☁️ 10 sky zones
 From the city rooftops through the sea of clouds, sunset and thunderstorm to moonlit night, northern lights, stratosphere, outer space, asteroid belt and galaxy. Every zone has its own platforms, its own music – and its own surprises: lightning, slippery ice, wind, meteorites and warp stars.
@@ -87,6 +88,7 @@ Rocket cloud, coin magnet, warp stars and the umbrella that saves you from one f
 🎵 Music that grows with you
 The soundtrack gets faster and fuller with every level and sounds different in every zone.
 
+✔ Choose your controls: touch or tilt
 ✔ Free, no ads, no sign-up
 ✔ Works offline
 ✔ In English and German
