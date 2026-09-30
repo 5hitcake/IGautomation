@@ -60,6 +60,8 @@ In Test-Versionen (Browser-Testseite, Test-APK) aktiv, im Store-Build aus:
 - Beim ersten Start einmalig **10.000 Münzen**
 - Im Shop **5× auf den Münzstand** tippen: +10.000 Münzen
 - Im Shop **5× auf „Skins“** tippen: alle Skins freischalten, auch die geheimen
+- Im Menü oben links **„Test: ∞ ☂“**: unendlich Regenschirme zum Durchspielen
+  (zählt als Rettung, also kein „Perfekter Aufstieg“)
 
 Store-Build ohne Test-Werkzeuge: `SKYTOWER_RELEASE=1 npm run build`
 

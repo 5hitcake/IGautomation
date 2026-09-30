@@ -4,7 +4,7 @@
 //   Wolki automatisch auf, wenn sie aus dem Bild fällt
 // - Magnet: zieht eine Weile alle Münzen in der Nähe an
 // - Warp-Stern (nur Galaxie): teleportiert ein paar Etagen nach oben
-import { POWERUPS, PHYSICS, TOWER, GATE } from '../config.js';
+import { POWERUPS, PHYSICS, TOWER, GATE, TEST_TOOLS } from '../config.js';
 import { ZOOM, txt } from '../view.js';
 import { sfx, vibrate } from '../services/audio.js';
 import { save } from '../services/storage.js';
@@ -21,6 +21,8 @@ const LABEL = {
 
 /** Regenschirme im Vorrat (gespeichert, gilt über Runden hinweg) */
 export const umbrellaStock = () => save.get().umbrellas ?? 0;
+/** Test-Werkzeug: unendlich Regenschirme (nur in Test-Versionen, im Menü schaltbar) */
+export const infiniteUmbrellas = () => TEST_TOOLS && !!save.get().settings.infiniteUmbrellas;
 
 function pickWeighted(weights) {
   const entries = Object.entries(weights);
@@ -157,6 +159,7 @@ export class Powerups {
 
   /** Regenschirm aus dem Vorrat verbrauchen, falls vorhanden (Rettung vor dem Game Over). */
   useShield() {
+    if (infiniteUmbrellas()) { sfx.shield(); return true; }
     if (umbrellaStock() <= 0) return false;
     save.update((d) => { d.umbrellas -= 1; });
     this.game.renderUmbrellas?.();

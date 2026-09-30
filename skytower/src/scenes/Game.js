@@ -15,7 +15,7 @@ import { skinById } from '../systems/progress.js';
 import { Powerups } from '../systems/powerups.js';
 import { Hazards } from '../systems/hazards.js';
 import { ensureSkin } from '../systems/skinTextures.js';
-import { umbrellaStock } from '../systems/powerups.js';
+import { umbrellaStock, infiniteUmbrellas } from '../systems/powerups.js';
 import { tr, num } from '../i18n.js';
 import { startTilt, calibrateTilt, tiltAvailable, tiltValue } from '../services/tilt.js';
 
@@ -143,9 +143,10 @@ export class GameScene extends Phaser.Scene {
 
   /** Regenschirm-Vorrat oben rechts anzeigen */
   renderUmbrellas() {
+    const inf = infiniteUmbrellas();
     const n = umbrellaStock();
-    this.hud.umbrellaIcon.setVisible(n > 0);
-    this.hud.umbrellas.setVisible(n > 0).setText(`${n}`);
+    this.hud.umbrellaIcon.setVisible(inf || n > 0);
+    this.hud.umbrellas.setVisible(inf || n > 0).setText(inf ? '∞' : `${n}`);
   }
 
   createInput() {

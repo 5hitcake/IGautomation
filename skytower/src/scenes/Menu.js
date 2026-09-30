@@ -9,6 +9,7 @@ import { skinKey } from '../systems/skinTextures.js';
 import { Trail } from '../systems/trail.js';
 import { skinById } from '../systems/progress.js';
 import { tr, num } from '../i18n.js';
+import { TEST_TOOLS } from '../config.js';
 import { startTilt, tiltAvailable } from '../services/tilt.js';
 
 export class MenuScene extends Phaser.Scene {
@@ -96,6 +97,16 @@ export class MenuScene extends Phaser.Scene {
       soundBtn.list[1].setText(this.soundLabel());
       sfx.click();
     }, { ...small, fill: 0xbfe6ff });
+
+    // Test-Werkzeug (nur Test-Versionen): unendlich Regenschirme zum Durchspielen
+    if (TEST_TOOLS) {
+      const infLabel = () => `${tr('Test', 'Test')}: ∞ ☂ ${save.get().settings.infiniteUmbrellas ? tr('an', 'on') : tr('aus', 'off')}`;
+      const infBtn = button(this, 128, 70, infLabel(), () => {
+        save.update((d) => { d.settings.infiniteUmbrellas = !d.settings.infiniteUmbrellas; });
+        infBtn.list[1].setText(infLabel());
+        sfx.click();
+      }, { w: 220, h: 64, size: 24, fill: 0xfff3a0 });
+    }
 
     txt(this, W / 2, VIEW_H - 70, `v${__APP_VERSION__}`, 24, { strokeThickness: 5, color: '#e8f4ff' });
   }
