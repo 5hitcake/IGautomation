@@ -52,12 +52,12 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create(data) {
-    const { score, floor, combo, coins, isNew, won, angel, perfect, star } = data;
+    const { score, floor, combo, coins, isNew, won, angel, perfect, star, heaven } = data;
     this.initData = data;
     setupCamera(this);
     const y = panel(this, 760);
-    const record = isNew.score;
-    const title = won ? tr('Geschafft!', 'You made it!') : record ? tr('Neuer Rekord!', 'New record!') : 'Game Over';
+    const record = heaven ? isNew.heaven : isNew.score;
+    const title = won ? tr('Geschafft!', 'You made it!') : record ? tr('Neuer Rekord!', 'New record!') : heaven ? tr('Himmelreich', 'Heaven') : 'Game Over';
     txt(this, W / 2, y + 62, title, 60, { color: won || record ? '#ffe066' : '#ffffff' });
     if (won) {
       const sub = perfect ? tr('★ Perfekter Aufstieg – ohne Regenschirm ★', '★ Perfect climb – no umbrella ★')
@@ -84,7 +84,8 @@ export class GameOverScene extends Phaser.Scene {
     txt(this, W / 2, y + 262, tr('Punkte', 'Points'), 32, { color: '#5a6a8a', stroke: '#ffffff', strokeThickness: 0 });
 
     const rows = [
-      [tr('Etage', 'Floor'), `${floor}`, isNew.floor],
+      heaven ? [tr('Etagen', 'Floors'), `${floor - 1000}`, isNew.heaven]
+        : [tr('Etage', 'Floor'), `${floor}`, isNew.floor],
       [tr('Beste Combo', 'Best combo'), `${combo}`, isNew.combo],
       [tr('Münzen', 'Coins'), `+${num(coins)}`, false],
     ];
@@ -109,7 +110,7 @@ export class GameOverScene extends Phaser.Scene {
     button(this, W / 2, y + 560, tr('Nochmal', 'Play again'), () => {
       sfx.click();
       this.scene.stop();
-      this.scene.get('Game').scene.restart();
+      this.scene.get('Game').scene.restart({ mode: heaven ? 'heaven' : 'normal' });
     });
     button(this, W / 2, y + 686, tr('Menü', 'Menu'), () => {
       sfx.click();

@@ -18,6 +18,7 @@ import { ensureSkin } from '../systems/skinTextures.js';
 import { umbrellaStock, infiniteUmbrellas } from '../systems/powerups.js';
 import { tr, num } from '../i18n.js';
 import { startTilt, calibrateTilt, tiltAvailable, tiltValue } from '../services/tilt.js';
+import { keepAwake } from '../services/keepAwake.js';
 
 const R = PHYSICS.playerRadius;
 const FH = TOWER.floorHeight;
@@ -40,15 +41,19 @@ export class GameScene extends Phaser.Scene {
     super('Game');
   }
 
-  create() {
+  create(data = {}) {
     this.cam = setupCamera(this);
     this.state = 'play';
+    // 'heaven' = Direktstart im Himmelreich (im Menü, sobald das Tor einmal erreicht wurde)
+    this.mode = data.mode === 'heaven' ? 'heaven' : 'normal';
+    this.heavenMode = this.mode === 'heaven';
+    const startFloor = this.heavenMode ? GATE.floor : 0;
     this.skin = save.get().selectedSkin;
     this.time0 = 0;
 
     // Spieler (Mittelpunkt px/py, Füße bei py + R)
     this.px = W / 2;
-    this.py = -R;
+    this.py = -startFloor * FH - R;
     this.vx = 0;
     this.vy = 0;
     this.squash = 0;
@@ -59,7 +64,7 @@ export class GameScene extends Phaser.Scene {
     this.spin = { angle: 0 };
     this.lastWallBounce = -1;
 
-    this.scrollY = -(VIEW_H - 260);
+    this.scrollY = -startFloor * FH - (VIEW_H - 260);
     this.cam.scrollY = this.scrollY;
     this.camStarted = false;
     this.camLevel = 0;
@@ -68,17 +73,19 @@ export class GameScene extends Phaser.Scene {
     this.revives = 0; // wie oft in dieser Runde per Werbung weitergespielt wurde
     this.rescues = 0; // wie oft ein Regenschirm aus dem Vorrat gerettet hat
     this.banked = null; // schon gespeicherter Stand dieser Runde (nach Weiterspielen)
-    this.zoneShown = 0;
-    this.gateDone = false;
+    this.zoneShown = this.heavenMode ? ZONES.length - 1 : 0;
+    this.gateDone = this.heavenMode; // im Himmelreich-Modus gibt es kein Tor
+    this.heavenOpen = this.heavenMode;
 
-    this.sky = new Sky(this, { city: true, scrollY: this.scrollY });
+    this.sky = new Sky(this, { city: !this.heavenMode, scrollY: this.scrollY });
     this.drawWalls();
 
     this.platforms = [];
-    this.nextFloor = 0;
+    this.nextFloor = startFloor;
     this.items = new Powerups(this);
+    this.prepareZone(this.zoneShown);
+    while (this.texQueue.length) this.warmNextTexture(); // Start-Zone sofort bereit
     this.generate();
-    this.prepareZone(0);
 
     this.player = this.add.image(this.px, this.py, skinKey(this.skin, 'up')).setOrigin(0.5, 0.55).setScale(1 / ZOOM).setDepth(7);
     this.trail = new Trail(this, skinById(this.skin).trail);
@@ -93,6 +100,12 @@ export class GameScene extends Phaser.Scene {
 
     this.hazards = new Hazards(this);
     this.combo = new ComboTracker((r) => this.onComboEnd(r));
+    if (this.heavenMode) {
+      // Punkte zählen erst ab dem Start im Himmelreich
+      this.combo.baseFloor = startFloor;
+      this.combo.maxFloor = startFloor;
+      this.combo.lastFloor = startFloor;
+    }
     this.createHud();
     this.createInput();
     this.tilt = save.get().settings.control === 'tilt';
@@ -100,7 +113,10 @@ export class GameScene extends Phaser.Scene {
 
     if (!save.get().tutorialSeen) this.showTutorial();
     music.start('game', 0);
-    music.setZone(0);
+    music.setZone(this.zoneShown);
+    if (this.heavenMode) this.popup(ZONES[this.zoneShown].name, ZONE_RULES[this.zoneShown]?.hint, '#fff6c2');
+    keepAwake(true); // bei der Neigen-Steuerung berührt man den Bildschirm nicht
+    this.events.once('shutdown', () => keepAwake(false));
 
     this.game.events.on('hidden', this.autoPause, this);
     this.events.once('shutdown', () => this.game.events.off('hidden', this.autoPause, this));
@@ -196,7 +212,7 @@ export class GameScene extends Phaser.Scene {
 
   spawnPlatform(floor) {
     // direkt über dem Tor frei lassen: Wolki fliegt durch den Torbogen hinauf
-    if (floor > GATE.floor && floor <= GATE.floor + 3) return;
+    if (!this.heavenMode && floor > GATE.floor && floor <= GATE.floor + 3) return;
     const inner = W - 2 * WALL;
     const zi = zoneIndexForFloor(floor);
     const zone = ZONES[zi];
@@ -208,6 +224,8 @@ export class GameScene extends Phaser.Scene {
 
     if (floor === 0) {
       style = 'roof';
+    } else if (this.heavenMode && floor === GATE.floor) {
+      style = 'milestone'; // feste Start-Plattform im Himmelreich-Modus
     } else if (floor % TOWER.milestoneEvery === 0) {
       style = 'milestone';
     } else {
@@ -241,7 +259,7 @@ export class GameScene extends Phaser.Scene {
       p.coinValue = tier.value;
       p.coinBaseY = top - 58;
     }
-    if (floor === GATE.floor) {
+    if (floor === GATE.floor && !this.heavenMode) {
       p.deco = [
         this.add.image(W / 2, top + 4, 'gate').setOrigin(0.5, 1).setScale(1 / ZOOM).setDepth(4),
         txt(this, W / 2, top - 470, tr('Himmelstor', 'Heaven Gate'), 56, { color: '#ffe066', strokeThickness: 10 }).setDepth(6),
@@ -455,6 +473,7 @@ export class GameScene extends Phaser.Scene {
   /** Nach der Werbung: Regenschirm fängt Wolki auf, die Runde geht an derselben Stelle weiter */
   revive() {
     this.revives += 1;
+    keepAwake(true);
     this.tweens.killTweensOf(this);
     // Countdown: Spiel steht still, Wolki wartet mit Regenschirm am unteren Rand
     this.vx = 0;
@@ -472,6 +491,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Nach der Pause: erst Countdown, dann genau dort weiter, wo man war */
   resumeWithCountdown() {
+    keepAwake(true);
     const { vx, vy } = this;
     this.state = 'countdown';
     this.countdown(() => {
@@ -891,12 +911,14 @@ export class GameScene extends Phaser.Scene {
   pauseGame() {
     if (this.state !== 'play' || this.scene.isPaused()) return;
     this.scene.pause();
+    keepAwake(false);
     music.stop();
     this.scene.launch('Pause');
   }
 
   gameOver() {
     this.state = 'dead';
+    keepAwake(false);
     this.combo.end();
     music.stop();
     sfx.gameOver();
@@ -928,11 +950,12 @@ export class GameScene extends Phaser.Scene {
       coins: result.coins - (prev?.coins ?? 0),
       scoreDelta: result.score - (prev?.score ?? 0),
       continued: !!prev,
+      heaven: this.heavenMode ? result.floor - GATE.floor : undefined,
     });
     // Rekorde aus dem ersten Teil der Runde bleiben Rekorde
-    if (prev) for (const k of ['score', 'floor', 'combo']) isNew[k] = isNew[k] || prev.isNew[k];
+    if (prev) for (const k of ['score', 'floor', 'combo', 'heaven']) isNew[k] = isNew[k] || prev.isNew[k];
     this.banked = { score: result.score, coins: result.coins, isNew };
     if (!save.get().tutorialSeen) save.update((d) => { d.tutorialSeen = true; });
-    return { ...result, isNew };
+    return { ...result, isNew, heaven: this.heavenMode };
   }
 }

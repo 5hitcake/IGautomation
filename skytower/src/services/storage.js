@@ -17,6 +17,7 @@ const DEFAULTS = {
   umbrellas: 0, // Regenschirme im Vorrat
   gateCount: 0, // wie oft das Himmelstor erreicht wurde
   perfectCount: 0, // wie oft das Tor ohne Rettung erreicht wurde
+  heavenBest: 0, // bester Himmelreich-Direktstart (Etagen über dem Tor)
   settings: { sound: true, vibration: true, control: 'touch' }, // control: 'touch' | 'tilt'
   tutorialSeen: false,
 };
@@ -80,15 +81,22 @@ export const save = {
    * zweites Mal gespeichert: dann nur die neu dazugekommenen Münzen/Punkte
    * (coins, scoreDelta) und keine weitere gezählte Runde (continued).
    */
-  recordRun({ score, floor, combo, coins, scoreDelta = score, continued = false }) {
-    const isNew = {
-      score: score > data.highscore,
-      floor: floor > data.bestFloor,
-      combo: combo > data.bestCombo,
-    };
-    data.highscore = Math.max(data.highscore, score);
-    data.bestFloor = Math.max(data.bestFloor, floor);
-    data.bestCombo = Math.max(data.bestCombo, combo);
+  recordRun({ score, floor, combo, coins, scoreDelta = score, continued = false, heaven }) {
+    let isNew;
+    if (heaven !== undefined) {
+      // Himmelreich-Direktstart: eigener Rekord (Etagen über dem Tor), normale Rekorde bleiben unberührt
+      isNew = { heaven: heaven > (data.heavenBest ?? 0) };
+      data.heavenBest = Math.max(data.heavenBest ?? 0, heaven);
+    } else {
+      isNew = {
+        score: score > data.highscore,
+        floor: floor > data.bestFloor,
+        combo: combo > data.bestCombo,
+      };
+      data.highscore = Math.max(data.highscore, score);
+      data.bestFloor = Math.max(data.bestFloor, floor);
+      data.bestCombo = Math.max(data.bestCombo, combo);
+    }
     data.coins += coins;
     if (!continued) data.runs += 1;
     data.totalScore += scoreDelta;

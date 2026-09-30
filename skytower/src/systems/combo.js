@@ -12,6 +12,7 @@ export class ComboTracker {
     this.onComboEnd = onComboEnd;
     this.lastFloor = 0;
     this.maxFloor = 0;
+    this.baseFloor = 0; // Punkte zählen ab dieser Etage (Himmelreich-Direktstart)
     this.comboPoints = 0;
     this.bestCombo = 0;
     this.active = false;
@@ -21,7 +22,7 @@ export class ComboTracker {
   }
 
   get score() {
-    return this.maxFloor * SCORE.perFloor + this.comboPoints;
+    return (this.maxFloor - this.baseFloor) * SCORE.perFloor + this.comboPoints;
   }
 
   /** Timer herunterzählen; beendet die Combo, wenn er abläuft. */

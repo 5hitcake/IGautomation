@@ -62,3 +62,13 @@ test('Combo-Rufe nach Schwellen', () => {
   assert.equal(calloutFor(50), tr('Himmlisch!', 'Heavenly!'));
   assert.equal(calloutFor(999), tr('LEGENDE!', 'LEGENDARY!'));
 });
+
+test('Punkte zählen ab der Startetage (Himmelreich-Direktstart)', () => {
+  const c = new ComboTracker();
+  c.baseFloor = 1000;
+  c.maxFloor = 1000;
+  c.lastFloor = 1000;
+  assert.equal(c.score, 0);
+  c.land(1001);
+  assert.equal(c.score, 10);
+});

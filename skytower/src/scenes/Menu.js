@@ -57,16 +57,25 @@ export class MenuScene extends Phaser.Scene {
       `${tr('Münzen', 'Coins')}: ${num(s.coins)}`
         + (s.umbrellas ? `   ·   ${tr('Regenschirme', 'Umbrellas')}: ${s.umbrellas}` : '')
         + (s.gateCount ? `\n${tr('Himmelstor erreicht', 'Heaven Gate reached')}${s.gateCount > 1 ? ` ×${s.gateCount}` : ''}` : '')
-        + (s.perfectCount ? `   ·   ★ ${tr('Perfekt', 'Perfect')}${s.perfectCount > 1 ? ` ×${s.perfectCount}` : ''}` : ''),
+        + (s.perfectCount ? `   ·   ★ ${tr('Perfekt', 'Perfect')}${s.perfectCount > 1 ? ` ×${s.perfectCount}` : ''}` : '')
+        + (s.heavenBest ? `\n${tr('Himmelreich-Rekord', 'Heaven record')}: ${s.heavenBest} ${tr('Etagen', 'floors')}` : ''),
     ];
     txt(this, W / 2, VIEW_H * 0.63, stats.join('\n'), 34, { strokeThickness: 7 }).setLineSpacing(6);
 
-    button(this, W / 2, VIEW_H * 0.76, tr('Spielen', 'Play'), () => {
+    // Himmelreich als eigener Modus, sobald das Himmelstor einmal erreicht wurde
+    const heavenUnlocked = (s.gateCount ?? 0) > 0;
+    const play = (mode) => () => {
       unlockAudio();
       sfx.click();
       music.start('game');
-      this.scene.start('Game');
-    }, { w: 420, h: 116, size: 54 });
+      this.scene.start('Game', { mode });
+    };
+    if (heavenUnlocked) {
+      button(this, W / 2 - 160, VIEW_H * 0.76, tr('Spielen', 'Play'), play('normal'), { w: 300, h: 116, size: 50 });
+      button(this, W / 2 + 160, VIEW_H * 0.76, tr('Himmelreich', 'Heaven'), play('heaven'), { w: 300, h: 116, size: 38, fill: 0xfff3c4 });
+    } else {
+      button(this, W / 2, VIEW_H * 0.76, tr('Spielen', 'Play'), play('normal'), { w: 420, h: 116, size: 54 });
+    }
 
     // untere Reihe: Skins · Steuerung (Tippen/Neigen) · Ton
     const rowY = VIEW_H * 0.76 + 130;

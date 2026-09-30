@@ -34,6 +34,11 @@ Konzept und Fahrplan: [KONZEPT.md](KONZEPT.md).
   **Himmelreich** (Etage 1001+, endlos): Einmal-Wolken, die nach dem Absprung wegpuffen (+3 Münzen),
   fast überall Gold und Diamanten, alle 50 Etagen eine feste Rast-Plattform, eigene Musik.
   Am Rundenende gibt es den Siegerbildschirm „Geschafft!“
+- **Himmelreich als eigener Modus:** Nach dem ersten Erreichen des Tors steht im Menü neben „Spielen“
+  der Button „Himmelreich“ – Direktstart auf Etage 1000 mit eigenem Rekord (Highscore und
+  Etagen-Erfolge bleiben davon unberührt)
+- **Bildschirm bleibt beim Spielen an** (auch bei der Neigen-Steuerung): Android-Modul
+  `KeepAwakePlugin.java`, im Browser Screen Wake Lock; in Pause und Menü darf er ausgehen
 - **Power-ups ab Etage 40, bewusst selten** (höchstens eins je 60 Etagen, im Schnitt etwa alle 130) (`src/systems/powerups.js`): Raketen-Wolke (+30 Etagen, zählt als
   Combo), Regenschirm (rettet vorm Absturz; Vorrat bis 3, bleibt über Runden erhalten,
   wird eingesammelt; Anzeige oben rechts im HUD), Münz-Magnet (10 s), in der Galaxie Warp-Sterne
