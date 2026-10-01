@@ -37,3 +37,10 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield). Every 100 coins earns an extra life.
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest realm is saved, so you can
   continue later.
+
+## Painted art
+
+Some art is generated with Higgsfield (GPT Image 2.5) and lives in `assets/` as WebP: Thor's sprite sheet, the draugr
+sheet, and the painted Midgard and Jötunheim backdrops. `tools/embed_assets.py` embeds them into `index.html` so the
+game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
+added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
