@@ -19,7 +19,7 @@ Neu erzeugen: `PLAYWRIGHT=… node scripts/make-store-assets.mjs` (Icon und Tite
 Wolki: Sky Climber
 
 **Kurzbeschreibung** (max. 80 Zeichen)
-Hüpf mit Wolki durch 10 Himmelszonen bis zum Himmelstor – schaffst du Etage 1000?
+Hüpf mit Wolki durch 10 Himmelszonen zum Himmelstor – schaffst du Etage 1000?
 
 **Vollständige Beschreibung** (max. 4000 Zeichen)
 
@@ -62,7 +62,7 @@ Die Hintergrundmusik wird mit jeder Stufe schneller und voller und klingt in jed
 Wolki: Sky Climber
 
 **Short description** (max. 80 characters)
-Hop with Wolki through 10 sky zones to the Heaven Gate – can you reach floor 1000?
+Hop with Wolki through 10 sky zones to the Heaven Gate – reach floor 1000!
 
 **Full description** (max. 4000 characters)
 
