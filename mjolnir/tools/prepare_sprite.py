@@ -92,11 +92,35 @@ def frames_of(im):
     return out
 
 
+def apply_edits(frames, edits_path):
+    """Erase rectangles per frame and turn named points into 0..1 coords of the trimmed frame."""
+    pts = {}
+    if not edits_path.exists():
+        return frames, pts
+    edits = json.loads(edits_path.read_text())
+    out = []
+    for i, f in enumerate(frames):
+        e = edits.get(str(i))
+        if not e:
+            out.append(f)
+            continue
+        f = f.copy()
+        clear = Image.new("RGBA", f.size, (0, 0, 0, 0))
+        for x0, y0, x1, y1 in e.get("erase", []):
+            f.paste(clear.crop((0, 0, x1 - x0, y1 - y0)), (x0, y0))
+        bb = f.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
+        f = f.crop(bb)
+        if e.get("points"):
+            pts[str(i)] = {k: [round((x - bb[0]) / f.size[0], 4), round((y - bb[1]) / f.size[1], 4)] for k, (x, y) in e["points"].items()}
+        out.append(f)
+    return out, pts
+
+
 def build(name, raw, target_h):
     im = Image.open(raw)
     if im.mode != "RGBA" or im.getchannel("A").getextrema()[0] > 10:
         im = key_white(im)
-    frames = frames_of(im)
+    frames, pts = apply_edits(frames_of(im), pathlib.Path(raw).with_suffix(".edits.json"))
     sc = target_h / max(f.size[1] for f in frames)
     parts = []
     for f in frames:
@@ -123,6 +147,8 @@ def build(name, raw, target_h):
     meta_path = ASSETS / "sprites.json"
     meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
     meta[name] = {"frames": fr, "h": ah}
+    if pts:
+        meta[name]["pts"] = pts
     meta_path.write_text(json.dumps(meta))
     print(f"{name}: {len(fr)} frames, atlas {aw}x{ah}")
 
