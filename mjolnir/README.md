@@ -40,7 +40,8 @@ stylesheet, and the game falls back to system fonts without it.)
 
 ## Painted art
 
-Some art is generated with Higgsfield (GPT Image 2.5) and lives in `assets/` as WebP: Thor's sprite sheet, the draugr
-sheet, and the painted Midgard and Jötunheim backdrops. `tools/embed_assets.py` embeds them into `index.html` so the
+Some art is generated (Higgsfield GPT Image 2.5 and Google Gemini) and lives in `assets/` as WebP: the Thor, Loki and
+draugr sprite sheets and the painted Midgard and Jötunheim backdrops. The untouched originals are in `assets/raw/`.
+`tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
