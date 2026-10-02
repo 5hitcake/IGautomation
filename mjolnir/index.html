@@ -838,14 +838,25 @@ function drawValkyrieDrawn(g, x, y, t, a, dir = 1) {
   g.restore();
 }
 
-function drawCoin(g, x, y, t, spin) {
+function drawGem(g, x, y, t) {
+  // hidden treasure: a faceted rune diamond
+  glow(g, x, y, 34, '140,230,255', .6 + Math.sin(t * 8) * .15);
+  g.save(); g.translate(x, y); g.rotate(Math.sin(t * 3) * .15);
+  g.beginPath(); g.moveTo(-12, -4); g.lineTo(-6, -12); g.lineTo(6, -12); g.lineTo(12, -4); g.lineTo(0, 14); g.closePath();
+  ink(g, lgrad(g, -12, -12, 12, 14, ['#e8fbff', '#6fd8ff', '#2a7ad8', '#1a3a8a']), 1.6);
+  g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(-12, -4); g.lineTo(12, -4); g.moveTo(-6, -12); g.lineTo(-3, -4); g.lineTo(0, 14); g.lineTo(3, -4); g.lineTo(6, -12); g.stroke();
+  g.fillStyle = '#fff'; g.fillRect(-5, -10, 3, 3);
+  g.restore();
+}
+function drawCoin(g, x, y, t, spin, kind = 'gold', size = 1) {
   if (imgReady('items')) {
-    // spins around its vertical axis: squash the width, show the gold rim when edge-on
-    const c = Math.cos(spin), w = Math.max(.08, Math.abs(c));
-    g.save(); g.translate(x, y + 12); g.scale(w, 1);
-    drawFrame(g, 'items', 1, 0, 0, 24, false);
+    // spins around its vertical axis: squash the width, show the rim when edge-on
+    const c = Math.cos(spin), w = Math.max(.08, Math.abs(c)), wood = kind === 'wood';
+    g.save(); g.translate(x, y + 12 * size); g.scale(w, 1);
+    drawFrame(g, 'items', 1, 0, 0, 24 * size, false, 0, wood ? tinted('items', 'sepia(1) saturate(1.9) hue-rotate(-32deg) brightness(.5) contrast(1.3)') : null);
     g.restore();
-    if (w < .35) { g.fillStyle = '#b07a1c'; g.fillRect(x - 1.5, y - 11, 3, 22); }
+    if (w < .35) { g.fillStyle = wood ? '#6a3a1a' : '#b07a1c'; g.fillRect(x - 1.5, y - 11 * size, 3, 22 * size); }
     return;
   }
   const w = Math.abs(Math.cos(spin)) * 10.5 + 1.5;
@@ -1504,12 +1515,10 @@ const LEVELS = [
    (with Ratatoskr's lessons), stages 2-5 are assembled from hand-made
    chunks, getting harder each stage. Loki waits only in stage 5.
    ============================================================ */
-const STAGES = 5;
+const STAGES = 3;
 const STAGE_INTROS = [
   null,
-  'Loki’s green smoke still hangs in the air. Follow it.',
-  'The trail grows colder, the storms grow louder. Keep running.',
-  'Somewhere ahead the trickster is laughing. You can hear it.',
+  'Loki’s green smoke still hangs in the air. The storms grow louder. Keep running.',
   'Mjölnir hums close by. Loki is waiting at the end of this road.',
 ];
 const GEN = [
@@ -1525,7 +1534,7 @@ const STORM_BASE = {
   hunt: { interval: .85, warn: .9 }, double: { interval: .5, pause: 1.3, warn: 1 }, mix: { interval: .5, pause: 1.2, warn: .95 },
 };
 function genStage(b, world, stage, R) {
-  const cfg = GEN[world], d = (stage - 1) / 3, pick = arr => arr[Math.floor(R() * arr.length)];
+  const cfg = GEN[world], d = (stage - 1) / Math.max(1, STAGES - 2), pick = arr => arr[Math.floor(R() * arr.length)];
   const ri = (a, z) => a + Math.floor(R() * (z - a + 1));
   const C = {
     rest(x) { const n = ri(6, 9); b.floor(x, x + n - 1); if (R() < .5) b.coins(x + 2, 4, ri(2, 4)); if (R() < .25) b.sheep(x + Math.floor(n / 2), 1.5); return x + n; },
@@ -1633,6 +1642,16 @@ function buildLevel(idx, stage = 0) {
     for (let r = 0; r < ROWS; r++) g2.set(L.grid.subarray(r * w, r * w + used), r * used);
     L.grid = g2; L.bump = new Float32Array(used * ROWS); w = L.w = used;
   }
+  // treasure: most coins are wooden, some gold; some rune crates hold gold, and 1-2 stone blocks hide a gem
+  {
+    const TR = rng(idx * 7919 + stage * 313 + 3);
+    for (const e of L.ents) if (e.type === 'coin') e.kind = TR() < .1 ? 'gold' : 'wood';
+    L.secrets = new Map();
+    for (let i = 0; i < L.grid.length; i++) if (L.grid[i] === T.QCOIN && TR() < .25) L.secrets.set(i, 'gold');
+    const hideable = [];
+    for (let i = L.w; i < (ROWS - 1) * L.w; i++) if (L.grid[i] === T.BRICK && L.grid[i + L.w] === T.EMPTY && L.grid[i - L.w] !== T.BRICK) hideable.push(i);
+    for (let k = 0; k < Math.min(2, hideable.length); k++) L.secrets.set(hideable.splice(Math.floor(TR() * hideable.length), 1)[0], 'gem');
+  }
   // only the last stage of a realm ends at Mjölnir (and Loki); the others end at a rune gate
   if (!L.loki && L.goal) { L.exit = L.goal; L.goal = null; }
   // stone pedestal for the hammer
@@ -1734,7 +1753,9 @@ function noise(dur, vol, ftype, f0, f1, when = 0, wet = 0, dest) {
 function bell(f, vol, when = 0, wet = .5) { tone('sine', f, 0, 1.2, vol, when, wet); tone('sine', f * 2.76, 0, .5, vol * .35, when, wet); tone('sine', f * 5.4, 0, .25, vol * .15, when, wet); }
 const SFX = {
   jump() { noise(.16, .12, 'bandpass', 500, 1400); tone('sine', 180, 320, .12, .1); },
-  coin() { bell(1318, .09); bell(1976, .06, .06); },
+  coin() { tone('triangle', 660, 520, .07, .14); noise(.04, .12, 'bandpass', 1800, 900); tone('triangle', 990, 0, .09, .08, .05); },
+  gold() { bell(1318, .1); bell(1976, .08, .06); bell(2637, .05, .12); },
+  gem() { [1568, 1976, 2349, 3136, 3951].forEach((f, i) => bell(f, .07, i * .06, .8)); noise(.6, .06, 'highpass', 6000, 9000, 0, .8); },
   stomp() { tone('sine', 140, 45, .22, .5); noise(.12, .3, 'lowpass', 1200, 200); },
   bump() { tone('sine', 110, 70, .15, .35); noise(.06, .15, 'lowpass', 900, 300); },
   hurt() { tone('sawtooth', 300, 90, .35, .12, 0, .2); noise(.25, .25, 'bandpass', 900, 200); },
@@ -1784,8 +1805,8 @@ CHORDS.push([[50, 53, 57], [46, 50, 53], [43, 46, 50], [45, 49, 52]]);
 const midiHz = n => 440 * Math.pow(2, (n - 69) / 12);
 // The whole score is rendered once per realm into a seamless loop (OfflineAudioContext)
 // and then played as a single looping buffer, so the game loop never has to schedule notes.
-const TITLE_MUSIC = [4, 58, 0];
-function realmMusic(i) { const m = THEMES[LEVELS[i].theme].music; return [m, [66, 70, 74, 72][m], m >= 2 ? 2 : 1]; }
+const TITLE_MUSIC = [4, 80, 0];
+function realmMusic(i) { const m = THEMES[LEVELS[i].theme].music; return [m, [96, 100, 108, 104][m], m >= 2 ? 2 : 1]; }
 const Music = {
   pat: 0, tempo: 70, intensity: 1, cache: {}, order: [], want: null, src: null, g: null, queue: Promise.resolve(), pending: {},
   start() { syncMusic(); },
@@ -1821,76 +1842,94 @@ const Music = {
     this.src = s; this.g = g;
   },
   async render(pat, tempo, intensity) {
-    const sr = 24000, spb = 60 / tempo / 2, STEPS = 128, XF = 2.5;
+    // epic quest arrangement: string ostinato, war drums and toms, horn melody, choir, cymbals
+    const sr = 22050, spb = 60 / tempo / 2, STEPS = 128, XF = 2.5;
     const loopLen = STEPS * spb, extra = Math.ceil((XF + 1) / spb), total = (STEPS + extra) * spb;
     const c = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(total * sr), sr);
     const bus = c.createGain(); bus.gain.value = 1; bus.connect(c.destination);
-    const verb = c.createConvolver(); verb.buffer = makeImpulse(c, 3.4, 2.6);
-    const vg = c.createGain(); vg.gain.value = .55; verb.connect(vg); vg.connect(c.destination);
+    const verb = c.createConvolver(); verb.buffer = makeImpulse(c, 1.2, 2.2);
+    const vg = c.createGain(); vg.gain.value = .5; verb.connect(vg); vg.connect(c.destination);
     const out = wet => { const g = c.createGain(); g.connect(bus); if (wet) { const w = c.createGain(); w.gain.value = wet; g.connect(w); w.connect(verb); } return g; };
     const noiseBuf = c.createBuffer(1, sr * 2, sr), nd = noiseBuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-    const lyre = ksBuffer(c, midiHz(50), 3.2, .9965);
-    // LFOs complete whole cycles per loop so the seam is invisible
-    const loopHz = f => Math.max(1, Math.round(f * loopLen)) / loopLen;
-    const lfo = (f, depth, target) => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = loopHz(f); g.gain.value = depth; o.connect(g); g.connect(target); o.start(); };
-    // drone
-    const df = c.createBiquadFilter(); df.type = 'lowpass'; df.frequency.value = 700; df.Q.value = 2; lfo(.05, 120, df.frequency);
-    const dg = c.createGain(); dg.gain.value = .09; df.connect(dg); dg.connect(bus);
-    const dw = c.createGain(); dw.gain.value = .3; dg.connect(dw); dw.connect(verb);
-    [73.42, 110, 146.83, 220.5].forEach((hz, i) => { const o = c.createOscillator(), og = c.createGain(); o.type = 'sawtooth'; o.frequency.value = hz; og.gain.value = i === 3 ? .4 : 1; o.connect(og); og.connect(df); o.start(); });
-    // throat chant
-    const ch = c.createOscillator(); ch.type = 'sawtooth'; ch.frequency.value = 73.42;
-    const vib = c.createOscillator(), vbg = c.createGain(); vib.frequency.value = 4.5; vbg.gain.value = .6; vib.connect(vbg); vbg.connect(ch.frequency); vib.start();
-    const cg = c.createGain(); cg.gain.value = .022; lfo(.045, .022, cg.gain);
-    for (const [fr, q, mod] of [[420, 9, 120], [820, 12, 260], [2600, 14, 0]]) {
-      const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q;
-      if (mod) lfo(.07, mod, bp.frequency);
-      ch.connect(bp); bp.connect(cg);
-    }
-    ch.start();
-    const cw = c.createGain(); cw.gain.value = 1; cg.connect(cw); cw.connect(verb);
-    const cd = c.createGain(); cd.gain.value = .5; cg.connect(cd); cd.connect(bus);
-    // wind
-    const ws = c.createBufferSource(); ws.buffer = noiseBuf; ws.loop = true;
-    const wf = c.createBiquadFilter(); wf.type = 'bandpass'; wf.frequency.value = 500; wf.Q.value = .8; lfo(.03, 300, wf.frequency);
-    const wg = c.createGain(); wg.gain.value = .045; ws.connect(wf); wf.connect(wg); wg.connect(bus); ws.start();
-    const drum = (t, v, hz) => {
-      const o = c.createOscillator(), g = c.createGain();
-      o.type = 'sine'; o.frequency.setValueAtTime(hz * 1.6, t); o.frequency.exponentialRampToValueAtTime(hz * .7, t + .35);
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.7 * v, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + .6);
-      o.connect(g); g.connect(out(.35)); o.start(t); o.stop(t + .65);
-      const s = c.createBufferSource(), f = c.createBiquadFilter(), ng = c.createGain();
-      s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = .8;
-      ng.gain.setValueAtTime(.35 * v, t); ng.gain.exponentialRampToValueAtTime(.0001, t + .08);
-      s.connect(f); f.connect(ng); ng.connect(out(.3)); s.start(t, Math.random()); s.stop(t + .1);
+    const NOTE = { C: 36, D: 38, Eb: 39, E: 40, F: 41, G: 43, A: 45, Bb: 46, B: 47 };
+    const PROG = [
+      ['Dm', 'Bb', 'F', 'C', 'Dm', 'Bb', 'C', 'A'],
+      ['Dm', 'C', 'Bb', 'A', 'Gm', 'Bb', 'C', 'A'],
+      ['Dm', 'Eb', 'Dm', 'C', 'Bb', 'C', 'Dm', 'A'],
+      ['D', 'G', 'Bm', 'A', 'D', 'G', 'Em', 'A'],
+      ['Dm', 'Bb', 'F', 'C', 'Gm', 'Bb', 'A', 'A'],
+    ][pat] || ['Dm', 'Bb', 'F', 'C', 'Dm', 'Bb', 'C', 'A'];
+    const chord = name => { const minor = name.endsWith('m'), r = NOTE[minor ? name.slice(0, -1) : name]; return [r, r + (minor ? 3 : 4), r + 7]; };
+    const voice = (type, hz, t, dur, vol, wet, fc, det = 0, att = .01) => {
+      const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+      o.type = type; o.frequency.value = hz; o.detune.value = det;
+      f.type = 'lowpass'; f.frequency.value = fc * .75;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + att); g.gain.setTargetAtTime(.0001, t + dur * .7, dur * .25);
+      o.connect(f); f.connect(g); g.connect(out(wet)); o.start(t); o.stop(t + dur * 1.6 + .1);
     };
+    const hit = (t, v, hz, decay = .55) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(hz * 1.8, t); o.frequency.exponentialRampToValueAtTime(hz * .7, t + .3);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.9 * v, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + decay);
+      o.connect(g); g.connect(out(.3)); o.start(t); o.stop(t + decay + .05);
+      noiseHit(t, .3 * v, 'lowpass', 900, .09, 0);
+    };
+    const noiseHit = (t, v, type, fc, dur, wet = .3) => {
+      const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = noiseBuf; f.type = type; f.frequency.value = fc; f.Q.value = .7;
+      g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      s.connect(f); f.connect(g); g.connect(out(wet)); s.start(t, Math.random()); s.stop(t + dur + .05);
+    };
+    // low drone under everything
+    { const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.value = 73.42; f.type = 'lowpass'; f.frequency.value = 260; g.gain.value = .035; o.connect(f); f.connect(g); g.connect(bus); o.start(); }
+    // horn melody: chord tones with smooth voice-leading, heroic dotted rhythm
+    const RHY = [[[0, 3], [3, 3], [6, 2]], [[0, 4], [4, 2], [6, 2]], [[0, 2], [2, 2], [4, 4]], [[0, 8]]];
+    const mel = []; let prev = 62;
+    for (let bar = 0; bar < 8; bar++) {
+      const tones = []; for (const n of chord(PROG[bar])) for (let o = 12; o <= 36; o += 12) if (n + o >= 57 && n + o <= 76) tones.push(n + o);
+      const rh = bar === 7 ? RHY[3] : RHY[bar % 3];
+      rh.forEach(([st, len], k) => {
+        const up = (bar + k) % 2 === 0;
+        let best = tones[0], bd = 1e9;
+        for (const tn of tones) { const d = Math.abs(tn - prev) + (up ? (tn < prev ? 3 : 0) : (tn > prev ? 3 : 0)) + (tn === prev ? 2 : 0); if (d < bd) { bd = d; best = tn; } }
+        if (bar === 7) best = tones.reduce((a, b) => Math.abs(b - 62) < Math.abs(a - 62) ? b : a);
+        mel.push({ step: bar * 8 + st, len, n: best }); prev = best;
+      });
+    }
+    const title = intensity === 0;
     for (let s = 0; s < STEPS + extra; s++) {
-      const t = s * spb, beat = s % 16, bar = Math.floor(s / 16);
-      if (intensity === 0) { if (beat === 0 && bar % 2 === 0) drum(t, .45, 55); }
-      else { if (beat === 0) drum(t, 1, 58); if (beat === 2) drum(t, .55, 62); }
-      if (intensity >= 2 && (beat === 8 || beat === 10)) drum(t, .6, 72);
-      if (intensity >= 2 && beat === 14 && bar % 2) { drum(t, .35, 90); drum(t + spb * .5, .3, 90); }
-      const m = MOTIFS[pat], n = m[s % m.length];
-      if (n != null) {
-        const src = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
-        src.buffer = lyre; src.playbackRate.value = Math.pow(2, n / 12 + 1);
-        f.type = 'lowpass'; f.frequency.value = 2600;
-        g.gain.value = .55; src.connect(f); f.connect(g); g.connect(out(.6)); src.start(t); src.stop(t + 3);
-        const fl = c.createOscillator(), fg = c.createGain(); fl.type = 'triangle'; fl.frequency.value = midiHz(62 + n + 12);
-        fg.gain.setValueAtTime(.0001, t); fg.gain.exponentialRampToValueAtTime(.05, t + .06); fg.gain.exponentialRampToValueAtTime(.0001, t + spb * 1.8);
-        fl.connect(fg); fg.connect(out(.8)); fl.start(t); fl.stop(t + spb * 2);
+      const t = s * spb, bar = Math.floor(s / 8), pos = s % 8, ch = chord(PROG[bar % 8]), second = (bar % 16) >= 8;
+      // string ostinato (driving eighths)
+      const ost = [0, 0, 12, 0, 7, 0, 12, 7][pos];
+      if (!title || pos % 2 === 0) {
+        voice('sawtooth', midiHz(ch[0] + 12 + ost), t, spb * .9, title ? .04 : .07, .25, 1400);
       }
-      if (s % 32 === 0) {
-        const chord = CHORDS[pat][Math.floor(s / 32) % 4], dur = spb * 32;
-        chord.forEach(note => {
-          for (const det of [-5, 5]) {
-            const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
-            o.type = 'sawtooth'; o.frequency.value = midiHz(note + 12); o.detune.value = det;
-            f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.2;
-            g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.028, t + dur * .35); g.gain.linearRampToValueAtTime(.0001, t + dur * 1.05);
-            o.connect(f); f.connect(g); g.connect(out(1.2)); o.start(t); o.stop(t + dur * 1.1);
-          }
-        });
+      // bass on the downbeats
+      if (pos === 0 || pos === 4) voice('sawtooth', midiHz(ch[0]), t, spb * 4, .09, .1, 500);
+      // drums
+      if (title) { if (pos === 0) hit(t, .8, 52, .9); if (pos === 4 && bar % 2) hit(t, .5, 55); }
+      else {
+        const k = { 0: 1, 3: .6, 4: .9, 6: .55 }[pos]; if (k) hit(t, k, 55);
+        if (intensity >= 2 && pos === 7) hit(t, .45, 60);
+        if (pos === 2 || pos === 6) noiseHit(t, .22, 'bandpass', 1900, .12);
+        if (bar % 4 === 3 && pos >= 4) hit(t, .6, [110, 95, 82, 70][pos - 4], .35);
+      }
+      // cymbal at the top of each phrase
+      if (pos === 0 && bar % 8 === 0) noiseHit(t, title ? .07 : .12, 'highpass', 5500, 2.2, .7);
+      // choir pad
+      if (pos === 0) for (const n of ch) for (const det of [0]) {
+        const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(), dur = spb * 8;
+        o.type = 'sawtooth'; o.frequency.value = midiHz(n + 24); o.detune.value = det;
+        f.type = 'bandpass'; f.frequency.value = 850; f.Q.value = 1.4;
+        g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(second ? .05 : .035, t + dur * .3); g.gain.linearRampToValueAtTime(.0001, t + dur * 1.08);
+        o.connect(f); f.connect(g); g.connect(out(1.1)); o.start(t); o.stop(t + dur * 1.1);
+      }
+      // horn melody (and an octave-up double on the second pass)
+      for (const m of mel) if (m.step === s % 64) {
+        const dur = m.len * spb;
+        voice('sawtooth', midiHz(m.n), t, dur, title ? .07 : .09, .55, 2200, 0, .06);
+        voice('triangle', midiHz(m.n - 12), t, dur, .05, .4, 1200, 0, .05);
+        if (second && !title) voice('triangle', midiHz(m.n + 12), t, dur, .035, .7, 3000, 0, .05);
       }
     }
     const rendered = await c.startRendering();
@@ -1901,6 +1940,9 @@ const Music = {
       y.set(x.subarray(0, L));
       for (let i = 0; i < F; i++) { const a = i / F; y[i] = x[i] * a + x[L + i] * (1 - a); }
     }
+    // normalise so the loop never clips
+    let peak = .01; for (let ch2 = 0; ch2 < 2; ch2++) { const y = outBuf.getChannelData(ch2); for (let i = 0; i < y.length; i++) peak = Math.max(peak, Math.abs(y[i])); }
+    const k = .8 / peak; for (let ch2 = 0; ch2 < 2; ch2++) { const y = outBuf.getChannelData(ch2); for (let i = 0; i < y.length; i++) y[i] *= k; }
     return outBuf;
   },
 };
@@ -1992,13 +2034,18 @@ cv.addEventListener('pointerdown', e => {
 const G = { taken: new Set(), state: 'title', level: 0, stage: 0, progress: 0, mapSel: 0, titleMode: null, score: 0, coins: 0, lives: 3, hearts: 3, lvlScore: 0, lvlCoins: 0, checkpoint: -1, t: 0, st: 0, sel: 0, unlocked: 0, flash: 0, shake: 0, paused: false, cut: null, dieT: 0 };
 // progress = highest unlocked stage, counted across realms (realm * STAGES + stage)
 try {
-  const p = localStorage.getItem('mjolnir.progress'), old = localStorage.getItem('mjolnir.realm');
-  G.progress = clamp(p != null ? parseInt(p, 10) || 0 : (parseInt(old || '0', 10) || 0) * STAGES, 0, LEVELS.length * STAGES - 1);
+  // saves from the 5-stage version are mapped onto 3 stages per realm
+  const p3 = localStorage.getItem('mjolnir.progress3'), p5 = localStorage.getItem('mjolnir.progress'), old = localStorage.getItem('mjolnir.realm');
+  let p = 0;
+  if (p3 != null) p = parseInt(p3, 10) || 0;
+  else if (p5 != null) { const v = parseInt(p5, 10) || 0; p = Math.floor(v / 5) * STAGES + Math.min(v % 5, STAGES - 1); }
+  else p = (parseInt(old || '0', 10) || 0) * STAGES;
+  G.progress = clamp(p, 0, LEVELS.length * STAGES - 1);
 } catch (e) { G.progress = 0; }
 G.unlocked = Math.floor(G.progress / STAGES);
 function unlock(idx) {
   idx = Math.min(idx, LEVELS.length * STAGES - 1);
-  if (idx > G.progress) { G.progress = idx; G.unlocked = Math.floor(idx / STAGES); try { localStorage.setItem('mjolnir.progress', String(idx)); } catch (e) { /* storage unavailable */ } }
+  if (idx > G.progress) { G.progress = idx; G.unlocked = Math.floor(idx / STAGES); try { localStorage.setItem('mjolnir.progress3', String(idx)); } catch (e) { /* storage unavailable */ } }
 }
 let L = null, P = null, parts = [], floats = [], fx = [], layers = null, tiles = null, weather = [], loki = null;
 const cam = { x: 0, look: 0 };
@@ -2100,9 +2147,14 @@ function floatText(x, y, text, color = '#ffe28a') { floats.push({ x, y, text, co
    Gameplay
    ============================================================ */
 function addScore(n, x, y) { G.score += n; if (x != null) floatText(x, y, '+' + n); }
-function addCoin(x, y) {
-  G.coins++; addScore(10); SFX.coin();
-  if (G.coins % 100 === 0) { G.lives++; floatText(x, y - 20, '+1 LIFE', '#9fe3ff'); SFX.horn(); }
+// wooden rune coins are worth 1, gold coins 10, hidden gems 50; every 100 earns a life
+const TREASURE = { wood: 1, gold: 10, gem: 50 };
+function addCoin(x, y, kind = 'wood') {
+  const v = TREASURE[kind], before = G.coins;
+  G.coins += v; addScore(v * 10);
+  if (kind === 'wood') SFX.coin(); else if (kind === 'gold') SFX.gold(); else SFX.gem();
+  if (kind !== 'wood') floatText(x - 6, y - 4, kind === 'gem' ? 'SECRET GEM +50' : '+10', kind === 'gem' ? '#9ff0ff' : '#ffe28a');
+  if (Math.floor(G.coins / 100) > Math.floor(before / 100)) { G.lives++; floatText(x, y - 26, '+1 LIFE', '#9fe3ff'); SFX.horn(); }
 }
 function hurt(srcX) {
   if (P.invuln > 0 || G.state !== 'play') return;
@@ -2129,15 +2181,19 @@ function hitBlock(tx, ty) {
     if (e.dead || (e.type !== 'wolf' && e.type !== 'draugr' && e.type !== 'sheep' && e.type !== 'coin')) continue;
     if (e.x + e.w > tx * TS && e.x < (tx + 1) * TS && Math.abs(e.y + e.h - ty * TS) < 6) {
       if (e.type === 'wolf' || e.type === 'draugr') { e.dead = 'fall'; e.vy = -500; e.dt = 0; addScore(100, e.x, e.y); SFX.stomp(); }
-      else if (e.type === 'coin') { e.dead = 'got'; G.taken.add('c' + e.x + ',' + e.y); addCoin(e.x, e.y); }
+      else if (e.type === 'coin') { e.dead = 'got'; G.taken.add('c' + e.x + ',' + e.y); addCoin(e.x, e.y, e.kind); }
       else { e.vy = -420; e.onGround = false; SFX.baa(); }
     }
   }
-  if (t === T.QCOIN || t === T.QMEAD) G.taken.add('q' + i);
-  if (t === T.QCOIN) {
+  const secret = L.secrets.get(i);
+  if (t === T.QCOIN || t === T.QMEAD || secret) G.taken.add('q' + i);
+  if (t === T.QCOIN || (t === T.BRICK && secret)) {
+    // a plain-looking stone block can hide a gem; rune crates hold wooden or gold coins
+    const kind = secret || 'wood';
     L.grid[i] = T.USED;
-    L.ents.push({ type: 'popcoin', x: tx * TS + 12, y: ty * TS - 24, w: 24, h: 24, vy: -620, life: .55 });
-    addCoin(tx * TS, ty * TS);
+    L.ents.push({ type: 'popcoin', kind, x: tx * TS + 12, y: ty * TS - 24, w: 24, h: 24, vy: kind === 'gem' ? -760 : -620, life: kind === 'gem' ? .75 : .55 });
+    if (kind === 'gem') { G.flash = Math.max(G.flash, .25); burst(tx * TS + 24, ty * TS, 24, '#9ff0ff', 240, .8, 3, 200, true); }
+    addCoin(tx * TS, ty * TS, kind);
   } else if (t === T.QMEAD) {
     L.grid[i] = T.USED; SFX.mead();
     L.ents.push({ type: 'mead', x: tx * TS + 10, y: ty * TS, w: 28, h: 28, vx: 0, vy: 0, dir: 1, emerge: .5, baseY: ty * TS - 28 });
@@ -2293,7 +2349,7 @@ function collideEnts() {
   for (const e of L.ents) {
     if (e.dead || !overlap(p, e)) continue;
     switch (e.type) {
-      case 'coin': e.dead = 'got'; G.taken.add('c' + e.x + ',' + e.y); addCoin(e.x, e.y); burst(e.x + 12, e.y + 12, 6, '#ffd24a', 100, .35, 2.5, 0); break;
+      case 'coin': e.dead = 'got'; G.taken.add('c' + e.x + ',' + e.y); addCoin(e.x, e.y, e.kind); burst(e.x + 12, e.y + 12, e.kind === 'gold' ? 12 : 6, e.kind === 'gold' ? '#ffd24a' : '#c8834a', 100, .35, 2.5, 0); break;
       case 'mead':
         if (e.emerge > 0) break;
         e.dead = 'got'; SFX.mead();
@@ -2964,8 +3020,13 @@ function bubble(g, x, y, text, who) {
 
 function drawEntity(g, e) {
   switch (e.type) {
-    case 'coin': drawCoin(g, e.x + 12, e.y + 12 + Math.sin(G.t * 3 + e.ph) * 2, G.t, G.t * 3 + e.ph); glow(g, e.x + 12, e.y + 12, 16, '255,210,100', .15); break;
-    case 'popcoin': drawCoin(g, e.x + 12, e.y + 12, G.t, G.t * 18); break;
+    case 'coin': {
+      const y = e.y + 12 + Math.sin(G.t * 3 + e.ph) * 2;
+      if (e.kind === 'gold') { glow(g, e.x + 12, y, 26, '255,210,100', .35 + Math.sin(G.t * 4 + e.ph) * .1); drawCoin(g, e.x + 12, y, G.t, G.t * 3 + e.ph, 'gold', 1.25); }
+      else drawCoin(g, e.x + 12, y, G.t, G.t * 3 + e.ph, 'wood');
+      break;
+    }
+    case 'popcoin': if (e.kind === 'gem') drawGem(g, e.x + 12, e.y + 12, G.t); else drawCoin(g, e.x + 12, e.y + 12, G.t, G.t * 18, e.kind, e.kind === 'gold' ? 1.25 : 1); break;
     case 'mead': drawMead(g, e.x + 14, e.y + 18, G.t); break;
     case 'wolf': drawWolf(g, e, G.t); break;
     case 'raven': drawRaven(g, e, G.t); break;
@@ -3070,8 +3131,8 @@ function txt(g, s, x, y, size, color, align = 'center', font = BODY, weight = 80
   g.fillStyle = color; g.fillText(s, x, y);
 }
 function drawHUD(g) {
-  g.fillStyle = 'rgba(16,12,28,.72)'; rr(g, 10, 10, 336, 48, 14); g.fill();
-  g.strokeStyle = 'rgba(224,169,59,.55)'; g.lineWidth = 1.5; rr(g, 10, 10, 336, 48, 14); g.stroke();
+  g.fillStyle = 'rgba(16,12,28,.72)'; rr(g, 10, 10, 384, 48, 14); g.fill();
+  g.strokeStyle = 'rgba(224,169,59,.55)'; g.lineWidth = 1.5; rr(g, 10, 10, 384, 48, 14); g.stroke();
   for (let i = 0; i < 3; i++) drawShield(g, 35 + i * 30, 34, 12, i < G.hearts);
   g.save(); g.translate(138, 35); g.scale(.62, .62);
   g.beginPath(); g.arc(0, 0, 13, 0, 7); ink(g, '#f5c29d', 1.6);
@@ -3082,7 +3143,7 @@ function drawHUD(g) {
   txt(g, '×' + G.lives, 153, 35, 18, '#f3e7c9', 'left');
   drawCoin(g, 204, 34, G.t, G.t * 2.5);
   txt(g, '×' + G.coins, 219, 35, 18, '#f3e7c9', 'left');
-  txt(g, String(G.score).padStart(6, '0'), 334, 35, 18, '#ffe28a', 'right');
+  txt(g, String(G.score).padStart(7, '0'), 382, 35, 18, '#ffe28a', 'right');
   if (VW > 760) {
     txt(g, `${LEVELS[G.level].name}  ${G.level + 1}-${G.stage + 1}`, VW / 2, 26, 23, '#f3e7c9', 'center', DISPLAY, 400);
     drawRuneText(g, LEVELS[G.level].name, VW / 2, 42, 11, 'rgba(224,169,59,.9)', 1.6);
@@ -3288,7 +3349,7 @@ G.state = 'title';
 requestAnimationFrame(frame);
 
 // small hook for automated checks
-window.__snd = Sound; window.Music = Music;
+window.__snd = Sound; window.Music = Music; window.__musicSpecs = () => [TITLE_MUSIC, realmMusic(0), realmMusic(3)];
 window.__mjolnir = { G, input, get L() { return L; }, get P() { return P; }, beginStage, startGame, LEVELS, STAGES };
 })();
 </script>

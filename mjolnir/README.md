@@ -1,19 +1,19 @@
 # Mjölnir Lost
 
 A Mario-style Viking platformer. Loki has stolen Thor's hammer, and you chase him through five Norse realms:
-Midgard, Jötunheim, Járnviðr (the Iron Wood), Niflheim and Asgard, with 5 stages each (1-1 to 5-5). Stages 1-4 of a
-realm end at a rune gate; in stage 5 Thor almost grabs Mjölnir, but Loki snatches it and flees to the next realm. In
-Asgard 5-5, Thor finally takes it back.
+Midgard, Jötunheim, Járnviðr (the Iron Wood), Niflheim and Asgard, with 3 stages each (1-1 to 5-3). Stages 1-2 of a
+realm end at a rune gate; in stage 3 Thor almost grabs Mjölnir, but Loki snatches it and flees to the next realm. In
+Asgard 5-3, Thor finally takes it back.
 
-Stage 1 of every realm is hand-built (with Ratatoskr's lessons). Stages 2-5 are assembled by `genStage()` from
+Stage 1 of every realm is hand-built (with Ratatoskr's lessons). Stages 2-3 are assembled by `genStage()` from
 hand-made chunks (gaps, plank pits, wolf packs, draugar, ravens, rune blocks, hills, spikes, sheep jumps, stairs and
 lightning storms), seeded so they are the same every time and getting harder each stage. A realm map on the title
 screen lets you replay any unlocked stage.
 
 The art style is dark, misty chibi-anime: ink-outlined characters with big anime eyes, layered moonlit landscapes,
 fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly fire-haired jötunn with
-seiðr-green flame and the dwarves' stitches across his lips. The music is dark Nordic ambient (drone, throat-chant,
-frame drum, plucked lyre, choir, wind).
+seiðr-green flame and the dwarves' stitches across his lips. The music is epic quest music, rendered once per realm into a seamless loop: a driving string ostinato,
+war drums and toms, a heroic horn melody, choir and cymbals, with its own chord progression per realm.
 
 Open `index.html` in any modern browser. It's one self-contained file with no build step and no assets. All art is
 drawn on a canvas and all sound is synthesized with WebAudio. (The only external request is the Google Fonts
@@ -40,7 +40,9 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Sheep** are bouncy trampolines that reach high platforms.
 - **Ratatoskr**, the messenger squirrel of Yggdrasil, sits on rune stumps and gives hints.
 - **Valkyries** fly by when you raise a raven banner, and one carries Thor back when he falls.
-- **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full). Every 100 coins earns an extra life.
+- **Treasure** comes three ways: wooden rune coins (worth 1), rarer gold coins (worth 10, also inside some rune crates),
+  and secret gems (worth 50) hidden inside one or two plain-looking stone blocks per stage. Every 100 earns an extra life.
+- **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full).
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
 
 ## Painted art
