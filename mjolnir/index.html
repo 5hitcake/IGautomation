@@ -838,6 +838,20 @@ function drawValkyrieDrawn(g, x, y, t, a, dir = 1) {
   g.restore();
 }
 
+function drawMug(g, x, y, s, tilt, shine) {
+  // a wooden Viking tankard with iron bands and a carved rune, overflowing with foam
+  if (shine) { glow(g, x, y - 18, 38, rainbowRGB(G.t * 2, null), .45); glow(g, x, y - 18, 22, '255,230,160', .35); }
+  g.save(); g.translate(x, y); g.rotate(tilt || 0); g.scale(s, s);
+  g.beginPath(); g.moveTo(10, -30); g.bezierCurveTo(22, -30, 22, -10, 10, -10); g.strokeStyle = OL; g.lineWidth = 6; g.stroke(); g.strokeStyle = '#6b4424'; g.lineWidth = 3.5; g.stroke();
+  g.beginPath(); g.moveTo(-12, -36); g.lineTo(12, -36); g.lineTo(11, 0); g.lineTo(-11, 0); g.closePath();
+  ink(g, lgrad(g, -12, 0, 12, 0, ['#8a5a30', '#b07a44', '#6a4022']), 1.8);
+  g.strokeStyle = 'rgba(40,20,8,.55)'; g.lineWidth = 1; for (const vx of [-6, 0, 6]) { g.beginPath(); g.moveTo(vx, -35); g.lineTo(vx * .95, -1); g.stroke(); }
+  for (const by of [-31, -5]) { g.beginPath(); rr(g, -12.5, by, 25, 4, 1.2); ink(g, lgrad(g, 0, by, 0, by + 4, ['#b8c0cc', '#5a626e']), 1.2); }
+  drawRune(g, 'a', -3.5, -24, 13, '#e0b54c', 1.8);
+  for (const [fx, fr] of [[-9, 5.5], [-3, 6.5], [4, 6], [10, 5]]) { g.beginPath(); g.arc(fx, -37 - Math.sin(G.t * 4 + fx) * .8, fr, 0, 7); g.fillStyle = '#fff8e6'; g.fill(); }
+  g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(-9, -33, 3, 26);
+  g.restore();
+}
 function drawGem(g, x, y, t) {
   // hidden treasure: a faceted rune diamond
   glow(g, x, y, 34, '140,230,255', .6 + Math.sin(t * 8) * .15);
@@ -1533,8 +1547,8 @@ const STORM_BASE = {
   checker: { interval: 1.3, warn: 1 }, pairs: { interval: .8, warn: .95 }, rain: { interval: .9, warn: 1 },
   hunt: { interval: .85, warn: .9 }, double: { interval: .5, pause: 1.3, warn: 1 }, mix: { interval: .5, pause: 1.2, warn: .95 },
 };
-function genStage(b, world, stage, R) {
-  const cfg = GEN[world], d = (stage - 1) / Math.max(1, STAGES - 2), pick = arr => arr[Math.floor(R() * arr.length)];
+function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
+  const cfg = GEN[world], d = Math.max(0, (stage - 1) / Math.max(1, STAGES - 2)), pick = arr => arr[Math.floor(R() * arr.length)];
   const ri = (a, z) => a + Math.floor(R() * (z - a + 1));
   const C = {
     rest(x) { const n = ri(6, 9); b.floor(x, x + n - 1); if (R() < .5) b.coins(x + 2, 4, ri(2, 4)); if (R() < .25) b.sheep(x + Math.floor(n / 2), 1.5); return x + n; },
@@ -1575,9 +1589,9 @@ function genStage(b, world, stage, R) {
     },
   };
   const bag = []; for (const k in cfg.chunks) for (let i = 0; i < cfg.chunks[k]; i++) bag.push(k);
-  b.start(3); b.floor(0, 11);
-  let x = 12, last = '';
-  const n = 9 + stage * 2, ck = [Math.floor(n / 3), Math.floor(2 * n / 3)];
+  let x = startX, last = '';
+  if (!startX) { b.start(3); b.floor(0, 11); x = 12; }
+  const n = nChunks || 13 + stage * 3, ck = nChunks ? [Math.floor(n / 2)] : [Math.floor(n / 3), Math.floor(2 * n / 3)];
   for (let i = 0; i < n; i++) {
     if (ck.includes(i)) { b.floor(x, x + 5); b.check(x + 2); x += 6; }
     let c; do { c = pick(bag); } while ((c === last && c !== 'rest') || (c === 'storm' && last === 'storm'));
@@ -1593,7 +1607,7 @@ function genStage(b, world, stage, R) {
 
 function buildLevel(idx, stage = 0) {
   const def = LEVELS[idx];
-  let w = stage === 0 ? def.w : 640;
+  let w = 900;
   const L = { idx, stage, final: !!def.final && stage === STAGES - 1, loki: stage === STAGES - 1, def, w, grid: new Uint8Array(w * ROWS), bump: new Float32Array(w * ROWS), ents: [], storms: [], checks: [], signs: [], decor: [], start: null, goal: null, theme: THEMES[def.theme] };
   const set = (x, y, t) => { if (x < 0 || x >= w || y < 1 || y > ROWS) return; L.grid[(ROWS - y) * w + x] = t; };
   const standY = y => (ROWS - y + 1) * TS;
@@ -1636,9 +1650,12 @@ function buildLevel(idx, stage = 0) {
       L.storms.push({ x0: x0 * TS, n, slotW: TS * 2, pattern, interval: o.interval, pause: o.pause || 0, warn: o.warn || 1, t: .8, step: 0, strikes: [], mixI: 0, mixPat: 'sweepR', glow: 0, blobs: null, active: false });
     },
   };
-  if (stage === 0) def.build(b);
-  else {
-    const used = genStage(b, idx, stage, rng(idx * 977 + stage * 131 + 11)), g2 = new Uint8Array(used * ROWS);
+  {
+    // stage 1 is the hand-built level plus a generated stretch; later stages are fully generated
+    let used;
+    if (stage === 0) { def.build(b); L.signsEnd = def.w; used = genStage(b, idx, 0, rng(idx * 977 + 5), def.w + 1, 6); }
+    else used = genStage(b, idx, stage, rng(idx * 977 + stage * 131 + 11));
+    const g2 = new Uint8Array(used * ROWS);
     for (let r = 0; r < ROWS; r++) g2.set(L.grid.subarray(r * w, r * w + used), r * used);
     L.grid = g2; L.bump = new Float32Array(used * ROWS); w = L.w = used;
   }
@@ -1651,6 +1668,10 @@ function buildLevel(idx, stage = 0) {
     const hideable = [];
     for (let i = L.w; i < (ROWS - 1) * L.w; i++) if (L.grid[i] === T.BRICK && L.grid[i + L.w] === T.EMPTY && L.grid[i - L.w] !== T.BRICK) hideable.push(i);
     for (let k = 0; k < Math.min(2, hideable.length); k++) L.secrets.set(hideable.splice(Math.floor(TR() * hideable.length), 1)[0], 'gem');
+    // one hidden horn of Bifröst ale per stage: in a stone block if possible, else in a rune crate
+    if (hideable.length) L.secrets.set(hideable[Math.floor(TR() * hideable.length)], 'mug');
+    else { const qs = []; for (let i = 0; i < L.grid.length; i++) if (L.grid[i] === T.QCOIN) qs.push(i); if (qs.length) L.secrets.set(qs[Math.floor(TR() * qs.length)], 'mug'); }
+    L.plankT = new Map(); L.respawn = [];
   }
   // only the last stage of a realm ends at Mjölnir (and Loki); the others end at a rune gate
   if (!L.loki && L.goal) { L.exit = L.goal; L.goal = null; }
@@ -1754,6 +1775,10 @@ function bell(f, vol, when = 0, wet = .5) { tone('sine', f, 0, 1.2, vol, when, w
 const SFX = {
   jump() { noise(.16, .12, 'bandpass', 500, 1400); tone('sine', 180, 320, .12, .1); },
   coin() { tone('triangle', 660, 520, .07, .14); noise(.04, .12, 'bandpass', 1800, 900); tone('triangle', 990, 0, .09, .08, .05); },
+  drink() { for (let i = 0; i < 4; i++) { tone('sine', 180, 120, .12, .25, i * .22); noise(.1, .08, 'lowpass', 600, 300, i * .22); } },
+  rainbow() { [523, 659, 784, 1046, 1318, 1568, 2093].forEach((f, i) => { bell(f, .08, i * .05, .9); tone('sawtooth', f / 2, 0, .4, .03, i * .05, .5); }); },
+  creak() { tone('sawtooth', 140, 90, .35, .05, 0, .2); noise(.25, .06, 'bandpass', 700, 300); },
+  trophy() { [784, 988, 1175, 1568].forEach((f, i) => bell(f, .09, i * .1, .9)); tone('sawtooth', 196, 0, 1.2, .04, 0, .6); },
   gold() { bell(1318, .1); bell(1976, .08, .06); bell(2637, .05, .12); },
   gem() { [1568, 1976, 2349, 3136, 3951].forEach((f, i) => bell(f, .07, i * .06, .8)); noise(.6, .06, 'highpass', 6000, 9000, 0, .8); },
   stomp() { tone('sine', 140, 45, .22, .5); noise(.12, .3, 'lowpass', 1200, 200); },
@@ -1826,6 +1851,7 @@ const Music = {
     return this.pending[key];
   },
   prefetch(spec) { if (Sound.ctx) this.get(spec); },
+  rate(r) { this.rt = r; if (this.src && Sound.ctx) this.src.playbackRate.setTargetAtTime(r, Sound.ctx.currentTime, .15); },
   async apply() {
     const ac = Sound.ctx; if (!ac) return;
     const spec = [this.pat, this.tempo, this.intensity], key = this.key(spec);
@@ -1836,7 +1862,7 @@ const Music = {
     const t = ac.currentTime;
     if (this.src) { const s = this.src; this.g.gain.setTargetAtTime(0, t, .5); s.stop(t + 3); }
     const s = ac.createBufferSource(), g = ac.createGain();
-    s.buffer = buf; s.loop = true;
+    s.buffer = buf; s.loop = true; s.playbackRate.value = this.rt || 1;
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 2);
     s.connect(g); g.connect(Sound.music); s.start(t);
     this.src = s; this.g = g;
@@ -2056,7 +2082,7 @@ function togglePause() {
 }
 
 function newPlayer(x, y) {
-  return { x, y, w: 28, h: 46, vx: 0, vy: 0, face: 1, onGround: false, coyote: 0, buf: 0, invuln: 0, phase: 0, prevBottom: y + 46, auto: 0, squash: 0 };
+  return { rainbow: 0, drink: 0, rainbowKills: 0, x, y, w: 28, h: 46, vx: 0, vy: 0, face: 1, onGround: false, coyote: 0, buf: 0, invuln: 0, phase: 0, prevBottom: y + 46, auto: 0, squash: 0 };
 }
 function spawnPoint() {
   if (G.checkpoint >= 0 && L.checks[G.checkpoint]) { const c = L.checks[G.checkpoint]; return { x: c.x - 14, y: c.y - 46 }; }
@@ -2075,24 +2101,78 @@ function loadLevel(i, keepCheckpoint) {
   if (!layers || layers.key !== LEVELS[i].theme) { layers = makeLayers(th, i * 7 + 3); layers.key = LEVELS[i].theme; tiles = makeTiles(th); }
   if (!keepCheckpoint) G.checkpoint = -1;
   for (let k = 0; k <= G.checkpoint; k++) if (L.checks[k]) L.checks[k].on = true;
-  parts = []; floats = []; fx = []; loki = null; G.cut = null; G.valk = null;
+  parts = []; floats = []; fx = []; loki = null; G.cut = null; G.valk = null; Music.rate(1);
   const sp = spawnPoint();
   P = newPlayer(sp.x, sp.y);
   cam.x = clamp(P.x - VW * .38, 0, Math.max(0, L.w * TS - VW)); cam.look = 0;
   initWeather(th);
 }
 function startGame(realm, stage = 0) {
+  G.realmFull = false;
   G.score = 0; G.coins = 0; G.lives = 3; G.hearts = 3; G.titleMode = null;
   beginStage(realm, stage);
 }
+/* ---------- Trophies ---------- */
+const TROPHIES = [
+  { id: 'worthy', name: 'Worthy', desc: 'Recover Mjölnir for the first time.', rune: 'th' },
+  { id: 'hoarder', name: 'Dragon\u2019s Hoard', desc: 'Collect every coin in a single stage.', rune: 'f' },
+  { id: 'gemhunter', name: 'Seer of Secrets', desc: 'Find every hidden gem in a single stage.', rune: 'k' },
+  { id: 'untouched', name: 'Untouched', desc: 'Clear a stage without taking any damage.', rune: 'z' },
+  { id: 'deathless', name: 'Einherjar', desc: 'Clear a stage without losing a life.', rune: 'e' },
+  { id: 'sleipnir', name: 'Swift as Sleipnir', desc: 'Clear a stage in under 60 seconds.', rune: 'r' },
+  { id: 'stormwalker', name: 'Storm Walker', desc: 'Clear a stage with storms without being struck by lightning.', rune: 'h' },
+  { id: 'flawless', name: 'Realm Breaker', desc: 'Clear all three stages of a realm in a row without losing a life.', rune: 'o' },
+  { id: 'mead', name: 'Skál!', desc: 'Find a hidden ale and drink it.', rune: 'a' },
+  { id: 'bifrost', name: 'Bifröst Rider', desc: 'Defeat 5 enemies during a single Rainbow Rush.', rune: 'w' },
+  { id: 'wolfbane', name: 'Wolf Bane', desc: 'Defeat 50 wolves.', rune: 'u' },
+  { id: 'draugrbane', name: 'Barrow Breaker', desc: 'Send 20 draugar back to Hel.', rune: 'i' },
+  { id: 'ravenbane', name: 'Feathers Fly', desc: 'Defeat 15 ravens.', rune: 'n' },
+  { id: 'shepherd', name: 'Good Shepherd', desc: 'Bounce on sheep 25 times.', rune: 'j' },
+  { id: 'fafnir', name: 'Fafnir\u2019s Gold', desc: 'Gather 1000 treasure in total.', rune: 'g' },
+  { id: 'allfather', name: 'Allfather', desc: 'Unlock every other trophy. You are unbeatable.', rune: 'm' },
+];
+const STAT_GOALS = { wolf: ['wolfbane', 50], draugr: ['draugrbane', 20], raven: ['ravenbane', 15], sheep: ['shepherd', 25], treasure: ['fafnir', 1000] };
+try { G.trophies = new Set(JSON.parse(localStorage.getItem('mjolnir.trophies') || '[]')); G.stats = JSON.parse(localStorage.getItem('mjolnir.stats') || '{}'); }
+catch (e) { G.trophies = new Set(); G.stats = {}; }
+try { if (localStorage.getItem('mjolnir.won') && !G.trophies.has('worthy')) { G.trophies.add('worthy'); localStorage.setItem('mjolnir.trophies', JSON.stringify([...G.trophies])); } } catch (e) { /* storage unavailable */ }
+G.toasts = [];
+G.run = { t: 0, coins: 0 };
+function award(id) {
+  if (G.trophies.has(id)) return;
+  G.trophies.add(id);
+  try { localStorage.setItem('mjolnir.trophies', JSON.stringify([...G.trophies])); } catch (e) { /* storage unavailable */ }
+  const t = TROPHIES.find(x => x.id === id); G.toasts.push({ t: 0, tr: t }); SFX.trophy();
+  if (id !== 'allfather' && TROPHIES.every(x => x.id === 'allfather' || G.trophies.has(x.id))) award('allfather');
+}
+function bumpStat(k, n) {
+  G.stats[k] = (G.stats[k] || 0) + n;
+  try { localStorage.setItem('mjolnir.stats', JSON.stringify(G.stats)); } catch (e) { /* storage unavailable */ }
+  const goal = STAT_GOALS[k]; if (goal && G.stats[k] >= goal[1]) award(goal[0]);
+}
+function countKill(type) { bumpStat(type, 1); }
+// end-of-stage checks for the per-stage trophies
+function judgeStage() {
+  const r = G.run;
+  const coinsGot = [...G.taken].filter(k => k[0] === 'c').length, gems = [...L.secrets].filter(([, k]) => k === 'gem');
+  if (r.coins > 0 && coinsGot >= r.coins) award('hoarder');
+  if (gems.length && gems.every(([i]) => G.taken.has('q' + i))) award('gemhunter');
+  if (!r.hurt) award('untouched');
+  if (!r.died) award('deathless');
+  if (r.t < 60) award('sleipnir');
+  if (r.storms && !r.struck) award('stormwalker');
+  if (G.stage === STAGES - 1 && G.realmFull && !G.realmDied) award('flawless');
+}
 function beginStage(world, stage) {
   G.stage = stage;
+  if (stage === 0) { G.realmFull = true; G.realmDied = false; }
   loadLevel(world, false);
+  G.run = { t: 0, hurt: false, died: false, struck: false, storms: L.storms.length > 0, coins: L.ents.filter(e => e.type === 'coin').length };
   G.lvlScore = G.score; G.lvlCoins = G.coins; G.hearts = 3;
   G.state = 'intro'; G.st = 0;
   unlock(world * STAGES + stage);
 }
 function stageClear() {
+  judgeStage();
   G.state = 'stageclear'; G.st = 0; SFX.horn(); SFX.coin();
   for (const s of L.storms) s.strikes = [];
   burst(L.exit.x, L.exit.y - 60, 40, '#ffd24a', 260, 1, 3.5, 100, true);
@@ -2151,23 +2231,50 @@ function addScore(n, x, y) { G.score += n; if (x != null) floatText(x, y, '+' + 
 const TREASURE = { wood: 1, gold: 10, gem: 50 };
 function addCoin(x, y, kind = 'wood') {
   const v = TREASURE[kind], before = G.coins;
-  G.coins += v; addScore(v * 10);
+  G.coins += v; addScore(v * 10); bumpStat('treasure', v);
   if (kind === 'wood') SFX.coin(); else if (kind === 'gold') SFX.gold(); else SFX.gem();
   if (kind !== 'wood') floatText(x - 6, y - 4, kind === 'gem' ? 'SECRET GEM +50' : '+10', kind === 'gem' ? '#9ff0ff' : '#ffe28a');
   if (Math.floor(G.coins / 100) > Math.floor(before / 100)) { G.lives++; floatText(x, y - 26, '+1 LIFE', '#9fe3ff'); SFX.horn(); }
 }
-function hurt(srcX) {
-  if (P.invuln > 0 || G.state !== 'play') return;
+const RAINBOW_TIME = 10;
+function rainbowRGB(h, a = 1) {
+  // hue in "steps" (6 per cycle), quantised so glow sprites are cached
+  const k = ((Math.floor(h * 2) % 12) + 12) % 12, f = k / 2, c = [0, 0, 0], i = Math.floor(f), r = f - i;
+  const tab = [[255, 60, 60], [255, 170, 40], [250, 235, 60], [70, 230, 110], [70, 170, 255], [190, 90, 255]];
+  const A = tab[i % 6], B = tab[(i + 1) % 6];
+  for (let j = 0; j < 3; j++) c[j] = Math.round(A[j] + (B[j] - A[j]) * r);
+  return a === null ? c.join(',') : `rgba(${c.join(',')},${a})`;
+}
+function startDrink() {
+  P.drink = 1.1; P.vx = 0; SFX.drink();
+  floatText(P.x - 20, P.y - 30, 'SKÅL!', '#ffe28a');
+  award('mead');
+}
+function startRainbow() {
+  P.rainbow = RAINBOW_TIME; P.rainbowKills = 0; SFX.rainbow(); Music.rate(1.3);
+  G.flash = .5; burst(P.x + P.w / 2, P.y + P.h / 2, 40, '#ffffff', 320, .9, 3.5, 0, true);
+  floatText(P.x - 50, P.y - 40, 'RAINBOW RUSH!', '#ffffff');
+}
+function rainbowKill(e) {
+  e.dead = 'fall'; e.vy = -620; e.dt = 0; SFX.stomp(); countKill(e.type);
+  addScore(300, e.x, e.y); P.rainbowKills++;
+  burst(e.x + e.w / 2, e.y + e.h / 2, 16, rainbowRGB(G.t * 3, 1), 260, .6, 3.5, 200, true);
+  if (P.rainbowKills >= 5) award('bifrost');
+}
+function hurt(srcX, kind) {
+  if (P.invuln > 0 || P.rainbow > 0 || P.drink > 0 || G.state !== 'play') return;
+  G.run.hurt = true; if (kind === 'bolt') G.run.struck = true;
   G.hearts--; SFX.hurt(); G.shake = 9;
   if (G.hearts <= 0) { die(); return; }
   P.invuln = 1.6; P.vx = (P.x + P.w / 2 < srcX ? -1 : 1) * 300; P.vy = -480; P.onGround = false;
 }
 function die() {
+  G.run.died = true; G.realmDied = true; G.run.hurt = true;
   G.state = 'dying'; G.dieT = 0; G.hearts = 0; P.vy = 0; P.vx = 0; SFX.die();
   G.valk = { x: P.x + P.w / 2 + 320, y: -90, sang: false };
 }
 function fallInPit() {
-  G.hearts--; SFX.hurt(); G.flash = .3;
+  G.run.hurt = true; G.hearts--; SFX.hurt(); G.flash = .3;
   if (G.hearts <= 0) { die(); P.y = VH - 20; return; }
   const sp = spawnPoint(); P.x = sp.x; P.y = sp.y; P.vx = 0; P.vy = 0; P.invuln = 1.6;
   cam.x = clamp(P.x - VW * .38, 0, L.w * TS - VW);
@@ -2187,7 +2294,12 @@ function hitBlock(tx, ty) {
   }
   const secret = L.secrets.get(i);
   if (t === T.QCOIN || t === T.QMEAD || secret) G.taken.add('q' + i);
-  if (t === T.QCOIN || (t === T.BRICK && secret)) {
+  if (secret === 'mug') {
+    L.grid[i] = T.USED; SFX.mead(); G.flash = Math.max(G.flash, .2);
+    L.ents.push({ type: 'mug', x: tx * TS + 8, y: ty * TS, w: 32, h: 32, emerge: .6, baseY: ty * TS - 40, ph: 0 });
+    burst(tx * TS + 24, ty * TS, 20, '#ffd88a', 200, .7, 3, 200, true);
+    floatText(tx * TS - 10, ty * TS - 50, 'A hidden ale!', '#ffe28a');
+  } else if (t === T.QCOIN || (t === T.BRICK && secret)) {
     // a plain-looking stone block can hide a gem; rune crates hold wooden or gold coins
     const kind = secret || 'wood';
     L.grid[i] = T.USED;
@@ -2203,12 +2315,21 @@ function hitBlock(tx, ty) {
 function updatePlayer(dt) {
   const p = P;
   const auto = G.state === 'cutscene';
+  if (p.drink > 0) {
+    p.drink -= dt; p.vx *= Math.max(0, 1 - dt * 10);
+    if (p.drink <= 0) { p.drink = 0; startRainbow(); }
+  }
+  if (p.rainbow > 0) {
+    p.rainbow -= dt;
+    if (Math.random() < .7) parts.push({ x: p.x + p.w / 2 - p.face * 10, y: p.y + 10 + Math.random() * 34, vx: -p.vx * .2, vy: -20, life: .5, max: .5, color: rainbowRGB(G.t * 3 + Math.random() * 2, .9), size: 4, g: 0, gl: true });
+    if (p.rainbow <= 0) { p.rainbow = 0; Music.rate(1); P.invuln = 1; floatText(p.x - 20, p.y - 30, 'The ale wears off', '#e3d6bc'); }
+  }
   let ax = 0;
-  if (!auto) { if (input.left && !input.right) ax = -1; else if (input.right && !input.left) ax = 1; }
-  else ax = p.auto;
-  const running = input.run && !auto;
-  const max = running ? 380 : 265;
-  const acc = p.onGround ? 1900 : 1250;
+  if (!auto && !(p.drink > 0)) { if (input.left && !input.right) ax = -1; else if (input.right && !input.left) ax = 1; }
+  else if (auto) ax = p.auto;
+  const running = input.run && !auto, rb = p.rainbow > 0;
+  const max = rb ? (running ? 520 : 440) : running ? 380 : 265;
+  const acc = (p.onGround ? 1900 : 1250) * (rb ? 1.5 : 1);
   if (ax) {
     if (Math.sign(p.vx) === -ax && p.onGround) { p.vx += ax * acc * 1.6 * dt; if (Math.abs(p.vx) > 120) parts.push({ x: p.x + p.w / 2, y: p.y + p.h, vx: -ax * 40, vy: -40, life: .3, max: .3, color: 'rgba(200,190,170,.7)', size: 4, g: 0 }); }
     else p.vx += ax * acc * dt;
@@ -2219,7 +2340,7 @@ function updatePlayer(dt) {
     p.vx = Math.abs(p.vx) <= fr ? 0 : p.vx - Math.sign(p.vx) * fr;
   }
   p.coyote = p.onGround ? .1 : p.coyote - dt;
-  if (input.jumpPressed && !auto) p.buf = .13; else p.buf -= dt;
+  if (input.jumpPressed && !auto && !(p.drink > 0)) p.buf = .13; else p.buf -= dt;
   if (p.buf > 0 && p.coyote > 0) {
     p.vy = -(960 + Math.min(Math.abs(p.vx), 380) / 380 * 70); p.buf = 0; p.coyote = 0; p.onGround = false; p.squash = -.9; SFX.jump();
   }
@@ -2334,6 +2455,17 @@ function updateEnts(dt) {
         if (e.y > VH + 60) e.gone = true;
         break;
       }
+      case 'mug': {
+        e.ph += dt;
+        if (e.emerge > 0) { e.emerge -= dt; e.y = lerp(e.baseY, e.baseY + 40, clamp(e.emerge / .6, 0, 1)); }
+        else e.y = e.baseY + Math.sin(e.ph * 3) * 4;
+        if (Math.random() < .2) parts.push({ x: e.x + 16 + (Math.random() - .5) * 30, y: e.y + 10, vx: 0, vy: -30, life: .7, max: .7, color: rainbowRGB(G.t * 2 + Math.random() * 6, .9), size: 2.5, g: 0, gl: true });
+        break;
+      }
+      case 'fallplank': {
+        e.vy += GRAV * .6 * dt; e.y += e.vy * dt; e.rot += e.spin * dt; if (e.y > VH + 80) e.gone = true;
+        break;
+      }
       case 'popcoin': {
         e.vy += GRAV * dt; e.y += e.vy * dt; e.life -= dt;
         if (e.life <= 0) { e.gone = true; burst(e.x + 12, e.y + 12, 6, '#ffd24a', 120, .4, 2.5, 0); }
@@ -2344,40 +2476,47 @@ function updateEnts(dt) {
   L.ents = L.ents.filter(e => !e.gone);
 }
 
+function collideDraugr(p, e) {
+  if (p.vy > 0 && p.prevBottom <= e.y + 16) {
+    p.vy = input.jump ? -820 : -560; p.onGround = false; SFX.stomp();
+    e.hp--;
+    if (e.hp <= 0) { e.dead = 'squash'; e.dt = 0; addScore(400, e.x, e.y); countKill('draugr'); SFX.bones(); burst(e.x + e.w / 2, e.y + e.h / 2, 12, '#e8e4d6', 200, .6, 3); burst(e.x + e.w / 2, e.y + e.h / 2, 16, 'rgba(120,230,255,.8)', 120, 1, 5, -40, true); }
+    else { e.stun = .9; e.speed *= 1.9; addScore(100, e.x, e.y - 10); burst(e.x + e.w / 2, e.y, 10, '#8a5a3a', 220, .6, 3.5); floatText(e.x - 10, e.y - 30, 'Helmet off!', '#b8f4ff'); }
+  } else if (e.stun <= 0) hurt(e.x + e.w / 2);
+}
 function collideEnts() {
   const p = P;
   for (const e of L.ents) {
     if (e.dead || !overlap(p, e)) continue;
     switch (e.type) {
       case 'coin': e.dead = 'got'; G.taken.add('c' + e.x + ',' + e.y); addCoin(e.x, e.y, e.kind); burst(e.x + 12, e.y + 12, e.kind === 'gold' ? 12 : 6, e.kind === 'gold' ? '#ffd24a' : '#c8834a', 100, .35, 2.5, 0); break;
+      case 'mug':
+        if (e.emerge > 0) break;
+        e.dead = 'got'; startDrink();
+        break;
       case 'mead':
         if (e.emerge > 0) break;
         e.dead = 'got'; SFX.mead();
         if (G.hearts < 3) { G.hearts++; floatText(e.x, e.y - 10, 'SKÅL! +1 shield', '#9fe3ff'); }
         else { G.lives++; SFX.horn(); floatText(e.x, e.y - 10, 'SKÅL! +1 life', '#ffe28a'); }
         break;
-      case 'wolf': case 'raven': {
+      case 'wolf': case 'raven': case 'draugr':
+        if (P.rainbow > 0) { rainbowKill(e); break; }
+        if (e.type === 'draugr') { collideDraugr(p, e); break; }
+      // eslint-disable-next-line no-fallthrough
+      {
         const stomp = p.vy > 0 && p.prevBottom <= e.y + 14;
         if (stomp) {
           e.dead = 'squash'; e.dt = 0; SFX.stomp();
           p.vy = input.jump ? -820 : -540; p.onGround = false;
-          addScore(e.type === 'wolf' ? 200 : 300, e.x, e.y);
+          addScore(e.type === 'wolf' ? 200 : 300, e.x, e.y); countKill(e.type);
           burst(e.x + e.w / 2, e.y + e.h / 2, 10, e.type === 'wolf' ? '#9a9ca3' : '#222', 180, .5, 3);
         } else hurt(e.x + e.w / 2);
         break;
       }
-      case 'draugr': {
-        if (p.vy > 0 && p.prevBottom <= e.y + 16) {
-          p.vy = input.jump ? -820 : -560; p.onGround = false; SFX.stomp();
-          e.hp--;
-          if (e.hp <= 0) { e.dead = 'squash'; e.dt = 0; addScore(400, e.x, e.y); SFX.bones(); burst(e.x + e.w / 2, e.y + e.h / 2, 12, '#e8e4d6', 200, .6, 3); burst(e.x + e.w / 2, e.y + e.h / 2, 16, 'rgba(120,230,255,.8)', 120, 1, 5, -40, true); }
-          else { e.stun = .9; e.speed *= 1.9; addScore(100, e.x, e.y - 10); burst(e.x + e.w / 2, e.y, 10, '#8a5a3a', 220, .6, 3.5); floatText(e.x - 10, e.y - 30, 'Helmet off!', '#b8f4ff'); }
-        } else if (e.stun <= 0) hurt(e.x + e.w / 2);
-        break;
-      }
       case 'sheep': {
         if (p.vy > 0 && p.prevBottom <= e.y + 16) {
-          p.vy = input.jump ? -1260 : -1060; p.onGround = false; e.squish = 1; SFX.baa();
+          p.vy = input.jump ? -1260 : -1060; p.onGround = false; e.squish = 1; SFX.baa(); bumpStat('sheep', 1);
           burst(e.x + e.w / 2, e.y + 6, 8, '#f4f1ea', 140, .5, 4, 200);
           if (!e.bounced) { e.bounced = true; floatText(e.x, e.y - 20, 'BAAA!', '#ffffff'); }
         }
@@ -2484,7 +2623,7 @@ function updateStorms(dt) {
       } else if (k.bolt > 0) {
         k.bolt -= dt; k.pt -= dt;
         if (k.pt <= 0) { k.pts = boltPath(k.x, 70, k.gy); k.pt = .045; }
-        if (k.bolt > .06 && G.state === 'play' && P.x < k.x + 34 && P.x + P.w > k.x - 34 && P.y < k.gy) hurt(k.x);
+        if (k.bolt > .06 && G.state === 'play' && P.x < k.x + 34 && P.x + P.w > k.x - 34 && P.y < k.gy) hurt(k.x, 'bolt');
         if (k.bolt <= 0) k.fade = 1;
       } else if (k.fade > 0) k.fade -= dt;
     }
@@ -2502,6 +2641,8 @@ function updateCamera(dt) {
 function updatePlay(dt) {
   updatePlayer(dt);
   const sx = spikeTouch(); if (sx != null) hurt(sx);
+  G.run.t += dt;
+  updatePlanks(dt);
   if (P.y > VH + 60) { fallInPit(); if (G.state !== 'play') return; }
   updateEnts(dt);
   if (G.state === 'play') collideEnts();
@@ -2517,6 +2658,35 @@ function updatePlay(dt) {
   if (L.goal && P.x + P.w / 2 > L.goal.x - 100 && G.state === 'play') startCutscene();
   if (L.exit && P.x + P.w / 2 > L.exit.x - 6 && G.state === 'play') stageClear();
   updateCamera(dt);
+}
+
+/* ---------- Falling planks: they hold for a moment, shake, then drop; they grow back later ---------- */
+const PLANK_HOLD = .8, PLANK_BACK = 4.5;
+function updatePlanks(dt) {
+  if (P.onGround) {
+    const ty = Math.floor((P.y + P.h + 2) / TS), x0 = Math.floor(P.x / TS), x1 = Math.floor((P.x + P.w - 1) / TS);
+    for (let tx = x0; tx <= x1; tx++) if (tileAt(tx, ty) === T.PLANK) {
+      // the whole board (connected planks in this row) starts to give way
+      let a = tx, z = tx; while (tileAt(a - 1, ty) === T.PLANK) a--; while (tileAt(z + 1, ty) === T.PLANK) z++;
+      for (let k = a; k <= z; k++) { const i = ty * L.w + k; if (!L.plankT.has(i)) { L.plankT.set(i, PLANK_HOLD); if (k === a) SFX.creak(); } }
+    }
+  }
+  for (const [i, t] of L.plankT) {
+    const nt = t - dt;
+    if (nt > 0) { L.plankT.set(i, nt); continue; }
+    L.plankT.delete(i); L.grid[i] = T.EMPTY; L.respawn.push({ i, t: PLANK_BACK });
+    const tx = i % L.w, ty = Math.floor(i / L.w);
+    L.ents.push({ type: 'fallplank', x: tx * TS, y: ty * TS, w: TS, h: 16, vy: 60, rot: 0, spin: (Math.random() - .5) * 2 });
+  }
+  for (const r of L.respawn) {
+    r.t -= dt;
+    if (r.t <= 0) {
+      const tx = r.i % L.w, ty = Math.floor(r.i / L.w);
+      const blocked = P.x < (tx + 1) * TS && P.x + P.w > tx * TS && P.y < (ty + 1) * TS && P.y + P.h > ty * TS;
+      if (!blocked) { L.grid[r.i] = T.PLANK; r.done = true; burst(tx * TS + 24, ty * TS + 8, 6, '#c8a070', 60, .4, 2.5, 0); } else r.t = .3;
+    }
+  }
+  L.respawn = L.respawn.filter(r => !r.done);
 }
 
 /* ---------- Dying ---------- */
@@ -2537,6 +2707,7 @@ function updateDying(dt) {
 
 /* ---------- Cutscenes at the hammer ---------- */
 function startCutscene() {
+  judgeStage();
   G.state = 'cutscene'; G.cut = { t: 0, phase: 0, bubble: null, final: !!L.final, bolts: [] };
   for (const s of L.storms) s.strikes = [];
   P.invuln = 0;
@@ -2562,6 +2733,7 @@ function updateCutscene(dt) {
     if (c.t > .9 && c.t < 2.6) { c.bubble = { who: 'loki', text: 'Mine! It’s MINE! Why won’t it… BUDGE?!' }; loki.tug = true; }
     if (c.t > 2.6 && c.t < 3.4) { c.bubble = { who: 'thor', text: 'Because only the worthy may lift it.' }; }
     if (c.t > 3.4 && !c.lifted) {
+      award('worthy');
       c.lifted = true; P.raise = true; loki.tug = false; G.flash = 1; G.shake = 14; SFX.thunder(1); SFX.fanfare();
       burst(gx, L.goal.y - 20, 40, '#cfe6ff', 360, .9, 3.5, 300);
     }
@@ -2625,6 +2797,7 @@ function step(dt) {
   if (L) for (let i = 0; i < L.bump.length; i++) if (L.bump[i] > 0) L.bump[i] = Math.max(0, L.bump[i] - dt);
   L.checks.forEach(c => c.wave += dt);
   for (const f of fx) f.t += dt;
+  if (G.toasts.length) { G.toasts[0].t += dt; if (G.toasts[0].t > 3.6) G.toasts.shift(); }
   fx = fx.filter(f => f.t < 3);
   updateWeather(dt);
   input.jumpPressed = false;
@@ -2639,11 +2812,13 @@ function handleMenus() {
     if (input.down) G.mapSel = Math.min(max, G.mapSel + STAGES);
     if (input.back) G.titleMode = null;
     else if (input.confirm) startGame(Math.floor(G.mapSel / STAGES), G.mapSel % STAGES);
+  } else if (G.state === 'title' && G.titleMode === 'trophies') {
+    if (input.back || input.confirm) G.titleMode = null;
   } else if (G.state === 'title') {
-    const n = G.progress > 0 ? 2 : 1;
+    const items = titleItems(), n = items.length;
     if (input.up) G.sel = (G.sel + n - 1) % n;
     if (input.down) G.sel = (G.sel + 1) % n;
-    if (input.confirm) { if (G.sel === 1 && G.progress > 0) { G.titleMode = 'map'; G.mapSel = G.progress; } else startGame(0); }
+    if (input.confirm) items[Math.min(G.sel, n - 1)][1]();
   } else if (G.state === 'stageclear') {
     if (input.confirm && G.st > .8) beginStage(G.level, G.stage + 1);
   } else if (G.state === 'intro') {
@@ -2831,7 +3006,10 @@ function drawTiles(g, cx) {
         break;
       }
       case T.USED: g.drawImage(tiles.used, px, py); break;
-      case T.PLANK: g.drawImage(tiles.plank, px, py); break;
+      case T.PLANK: {
+        const pt = L.plankT.get(i), sh = pt != null ? Math.sin(G.t * 70 + tx) * 2.5 * (1 - pt / PLANK_HOLD + .2) : 0;
+        g.drawImage(tiles.plank, px + sh, py + (pt != null ? (1 - pt / PLANK_HOLD) * 3 : 0)); break;
+      }
       case T.SPIKE: g.drawImage(tiles.spike, px, py); break;
     }
   }
@@ -3031,6 +3209,8 @@ function drawEntity(g, e) {
     case 'wolf': drawWolf(g, e, G.t); break;
     case 'raven': drawRaven(g, e, G.t); break;
     case 'sheep': drawSheep(g, e, G.t); break;
+    case 'mug': drawMug(g, e.x + 16, e.y + 30, 1, Math.sin(e.ph * 2) * .1, true); break;
+    case 'fallplank': g.save(); g.translate(e.x + TS / 2, e.y + 8); g.rotate(e.rot); g.drawImage(tiles.plank, -TS / 2, -8); g.restore(); break;
     case 'draugr':
       if (imgReady('draugr')) {
         const fi = (e.hp > 1 ? 0 : 2) + (Math.floor(e.ph / 1.6) % 2), st = e.stun > 0 ? Math.sin(G.t * 40) * 1.5 : 0;
@@ -3072,7 +3252,14 @@ function drawWorld(g) {
   if (G.state !== 'title') for (const s of L.signs) if (s.x > cx - 200 && s.x < cx + VW + 200) drawSign(g, s);
   if (G.state !== 'title') {
     const blink = P.invuln > 0 && Math.floor(G.t * 16) % 2 === 0 && G.state === 'play';
-    if (!blink) drawHero(g, P.x + P.w / 2, P.y + P.h + 1, { face: P.face, t: G.t, run: Math.min(1, Math.abs(P.vx) / 265), phase: P.phase, air: !P.onGround && G.state !== 'dying', hammer: G.cut && G.cut.lifted, raise: P.raise, fist: P.fist, glow: 1, squash: P.squash, carried: P.carried });
+    const hx = P.x + P.w / 2, hy = P.y + P.h + 1, rb = P.rainbow > 0, fading = rb && P.rainbow < 2 && Math.floor(G.t * 10) % 2;
+    if (rb && !fading) { glow(g, hx, hy - 34, 70, rainbowRGB(G.t * 3, null), .55); glow(g, hx, hy - 34, 44, rainbowRGB(G.t * 3 + 3, null), .45); }
+    if (!blink) {
+      if (rb && !fading) { g.save(); g.filter = `hue-rotate(${Math.floor(G.t * 360) % 360}deg) saturate(1.8) brightness(1.15)`; }
+      drawHero(g, hx, hy, { face: P.face, t: G.t, run: Math.min(1, Math.abs(P.vx) / 265), phase: P.phase, air: !P.onGround && G.state !== 'dying', hammer: G.cut && G.cut.lifted, raise: P.raise || P.drink > 0, fist: P.fist, glow: 1, squash: P.squash, carried: P.carried });
+      if (rb && !fading) g.restore();
+    }
+    if (P.drink > 0) { const k = 1 - P.drink / 1.1; drawMug(g, hx + P.face * 6, hy - 62, .75, -P.face * (.3 + k * 1.6), false); if (Math.random() < .3) parts.push({ x: hx + P.face * 10, y: hy - 70, vx: P.face * 30, vy: -60, life: .4, max: .4, color: 'rgba(255,248,230,.9)', size: 3, g: 300 }); }
   }
   if (G.state === 'dying' && G.valk) drawValkyrie(g, G.valk.x, G.valk.y, G.t, clamp(G.dieT * 2 - .6, 0, 1));
   for (const f of fx) {
@@ -3166,7 +3353,57 @@ function button(g, x, y, w, h, label, sel, fn) {
   txt(g, label, x + w / 2, y + h / 2 + 1, 21, '#f6ecd4', 'center', BODY, 800, null);
   uiButtons.push({ x, y, w, h, fn });
 }
+function titleItems() {
+  const items = [['Begin the Quest', () => startGame(0)]];
+  if (G.progress > 0) items.push(['Realm map', () => { G.titleMode = 'map'; G.mapSel = G.progress; }]);
+  if (G.trophies.has('worthy')) items.push([`Trophy Hall  ${G.trophies.size}/${TROPHIES.length}`, () => { G.titleMode = 'trophies'; }]);
+  return items;
+}
+function drawTrophyIcon(g, x, y, r, tr, got) {
+  g.save(); g.translate(x, y);
+  if (got) glow(g, 0, 0, r * 2, tr.id === 'allfather' ? '160,220,255' : '255,200,90', .45);
+  g.beginPath(); g.arc(0, 0, r, 0, 7); g.fillStyle = got ? 'rgba(60,40,20,.9)' : 'rgba(40,36,48,.9)'; g.fill();
+  g.lineWidth = 2.5; g.strokeStyle = got ? '#e0b54c' : 'rgba(130,120,110,.6)'; g.stroke();
+  if (tr.id === 'allfather') drawValknut(g, 0, 2, r * 1.3, got ? '#cfeaff' : 'rgba(150,140,130,.6)', 2.2);
+  else {
+    // a drinking-horn cup with the trophy's rune
+    g.beginPath(); g.moveTo(-r * .55, -r * .5); g.lineTo(r * .55, -r * .5); g.quadraticCurveTo(r * .5, r * .15, 0, r * .25); g.quadraticCurveTo(-r * .5, r * .15, -r * .55, -r * .5); g.closePath();
+    g.fillStyle = got ? lgrad(g, -r, 0, r, 0, ['#fff0a8', '#e0b54c', '#9a6a1e']) : '#5a5560'; g.fill();
+    g.fillStyle = got ? '#c9a045' : '#4a4650'; g.fillRect(-r * .1, r * .2, r * .2, r * .3); g.fillRect(-r * .35, r * .48, r * .7, r * .14);
+    drawRune(g, tr.rune, -r * .14, -r * .42, r * .5, got ? '#6a3a10' : 'rgba(20,18,24,.7)', 1.8);
+  }
+  if (!got) drawRune(g, 'i', r * .55, r * .25, r * .45, 'rgba(160,150,140,.8)', 2);
+  g.restore();
+}
+function drawTrophies(g) {
+  g.fillStyle = 'rgba(6,4,16,.7)'; g.fillRect(0, 0, VW, VH);
+  const w = Math.min(980, VW - 16), h = 556, x = (VW - w) / 2, y = 10;
+  panel(g, x, y, w, h);
+  txt(g, `Trophy Hall   ${G.trophies.size} / ${TROPHIES.length}`, VW / 2, y + 38, 28, '#f6ecd4', 'center', DISPLAY, 400, '#140a1e', 6);
+  const cols = 4, cw = (w - 48) / cols, ch = 108;
+  TROPHIES.forEach((tr, i) => {
+    const cx = x + 24 + (i % cols) * cw, cy = y + 64 + Math.floor(i / cols) * ch, got = G.trophies.has(tr.id);
+    g.fillStyle = got ? 'rgba(80,56,24,.35)' : 'rgba(30,26,40,.6)'; rr(g, cx + 4, cy + 4, cw - 8, ch - 10, 10); g.fill();
+    g.strokeStyle = got ? 'rgba(224,180,90,.7)' : 'rgba(120,110,100,.35)'; g.lineWidth = 1.5; rr(g, cx + 4, cy + 4, cw - 8, ch - 10, 10); g.stroke();
+    drawTrophyIcon(g, cx + 34, cy + 40, 22, tr, got);
+    txt(g, tr.name, cx + 64, cy + 24, 15, got ? '#ffe2a0' : 'rgba(200,190,175,.7)', 'left', BODY, 800, null);
+    g.font = `500 12px ${BODY}`;
+    wrapText(g, tr.desc, cw - 76).slice(0, 4).forEach((l, k) => txt(g, l, cx + 64, cy + 44 + k * 15, 12, got ? '#e9dcc0' : 'rgba(170,160,150,.75)', 'left', BODY, 500, null));
+  });
+  button(g, VW / 2 - 80, y + h - 50, 160, 36, 'Back', false, () => { G.titleMode = null; });
+}
+function drawToast(g) {
+  const to = G.toasts[0]; if (!to) return;
+  const a = clamp(Math.min(to.t * 4, (3.6 - to.t) * 3), 0, 1), w = 330, x = VW / 2 - w / 2, y = 64 - (1 - a) * 30;
+  g.save(); g.globalAlpha = a;
+  g.fillStyle = 'rgba(24,16,32,.95)'; rr(g, x, y, w, 58, 12); g.fill(); g.strokeStyle = '#e0b54c'; g.lineWidth = 2; rr(g, x, y, w, 58, 12); g.stroke();
+  drawTrophyIcon(g, x + 32, y + 29, 19, to.tr, true);
+  txt(g, 'Trophy unlocked!', x + 62, y + 19, 13, '#e0b54c', 'left', BODY, 800, null);
+  txt(g, to.tr.name, x + 62, y + 39, 18, '#fff0c8', 'left', DISPLAY, 400, null);
+  g.restore();
+}
 function drawTitle(g) {
+  if (G.titleMode === 'trophies') { drawTrophies(g); return; }
   if (G.titleMode === 'map') { drawMap(g); return; }
   g.fillStyle = lgrad(g, 0, 0, 0, VH, ['rgba(6,4,16,.55)', 'rgba(6,4,16,.15)', 'rgba(6,4,16,.6)']); g.fillRect(0, 0, VW, VH);
   const cx = VW / 2;
@@ -3182,8 +3419,7 @@ function drawTitle(g) {
   drawValknut(g, cx + Math.min(300, VW * .33), 150, 70, 'rgba(224,180,90,.9)', 4);
   txt(g, 'Loki has stolen Mjölnir. Chase the trickster through five realms and take it back!', cx, 258, 19, '#efe3c8');
   const bw = 290, bh = 50;
-  button(g, cx - bw / 2, 292, bw, bh, 'Begin the Quest', G.sel === 0, () => startGame(0));
-  if (G.progress > 0) button(g, cx - bw / 2, 352, bw, bh, 'Realm map', G.sel === 1, () => { G.titleMode = 'map'; G.mapSel = G.progress; });
+  titleItems().forEach(([label, fn], i) => button(g, cx - bw / 2, 286 + i * 58, bw, bh, label, G.sel === i, fn));
   const touchUI = document.body.classList.contains('touch');
   txt(g, touchUI ? 'Use the buttons at the bottom: ◀ ▶ to run, JUMP to leap.' : '← → / A D run  ·  SPACE / W jump  ·  SHIFT sprint  ·  P pause  ·  M sound', cx, VH - 70, 17, 'rgba(243,231,201,.9)');
   txt(g, 'Stomp wolves, ravens and draugar · bounce on sheep · read the runes before the lightning strikes', cx, VH - 44, 16, 'rgba(255,216,138,.85)');
@@ -3304,6 +3540,7 @@ function render() {
     else if (G.state === 'gameover') drawGameOver(ctx);
     else if (G.state === 'victory') drawVictory(ctx);
   }
+  drawToast(ctx);
   if (G.paused) {
     ctx.fillStyle = 'rgba(6,4,12,.6)'; ctx.fillRect(0, 0, VW, VH);
     txt(ctx, 'Paused', VW / 2, VH / 2 - 20, 48, '#f6ecd4', 'center', DISPLAY, 400);

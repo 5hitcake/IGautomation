@@ -5,7 +5,7 @@ Midgard, Jötunheim, Járnviðr (the Iron Wood), Niflheim and Asgard, with 3 sta
 realm end at a rune gate; in stage 3 Thor almost grabs Mjölnir, but Loki snatches it and flees to the next realm. In
 Asgard 5-3, Thor finally takes it back.
 
-Stage 1 of every realm is hand-built (with Ratatoskr's lessons). Stages 2-3 are assembled by `genStage()` from
+Stage 1 of every realm is hand-built (with Ratatoskr's lessons) and continues into a generated stretch. Stages 2-3 are assembled by `genStage()` from
 hand-made chunks (gaps, plank pits, wolf packs, draugar, ravens, rune blocks, hills, spikes, sheep jumps, stairs and
 lightning storms), seeded so they are the same every time and getting harder each stage. A realm map on the title
 screen lets you replay any unlocked stage.
@@ -42,8 +42,17 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Valkyries** fly by when you raise a raven banner, and one carries Thor back when he falls.
 - **Treasure** comes three ways: wooden rune coins (worth 1), rarer gold coins (worth 10, also inside some rune crates),
   and secret gems (worth 50) hidden inside one or two plain-looking stone blocks per stage. Every 100 earns an extra life.
+- **Hidden ale**: one wooden tankard of ale is hidden in every stage, inside a plain stone block or a rune crate. Thor
+  drinks it and starts a 10-second **Rainbow Rush**: he glows in rainbow colours, runs much faster, the music speeds up,
+  and every wolf, raven or draugr he touches is knocked out. Lightning can't hurt him either, but pits still can.
+- **Floating planks** hold for a moment after Thor lands on them, then shake, fall, and grow back a few seconds later.
 - **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full).
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
+- **Trophy Hall**: opens on the title screen after you take Mjölnir back for the first time. It holds 16 trophies:
+  recovering the hammer, every coin in a stage, all hidden gems, no hits, no deaths, a stage under 60 seconds,
+  a storm stage without being struck, a whole realm without dying, drinking the ale, Rainbow Rush kills, wolf / draugr /
+  raven / sheep tallies, 1000 treasure, and the Allfather's trophy for earning all the others. Locked trophies are
+  greyed out but say how to earn them.
 
 ## Painted art
 
