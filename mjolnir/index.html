@@ -1496,10 +1496,93 @@ const LEVELS = [
   },
 ];
 
-function buildLevel(idx) {
+/* ============================================================
+   Stages: each realm has 5 stages. Stage 1 is the hand-built level
+   (with Ratatoskr's lessons), stages 2-5 are assembled from hand-made
+   chunks, getting harder each stage. Loki waits only in stage 5.
+   ============================================================ */
+const STAGES = 5;
+const STAGE_INTROS = [
+  null,
+  'Loki’s green smoke still hangs in the air. Follow it.',
+  'The trail grows colder, the storms grow louder. Keep running.',
+  'Somewhere ahead the trickster is laughing. You can hear it.',
+  'Mjölnir hums close by. Loki is waiting at the end of this road.',
+];
+const GEN = [
+  { chunks: { rest: 2, gap: 3, wolves: 3, blocks: 2, hills: 2, spikes: 1, sheepHigh: 1, stairs: 1, storm: 2, pit: 1 }, storms: ['sweepR', 'checker', 'sweepL'] },
+  { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['sweepL', 'bounce', 'checker', 'sweepR'] },
+  { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, raven: 2, blocks: 2, hills: 2, spikes: 1, sheepHigh: 1, stairs: 1, storm: 2, pit: 1 }, storms: ['rain', 'hunt', 'pairs', 'bounce'] },
+  { chunks: { rest: 2, gap: 3, wolves: 2, draugr: 3, raven: 2, blocks: 1, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['double', 'bounce', 'hunt', 'rain', 'checker', 'pairs'] },
+  { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['pairs', 'bounce', 'hunt', 'double', 'checker', 'sweepL'] },
+];
+const STORM_BASE = {
+  sweepR: { interval: .5, pause: 1.6, warn: 1.05 }, sweepL: { interval: .5, pause: 2.8, warn: 1 }, bounce: { interval: .5, warn: .95 },
+  checker: { interval: 1.3, warn: 1 }, pairs: { interval: .8, warn: .95 }, rain: { interval: .9, warn: 1 },
+  hunt: { interval: .85, warn: .9 }, double: { interval: .5, pause: 1.3, warn: 1 }, mix: { interval: .5, pause: 1.2, warn: .95 },
+};
+function genStage(b, world, stage, R) {
+  const cfg = GEN[world], d = (stage - 1) / 3, pick = arr => arr[Math.floor(R() * arr.length)];
+  const ri = (a, z) => a + Math.floor(R() * (z - a + 1));
+  const C = {
+    rest(x) { const n = ri(6, 9); b.floor(x, x + n - 1); if (R() < .5) b.coins(x + 2, 4, ri(2, 4)); if (R() < .25) b.sheep(x + Math.floor(n / 2), 1.5); return x + n; },
+    gap(x) { const g = Math.min(4, 2 + Math.round(d * 2 * R() + d)); b.arc(x, 6, g); b.floor(x + g, x + g + 5); return x + g + 6; },
+    pit(x) { b.plank(x + 2, 4, 2); b.plank(x + 6, 5, 2); b.coins(x + 2, 5, 2); b.coins(x + 6, 6, 2); b.floor(x + 10, x + 14); return x + 15; },
+    wolves(x) {
+      const n = ri(11, 14), k = 1 + Math.min(2, Math.floor(d * 2 + R()));
+      b.floor(x, x + n - 1);
+      for (let i = 0; i < k; i++) b.wolf(x + 4 + i * 4, world >= 2 && R() < .5);
+      return x + n;
+    },
+    draugr(x) { b.floor(x, x + 11); b.draugr(x + 7); if (R() < .5) b.coins(x + 3, 4, 3); return x + 12; },
+    raven(x) { b.floor(x, x + 11); b.raven(x + 6, ri(7, 8)); b.coins(x + 4, 4, 4); return x + 12; },
+    blocks(x) {
+      b.floor(x, x + 10);
+      b.q(x + 3, 6); b.brick(x + 4, 6); b.q(x + 5, 6, R() < .3 ? 'mead' : 'coin'); b.brick(x + 6, 6); b.q(x + 7, 6);
+      if (R() < .4) { b.q(x + 5, 10); }
+      if (R() < .4 + d * .4) b.wolf(x + 9);
+      return x + 11;
+    },
+    hills(x) {
+      const h1 = 4, h2 = R() < .5 ? 5 : 6;
+      b.floor(x, x + 13); b.hill(x + 3, x + 5, h1); b.hill(x + 6, x + 8, h2); b.coins(x + 6, h2 + 2, 3);
+      if (R() < d) b.wolf(x + 11);
+      return x + 14;
+    },
+    spikes(x) { const k = ri(2, 3); b.floor(x, x + 10); b.spikes(x + 4, x + 3 + k); b.arc(x + 3, 6, k + 2); return x + 11; },
+    sheepHigh(x) { b.floor(x, x + 11); b.sheep(x + 3, 1.5); b.brick(x + 6, 8, 4); b.coins(x + 6, 9, 4); return x + 12; },
+    stairs(x) { b.floor(x, x + 12); b.stairs(x + 2, 4, 1); b.stairs(x + 6, 4, -1); b.coins(x + 5, 8, 2); return x + 13; },
+    storm(x) {
+      const pat = pick(cfg.storms), n = Math.min(8, ri(4, 5) + Math.round(d * 2)), base = STORM_BASE[pat];
+      const len = n * 2 + 6;
+      b.floor(x, x + len - 1);
+      b.storm(x + 3, n, pat, { interval: base.interval * (1 - .12 * d), pause: base.pause, warn: base.warn * (1 - .08 * d) });
+      if (['checker', 'bounce', 'pairs', 'double'].includes(pat) && R() < .7) { const k = ri(1, n - 2); b.brick(x + 3 + 2 * k, 5, 2); }
+      b.coins(x + 4, 4, n * 2 - 2);
+      return x + len;
+    },
+  };
+  const bag = []; for (const k in cfg.chunks) for (let i = 0; i < cfg.chunks[k]; i++) bag.push(k);
+  b.start(3); b.floor(0, 11);
+  let x = 12, last = '';
+  const n = 9 + stage * 2, ck = [Math.floor(n / 3), Math.floor(2 * n / 3)];
+  for (let i = 0; i < n; i++) {
+    if (ck.includes(i)) { b.floor(x, x + 5); b.check(x + 2); x += 6; }
+    let c; do { c = pick(bag); } while ((c === last && c !== 'rest') || (c === 'storm' && last === 'storm'));
+    x = C[c](x); last = c;
+    if (c === 'storm' || c === 'pit') { b.floor(x, x + 2); x += 3; }
+  }
+  if (stage === STAGES - 1) {
+    if (world === LEVELS.length - 1) { b.floor(x, x + 31); b.storm(x + 2, 6, 'mix', STORM_BASE.mix); x += 16; b.goal(x + 6); return x + 16; }
+    b.floor(x, x + 33); b.stairs(x + 3, 5); b.goal(x + 22); return x + 34;
+  }
+  b.floor(x, x + 25); b.stairs(x + 3, 3); b.goal(x + 16); return x + 26;
+}
+
+function buildLevel(idx, stage = 0) {
   const def = LEVELS[idx];
-  const w = def.w;
-  const L = { idx, def, w, grid: new Uint8Array(w * ROWS), bump: new Float32Array(w * ROWS), ents: [], storms: [], checks: [], signs: [], decor: [], start: null, goal: null, theme: THEMES[def.theme] };
+  let w = stage === 0 ? def.w : 640;
+  const L = { idx, stage, final: !!def.final && stage === STAGES - 1, loki: stage === STAGES - 1, def, w, grid: new Uint8Array(w * ROWS), bump: new Float32Array(w * ROWS), ents: [], storms: [], checks: [], signs: [], decor: [], start: null, goal: null, theme: THEMES[def.theme] };
   const set = (x, y, t) => { if (x < 0 || x >= w || y < 1 || y > ROWS) return; L.grid[(ROWS - y) * w + x] = t; };
   const standY = y => (ROWS - y + 1) * TS;
   const hunter = idx >= 2;
@@ -1541,18 +1624,25 @@ function buildLevel(idx) {
       L.storms.push({ x0: x0 * TS, n, slotW: TS * 2, pattern, interval: o.interval, pause: o.pause || 0, warn: o.warn || 1, t: .8, step: 0, strikes: [], mixI: 0, mixPat: 'sweepR', glow: 0, blobs: null, active: false });
     },
   };
-  def.build(b);
+  if (stage === 0) def.build(b);
+  else {
+    const used = genStage(b, idx, stage, rng(idx * 977 + stage * 131 + 11)), g2 = new Uint8Array(used * ROWS);
+    for (let r = 0; r < ROWS; r++) g2.set(L.grid.subarray(r * w, r * w + used), r * used);
+    L.grid = g2; L.bump = new Float32Array(used * ROWS); w = L.w = used;
+  }
+  // only the last stage of a realm ends at Mjölnir (and Loki); the others end at a rune gate
+  if (!L.loki && L.goal) { L.exit = L.goal; L.goal = null; }
   // stone pedestal for the hammer
-  if (L.goal) { const gx = Math.floor(L.goal.x / TS); if (!def.final) set(gx, 3, T.USED); L.goal.y -= TS; }
+  if (L.goal) { const gx = Math.floor(L.goal.x / TS); if (!L.final) set(gx, 3, T.USED); L.goal.y -= TS; }
   // cloud blobs over each storm
   L.storms.forEach((s, i) => {
-    const R = rng(idx * 100 + i + 7); s.blobs = [];
+    const R = rng((idx * 10 + stage) * 100 + i + 7); s.blobs = [];
     for (let x = s.x0 - 90; x < s.x0 + s.n * s.slotW + 90; x += 22) s.blobs.push({ x, y: 22 + R() * 36, r: 40 + R() * 34 });
     s.cloud = makeStormCloud(s, R);
     s.drops = []; for (let k = 0; k < s.n * 8; k++) s.drops.push({ x: R(), o: R() });
   });
   // procedural props on the ground
-  const R = rng(idx * 31 + 5), props = L.theme.props;
+  const R = rng(idx * 31 + 5 + stage * 7), props = L.theme.props;
   for (let x = 2; x < w - 2; x++) {
     for (let ty = 1; ty < ROWS; ty++) {
       if (L.grid[ty * w + x] === T.GROUND && L.grid[(ty - 1) * w + x] === T.EMPTY) {
@@ -1844,6 +1934,9 @@ window.addEventListener('keydown', e => {
     if (e.code === 'Enter' || e.code === 'Space') input.confirm = true;
     if (e.code === 'ArrowUp' || e.code === 'KeyW') input.up = true;
     if (e.code === 'ArrowDown' || e.code === 'KeyS') input.down = true;
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.leftP = true;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') input.rightP = true;
+    if (e.code === 'Escape' || e.code === 'Backspace') input.back = true;
     if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
     if (e.code === 'KeyM') toggleSound();
   }
@@ -1893,8 +1986,17 @@ cv.addEventListener('pointerdown', e => {
 /* ============================================================
    Game state
    ============================================================ */
-const G = { state: 'title', level: 0, score: 0, coins: 0, lives: 3, hearts: 3, lvlScore: 0, lvlCoins: 0, checkpoint: -1, t: 0, st: 0, sel: 0, unlocked: 0, flash: 0, shake: 0, paused: false, cut: null, dieT: 0 };
-try { G.unlocked = clamp(parseInt(localStorage.getItem('mjolnir.realm') || '0', 10) || 0, 0, LEVELS.length - 1); } catch (e) { G.unlocked = 0; }
+const G = { state: 'title', level: 0, stage: 0, progress: 0, mapSel: 0, titleMode: null, score: 0, coins: 0, lives: 3, hearts: 3, lvlScore: 0, lvlCoins: 0, checkpoint: -1, t: 0, st: 0, sel: 0, unlocked: 0, flash: 0, shake: 0, paused: false, cut: null, dieT: 0 };
+// progress = highest unlocked stage, counted across realms (realm * STAGES + stage)
+try {
+  const p = localStorage.getItem('mjolnir.progress'), old = localStorage.getItem('mjolnir.realm');
+  G.progress = clamp(p != null ? parseInt(p, 10) || 0 : (parseInt(old || '0', 10) || 0) * STAGES, 0, LEVELS.length * STAGES - 1);
+} catch (e) { G.progress = 0; }
+G.unlocked = Math.floor(G.progress / STAGES);
+function unlock(idx) {
+  idx = Math.min(idx, LEVELS.length * STAGES - 1);
+  if (idx > G.progress) { G.progress = idx; G.unlocked = Math.floor(idx / STAGES); try { localStorage.setItem('mjolnir.progress', String(idx)); } catch (e) { /* storage unavailable */ } }
+}
 let L = null, P = null, parts = [], floats = [], fx = [], layers = null, tiles = null, weather = [], loki = null;
 const cam = { x: 0, look: 0 };
 
@@ -1912,7 +2014,7 @@ function spawnPoint() {
 }
 function loadLevel(i, keepCheckpoint) {
   G.level = i;
-  L = buildLevel(i);
+  L = buildLevel(i, G.stage);
   const th = L.theme;
   if (!layers || layers.key !== LEVELS[i].theme) { layers = makeLayers(th, i * 7 + 3); layers.key = LEVELS[i].theme; tiles = makeTiles(th); }
   if (!keepCheckpoint) G.checkpoint = -1;
@@ -1923,15 +2025,22 @@ function loadLevel(i, keepCheckpoint) {
   cam.x = clamp(P.x - VW * .38, 0, Math.max(0, L.w * TS - VW)); cam.look = 0;
   initWeather(th);
 }
-function startGame(realm) {
-  G.score = 0; G.coins = 0; G.lives = 3; G.hearts = 3;
-  beginLevel(realm);
+function startGame(realm, stage = 0) {
+  G.score = 0; G.coins = 0; G.lives = 3; G.hearts = 3; G.titleMode = null;
+  beginStage(realm, stage);
 }
-function beginLevel(i) {
-  loadLevel(i, false);
+function beginStage(world, stage) {
+  G.stage = stage;
+  loadLevel(world, false);
   G.lvlScore = G.score; G.lvlCoins = G.coins; G.hearts = 3;
   G.state = 'intro'; G.st = 0;
-  if (i > G.unlocked) { G.unlocked = i; try { localStorage.setItem('mjolnir.realm', String(i)); } catch (e) { /* storage unavailable */ } }
+  unlock(world * STAGES + stage);
+}
+function stageClear() {
+  G.state = 'stageclear'; G.st = 0; SFX.horn(); SFX.coin();
+  for (const s of L.storms) s.strikes = [];
+  burst(L.exit.x, L.exit.y - 60, 40, '#ffd24a', 260, 1, 3.5, 100, true);
+  unlock(G.level * STAGES + G.stage + 1);
 }
 
 /* ============================================================
@@ -2340,6 +2449,7 @@ function updatePlay(dt) {
     }
   });
   if (L.goal && P.x + P.w / 2 > L.goal.x - 100 && G.state === 'play') startCutscene();
+  if (L.exit && P.x + P.w / 2 > L.exit.x - 6 && G.state === 'play') stageClear();
   updateCamera(dt);
 }
 
@@ -2361,7 +2471,7 @@ function updateDying(dt) {
 
 /* ---------- Cutscenes at the hammer ---------- */
 function startCutscene() {
-  G.state = 'cutscene'; G.cut = { t: 0, phase: 0, bubble: null, final: !!L.def.final, bolts: [] };
+  G.state = 'cutscene'; G.cut = { t: 0, phase: 0, bubble: null, final: !!L.final, bolts: [] };
   for (const s of L.storms) s.strikes = [];
   P.invuln = 0;
   // chase away enemies near the hammer
@@ -2455,21 +2565,31 @@ function step(dt) {
 }
 
 function handleMenus() {
-  if (G.state === 'title') {
-    const n = G.unlocked > 0 ? 2 : 1;
+  if (G.state === 'title' && G.titleMode === 'map') {
+    const max = G.progress;
+    if (input.leftP) G.mapSel = Math.max(0, G.mapSel - 1);
+    if (input.rightP) G.mapSel = Math.min(max, G.mapSel + 1);
+    if (input.up) G.mapSel = Math.max(0, G.mapSel - STAGES);
+    if (input.down) G.mapSel = Math.min(max, G.mapSel + STAGES);
+    if (input.back) G.titleMode = null;
+    else if (input.confirm) startGame(Math.floor(G.mapSel / STAGES), G.mapSel % STAGES);
+  } else if (G.state === 'title') {
+    const n = G.progress > 0 ? 2 : 1;
     if (input.up) G.sel = (G.sel + n - 1) % n;
     if (input.down) G.sel = (G.sel + 1) % n;
-    if (input.confirm) { if (G.sel === 1 && G.unlocked > 0) startGame(G.unlocked); else startGame(0); }
+    if (input.confirm) { if (G.sel === 1 && G.progress > 0) { G.titleMode = 'map'; G.mapSel = G.progress; } else startGame(0); }
+  } else if (G.state === 'stageclear') {
+    if (input.confirm && G.st > .8) beginStage(G.level, G.stage + 1);
   } else if (G.state === 'intro') {
     if ((input.confirm && G.st > 1.2) || G.st > 5) { G.state = 'play'; }
   } else if (G.state === 'complete') {
-    if (input.confirm && G.st > .8) { beginLevel(G.level + 1); }
+    if (input.confirm && G.st > .8) { beginStage(G.level + 1, 0); }
   } else if (G.state === 'gameover') {
-    if (input.confirm && G.st > .8) { G.score = G.lvlScore; G.coins = G.lvlCoins; G.lives = 3; beginLevel(G.level); }
+    if (input.confirm && G.st > .8) { G.score = G.lvlScore; G.coins = G.lvlCoins; G.lives = 3; beginStage(G.level, G.stage); }
   } else if (G.state === 'victory') {
-    if (input.confirm && G.st > 1.5) { G.state = 'title'; G.sel = 0; loadLevel(0, false); }
+    if (input.confirm && G.st > 1.5) { G.state = 'title'; G.sel = 0; G.stage = 0; loadLevel(0, false); }
   }
-  input.confirm = false; input.up = false; input.down = false;
+  input.confirm = false; input.up = false; input.down = false; input.leftP = false; input.rightP = false; input.back = false;
 }
 
 /* ============================================================
@@ -2778,7 +2898,7 @@ function drawCheck(g, c) {
 function drawGoal(g) {
   if (!L.goal) return;
   const gx = L.goal.x, gy = L.goal.y, th = L.theme;
-  if (L.def.final) {
+  if (L.final) {
     // Mjölnir driven head-first into the ground of Asgard, waiting for a worthy hand
     const floor = gy + TS, a = .7 + Math.sin(G.t * 2) * .3;
     glow(g, gx, floor - 6, 70, '140,200,255', .3 * a);
@@ -2873,6 +2993,7 @@ function drawWorld(g) {
   for (const c of L.checks) if (c.x > cx - 80 && c.x < cx + VW + 80) drawCheck(g, c);
   drawTiles(g, cx);
   drawGoal(g);
+  drawExit(g);
   for (const s of L.storms) drawWarnings(g, s);
   for (const e of L.ents) { if (e.x + e.w < cx - 60 || e.x > cx + VW + 60) continue; drawEntity(g, e); }
   if (G.state !== 'title') for (const s of L.signs) if (s.x > cx - 200 && s.x < cx + VW + 200) drawSign(g, s);
@@ -2951,7 +3072,7 @@ function drawHUD(g) {
   txt(g, '×' + G.coins, 219, 35, 18, '#f3e7c9', 'left');
   txt(g, String(G.score).padStart(6, '0'), 334, 35, 18, '#ffe28a', 'right');
   if (VW > 760) {
-    txt(g, LEVELS[G.level].name, VW / 2, 26, 23, '#f3e7c9', 'center', DISPLAY, 400);
+    txt(g, `${LEVELS[G.level].name}  ${G.level + 1}-${G.stage + 1}`, VW / 2, 26, 23, '#f3e7c9', 'center', DISPLAY, 400);
     drawRuneText(g, LEVELS[G.level].name, VW / 2, 42, 11, 'rgba(224,169,59,.9)', 1.6);
   }
 }
@@ -2973,6 +3094,7 @@ function button(g, x, y, w, h, label, sel, fn) {
   uiButtons.push({ x, y, w, h, fn });
 }
 function drawTitle(g) {
+  if (G.titleMode === 'map') { drawMap(g); return; }
   g.fillStyle = lgrad(g, 0, 0, 0, VH, ['rgba(6,4,16,.55)', 'rgba(6,4,16,.15)', 'rgba(6,4,16,.6)']); g.fillRect(0, 0, VW, VH);
   const cx = VW / 2;
   glow(g, cx, 150, 260, '120,160,255', .12);
@@ -2988,7 +3110,7 @@ function drawTitle(g) {
   txt(g, 'Loki has stolen Mjölnir. Chase the trickster through five realms and take it back!', cx, 258, 19, '#efe3c8');
   const bw = 290, bh = 50;
   button(g, cx - bw / 2, 292, bw, bh, 'Begin the Quest', G.sel === 0, () => startGame(0));
-  if (G.unlocked > 0) button(g, cx - bw / 2, 352, bw, bh, 'Continue: ' + LEVELS[G.unlocked].name, G.sel === 1, () => startGame(G.unlocked));
+  if (G.progress > 0) button(g, cx - bw / 2, 352, bw, bh, 'Realm map', G.sel === 1, () => { G.titleMode = 'map'; G.mapSel = G.progress; });
   const touchUI = document.body.classList.contains('touch');
   txt(g, touchUI ? 'Use the buttons at the bottom: ◀ ▶ to run, JUMP to leap.' : '← → / A D run  ·  SPACE / W jump  ·  SHIFT sprint  ·  P pause  ·  M sound', cx, VH - 70, 17, 'rgba(243,231,201,.9)');
   txt(g, 'Stomp wolves, ravens and draugar · bounce on sheep · read the runes before the lightning strikes', cx, VH - 44, 16, 'rgba(255,216,138,.85)');
@@ -2998,12 +3120,12 @@ function drawIntro(g) {
   g.save(); g.globalAlpha = a;
   const w = Math.min(660, VW - 40), h = 260, x = (VW - w) / 2, y = 115;
   panel(g, x, y, w, h);
-  txt(g, `Realm ${['I', 'II', 'III', 'IV', 'V'][G.level]} of V`, VW / 2, y + 50, 18, '#c9a045', 'center', BODY, 800, null);
+  txt(g, `Realm ${['I', 'II', 'III', 'IV', 'V'][G.level]} of V  ·  Stage ${G.stage + 1} of ${STAGES}`, VW / 2, y + 50, 18, '#c9a045', 'center', BODY, 800, null);
   txt(g, d.name, VW / 2, y + 94, 48, '#f6ecd4', 'center', DISPLAY, 400, '#140a1e', 6);
   drawRuneText(g, d.name, VW / 2, y + 126, 16, 'rgba(224,180,90,.9)', 2);
   txt(g, d.sub, VW / 2, y + 162, 20, '#ffd88a', 'center', BODY, 800, null);
   g.font = `500 18px ${BODY}`;
-  wrapText(g, d.intro, w - 90).forEach((l, i) => txt(g, l, VW / 2, y + 196 + i * 22, 18, '#e3d6bc', 'center', BODY, 500, null));
+  wrapText(g, G.stage === 0 ? d.intro : STAGE_INTROS[G.stage], w - 90).forEach((l, i) => txt(g, l, VW / 2, y + 196 + i * 22, 18, '#e3d6bc', 'center', BODY, 500, null));
   g.restore();
   if (G.st > .6) txt(g, 'Press JUMP to begin', VW / 2, y + h + 34, 18, `rgba(243,231,201,${.6 + Math.sin(G.t * 4) * .4})`);
 }
@@ -3016,6 +3138,54 @@ function drawComplete(g) {
   txt(g, `${d.name} cleared`, VW / 2, y + 164, 20, '#c9a045', 'center', BODY, 800, null);
   txt(g, `Coins ${G.coins}   ·   Score ${G.score}`, VW / 2, y + 194, 20, '#ffd88a', 'center', BODY, 800, null);
   if (G.st > .8) button(g, VW / 2 - 130, y + h - 64, 260, 44, 'Chase Loki  →', true, () => { input.confirm = true; });
+}
+function drawMap(g) {
+  g.fillStyle = 'rgba(6,4,16,.6)'; g.fillRect(0, 0, VW, VH);
+  const w = Math.min(760, VW - 24), h = 508, x = (VW - w) / 2, y = 34;
+  panel(g, x, y, w, h);
+  txt(g, 'Realm map', VW / 2, y + 44, 30, '#f6ecd4', 'center', DISPLAY, 400, '#140a1e', 6);
+  const colX = s => x + w * .4 + s * (w * .53 / (STAGES - 1));
+  LEVELS.forEach((d, wi) => {
+    const ry = y + 104 + wi * 74, open = wi * STAGES <= G.progress;
+    txt(g, d.name, x + 34, ry, 23, open ? '#f6ecd4' : 'rgba(200,190,170,.45)', 'left', DISPLAY, 400, null);
+    g.strokeStyle = 'rgba(201,160,69,.35)'; g.lineWidth = 2; g.beginPath(); g.moveTo(colX(0), ry); g.lineTo(colX(STAGES - 1), ry); g.stroke();
+    for (let st = 0; st < STAGES; st++) {
+      const idx = wi * STAGES + st, cx = colX(st), unlocked = idx <= G.progress, sel = idx === G.mapSel, boss = st === STAGES - 1;
+      if (sel) glow(g, cx, ry, 44, '255,180,90', .35);
+      g.beginPath(); g.arc(cx, ry, boss ? 25 : 21, 0, 7);
+      g.fillStyle = sel ? '#8e1f2c' : unlocked ? 'rgba(36,30,54,.95)' : 'rgba(30,26,36,.8)'; g.fill();
+      g.lineWidth = sel ? 3 : 2; g.strokeStyle = unlocked ? '#e0b54c' : 'rgba(120,110,100,.5)'; g.stroke();
+      if (unlocked) txt(g, `${wi + 1}-${st + 1}`, cx, ry + 1, 15, '#f6ecd4', 'center', BODY, 800, null);
+      else drawRune(g, 'i', cx - 3, ry - 8, 16, 'rgba(150,140,130,.6)', 2);
+      if (boss) drawMjolnir(g, cx + 22, ry - 18, .38, .4, unlocked ? .6 : 0);
+      if (unlocked) uiButtons.push({ x: cx - 26, y: ry - 26, w: 52, h: 52, fn: () => startGame(wi, st) });
+    }
+  });
+  button(g, VW / 2 - 90, y + h - 58, 180, 40, 'Back', false, () => { G.titleMode = null; });
+}
+function drawStageClear(g) {
+  const d = LEVELS[G.level], w = Math.min(560, VW - 40), h = 240, x = (VW - w) / 2, y = 120;
+  panel(g, x, y, w, h);
+  txt(g, `${d.name}  ${G.level + 1}-${G.stage + 1}`, VW / 2, y + 48, 18, '#c9a045', 'center', BODY, 800, null);
+  txt(g, 'Stage cleared!', VW / 2, y + 92, 38, '#f6ecd4', 'center', DISPLAY, 400, '#140a1e', 6);
+  txt(g, `Coins ${G.coins}   ·   Score ${G.score}`, VW / 2, y + 138, 20, '#ffd88a', 'center', BODY, 800, null);
+  if (G.st > .8) button(g, VW / 2 - 130, y + h - 66, 260, 44, `On to ${G.level + 1}-${G.stage + 2}  →`, true, () => { input.confirm = true; });
+}
+function drawExit(g) {
+  // the rune gate at the end of a stage
+  if (!L.exit) return;
+  const x = L.exit.x, y = L.exit.y, th = L.theme, a = .7 + Math.sin(G.t * 2.5) * .3;
+  g.save(); g.globalCompositeOperation = 'lighter';
+  g.fillStyle = lgrad(g, 0, y - 130, 0, y, ['rgba(140,200,255,0)', `rgba(140,200,255,${.28 * a})`]); g.fillRect(x - 34, y - 130, 68, 130);
+  g.restore();
+  glow(g, x, y - 60, 70, '150,210,255', .35 * a);
+  for (const sx of [-1, 1]) {
+    g.beginPath(); rr(g, x + sx * 44 - 9, y - 132, 18, 132, 3); ink(g, lgrad(g, x + sx * 44 - 9, 0, x + sx * 44 + 9, 0, [th.stoneLight, th.stone, th.stoneDark]), 1.8);
+    for (let i = 0; i < 4; i++) drawRune(g, RUNE_KEYS[(i * 5 + (sx > 0 ? 3 : 0)) % RUNE_KEYS.length], x + sx * 44 - 4, y - 120 + i * 28, 14, `rgba(150,220,255,${.5 + .5 * a})`, 1.8);
+  }
+  g.beginPath(); rr(g, x - 60, y - 148, 120, 20, 4); ink(g, lgrad(g, 0, y - 148, 0, y - 128, [th.stoneLight, th.stoneDark]), 1.8);
+  drawRuneText(g, 'raido', x, y - 144, 12, `rgba(150,220,255,${.6 + .4 * a})`, 1.6);
+  if (Math.random() < .3) parts.push({ x: x + (Math.random() - .5) * 60, y: y - Math.random() * 120, vx: 0, vy: -25, life: .8, max: .8, color: 'rgba(170,220,255,.9)', size: 2.5, g: 0, gl: true });
 }
 function drawGameOver(g) {
   g.fillStyle = 'rgba(6,4,12,.55)'; g.fillRect(0, 0, VW, VH);
@@ -3051,6 +3221,7 @@ function render() {
     drawHUD(ctx);
     if (G.state === 'intro') drawIntro(ctx);
     else if (G.state === 'complete') drawComplete(ctx);
+    else if (G.state === 'stageclear') drawStageClear(ctx);
     else if (G.state === 'gameover') drawGameOver(ctx);
     else if (G.state === 'victory') drawVictory(ctx);
   }
@@ -3077,7 +3248,7 @@ function syncMusic() {
   const spec = G.state === 'title' ? TITLE_MUSIC : realmMusic(G.level);
   if (Music.key(spec) !== Music.want) Music.set(...spec);
   if (G.state === 'title') { Music.prefetch(realmMusic(0)); Music.prefetch(realmMusic(G.unlocked)); }
-  else if (G.level + 1 < LEVELS.length) Music.prefetch(realmMusic(G.level + 1));
+  else if (G.stage === STAGES - 1 && G.level + 1 < LEVELS.length) Music.prefetch(realmMusic(G.level + 1));
 }
 function frame(now) {
   syncMusic();
@@ -3100,7 +3271,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated checks
 window.__snd = Sound; window.Music = Music;
-window.__mjolnir = { G, input, get L() { return L; }, get P() { return P; }, beginLevel, startGame, LEVELS };
+window.__mjolnir = { G, input, get L() { return L; }, get P() { return P; }, beginStage, startGame, LEVELS, STAGES };
 })();
 </script>
 </body>

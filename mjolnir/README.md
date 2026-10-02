@@ -1,8 +1,14 @@
 # Mjölnir Lost
 
 A Mario-style Viking platformer. Loki has stolen Thor's hammer, and you chase him through five Norse realms:
-Midgard, Jötunheim, Járnviðr (the Iron Wood), Niflheim and Asgard. At the end of each realm Thor almost grabs
-Mjölnir, but Loki snatches it and flees to the next realm. In Asgard, Thor finally takes it back.
+Midgard, Jötunheim, Járnviðr (the Iron Wood), Niflheim and Asgard, with 5 stages each (1-1 to 5-5). Stages 1-4 of a
+realm end at a rune gate; in stage 5 Thor almost grabs Mjölnir, but Loki snatches it and flees to the next realm. In
+Asgard 5-5, Thor finally takes it back.
+
+Stage 1 of every realm is hand-built (with Ratatoskr's lessons). Stages 2-5 are assembled by `genStage()` from
+hand-made chunks (gaps, plank pits, wolf packs, draugar, ravens, rune blocks, hills, spikes, sheep jumps, stairs and
+lightning storms), seeded so they are the same every time and getting harder each stage. A realm map on the title
+screen lets you replay any unlocked stage.
 
 The art style is dark, misty chibi-anime: ink-outlined characters with big anime eyes, layered moonlit landscapes,
 fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly fire-haired jötunn with
@@ -35,8 +41,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Ratatoskr**, the messenger squirrel of Yggdrasil, sits on rune stumps and gives hints.
 - **Valkyries** fly by when you raise a raven banner, and one carries Thor back when he falls.
 - **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full). Every 100 coins earns an extra life.
-- **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest realm is saved, so you can
-  continue later.
+- **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
 
 ## Painted art
 
