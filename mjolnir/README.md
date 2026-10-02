@@ -34,7 +34,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Sheep** are bouncy trampolines that reach high platforms.
 - **Ratatoskr**, the messenger squirrel of Yggdrasil, sits on rune stumps and gives hints.
 - **Valkyries** fly by when you raise a raven banner, and one carries Thor back when he falls.
-- **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield). Every 100 coins earns an extra life.
+- **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full). Every 100 coins earns an extra life.
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest realm is saved, so you can
   continue later.
 

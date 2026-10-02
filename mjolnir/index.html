@@ -2125,7 +2125,7 @@ function collideEnts() {
         if (e.emerge > 0) break;
         e.dead = 'got'; SFX.mead();
         if (G.hearts < 3) { G.hearts++; floatText(e.x, e.y - 10, 'SKÅL! +1 shield', '#9fe3ff'); }
-        else addScore(1000, e.x, e.y);
+        else { G.lives++; SFX.horn(); floatText(e.x, e.y - 10, 'SKÅL! +1 life', '#ffe28a'); }
         break;
       case 'wolf': case 'raven': {
         const stomp = p.vy > 0 && p.prevBottom <= e.y + 14;
