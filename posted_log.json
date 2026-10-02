@@ -69,7 +69,8 @@
     43,
     96,
     40,
-    62
+    62,
+    38
   ],
   "posted_reel_ids": [
     2,
@@ -84,11 +85,11 @@
     3
   ],
   "recent_backgrounds": [
-    "bg_06_desert_road.png",
     "bg_15_night_road.png",
     "bg_04_ocean_waves.png",
     "bg_01_mountain_dawn.png",
-    "bg_09_starry_sky.png"
+    "bg_09_starry_sky.png",
+    "bg_10_abstract_smoke.png"
   ],
   "recent_bg_videos": [
     "reel_05_rain_window.mp4",
