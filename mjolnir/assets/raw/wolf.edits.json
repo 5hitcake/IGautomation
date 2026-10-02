@@ -1,0 +1,4 @@
+{
+  "_doc": "Per-frame fixes in raw frame pixels. clear_light removes only light leftover background inside the rectangle.",
+  "1": {"clear_light": [[84, 108, 112, 146]]}
+}
