@@ -80,8 +80,9 @@ function rr(g, x, y, w, h, r) {
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
 let VW = 1024, scale = 1, offX = 0, offY = 0, dpr = 1;
+const QUALITY = { maxDpr: 1.5, slow: 0, frames: 0 };
 function resize() {
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  dpr = Math.min(window.devicePixelRatio || 1, QUALITY.maxDpr);
   const W = window.innerWidth, H = window.innerHeight;
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   cv.style.width = W + 'px'; cv.style.height = H + 'px';
@@ -152,23 +153,35 @@ const SPRITE_META = {"thor": {"frames": [[0, 0, 111, 220, 53.3], [115, 0, 173, 2
 const IMG = {};
 for (const k in ASSET_DATA) { const im = new Image(); im.src = ASSET_DATA[k]; IMG[k] = im; }
 const imgReady = k => !!(IMG[k] && IMG[k].complete && IMG[k].naturalWidth > 0);
-function drawSprite(g, name, fi, x, y, hGame, flip, sq = 0) {
+const TINTS = {};
+function tinted(name, filter) {
+  const k = name + '|' + filter;
+  if (!TINTS[k]) {
+    const im = IMG[name], c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const gg = c.getContext('2d'); gg.filter = filter; gg.drawImage(im, 0, 0); TINTS[k] = c;
+  }
+  return TINTS[k];
+}
+function drawSprite(g, name, fi, x, y, hGame, flip, sq = 0, img) {
   const m = SPRITE_META[name], f = m.frames[fi], s = hGame / m.h;
   g.save(); g.translate(x, y); g.scale((flip ? -1 : 1) * (1 + sq * .12), 1 - sq * .12);
-  g.drawImage(IMG[name], f[0], f[1], f[2], f[3], -f[4] * s, -f[3] * s, f[2] * s, f[3] * s);
+  g.drawImage(img || IMG[name], f[0], f[1], f[2], f[3], -f[4] * s, -f[3] * s, f[2] * s, f[3] * s);
   g.restore();
 }
-function drawFrame(g, name, fi, x, y, frameH, flip, sq = 0) {
-  const m = SPRITE_META[name]; drawSprite(g, name, fi, x, y, frameH * m.h / m.frames[fi][3], flip, sq);
+function drawFrame(g, name, fi, x, y, frameH, flip, sq = 0, img) {
+  const m = SPRITE_META[name]; drawSprite(g, name, fi, x, y, frameH * m.h / m.frames[fi][3], flip, sq, img);
 }
 function drawBackdrop(g, img, cx, f) {
-  // mirrored tiling hides the seam between copies of the painting
-  const w = img.naturalWidth * (VH / img.naturalHeight), off = cx * f, k0 = Math.floor(off / w);
-  for (let k = k0; k * w - off < VW; k++) {
-    const x = Math.floor(k * w - off);
-    if (((k % 2) + 2) % 2 === 0) g.drawImage(img, x, 0, w + 1, VH);
-    else { g.save(); g.translate(x + w, 0); g.scale(-1, 1); g.drawImage(img, 0, 0, w + 1, VH); g.restore(); }
+  // mirrored tiling hides the seam between copies of the painting; both copies are pre-scaled once
+  if (!img._pair) {
+    const w = Math.round(img.naturalWidth * (VH / img.naturalHeight)), a = document.createElement('canvas'), b = document.createElement('canvas');
+    a.width = b.width = w; a.height = b.height = VH;
+    a.getContext('2d').drawImage(img, 0, 0, w, VH);
+    const bg = b.getContext('2d'); bg.translate(w, 0); bg.scale(-1, 1); bg.drawImage(img, 0, 0, w, VH);
+    img._pair = [a, b];
   }
+  const [a, b] = img._pair, w = a.width, off = cx * f, k0 = Math.floor(off / w);
+  for (let k = k0; k * w - off < VW; k++) g.drawImage(((k % 2) + 2) % 2 === 0 ? a : b, Math.floor(k * w - off), 0);
 }
 function drawHero(g, x, y, o) {
   if (!imgReady('thor')) { drawThor(g, x, y, o); return; }
@@ -200,11 +213,18 @@ function rgrad(g, x, y, r0, r1, stops) {
   stops.forEach((c, i) => gr.addColorStop(i / (stops.length - 1), c));
   return gr;
 }
+const GLOWS = {};
 function glow(g, x, y, r, rgb, a) {
-  g.save(); g.globalCompositeOperation = 'lighter';
-  g.fillStyle = rgrad(g, x, y, 0, r, [`rgba(${rgb},${a})`, `rgba(${rgb},${a * .35})`, `rgba(${rgb},0)`]);
-  g.fillRect(x - r, y - r, r * 2, r * 2);
-  g.restore();
+  if (a <= .005 || r < 1) return;
+  let c = GLOWS[rgb];
+  if (!c) {
+    c = GLOWS[rgb] = document.createElement('canvas'); c.width = c.height = 64;
+    const gg = c.getContext('2d'); gg.fillStyle = rgrad(gg, 32, 32, 0, 32, [`rgba(${rgb},1)`, `rgba(${rgb},.35)`, `rgba(${rgb},0)`]); gg.fillRect(0, 0, 64, 64);
+  }
+  const op = g.globalCompositeOperation, ga = g.globalAlpha;
+  g.globalCompositeOperation = 'lighter'; g.globalAlpha = ga * Math.min(1, a);
+  g.drawImage(c, x - r, y - r, r * 2, r * 2);
+  g.globalCompositeOperation = op; g.globalAlpha = ga;
 }
 function periodicNoise(seed, period) {
   const R = rng(seed), v = new Float32Array(period);
@@ -554,8 +574,7 @@ function drawWolf(g, e, t) {
     // crouch before a pounce, the pounce itself, and knocked out after a stomp
     const ko = e.dead === 'squash', fi = ko ? 2 : e.crouch ? 0 : 1;
     g.save(); if (ko) g.globalAlpha = clamp(1.6 - e.dt * 2, 0, 1);
-    if (e.dark) g.filter = 'brightness(.8) contrast(1.1)';
-    drawFrame(g, 'wolf2', fi, e.x + e.w / 2, e.y + e.h + 2, [46, 58, 30][fi], e.dir < 0);
+    drawFrame(g, 'wolf2', fi, e.x + e.w / 2, e.y + e.h + 2, [46, 58, 30][fi], e.dir < 0, 0, e.dark ? tinted('wolf2', 'brightness(.8) contrast(1.1)') : null);
     g.restore();
     return;
   }
@@ -563,8 +582,7 @@ function drawWolf(g, e, t) {
     const fi = e.onGround || e.dead ? Math.floor(e.ph / 1.5) % 4 : 0;
     g.save();
     if (e.dead === 'fall') { g.translate(0, e.y + e.h / 2); g.scale(1, -1); g.translate(0, -(e.y + e.h / 2)); }
-    if (e.dark) g.filter = 'brightness(.8) contrast(1.1)';
-    drawSprite(g, 'wolf', fi, e.x + e.w / 2, e.y + e.h + 2, 56, e.dir < 0, e.dead === 'squash' ? .9 : 0);
+    drawSprite(g, 'wolf', fi, e.x + e.w / 2, e.y + e.h + 2, 56, e.dir < 0, e.dead === 'squash' ? .9 : 0, e.dark ? tinted('wolf', 'brightness(.8) contrast(1.1)') : null);
     g.restore();
     return;
   }
@@ -668,8 +686,8 @@ function drawRavenDrawn(g, e, t) {
 function drawSheep(g, e, t) {
   if (imgReady('critters')) {
     const graze = e.graze > 0, sq = e.squish > 0 ? e.squish * .9 : 0, bob = e.moving ? -Math.abs(Math.sin(e.ph)) * 1.5 : 0;
-    g.save(); if (e.burnt > 0) g.filter = 'brightness(.3) saturate(.4)';
-    drawFrame(g, 'critters', graze ? 1 : 0, e.x + e.w / 2, e.y + e.h + 1 + bob, graze ? 38 : 44, e.dir < 0, sq);
+    g.save();
+    drawFrame(g, 'critters', graze ? 1 : 0, e.x + e.w / 2, e.y + e.h + 1 + bob, graze ? 38 : 44, e.dir < 0, sq, e.burnt > 0 ? tinted('critters', 'brightness(.3) saturate(.4)') : null);
     g.restore(); return;
   }
   drawSheepDrawn(g, e, t);
@@ -825,7 +843,6 @@ function drawCoin(g, x, y, t, spin) {
     // spins around its vertical axis: squash the width, show the gold rim when edge-on
     const c = Math.cos(spin), w = Math.max(.08, Math.abs(c));
     g.save(); g.translate(x, y + 12); g.scale(w, 1);
-    if (c < 0) g.filter = 'brightness(.8)';
     drawFrame(g, 'items', 1, 0, 0, 24, false);
     g.restore();
     if (w < .35) { g.fillStyle = '#b07a1c'; g.fillRect(x - 1.5, y - 11, 3, 22); }
@@ -1554,7 +1571,7 @@ function unlockAudio() {
   Sound.ctx = c;
   Sound.master = c.createGain(); Sound.master.gain.value = Sound.on ? .85 : 0; Sound.master.connect(c.destination);
   const comp = c.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3; comp.connect(Sound.master);
-  Sound.verb = c.createConvolver(); Sound.verb.buffer = makeImpulse(c, 3.4, 2.6);
+  Sound.verb = c.createConvolver(); Sound.verb.buffer = makeImpulse(c, 1.4, 2.4);
   const vg = c.createGain(); vg.gain.value = .55; Sound.verb.connect(vg); vg.connect(comp);
   Sound.sfx = c.createGain(); Sound.sfx.gain.value = .85; Sound.sfx.connect(comp);
   Sound.music = c.createGain(); Sound.music.gain.value = .9; Sound.music.connect(comp);
@@ -1630,91 +1647,114 @@ const CHORDS = [
   [[50, 54, 57], [48, 52, 55], [43, 47, 50], [45, 49, 52]],
 ];
 const midiHz = n => 440 * Math.pow(2, (n - 69) / 12);
+// The whole score is rendered once per realm into a seamless loop (OfflineAudioContext)
+// and then played as a single looping buffer, so the game loop never has to schedule notes.
 const Music = {
-  timer: null, step: 0, next: 0, tempo: 70, pat: 0, intensity: 1, lyre: null,
-  start() {
-    if (this.timer || !Sound.ctx) return;
-    const c = Sound.ctx; this.next = c.currentTime + .2;
-    this.lyre = ksBuffer(c, midiHz(50), 3.2, .9965);
-    // drone: deep saws through a slowly breathing lowpass
-    const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700; f.Q.value = 2;
-    const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = .05; lg.gain.value = 120; lfo.connect(lg); lg.connect(f.frequency); lfo.start();
-    const dg = c.createGain(); dg.gain.value = .09; f.connect(dg); dg.connect(Sound.music);
-    const dw = c.createGain(); dw.gain.value = .3; dg.connect(dw); dw.connect(Sound.verb);
-    [73.42, 110, 146.83, 220.5].forEach((hz, i) => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz; o.connect(f); o.start(); if (i === 3) { const og = c.createGain(); og.gain.value = .4; o.disconnect(); o.connect(og); og.connect(f); } });
-    // throat chant: a saw through two vowel formants that slowly morph
-    const src = c.createOscillator(); src.type = 'sawtooth'; src.frequency.value = 73.42;
-    const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 4.5; vg.gain.value = .6; vib.connect(vg); vg.connect(src.frequency); vib.start();
-    const cg = c.createGain(); cg.gain.value = 0;
-    const swell = c.createOscillator(), sw = c.createGain(); swell.frequency.value = .045; sw.gain.value = .022; swell.connect(sw); sw.connect(cg.gain); swell.start();
-    const cBase = c.createConstantSource ? c.createConstantSource() : null;
-    if (cBase) { cBase.offset.value = .022; cBase.connect(cg.gain); cBase.start(); }
+  pat: 0, tempo: 70, intensity: 1, cache: {}, want: null, src: null, g: null,
+  start() { this.apply(); },
+  set(p, tempo, intensity) { this.pat = p; this.tempo = tempo || 70; this.intensity = intensity || 1; this.apply(); },
+  async apply() {
+    const ac = Sound.ctx; if (!ac) return;
+    const key = `${this.pat}|${this.tempo}|${this.intensity}`;
+    if (this.want === key) return;
+    this.want = key;
+    let buf = this.cache[key];
+    if (!buf) {
+      try { buf = this.cache[key] = await this.render(this.pat, this.tempo, this.intensity); }
+      catch (e) { return; }
+    }
+    if (this.want !== key || !Sound.ctx) return;
+    const t = ac.currentTime;
+    if (this.src) { const s = this.src; this.g.gain.setTargetAtTime(0, t, .5); s.stop(t + 3); }
+    const s = ac.createBufferSource(), g = ac.createGain();
+    s.buffer = buf; s.loop = true;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 2);
+    s.connect(g); g.connect(Sound.music); s.start(t);
+    this.src = s; this.g = g;
+  },
+  async render(pat, tempo, intensity) {
+    const sr = 32000, spb = 60 / tempo / 2, STEPS = 128, XF = 2.5;
+    const loopLen = STEPS * spb, extra = Math.ceil((XF + 1) / spb), total = (STEPS + extra) * spb;
+    const c = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(total * sr), sr);
+    const bus = c.createGain(); bus.gain.value = 1; bus.connect(c.destination);
+    const verb = c.createConvolver(); verb.buffer = makeImpulse(c, 3.4, 2.6);
+    const vg = c.createGain(); vg.gain.value = .55; verb.connect(vg); vg.connect(c.destination);
+    const out = wet => { const g = c.createGain(); g.connect(bus); if (wet) { const w = c.createGain(); w.gain.value = wet; g.connect(w); w.connect(verb); } return g; };
+    const noiseBuf = c.createBuffer(1, sr * 2, sr), nd = noiseBuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const lyre = ksBuffer(c, midiHz(50), 3.2, .9965);
+    // LFOs complete whole cycles per loop so the seam is invisible
+    const loopHz = f => Math.max(1, Math.round(f * loopLen)) / loopLen;
+    const lfo = (f, depth, target) => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = loopHz(f); g.gain.value = depth; o.connect(g); g.connect(target); o.start(); };
+    // drone
+    const df = c.createBiquadFilter(); df.type = 'lowpass'; df.frequency.value = 700; df.Q.value = 2; lfo(.05, 120, df.frequency);
+    const dg = c.createGain(); dg.gain.value = .09; df.connect(dg); dg.connect(bus);
+    const dw = c.createGain(); dw.gain.value = .3; dg.connect(dw); dw.connect(verb);
+    [73.42, 110, 146.83, 220.5].forEach((hz, i) => { const o = c.createOscillator(), og = c.createGain(); o.type = 'sawtooth'; o.frequency.value = hz; og.gain.value = i === 3 ? .4 : 1; o.connect(og); og.connect(df); o.start(); });
+    // throat chant
+    const ch = c.createOscillator(); ch.type = 'sawtooth'; ch.frequency.value = 73.42;
+    const vib = c.createOscillator(), vbg = c.createGain(); vib.frequency.value = 4.5; vbg.gain.value = .6; vib.connect(vbg); vbg.connect(ch.frequency); vib.start();
+    const cg = c.createGain(); cg.gain.value = .022; lfo(.045, .022, cg.gain);
     for (const [fr, q, mod] of [[420, 9, 120], [820, 12, 260], [2600, 14, 0]]) {
       const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q;
-      if (mod) { const m = c.createOscillator(), mg = c.createGain(); m.frequency.value = .07; mg.gain.value = mod; m.connect(mg); mg.connect(bp.frequency); m.start(); }
-      src.connect(bp); bp.connect(cg);
+      if (mod) lfo(.07, mod, bp.frequency);
+      ch.connect(bp); bp.connect(cg);
     }
-    src.start();
-    this.chant = cg;
-    const cw = c.createGain(); cw.gain.value = 1; cg.connect(cw); cw.connect(Sound.verb);
-    const cd = c.createGain(); cd.gain.value = .5; cg.connect(cd); cd.connect(Sound.music);
+    ch.start();
+    const cw = c.createGain(); cw.gain.value = 1; cg.connect(cw); cw.connect(verb);
+    const cd = c.createGain(); cd.gain.value = .5; cg.connect(cd); cd.connect(bus);
     // wind
-    const ws = c.createBufferSource(); ws.buffer = Sound.noise; ws.loop = true;
-    const wf = c.createBiquadFilter(); wf.type = 'bandpass'; wf.frequency.value = 500; wf.Q.value = .8;
-    const wl = c.createOscillator(), wlg = c.createGain(); wl.frequency.value = .03; wlg.gain.value = 300; wl.connect(wlg); wlg.connect(wf.frequency); wl.start();
-    const wg = c.createGain(); wg.gain.value = .045; ws.connect(wf); wf.connect(wg); wg.connect(Sound.music); ws.start();
-    this.timer = setInterval(() => this.tick(), 50);
-  },
-  tick() {
-    const c = Sound.ctx; if (!c || c.state !== 'running') return;
-    const spb = 60 / this.tempo / 2;
-    if (this.next < c.currentTime - 1) this.next = c.currentTime + .05;
-    while (this.next < c.currentTime + .25) { this.play(this.step, this.next, spb); this.next += spb; this.step++; }
-  },
-  play(s, t, spb) {
-    const c = Sound.ctx, beat = s % 16, bar = Math.floor(s / 16);
-    // frame drum heartbeat
-    if (beat === 0) this.drum(t, 1, 58);
-    if (beat === 2) this.drum(t, .55, 62);
-    if (this.intensity >= 2 && (beat === 8 || beat === 10)) this.drum(t, .6, 72);
-    if (this.intensity >= 2 && beat === 14 && bar % 2) { this.drum(t, .35, 90); this.drum(t + spb * .5, .3, 90); }
-    // lyre
-    const m = MOTIFS[this.pat], n = m[s % m.length];
-    if (n != null) {
-      const src = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
-      src.buffer = this.lyre; src.playbackRate.value = Math.pow(2, n / 12 + 1);
-      f.type = 'lowpass'; f.frequency.value = 2600;
-      g.gain.value = .55; src.connect(f); f.connect(g); g.connect(out(Sound.music, .6)); src.start(t); src.stop(t + 3);
-      // a soft flute an octave up gives the tune presence on small speakers
-      const fl = c.createOscillator(), fg = c.createGain(); fl.type = 'triangle'; fl.frequency.value = midiHz(62 + n + 12);
-      fg.gain.setValueAtTime(.0001, t); fg.gain.exponentialRampToValueAtTime(.05, t + .06); fg.gain.exponentialRampToValueAtTime(.0001, t + spb * 1.8);
-      fl.connect(fg); fg.connect(out(Sound.music, .8)); fl.start(t); fl.stop(t + spb * 2);
+    const ws = c.createBufferSource(); ws.buffer = noiseBuf; ws.loop = true;
+    const wf = c.createBiquadFilter(); wf.type = 'bandpass'; wf.frequency.value = 500; wf.Q.value = .8; lfo(.03, 300, wf.frequency);
+    const wg = c.createGain(); wg.gain.value = .045; ws.connect(wf); wf.connect(wg); wg.connect(bus); ws.start();
+    const drum = (t, v, hz) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(hz * 1.6, t); o.frequency.exponentialRampToValueAtTime(hz * .7, t + .35);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.7 * v, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + .6);
+      o.connect(g); g.connect(out(.35)); o.start(t); o.stop(t + .65);
+      const s = c.createBufferSource(), f = c.createBiquadFilter(), ng = c.createGain();
+      s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = .8;
+      ng.gain.setValueAtTime(.35 * v, t); ng.gain.exponentialRampToValueAtTime(.0001, t + .08);
+      s.connect(f); f.connect(ng); ng.connect(out(.3)); s.start(t, Math.random()); s.stop(t + .1);
+    };
+    for (let s = 0; s < STEPS + extra; s++) {
+      const t = s * spb, beat = s % 16, bar = Math.floor(s / 16);
+      if (beat === 0) drum(t, 1, 58);
+      if (beat === 2) drum(t, .55, 62);
+      if (intensity >= 2 && (beat === 8 || beat === 10)) drum(t, .6, 72);
+      if (intensity >= 2 && beat === 14 && bar % 2) { drum(t, .35, 90); drum(t + spb * .5, .3, 90); }
+      const m = MOTIFS[pat], n = m[s % m.length];
+      if (n != null) {
+        const src = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+        src.buffer = lyre; src.playbackRate.value = Math.pow(2, n / 12 + 1);
+        f.type = 'lowpass'; f.frequency.value = 2600;
+        g.gain.value = .55; src.connect(f); f.connect(g); g.connect(out(.6)); src.start(t); src.stop(t + 3);
+        const fl = c.createOscillator(), fg = c.createGain(); fl.type = 'triangle'; fl.frequency.value = midiHz(62 + n + 12);
+        fg.gain.setValueAtTime(.0001, t); fg.gain.exponentialRampToValueAtTime(.05, t + .06); fg.gain.exponentialRampToValueAtTime(.0001, t + spb * 1.8);
+        fl.connect(fg); fg.connect(out(.8)); fl.start(t); fl.stop(t + spb * 2);
+      }
+      if (s % 32 === 0) {
+        const chord = CHORDS[pat][Math.floor(s / 32) % 4], dur = spb * 32;
+        chord.forEach(note => {
+          for (const det of [-5, 5]) {
+            const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+            o.type = 'sawtooth'; o.frequency.value = midiHz(note + 12); o.detune.value = det;
+            f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.2;
+            g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.028, t + dur * .35); g.gain.linearRampToValueAtTime(.0001, t + dur * 1.05);
+            o.connect(f); f.connect(g); g.connect(out(1.2)); o.start(t); o.stop(t + dur * 1.1);
+          }
+        });
+      }
     }
-    // choir pad changes every two bars
-    if (s % 32 === 0) {
-      const ch = CHORDS[this.pat][Math.floor(s / 32) % 4], dur = spb * 32;
-      ch.forEach(note => {
-        for (const det of [-5, 5]) {
-          const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
-          o.type = 'sawtooth'; o.frequency.value = midiHz(note + 12); o.detune.value = det;
-          f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.2;
-          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.028, t + dur * .35); g.gain.linearRampToValueAtTime(.0001, t + dur * 1.05);
-          o.connect(f); f.connect(g); g.connect(out(Sound.music, 1.2)); o.start(t); o.stop(t + dur * 1.1);
-        }
-      });
+    const rendered = await c.startRendering();
+    // crossfade the run-over (which replays the loop's start) into the start: seamless loop
+    const L = Math.floor(loopLen * sr), F = Math.floor(XF * sr), outBuf = Sound.ctx.createBuffer(2, L, sr);
+    for (let ch2 = 0; ch2 < 2; ch2++) {
+      const x = rendered.getChannelData(ch2), y = outBuf.getChannelData(ch2);
+      y.set(x.subarray(0, L));
+      for (let i = 0; i < F; i++) { const a = i / F; y[i] = x[i] * a + x[L + i] * (1 - a); }
     }
+    return outBuf;
   },
-  drum(t, v, hz) {
-    const c = Sound.ctx, o = c.createOscillator(), g = c.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(hz * 1.6, t); o.frequency.exponentialRampToValueAtTime(hz * .7, t + .35);
-    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.7 * v, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + .6);
-    o.connect(g); g.connect(out(Sound.music, .35)); o.start(t); o.stop(t + .65);
-    const s = c.createBufferSource(), f = c.createBiquadFilter(), ng = c.createGain();
-    s.buffer = Sound.noise; f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = .8;
-    ng.gain.setValueAtTime(.35 * v, t); ng.gain.exponentialRampToValueAtTime(.0001, t + .08);
-    s.connect(f); f.connect(ng); ng.connect(out(Sound.music, .3)); s.start(t, Math.random()); s.stop(t + .1);
-  },
-  set(p, tempo, intensity) { this.pat = p; this.tempo = tempo || 70; this.intensity = intensity || 1; },
 };
 function toggleSound() {
   Sound.on = !Sound.on;
@@ -2816,9 +2856,13 @@ function drawWorld(g) {
   }
   else if (w === 'motes') { for (const f of weather) { const x = f.x % VW; glow(g, x, f.y, 6, '255,220,150', .3); } }
   if (G.flash > 0) { g.fillStyle = `rgba(220,235,255,${G.flash * .4})`; g.fillRect(0, 0, VW, VH); }
-  const vg = g.createRadialGradient(VW / 2, VH * .55, VH * .35, VW / 2, VH * .55, VW * .72);
-  vg.addColorStop(0, 'rgba(8,4,20,0)'); vg.addColorStop(1, 'rgba(8,4,20,.55)');
-  g.fillStyle = vg; g.fillRect(0, 0, VW, VH);
+  if (!drawWorld.vig || drawWorld.vigW !== Math.round(VW)) {
+    const c = document.createElement('canvas'); c.width = Math.round(VW / 2); c.height = VH / 2;
+    const gg = c.getContext('2d'), vg = gg.createRadialGradient(c.width / 2, c.height * .55, c.height * .35, c.width / 2, c.height * .55, c.width * .72);
+    vg.addColorStop(0, 'rgba(8,4,20,0)'); vg.addColorStop(1, 'rgba(8,4,20,.55)'); gg.fillStyle = vg; gg.fillRect(0, 0, c.width, c.height);
+    drawWorld.vig = c; drawWorld.vigW = Math.round(VW);
+  }
+  g.drawImage(drawWorld.vig, 0, 0, VW, VH);
 }
 
 /* ---------- HUD & screens ---------- */
@@ -2964,6 +3008,11 @@ let last = performance.now(), acc = 0;
 const DT = 1 / 120;
 function frame(now) {
   let el = (now - last) / 1000; last = now;
+  // adaptive resolution: if most frames are slow, render fewer pixels
+  if (QUALITY.maxDpr > 1 && !document.hidden) {
+    QUALITY.frames++; if (el > .026) QUALITY.slow++;
+    if (QUALITY.frames >= 120) { if (QUALITY.slow > 60) { QUALITY.maxDpr = 1; resize(); } QUALITY.frames = QUALITY.slow = 0; }
+  }
   if (el > .1) el = .1;
   handleMenus();
   acc += el;
@@ -2976,7 +3025,7 @@ G.state = 'title';
 requestAnimationFrame(frame);
 
 // small hook for automated checks
-window.__snd = Sound;
+window.__snd = Sound; window.Music = Music;
 window.__mjolnir = { G, input, get L() { return L; }, get P() { return P; }, beginLevel, startGame, LEVELS };
 })();
 </script>
