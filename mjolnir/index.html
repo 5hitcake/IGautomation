@@ -1989,7 +1989,7 @@ cv.addEventListener('pointerdown', e => {
 /* ============================================================
    Game state
    ============================================================ */
-const G = { state: 'title', level: 0, stage: 0, progress: 0, mapSel: 0, titleMode: null, score: 0, coins: 0, lives: 3, hearts: 3, lvlScore: 0, lvlCoins: 0, checkpoint: -1, t: 0, st: 0, sel: 0, unlocked: 0, flash: 0, shake: 0, paused: false, cut: null, dieT: 0 };
+const G = { taken: new Set(), state: 'title', level: 0, stage: 0, progress: 0, mapSel: 0, titleMode: null, score: 0, coins: 0, lives: 3, hearts: 3, lvlScore: 0, lvlCoins: 0, checkpoint: -1, t: 0, st: 0, sel: 0, unlocked: 0, flash: 0, shake: 0, paused: false, cut: null, dieT: 0 };
 // progress = highest unlocked stage, counted across realms (realm * STAGES + stage)
 try {
   const p = localStorage.getItem('mjolnir.progress'), old = localStorage.getItem('mjolnir.realm');
@@ -2018,6 +2018,12 @@ function spawnPoint() {
 function loadLevel(i, keepCheckpoint) {
   G.level = i;
   L = buildLevel(i, G.stage);
+  if (!keepCheckpoint) G.taken = new Set();
+  else {
+    // after a death, coins and rune blocks already used stay gone
+    L.ents = L.ents.filter(e => e.type !== 'coin' || !G.taken.has('c' + e.x + ',' + e.y));
+    for (const k of G.taken) if (k[0] === 'q') L.grid[+k.slice(1)] = T.USED;
+  }
   const th = L.theme;
   if (!layers || layers.key !== LEVELS[i].theme) { layers = makeLayers(th, i * 7 + 3); layers.key = LEVELS[i].theme; tiles = makeTiles(th); }
   if (!keepCheckpoint) G.checkpoint = -1;
@@ -2123,10 +2129,11 @@ function hitBlock(tx, ty) {
     if (e.dead || (e.type !== 'wolf' && e.type !== 'draugr' && e.type !== 'sheep' && e.type !== 'coin')) continue;
     if (e.x + e.w > tx * TS && e.x < (tx + 1) * TS && Math.abs(e.y + e.h - ty * TS) < 6) {
       if (e.type === 'wolf' || e.type === 'draugr') { e.dead = 'fall'; e.vy = -500; e.dt = 0; addScore(100, e.x, e.y); SFX.stomp(); }
-      else if (e.type === 'coin') { e.dead = 'got'; addCoin(e.x, e.y); }
+      else if (e.type === 'coin') { e.dead = 'got'; G.taken.add('c' + e.x + ',' + e.y); addCoin(e.x, e.y); }
       else { e.vy = -420; e.onGround = false; SFX.baa(); }
     }
   }
+  if (t === T.QCOIN || t === T.QMEAD) G.taken.add('q' + i);
   if (t === T.QCOIN) {
     L.grid[i] = T.USED;
     L.ents.push({ type: 'popcoin', x: tx * TS + 12, y: ty * TS - 24, w: 24, h: 24, vy: -620, life: .55 });
@@ -2286,7 +2293,7 @@ function collideEnts() {
   for (const e of L.ents) {
     if (e.dead || !overlap(p, e)) continue;
     switch (e.type) {
-      case 'coin': e.dead = 'got'; addCoin(e.x, e.y); burst(e.x + 12, e.y + 12, 6, '#ffd24a', 100, .35, 2.5, 0); break;
+      case 'coin': e.dead = 'got'; G.taken.add('c' + e.x + ',' + e.y); addCoin(e.x, e.y); burst(e.x + 12, e.y + 12, 6, '#ffd24a', 100, .35, 2.5, 0); break;
       case 'mead':
         if (e.emerge > 0) break;
         e.dead = 'got'; SFX.mead();
