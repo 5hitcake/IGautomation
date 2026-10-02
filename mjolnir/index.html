@@ -1640,30 +1640,46 @@ const MOTIFS = [
   [7, null, 9, null, 12, null, null, null, 14, null, 12, null, 9, null, 7, null, 5, null, 7, null, 9, null, null, null, null, null, null, null, null, null, null, null,
     12, null, 14, null, 16, null, null, null, 19, null, 16, null, 14, null, 12, null, 14, null, null, null, 12, null, null, null, null, null, null, null, null, null, null, null],
 ];
+MOTIFS.push([0, null, null, null, 7, null, null, null, 12, null, 10, null, 7, null, null, null, 5, null, null, null, 3, null, 5, null, 7, null, null, null, null, null, null, null,
+  0, null, null, null, 7, null, null, null, 12, null, 14, null, 15, null, null, null, 14, null, 12, null, 10, null, 7, null, 12, null, null, null, null, null, null, null]);
 const CHORDS = [
   [[50, 53, 57], [46, 50, 53], [48, 52, 55], [45, 48, 52]],
   [[50, 53, 57], [48, 51, 55], [46, 50, 53], [45, 48, 52]],
   [[50, 53, 57], [51, 55, 58], [50, 53, 57], [48, 51, 55]],
   [[50, 54, 57], [48, 52, 55], [43, 47, 50], [45, 49, 52]],
 ];
+CHORDS.push([[50, 53, 57], [46, 50, 53], [43, 46, 50], [45, 49, 52]]);
 const midiHz = n => 440 * Math.pow(2, (n - 69) / 12);
 // The whole score is rendered once per realm into a seamless loop (OfflineAudioContext)
 // and then played as a single looping buffer, so the game loop never has to schedule notes.
+const TITLE_MUSIC = [4, 58, 0];
+function realmMusic(i) { const m = THEMES[LEVELS[i].theme].music; return [m, [66, 70, 74, 72][m], m >= 2 ? 2 : 1]; }
 const Music = {
-  pat: 0, tempo: 70, intensity: 1, cache: {}, want: null, src: null, g: null,
-  start() { this.apply(); },
-  set(p, tempo, intensity) { this.pat = p; this.tempo = tempo || 70; this.intensity = intensity || 1; this.apply(); },
+  pat: 0, tempo: 70, intensity: 1, cache: {}, order: [], want: null, src: null, g: null, queue: Promise.resolve(), pending: {},
+  start() { syncMusic(); },
+  set(p, tempo, intensity) { this.pat = p; this.tempo = tempo; this.intensity = intensity; this.apply(); },
+  key(spec) { return spec.join('|'); },
+  // renders run one after another in the background; a finished track is kept for reuse (last 3)
+  get(spec) {
+    const key = this.key(spec);
+    if (this.cache[key]) return Promise.resolve(this.cache[key]);
+    if (!this.pending[key]) {
+      this.pending[key] = this.queue = this.queue.then(() => this.render(...spec)).then(buf => {
+        this.cache[key] = buf; this.order.push(key);
+        while (this.order.length > 3) { const old = this.order.shift(); if (old !== this.want) delete this.cache[old]; else this.order.push(old); }
+        delete this.pending[key]; return buf;
+      }, () => { delete this.pending[key]; return null; });
+    }
+    return this.pending[key];
+  },
+  prefetch(spec) { if (Sound.ctx) this.get(spec); },
   async apply() {
     const ac = Sound.ctx; if (!ac) return;
-    const key = `${this.pat}|${this.tempo}|${this.intensity}`;
+    const spec = [this.pat, this.tempo, this.intensity], key = this.key(spec);
     if (this.want === key) return;
     this.want = key;
-    let buf = this.cache[key];
-    if (!buf) {
-      try { buf = this.cache[key] = await this.render(this.pat, this.tempo, this.intensity); }
-      catch (e) { return; }
-    }
-    if (this.want !== key || !Sound.ctx) return;
+    const buf = await this.get(spec);
+    if (!buf || this.want !== key || !Sound.ctx) return;
     const t = ac.currentTime;
     if (this.src) { const s = this.src; this.g.gain.setTargetAtTime(0, t, .5); s.stop(t + 3); }
     const s = ac.createBufferSource(), g = ac.createGain();
@@ -1673,7 +1689,7 @@ const Music = {
     this.src = s; this.g = g;
   },
   async render(pat, tempo, intensity) {
-    const sr = 32000, spb = 60 / tempo / 2, STEPS = 128, XF = 2.5;
+    const sr = 24000, spb = 60 / tempo / 2, STEPS = 128, XF = 2.5;
     const loopLen = STEPS * spb, extra = Math.ceil((XF + 1) / spb), total = (STEPS + extra) * spb;
     const c = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(total * sr), sr);
     const bus = c.createGain(); bus.gain.value = 1; bus.connect(c.destination);
@@ -1718,8 +1734,8 @@ const Music = {
     };
     for (let s = 0; s < STEPS + extra; s++) {
       const t = s * spb, beat = s % 16, bar = Math.floor(s / 16);
-      if (beat === 0) drum(t, 1, 58);
-      if (beat === 2) drum(t, .55, 62);
+      if (intensity === 0) { if (beat === 0 && bar % 2 === 0) drum(t, .45, 55); }
+      else { if (beat === 0) drum(t, 1, 58); if (beat === 2) drum(t, .55, 62); }
       if (intensity >= 2 && (beat === 8 || beat === 10)) drum(t, .6, 72);
       if (intensity >= 2 && beat === 14 && bar % 2) { drum(t, .35, 90); drum(t + spb * .5, .3, 90); }
       const m = MOTIFS[pat], n = m[s % m.length];
@@ -1867,7 +1883,6 @@ function loadLevel(i, keepCheckpoint) {
   P = newPlayer(sp.x, sp.y);
   cam.x = clamp(P.x - VW * .38, 0, Math.max(0, L.w * TS - VW)); cam.look = 0;
   initWeather(th);
-  Music.set(th.music, [66, 70, 74, 72][th.music], th.music >= 2 ? 2 : 1);
 }
 function startGame(realm) {
   G.score = 0; G.coins = 0; G.lives = 3; G.hearts = 3;
@@ -3006,7 +3021,16 @@ function render() {
    ============================================================ */
 let last = performance.now(), acc = 0;
 const DT = 1 / 120;
+// title has its own track; in a realm, the next realm's track is prepared in the background
+function syncMusic() {
+  if (!Sound.ctx) return;
+  const spec = G.state === 'title' ? TITLE_MUSIC : realmMusic(G.level);
+  if (Music.key(spec) !== Music.want) Music.set(...spec);
+  if (G.state === 'title') { Music.prefetch(realmMusic(0)); Music.prefetch(realmMusic(G.unlocked)); }
+  else if (G.level + 1 < LEVELS.length) Music.prefetch(realmMusic(G.level + 1));
+}
 function frame(now) {
+  syncMusic();
   let el = (now - last) / 1000; last = now;
   // adaptive resolution: if most frames are slow, render fewer pixels
   if (QUALITY.maxDpr > 1 && !document.hidden) {
