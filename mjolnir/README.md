@@ -36,7 +36,9 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Wolves** of Fenrir's blood patrol, and from the Iron Wood onward some of them pounce. Stomp them like goombas.
 - **Draugar**, the undead Vikings of the barrows, need two stomps: one knocks the helmet off, the second sends them back to Hel.
 - **Ravens** circle overhead, and their eye turns red just before they dive at you.
-- **Lava salamanders** crawl through Muspelheim. When they see you they rear up and spit a fireball at chest height:
+- **Fire boars** trot through Muspelheim. When one sees you it paws the ground and charges with a trail of flame: jump
+  over it or stomp it and its fire goes out.
+- **Lava salamanders** crawl through Muspelheim too. When they see you they rear up and spit a fireball at chest height:
   jump over it, then stomp them and they cool to stone. The pits there are lava.
 - **Sheep** are bouncy trampolines that reach high platforms.
 - **Ratatoskr**, the messenger squirrel of Yggdrasil, sits on rune stumps and gives hints.
@@ -58,7 +60,7 @@ stylesheet, and the game falls back to system fonts without it.)
 ## Painted art
 
 Some art is generated (Higgsfield GPT Image 2.5 and Google Gemini) and lives in `assets/` as WebP: the Thor, Loki, wolf, raven
-and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, and the Muspelheim lava salamander. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
+and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, and the Muspelheim fire boar and lava salamander. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
 `tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
