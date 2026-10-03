@@ -473,12 +473,12 @@ function drawLoki(g, x, y, o) {
   const m = SPRITE_META.loki, LH = 82 * m.h / m.frames[0][3], f = m.frames[fi], s = LH / m.h, sx = o.face < 0 ? -1 : 1, pts = (m.pts || {})[fi] || {};
   const at = (p, bx) => [bx + (p[0] * f[2] - f[4]) * s * sx, y + bob - f[3] * s + p[1] * f[3] * s];
   if (o.tug && o.gripX != null && pts.hands) x = o.gripX - (pts.hands[0] * f[2] - f[4]) * s * sx;
+  drawSprite(g, 'loki', fi, x + sh, y + bob, LH, o.face < 0);
   if (fi === 2 && pts.handL && pts.handR) {
-    // held overhead by the handle in both hands, the head trailing behind him
+    // held overhead by the handle in both hands, the head trailing behind him, drawn in front of Loki
     const [lx, ly] = at(pts.handL, x), [rx, ry] = at(pts.handR, x);
     drawMjolnir(g, (lx + rx) / 2 - sx * 18, (ly + ry) / 2 - 3, .9, -sx * Math.PI / 2, .3);
   }
-  drawSprite(g, 'loki', fi, x + sh, y + bob, LH, o.face < 0);
   if (fi === 0) glow(g, x + (o.face < 0 ? -14 : 14), y - 40, 18, '90,255,140', .35 + Math.sin(o.t * 6) * .1);
 }
 function drawLokiDrawn(g, x, y, o) {
