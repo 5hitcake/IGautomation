@@ -39,8 +39,9 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Ægir's Sea** is a water realm: at the start of each stage Thor jumps into a Viking longship and sails the whole
   stage through a storm. The boat jumps with him. Great waves roll in and must be jumped, narwhals leap out of the
   water (stomp them or stay clear), and lightning, ravens and floating rune blocks wait above the waves.
-- **Fire boars** trot through Muspelheim. When one sees you it paws the ground and charges with a trail of flame: jump
-  over it or stomp it and its fire goes out.
+- **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
+  and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
+  them and their fire goes out.
 - **Fire serpents** lie coiled on the path in Muspelheim. When you come close they hiss and rear back, then snap low
   along the ground: jump over the bite, or stomp them. The pits there are lava.
 - **Sheep** are bouncy trampolines that reach high platforms.
