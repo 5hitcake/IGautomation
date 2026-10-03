@@ -1,11 +1,5 @@
 {
-  "_doc": "Per-frame fixes in raw frame pixels (after keying and splitting). erase: rectangles [x0,y0,x1,y1] to clear; points: named spots the game attaches things to.",
-  "2": {
-    "erase": [[0, 0, 100, 128], [95, 28, 142, 64], [186, 0, 254, 44], [291, 0, 330, 30]],
-    "points": {"handL": [165, 42], "handR": [272, 20]}
-  },
-  "3": {
-    "erase": [[393, 0, 430, 441], [310, 222, 352, 272], [195, 402, 238, 441]],
-    "points": {"hands": [384, 190]}
-  }
+  "_doc": "Per-frame fixes in raw frame pixels (after keying and splitting). points: named spots the game attaches things to.",
+  "2": {"points": {"handL": [122, 30], "handR": [242, 28]}},
+  "3": {"points": {"hands": [300, 142]}}
 }

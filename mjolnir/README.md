@@ -11,8 +11,7 @@ lightning storms), seeded so they are the same every time and getting harder eac
 screen lets you replay any unlocked stage.
 
 The art style is dark, misty chibi-anime: ink-outlined characters with big anime eyes, layered moonlit landscapes,
-fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly fire-haired jötunn with
-seiðr-green flame and the dwarves' stitches across his lips. The music is epic quest music, rendered once per realm into a seamless loop: a driving string ostinato,
+fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly, wild-haired shapeshifter with ram horns and seiðr-green flame. The music is epic quest music, rendered once per realm into a seamless loop: a driving string ostinato,
 war drums and toms, a heroic horn melody, choir and cymbals, with its own chord progression per realm.
 
 Open `index.html` in any modern browser. It's one self-contained file with no build step and no assets. All art is
@@ -57,7 +56,7 @@ stylesheet, and the game falls back to system fonts without it.)
 ## Painted art
 
 Some art is generated (Higgsfield GPT Image 2.5 and Google Gemini) and lives in `assets/` as WebP: the Thor, Loki, wolf, raven
-and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all five realms. The untouched originals are in `assets/raw/`.
+and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all five realms. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The Muspelheim backdrop (`assets/raw/bg_muspelheim.png`) is ready for the next realm. The untouched originals are in `assets/raw/`.
 `tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
