@@ -2254,20 +2254,20 @@ function startGame(realm, stage = 0) {
 }
 /* ---------- Trophies ---------- */
 const TROPHIES = [
-  { id: 'worthy', name: 'Worthy', desc: 'Recover Mjölnir for the first time.', rune: 'th' },
-  { id: 'hoarder', name: 'Dragon\u2019s Hoard', desc: 'Collect every coin in a single stage.', rune: 'f' },
-  { id: 'gemhunter', name: 'Seer of Secrets', desc: 'Find every hidden gem in a single stage.', rune: 'k' },
-  { id: 'untouched', name: 'Untouched', desc: 'Clear a stage without taking any damage.', rune: 'z' },
-  { id: 'deathless', name: 'Einherjar', desc: 'Clear a stage without losing a life.', rune: 'e' },
+  { id: 'worthy', name: 'Worthy of Mjölnir', desc: 'Finish the quest and take Mjölnir back for the first time.', rune: 'th' },
+  { id: 'hoarder', name: 'Andvari\u2019s Hoard', desc: 'Collect every coin in a single stage.', rune: 'f' },
+  { id: 'gemhunter', name: 'Mímir\u2019s Eye', desc: 'Find every hidden gem in a single stage.', rune: 'k' },
+  { id: 'untouched', name: 'Baldr\u2019s Blessing', desc: 'Clear a stage without taking any damage.', rune: 'z' },
+  { id: 'deathless', name: 'Valhalla Can Wait', desc: 'Clear a stage without losing a life.', rune: 'e' },
   { id: 'sleipnir', name: 'Swift as Sleipnir', desc: 'Clear a stage in under 60 seconds.', rune: 'r' },
-  { id: 'stormwalker', name: 'Storm Walker', desc: 'Clear a stage with storms without being struck by lightning.', rune: 'h' },
-  { id: 'flawless', name: 'Realm Breaker', desc: 'Clear all three stages of a realm in a row without losing a life.', rune: 'o' },
+  { id: 'stormwalker', name: 'Lord of Thunder', desc: 'Clear a stage with storms without being struck by lightning.', rune: 'h' },
+  { id: 'flawless', name: 'Ratatoskr\u2019s Run', desc: 'Clear all three stages of a realm in a row without losing a life.', rune: 'o' },
   { id: 'mead', name: 'Skál!', desc: 'Find a hidden ale and drink it.', rune: 'a' },
   { id: 'bifrost', name: 'Bifröst Rider', desc: 'Defeat 5 enemies during a single Rainbow Rush.', rune: 'w' },
-  { id: 'wolfbane', name: 'Wolf Bane', desc: 'Defeat 50 wolves.', rune: 'u' },
-  { id: 'draugrbane', name: 'Barrow Breaker', desc: 'Send 20 draugar back to Hel.', rune: 'i' },
-  { id: 'ravenbane', name: 'Feathers Fly', desc: 'Defeat 15 ravens.', rune: 'n' },
-  { id: 'shepherd', name: 'Good Shepherd', desc: 'Bounce on sheep 25 times.', rune: 'j' },
+  { id: 'wolfbane', name: 'Fenrir\u2019s Bane', desc: 'Defeat 50 wolves.', rune: 'u' },
+  { id: 'draugrbane', name: 'Hel\u2019s Gatekeeper', desc: 'Send 20 draugar back to Hel.', rune: 'i' },
+  { id: 'ravenbane', name: 'Huginn\u2019s Dread', desc: 'Defeat 15 ravens.', rune: 'n' },
+  { id: 'shepherd', name: 'Tanngrisnir\u2019s Kin', desc: 'Bounce on sheep 25 times. Thor\u2019s goats would be proud.', rune: 'j' },
   { id: 'fafnir', name: 'Fafnir\u2019s Gold', desc: 'Gather 1000 treasure in total.', rune: 'g' },
   { id: 'allfather', name: 'Allfather', desc: 'Unlock every other trophy. You are unbeatable.', rune: 'm' },
 ];
@@ -2275,16 +2275,23 @@ const STAT_GOALS = { wolf: ['wolfbane', 50], draugr: ['draugrbane', 20], raven: 
 try { G.trophies = new Set(JSON.parse(localStorage.getItem('mjolnir.trophies') || '[]')); G.stats = JSON.parse(localStorage.getItem('mjolnir.stats') || '{}'); }
 catch (e) { G.trophies = new Set(); G.stats = {}; }
 try { if (localStorage.getItem('mjolnir.won') && !G.trophies.has('worthy')) { G.trophies.add('worthy'); localStorage.setItem('mjolnir.trophies', JSON.stringify([...G.trophies])); } } catch (e) { /* storage unavailable */ }
+// trophies are a reward for a second journey: nothing counts until the quest has been finished once
+const trophiesOpen = () => G.trophies.has('worthy');
+if (!trophiesOpen()) {
+  G.trophies = new Set(); G.stats = {};
+  try { localStorage.removeItem('mjolnir.trophies'); localStorage.removeItem('mjolnir.stats'); } catch (e) { /* storage unavailable */ }
+}
 G.toasts = [];
 G.run = { t: 0, coins: 0 };
 function award(id) {
-  if (G.trophies.has(id)) return;
+  if (G.trophies.has(id) || (id !== 'worthy' && !trophiesOpen())) return;
   G.trophies.add(id);
   try { localStorage.setItem('mjolnir.trophies', JSON.stringify([...G.trophies])); } catch (e) { /* storage unavailable */ }
   const t = TROPHIES.find(x => x.id === id); G.toasts.push({ t: 0, tr: t }); SFX.trophy();
   if (id !== 'allfather' && TROPHIES.every(x => x.id === 'allfather' || G.trophies.has(x.id))) award('allfather');
 }
 function bumpStat(k, n) {
+  if (!trophiesOpen()) return;
   G.stats[k] = (G.stats[k] || 0) + n;
   try { localStorage.setItem('mjolnir.stats', JSON.stringify(G.stats)); } catch (e) { /* storage unavailable */ }
   const goal = STAT_GOALS[k]; if (goal && G.stats[k] >= goal[1]) award(goal[0]);
@@ -3577,7 +3584,7 @@ function drawToast(g) {
   g.save(); g.globalAlpha = a;
   g.fillStyle = 'rgba(24,16,32,.95)'; rr(g, x, y, w, 58, 12); g.fill(); g.strokeStyle = '#e0b54c'; g.lineWidth = 2; rr(g, x, y, w, 58, 12); g.stroke();
   drawTrophyIcon(g, x + 32, y + 29, 19, to.tr, true);
-  txt(g, 'Trophy unlocked!', x + 62, y + 19, 13, '#e0b54c', 'left', BODY, 800, null);
+  txt(g, to.tr.id === 'worthy' ? 'Trophy Hall unlocked!' : 'Trophy unlocked!', x + 62, y + 19, 13, '#e0b54c', 'left', BODY, 800, null);
   txt(g, to.tr.name, x + 62, y + 39, 18, '#fff0c8', 'left', DISPLAY, 400, null);
   g.restore();
 }

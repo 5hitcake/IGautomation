@@ -51,11 +51,11 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Floating planks** hold for a moment after Thor lands on them, then shake, fall, and grow back a few seconds later.
 - **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full).
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
-- **Trophy Hall**: opens on the title screen after you take Mjölnir back for the first time. It holds 16 trophies:
-  recovering the hammer, every coin in a stage, all hidden gems, no hits, no deaths, a stage under 60 seconds,
-  a storm stage without being struck, a whole realm without dying, drinking the ale, Rainbow Rush kills, wolf / draugr /
-  raven / sheep tallies, 1000 treasure, and the Allfather's trophy for earning all the others. Locked trophies are
-  greyed out but say how to earn them.
+- **Trophy Hall**: trophies are a reward for playing again. During the first journey nothing is counted and the hall
+  is hidden. Taking Mjölnir back for the first time earns the first trophy, Worthy of Mjölnir, and opens the hall on the
+  title screen. It holds 16 trophies, all named from the myths (Andvari's Hoard, Mímir's Eye, Baldr's Blessing,
+  Valhalla Can Wait, Fenrir's Bane, Hel's Gatekeeper, Huginn's Dread and more), up to the Allfather's trophy for
+  earning all the others. Locked trophies are greyed out but say how to earn them.
 
 ## Painted art
 
