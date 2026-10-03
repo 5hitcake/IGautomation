@@ -16,7 +16,7 @@ import json
 import pathlib
 from collections import deque
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 ASSETS = pathlib.Path(__file__).resolve().parent.parent / "assets"
 
@@ -143,7 +143,7 @@ def frames_of(im, count=None):
 
 
 def apply_edits(frames, edits_path):
-    """Erase rectangles (or only their light pixels, clear_light) per frame and turn named points into 0..1 coords of the trimmed frame."""
+    """Erase rectangles (or only their light pixels, clear_light), patch spots over with nearby pixels, per frame and turn named points into 0..1 coords of the trimmed frame."""
     pts = {}
     if not edits_path.exists():
         return frames, pts
@@ -158,6 +158,13 @@ def apply_edits(frames, edits_path):
         clear = Image.new("RGBA", f.size, (0, 0, 0, 0))
         for x0, y0, x1, y1 in e.get("erase", []):
             f.paste(clear.crop((0, 0, x1 - x0, y1 - y0)), (x0, y0))
+        for sx0, sy0, sx1, sy1, dx, dy in e.get("patch", []):
+            # cover a spot with a nearby piece of the same frame, feathered at the top and left edges
+            p = f.crop((sx0, sy0, sx1, sy1))
+            m = Image.new("L", p.size, 0)
+            ImageDraw.Draw(m).rectangle([5, 5, p.size[0], p.size[1]], fill=255)
+            m = m.filter(ImageFilter.GaussianBlur(3))
+            f.paste(Image.composite(p, f.crop((dx, dy, dx + p.size[0], dy + p.size[1])), m), (dx, dy))
         fp = f.load()
         for x0, y0, x1, y1 in e.get("clear_light", []):
             for y in range(max(0, y0), min(f.size[1], y1)):

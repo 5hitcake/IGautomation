@@ -1,5 +1,5 @@
 {
- "_doc": "Raw sheet had a thought bubble right of pose 3; it was cleared from the PNG. points: where the game puts the hammer.",
+ "_doc": "Raw sheet had a thought bubble right of pose 3; it was cleared from the PNG. patch: [src x0,y0,x1,y1, dest x,y] hides the shouting mouth that sat above the beard. points: where the game puts the hammer.",
  "0": {
   "points": {
    "fist": [
@@ -7,5 +7,17 @@
     30
    ]
   }
+ },
+ "1": {
+  "patch": [
+   [
+    286,
+    164,
+    330,
+    192,
+    286,
+    137
+   ]
+  ]
  }
 }
