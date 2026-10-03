@@ -1,9 +1,9 @@
 # Mjölnir Lost
 
-A Mario-style Viking platformer. Loki has stolen Thor's hammer, and you chase him through eight Norse realms:
-Midgard, Ægir's Sea, Jötunheim, Járnviðr (the Iron Wood), Niflheim, Muspelheim, Svartalfheim and Asgard, with 3 stages each (1-1 to 8-3). Stages 1-2 of a
+A Mario-style Viking platformer. Loki has stolen Thor's hammer, and you chase him through nine Norse realms:
+Midgard, Ægir's Sea, Jötunheim, Járnviðr (the Iron Wood), Niflheim, Muspelheim, Svartalfheim, Alfheim and Asgard, with 3 stages each (1-1 to 9-3). Stages 1-2 of a
 realm end at a rune gate; in stage 3 Thor almost grabs Mjölnir, but Loki snatches it and flees to the next realm. In
-Asgard 8-3, Thor finally takes it back.
+Asgard 9-3, Thor finally takes it back.
 
 Stage 1 of every realm is hand-built (with Ratatoskr's lessons) and continues into a generated stretch. Stages 2-3 are assembled by `genStage()` from
 hand-made chunks (gaps, plank pits, wolf packs, draugar, ravens, rune blocks, hills, spikes, sheep jumps, stairs and
@@ -42,6 +42,8 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Svartalfheim**, the deep halls of the dwarves: dwarf miners march along and hurl their pickaxes in spinning arcs
   (dodge, then stomp them), and stalactites tremble and fall when you walk below them, their crystal tips glowing as a
   warning.
+- **Alfheim**, the shining forest of the light elves: mischievous elf lights drift about and chase you when you come
+  close; stomp them to pop them.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
   and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
   them and their fire goes out.
@@ -67,7 +69,7 @@ stylesheet, and the game falls back to system fonts without it.)
 ## Painted art
 
 Some art is generated (Higgsfield GPT Image 2.5 and Google Gemini) and lives in `assets/` as WebP: the Thor, Loki, wolf, raven
-and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf and two Svartalfheim cave backdrops, and the longship, narwhal, great wave and storm backdrop of Ægir's Sea. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
+and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf, two Svartalfheim cave backdrops, two Alfheim forest backdrops, and the longship, narwhal, great wave and storm backdrop of Ægir's Sea. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
 `tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
