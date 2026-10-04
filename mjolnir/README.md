@@ -1,9 +1,9 @@
 # Mjölnir Lost
 
-A Mario-style Viking platformer. Loki has stolen Thor's hammer, and you chase him through ten Norse realms:
-Midgard, Vanaheim, Jötunheim, Járnviðr (the Iron Wood), Niflheim, Muspelheim, Ægir's Sea, Svartalfheim, Alfheim and Asgard, roughly from easiest to hardest, with 3 stages each (1-1 to 10-3). Stages 1-2 of a
+A Mario-style Viking platformer. Loki has stolen Thor's hammer, and you chase him through eleven Norse realms:
+Midgard, Vanaheim, Jötunheim, Járnviðr (the Iron Wood), Niflheim, Muspelheim, Ægir's Sea, Svartalfheim, Alfheim, Helheim and Asgard, roughly from easiest to hardest, with 3 stages each (1-1 to 11-3). Stages 1-2 of a
 realm end at a rune gate; in stage 3 Thor almost grabs Mjölnir, but Loki snatches it and flees to the next realm. In
-Asgard 10-3, Thor finally takes it back.
+Asgard 11-3, Thor finally takes it back.
 
 Stage 1 of every realm is hand-built (with Ratatoskr's lessons) and continues into a generated stretch. Stages 2-3 are assembled by `genStage()` from
 hand-made chunks drawn from a shuffled deck (stone columns, bridges, falling-board runs, stair pyramids, ambushes,
@@ -46,6 +46,8 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Alfheim**, the shining forest of the light elves: mischievous elf lights drift about and chase you when you come
   close; stomp them to pop them. The dark stags of Yggdrasil crouch and leap at you in big arcs: run under them
   or stomp them.
+- **Helheim**, the cold realm of the dead: misty barrows, the river Gjöll and Hel's hall Éljúðnir. Draugr rise in
+  numbers, Garm's wolves hunt you and ghost lights follow you through the fog.
 - **Vanaheim**, the golden hills of the Vanir, with standing stones, the great oak and turf-roofed longhouses.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
   and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
@@ -76,7 +78,7 @@ stylesheet, and the game falls back to system fonts without it.)
 ## Painted art
 
 Some art is generated (Higgsfield GPT Image 2.5 and Google Gemini) and lives in `assets/` as WebP: the Thor, Loki, wolf, raven
-and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf, two Svartalfheim cave backdrops, three Alfheim forest backdrops, the Alfheim stag, the Vanaheim sunset backdrop, the longship, narwhal, great wave and storm backdrop of Ægir's Sea, Odin for the Valhalla feast (standing with Gungnir, welcoming, raising his horn) and a midday and a night backdrop for Asgard. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
+and draugr sprite sheets, sheep, Ratatoskr, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf, two Svartalfheim cave backdrops, three Alfheim backdrops (day, dusk, night), three Helheim backdrops, the Alfheim stag, three Vanaheim backdrops, the longship, narwhal, great wave and storm backdrop of Ægir's Sea, Odin for the Valhalla feast (standing with Gungnir, welcoming, raising his horn) and a midday and a night backdrop for Asgard. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
 `tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
