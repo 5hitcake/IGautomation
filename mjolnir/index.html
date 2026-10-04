@@ -2824,7 +2824,7 @@ function award(id) {
   G.trophies.add(id);
   try { localStorage.setItem('mjolnir.trophies', JSON.stringify([...G.trophies])); } catch (e) { /* storage unavailable */ }
   const t = TROPHIES.find(x => x.id === id); G.toasts.push({ t: 0, tr: t }); SFX.trophy();
-  if (id !== 'allfather' && TROPHIES.every(x => x.id === 'allfather' || x.cursed || G.trophies.has(x.id))) award('allfather');
+  if (id !== 'allfather' && TROPHIES.every(x => x.id === 'allfather' || G.trophies.has(x.id))) award('allfather');
 }
 function bumpStat(k, n) {
   if (!trophiesOpen()) return;

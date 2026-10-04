@@ -70,9 +70,8 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Trophy Hall**: trophies are a reward for playing again. During the first journey nothing is counted and the hall
   is hidden. Taking Mjölnir back for the first time earns the first trophy, Worthy of Mjölnir, and opens the hall on the
   title screen. There is one trophy for each of the 24 runes of the Elder Futhark, all named from the myths (Andvari's
-  Hoard, Mímir's Eye, Baldr's Blessing, Gullinbursti's Fall, Rán's Net, Brísingamen, Einherjar's Feast and more), up to
-  the Allfather's trophy for earning all the others, plus one cursed trophy, the Angel of Death, for losing 5 lives in a
-  single stage. Locked trophies are greyed out but say how to earn them.
+  Hoard, Mímir's Eye, Baldr's Blessing, Gullinbursti's Fall, Rán's Net, Brísingamen, Einherjar's Feast and more), plus one cursed trophy, the Angel of
+  Death, for losing 5 lives in a single stage, and the Allfather's trophy for earning all the others, the cursed one included. Locked trophies are greyed out but say how to earn them.
 
 ## Painted art
 
