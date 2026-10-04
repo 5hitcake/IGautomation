@@ -1017,7 +1017,7 @@ function drawMeadDrawn(g, x, y, t) {
    ============================================================ */
 const THEMES = {
   midgard: {
-    bg: ['bg_midgard_v1', 'bg_midgard', 'bg_midgard_b'],
+    bg: ['bg_midgard_b', 'bg_midgard_v1', 'bg_midgard'], // day, dusk, night
     sky: ['#0d1330', '#1f2c52', '#4e4f7c', '#b77f7c'], moon: { x: .8, y: .17, r: 26, c: '#f6eedc', rgb: '255,225,200' }, stars: 70,
     cloud: '200,170,210',
     ridges: [
@@ -2092,7 +2092,8 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
   const bag = []; for (const k in cfg.chunks) for (let i = 0; i < cfg.chunks[k]; i++) bag.push(k);
   let x = startX, last = '';
   if (!startX) { b.start(3); b.floor(0, 11); x = 12; if (cfg.sea) { b.boat(13); x = 14; } }
-  const n = nChunks || 13 + stage * 3, ck = nChunks ? [Math.floor(n / 2)] : [Math.floor(n / 3), Math.floor(2 * n / 3)];
+  // stages are about 40% longer than they first were, with a checkpoint every quarter (every third on stage 1's extension)
+  const n = nChunks || Math.round((13 + stage * 3) * 1.45), ck = nChunks ? [Math.floor(n / 3), Math.floor(2 * n / 3)] : [Math.floor(n / 4), Math.floor(n / 2), Math.floor(3 * n / 4)];
   for (let i = 0; i < n; i++) {
     if (ck.includes(i)) { if (!cfg.sea) b.floor(x, x + 5); b.check(x + 2); x += 6; }
     let c; do { c = pick(bag); } while ((c === last && c !== 'rest') || (c === 'storm' && last === 'storm'));
@@ -2169,7 +2170,7 @@ function buildLevel(idx, stage = 0) {
   {
     // stage 1 is the hand-built level plus a generated stretch; later stages are fully generated
     let used;
-    if (stage === 0) { def.build(b); L.signsEnd = def.w; used = genStage(b, idx, 0, rng(sd * 977 + 5), def.w + 1, 6); }
+    if (stage === 0) { def.build(b); L.signsEnd = def.w; used = genStage(b, idx, 0, rng(sd * 977 + 5), def.w + 1, 16); }
     else used = genStage(b, idx, stage, rng(sd * 977 + stage * 131 + 11));
     const g2 = new Uint8Array(used * ROWS);
     for (let r = 0; r < ROWS; r++) g2.set(L.grid.subarray(r * w, r * w + used), r * used);
@@ -2653,7 +2654,7 @@ const TROPHIES = [
   { id: 'gemhunter', name: 'Mímir\u2019s Eye', desc: 'Find every hidden gem in a single stage.', rune: 'k' },
   { id: 'untouched', name: 'Baldr\u2019s Blessing', desc: 'Clear a stage without taking any damage.', rune: 'z' },
   { id: 'deathless', name: 'Valhalla Can Wait', desc: 'Clear a stage without losing a life.', rune: 'e' },
-  { id: 'sleipnir', name: 'Swift as Sleipnir', desc: 'Clear a stage in under 60 seconds.', rune: 'r' },
+  { id: 'sleipnir', name: 'Swift as Sleipnir', desc: 'Clear a stage in under 80 seconds.', rune: 'r' },
   { id: 'stormwalker', name: 'Lord of Thunder', desc: 'Clear a stage with storms without being struck by lightning.', rune: 'h' },
   { id: 'flawless', name: 'Ratatoskr\u2019s Run', desc: 'Clear all three stages of a realm in a row without losing a life.', rune: 'o' },
   { id: 'mead', name: 'Skál!', desc: 'Find a hidden ale and drink it.', rune: 'a' },
@@ -2699,7 +2700,7 @@ function judgeStage() {
   if (gems.length && gems.every(([i]) => G.taken.has('q' + i))) award('gemhunter');
   if (!r.hurt) award('untouched');
   if (!r.died) award('deathless');
-  if (r.t < 60) award('sleipnir');
+  if (r.t < 80) award('sleipnir');
   if (r.storms && !r.struck) award('stormwalker');
   if (G.stage === STAGES - 1 && G.realmFull && !G.realmDied) award('flawless');
 }
