@@ -173,17 +173,17 @@ function drawSprite(g, name, fi, x, y, hGame, flip, sq = 0, img) {
 function drawFrame(g, name, fi, x, y, frameH, flip, sq = 0, img) {
   const m = SPRITE_META[name]; drawSprite(g, name, fi, x, y, frameH * m.h / m.frames[fi][3], flip, sq, img);
 }
-function drawBackdrop(g, img, cx, f) {
-  // mirrored tiling hides the seam between copies of the painting; both copies are pre-scaled once
-  if (!img._pair) {
-    const w = Math.round(img.naturalWidth * (VH / img.naturalHeight)), a = document.createElement('canvas'), b = document.createElement('canvas');
-    a.width = b.width = w; a.height = b.height = VH;
-    a.getContext('2d').drawImage(img, 0, 0, w, VH);
-    const bg = b.getContext('2d'); bg.translate(w, 0); bg.scale(-1, 1); bg.drawImage(img, 0, 0, w, VH);
-    img._pair = [a, b];
+function drawBackdrop(g, img, cx) {
+  // one painting, never repeated or mirrored: scaled to cover the screen and panned slowly from its left edge to its
+  // right edge over the length of the level (one sun, one moon)
+  const key = Math.round(VW);
+  if (!img._one || img._one.key !== key) {
+    const k = Math.max(VH / img.naturalHeight, VW / img.naturalWidth), w = Math.ceil(img.naturalWidth * k), h = Math.ceil(img.naturalHeight * k);
+    const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+    img._one = { key, c };
   }
-  const [a, b] = img._pair, w = a.width, off = cx * f, k0 = Math.floor(off / w);
-  for (let k = k0; k * w - off < VW; k++) g.drawImage(((k % 2) + 2) % 2 === 0 ? a : b, Math.floor(k * w - off), 0);
+  const c = img._one.c, span = Math.max(1, (L ? L.w * TS : VW) - VW), t = clamp(cx / span, 0, 1);
+  g.drawImage(c, -Math.round((c.width - VW) * t), Math.round((VH - c.height) * .6));
 }
 function drawHero(g, x, y, o) {
   if (!imgReady('thor')) { drawThor(g, x, y, o); return; }
@@ -4264,7 +4264,7 @@ function drawWorld(g) {
   // a realm can paint each stage differently
   const bg = Array.isArray(th.bg) ? th.bg[L.stage % th.bg.length] : th.bg;
   if (bg && imgReady(bg)) {
-    drawBackdrop(g, IMG[bg], cx, .06);
+    drawBackdrop(g, IMG[bg], cx);
     drawAmbientRunes(g, th); drawLayer(g, layers.fog, cx + G.t * 25 / .4, .4, VH - 270);
   } else {
     drawSky(g, th);
