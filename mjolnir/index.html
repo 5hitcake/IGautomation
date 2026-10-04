@@ -118,6 +118,8 @@ const RUNES = {
   l:[[0,0,0,1],[0,0,.5,.3]],
   o:[[.3,0,0,.35],[.3,0,.6,.35],[0,.35,.6,1],[.6,.35,0,1]],
   d:[[0,0,0,1],[.6,0,.6,1],[0,0,.6,1],[0,1,.6,0]],
+  ei:[[.3,0,.3,1],[.3,0,.55,.2],[.3,1,.05,.8]],
+  ng:[[.3,.2,0,.5],[0,.5,.3,.8],[.3,.8,.6,.5],[.6,.5,.3,.2]],
 };
 const RUNE_KEYS = Object.keys(RUNES);
 const LAT = {a:'a',á:'a',b:'b',c:'k',d:'d',ð:'th',e:'e',é:'e',f:'f',g:'g',h:'h',i:'i',í:'i',j:'j',k:'k',l:'l',m:'m',n:'n',o:'o',ö:'o',ó:'o',p:'p',q:'k',r:'r',s:'s',t:'t',u:'u',ú:'u',v:'w',w:'w',x:'k',y:'j',z:'z',þ:'th',ä:'a',ø:'o'};
@@ -1679,8 +1681,8 @@ const LEVELS = [
   {
     name: 'Midgard', sub: 'The Fjord of Beginnings', theme: 'midgard', w: 205, tier: 0,
     intro: 'Loki has stolen Mjölnir! Chase the trickster across the fjords of Midgard.',
-    loki: 'Looking for this, brother? Catch me across the sea!',
-    next: 'Loki stole a longship and fled across the stormy sea of Ægir.',
+    loki: 'Looking for this, brother? Catch me in Vanaheim!',
+    next: 'Loki fled into Vanaheim, the green realm of the Vanir gods.',
     build(b) {
       b.start(3); b.floor(0, 36);
       b.sign(6, 'Psst! I am Ratatoskr, messenger of Yggdrasil. Run with ← → (A / D), jump with SPACE, W or ↑, hold SHIFT to sprint.');
@@ -1712,33 +1714,6 @@ const LEVELS = [
       b.wolf(162); b.sheep(167, 2);
       b.stairs(172, 6);
       b.goal(193);
-    },
-  },
-  {
-    name: 'Ægir\u2019s Sea', sub: 'The Storm Between the Realms', theme: 'sea', w: 186, tier: 6,
-    intro: 'Ægir, lord of the sea, is angry tonight. Take the longship and chase Loki through the storm!',
-    loki: 'Wet beard, brother? Dry it in Vanaheim, if you can!',
-    next: 'Loki washed ashore in Vanaheim, the green realm of the Vanir gods.',
-    build(b) {
-      b.start(3); b.floor(0, 11);
-      b.sign(5, 'The sea of Ægir! Jump into the longship and sail on. Jump over the great waves, and watch out for leaping narwhals!');
-      b.boat(13);
-      b.arc(16, 5, 4);
-      b.wave(30);
-      b.q(36, 6); b.brick(37, 6); b.q(38, 6, 'mead'); b.brick(39, 6); b.q(40, 6);
-      b.narwhal(50);
-      b.check(58);
-      b.storm(62, 6, 'sweepR', { interval: .5, pause: 1.6, warn: 1.05 });
-      b.coins(63, 4, 10);
-      b.wave(84); b.wave(92);
-      b.raven(100, 8);
-      b.narwhal(108);
-      b.check(116);
-      b.arc(120, 5, 4); b.narwhal(126); b.wave(136);
-      b.q(144, 6); b.brick(145, 6); b.q(146, 6);
-      b.storm(152, 6, 'checker', { interval: 1.3, warn: 1 });
-      b.brick(156, 5, 2);
-      b.wave(172); b.narwhal(180);
     },
   },
   {
@@ -1893,8 +1868,8 @@ const LEVELS = [
   {
     name: 'Muspelheim', sub: 'The Realm of Fire', theme: 'muspelheim', w: 230, tier: 4,
     intro: 'Rivers of lava and the fire giants of Surtr. Loki hides his trail in the smoke.',
-    loki: 'The dwarves forged your hammer, brother. Let’s see if they can break it!',
-    next: 'Loki slipped down into Svartalfheim, the deep halls of the dwarves.',
+    loki: 'Too hot for you, brother? The sea of Ægir will cool you down!',
+    next: 'Loki stole a longship and fled across the stormy sea of Ægir.',
     build(b) {
       b.start(3); b.floor(0, 30);
       b.sign(5, 'Muspelheim, realm of fire! Fire boars charge when they see you, and fire serpents snap at your feet. Jump, then stomp them!');
@@ -1925,6 +1900,33 @@ const LEVELS = [
       b.snake(190); b.boar(198);
       b.stairs(204, 5);
       b.goal(216);
+    },
+  },
+  {
+    name: 'Ægir\u2019s Sea', sub: 'The Storm Between the Realms', theme: 'sea', w: 186, tier: 6,
+    intro: 'Ægir, lord of the sea, is angry tonight. Take the longship and chase Loki through the storm!',
+    loki: 'Wet beard, brother? The dwarves forged your hammer. Let’s see if they can break it!',
+    next: 'Loki washed ashore and slipped down into Svartalfheim, the deep halls of the dwarves.',
+    build(b) {
+      b.start(3); b.floor(0, 11);
+      b.sign(5, 'The sea of Ægir! Jump into the longship and sail on. Jump over the great waves, and watch out for leaping narwhals!');
+      b.boat(13);
+      b.arc(16, 5, 4);
+      b.wave(30);
+      b.q(36, 6); b.brick(37, 6); b.q(38, 6, 'mead'); b.brick(39, 6); b.q(40, 6);
+      b.narwhal(50);
+      b.check(58);
+      b.storm(62, 6, 'sweepR', { interval: .5, pause: 1.6, warn: 1.05 });
+      b.coins(63, 4, 10);
+      b.wave(84); b.wave(92);
+      b.raven(100, 8);
+      b.narwhal(108);
+      b.check(116);
+      b.arc(120, 5, 4); b.narwhal(126); b.wave(136);
+      b.q(144, 6); b.brick(145, 6); b.q(146, 6);
+      b.storm(152, 6, 'checker', { interval: 1.3, warn: 1 });
+      b.brick(156, 5, 2);
+      b.wave(172); b.narwhal(180);
     },
   },
   {
@@ -2070,26 +2072,34 @@ const STAGE_INTROS = [
   'Loki’s green smoke still hangs in the air. The storms grow louder. Keep running.',
   'Mjölnir hums close by. Loki is waiting at the end of this road.',
 ];
-const GEN = [
-  { chunks: { rest: 2, gap: 3, wolves: 3, blocks: 2, hills: 2, spikes: 1, sheepHigh: 1, stairs: 1, storm: 2, pit: 1 }, storms: ['sweepR', 'checker', 'sweepL'] },
-  { sea: true, chunks: { swell: 3, waves: 3, narwhal: 3, blocks: 2, storm: 2, raven: 1, gauntlet: 2 }, storms: ['sweepR', 'checker', 'sweepL', 'bounce'] },
-  { chunks: { rest: 3, gap: 3, wolves: 3, raven: 2, blocks: 2, hills: 2, spikes: 1, sheepHigh: 2, stairs: 1, storm: 2, pit: 1 }, storms: ['sweepR', 'checker', 'sweepL'] },
-  { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['sweepL', 'bounce', 'checker', 'sweepR'] },
-  { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, raven: 2, blocks: 2, hills: 2, spikes: 1, sheepHigh: 1, stairs: 1, storm: 2, pit: 1 }, storms: ['rain', 'hunt', 'pairs', 'bounce'] },
-  { chunks: { rest: 2, gap: 3, wolves: 2, draugr: 3, raven: 2, blocks: 1, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['double', 'bounce', 'hunt', 'rain', 'checker', 'pairs'] },
-  { chunks: { rest: 2, gap: 3, wolves: 1, boar: 3, snake: 2, draugr: 1, raven: 1, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 3 }, storms: ['sweepR', 'bounce', 'hunt', 'pairs', 'double'] },
-  { chunks: { rest: 2, gap: 3, dwarves: 4, falls: 3, draugr: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, pit: 2 }, storms: [] },
-  { chunks: { rest: 2, gap: 3, wisps: 3, stags: 3, wolves: 1, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['rain', 'pairs', 'bounce', 'checker'] },
-  { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['pairs', 'bounce', 'hunt', 'double', 'checker', 'sweepL'] },
-];
+// stage generator settings per realm theme
+const GEN = {
+  midgard: { chunks: { rest: 2, gap: 3, wolves: 3, blocks: 2, hills: 2, spikes: 1, sheepHigh: 1, stairs: 1, storm: 2, pit: 1 }, storms: ['sweepR', 'checker', 'sweepL'] },
+  sea: { sea: true, chunks: { swell: 3, waves: 3, narwhal: 3, blocks: 2, storm: 2, raven: 1, gauntlet: 2 }, storms: ['sweepR', 'checker', 'sweepL', 'bounce'] },
+  vanaheim: { chunks: { rest: 3, gap: 3, wolves: 3, raven: 2, blocks: 2, hills: 2, spikes: 1, sheepHigh: 2, stairs: 1, storm: 2, pit: 1 }, storms: ['sweepR', 'checker', 'sweepL'] },
+  jotunheim: { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['sweepL', 'bounce', 'checker', 'sweepR'] },
+  ironwood: { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, raven: 2, blocks: 2, hills: 2, spikes: 1, sheepHigh: 1, stairs: 1, storm: 2, pit: 1 }, storms: ['rain', 'hunt', 'pairs', 'bounce'] },
+  niflheim: { chunks: { rest: 2, gap: 3, wolves: 2, draugr: 3, raven: 2, blocks: 1, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['double', 'bounce', 'hunt', 'rain', 'checker', 'pairs'] },
+  muspelheim: { chunks: { rest: 2, gap: 3, wolves: 1, boar: 3, snake: 2, draugr: 1, raven: 1, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 3 }, storms: ['sweepR', 'bounce', 'hunt', 'pairs', 'double'] },
+  svartalfheim: { chunks: { rest: 2, gap: 3, dwarves: 4, falls: 3, draugr: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, pit: 2 }, storms: [] },
+  alfheim: { chunks: { rest: 2, gap: 3, wisps: 3, stags: 3, wolves: 1, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['rain', 'pairs', 'bounce', 'checker'] },
+  asgard: { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['pairs', 'bounce', 'hunt', 'double', 'checker', 'sweepL'] },
+};
 const STORM_BASE = {
   sweepR: { interval: .5, pause: 1.6, warn: 1.05 }, sweepL: { interval: .5, pause: 2.8, warn: 1 }, bounce: { interval: .5, warn: .95 },
   checker: { interval: 1.3, warn: 1 }, pairs: { interval: .8, warn: .95 }, rain: { interval: .9, warn: 1 },
   hunt: { interval: .85, warn: .9 }, double: { interval: .5, pause: 1.3, warn: 1 }, mix: { interval: .5, pause: 1.2, warn: .95 },
 };
 function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
-  const cfg = GEN[world], d = Math.max(0, (stage - 1) / Math.max(1, STAGES - 2)), pick = arr => arr[Math.floor(R() * arr.length)];
+  const cfg = GEN[realmDef(world).theme], d = Math.max(0, (stage - 1) / Math.max(1, STAGES - 2)), pick = arr => arr[Math.floor(R() * arr.length)];
   const ri = (a, z) => a + Math.floor(R() * (z - a + 1));
+  const tier = realmDef(world).tier;
+  // the realm's own foes, for the mixed chunks
+  const FOE = { wolves: x => b.wolf(x, tier >= 2 && R() < .5), draugr: x => b.draugr(x), boar: x => b.boar(x), snake: x => b.snake(x), dwarves: x => b.dwarf(x), stags: x => b.stag(x), wisps: x => b.wisp(x, ri(5, 7)) };
+  const foes = Object.keys(cfg.chunks).filter(k => FOE[k]);
+  const foe = x => { if (foes.length) FOE[pick(foes)](x); };
+  // storms get wilder further in: a wider and harder choice of patterns than the realm's own list
+  const stormPool = cfg.storms.concat(tier >= 1 ? ['pairs', 'rain'] : ['rain']).concat(tier >= 3 ? ['hunt', 'double', 'mix'] : []);
   const C = {
     rest(x) { const n = ri(6, 9); b.floor(x, x + n - 1); if (R() < .5) b.coins(x + 2, 4, ri(2, 4)); if (R() < .25) b.sheep(x + Math.floor(n / 2), 1.5); return x + n; },
     gap(x) { const g = Math.min(4, 2 + Math.round(d * 2 * R() + d)); b.arc(x, 6, g); b.floor(x + g, x + g + 5); return x + g + 6; },
@@ -2124,8 +2134,43 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
     spikes(x) { const k = ri(2, 3); b.floor(x, x + 10); b.spikes(x + 4, x + 3 + k); b.arc(x + 3, 6, k + 2); return x + 11; },
     sheepHigh(x) { b.floor(x, x + 11); b.sheep(x + 3, 1.5); b.brick(x + 6, 8, 4); b.coins(x + 6, 9, 4); return x + 12; },
     stairs(x) { b.floor(x, x + 12); b.stairs(x + 2, 4, 1); b.stairs(x + 6, 4, -1); b.coins(x + 5, 8, 2); return x + 13; },
+    // stone columns of different heights to hop across, over pits once things get harder
+    pillars(x) {
+      const k = ri(3, 4), pits = d > .3 || R() < .4;
+      b.floor(x, x + 1); let cx = x + 2, prev = 0;
+      for (let i = 0; i < k; i++) {
+        let h = ri(1, 3); if (Math.abs(h - prev) > 2) h = prev + Math.sign(h - prev) * 2; prev = h;
+        b.floor(cx, cx); for (let j = 0; j < h; j++) b.brick(cx, 3 + j); b.coins(cx, 4 + h, 1);
+        if (!pits) b.floor(cx + 1, cx + 2);
+        cx += 3;
+      }
+      b.floor(cx, cx + 4); if (R() < .5) foe(cx + 3); return cx + 5;
+    },
+    // a stone bridge with treasure on top and a foe patrolling below
+    bridge(x) {
+      b.floor(x, x + 15); b.brick(x + 3, 6, 10); b.q(x + 7, 6, R() < .2 ? 'mead' : 'coin'); b.coins(x + 4, 7, 7);
+      foe(x + 9); if (d > .4 && R() < .5) foe(x + 13); return x + 16;
+    },
+    // a storm with foes caught in it (the lightning hits them too)
+    stormFoes(x) { const e = C.storm(x); foe(x + 7 + ri(0, 4)); return e; },
+    // falling boards at changing heights over a long pit
+    plankRun(x) {
+      const k = ri(3, 4); b.floor(x, x + 1); let px = x + 2;
+      for (let i = 0; i < k; i++) { const y = ri(4, 6); b.plank(px, y, 2); b.coins(px, y + 2, 2); px += 4; }
+      b.floor(px, px + 4); return px + 5;
+    },
+    // up a stair, over a gap at the top, down again, and something waiting at the bottom
+    pyramid(x) {
+      b.floor(x, x + 4); b.stairs(x + 1, 4, 1); b.floor(x + 7, x + 16); b.stairs(x + 7, 4, -1); b.arc(x + 4, 9, 4);
+      if (R() < .6) foe(x + 14); return x + 17;
+    },
+    // a foe ahead and a raven above at once
+    ambush(x) {
+      b.floor(x, x + 15); foe(x + 11); if (tier >= 1 || R() < .5) b.raven(x + 6, ri(7, 8)); b.q(x + 4, 6); b.q(x + 5, 6, 'coin');
+      return x + 16;
+    },
     storm(x) {
-      const pat = pick(cfg.storms), n = Math.min(8, ri(4, 5) + Math.round(d * 2)), base = STORM_BASE[pat];
+      const pat = R() < .3 + d * .3 ? pick(stormPool) : pick(cfg.storms), n = Math.min(8, ri(3, 6) + Math.round(d * 2)), base = STORM_BASE[pat];
       const len = n * 2 + 6;
       b.floor(x, x + len - 1);
       b.storm(x + 3, n, pat, { interval: base.interval * (1 - .12 * d), pause: base.pause, warn: base.warn * (1 - .08 * d) });
@@ -2150,16 +2195,27 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
     raven(x) { b.raven(x + 6, ri(7, 8)); b.coins(x + 4, 4, 4); return x + 12; },
     gauntlet(x) { b.wave(x + 8); b.narwhal(x + 15); b.wave(x + 22); return x + 26; },
   });
-  const bag = []; for (const k in cfg.chunks) for (let i = 0; i < cfg.chunks[k]; i++) bag.push(k);
+  const weights = Object.assign({}, cfg.chunks);
+  if (!cfg.sea) Object.assign(weights, { pillars: 2, bridge: foes.length ? 2 : 0, plankRun: tier >= 2 ? 2 : 1, pyramid: 1, ambush: foes.length ? 1 : 0, stormFoes: cfg.storms.length && foes.length ? 1 + (d > 0 ? 1 : 0) : 0 });
+  const bag = []; for (const k in weights) for (let i = 0; i < weights[k]; i++) bag.push(k);
+  // draw from a shuffled deck so every kind of stretch turns up, in an order you can't guess
+  let deck = [];
+  const draw = prev => {
+    if (!deck.length) { deck = bag.slice(); for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
+    const stormy = c => c === 'storm' || c === 'stormFoes';
+    let i = deck.findIndex(c => c !== prev && !(stormy(c) && stormy(prev)));
+    if (i < 0) i = 0;
+    return deck.splice(i, 1)[0];
+  };
   let x = startX, last = '';
   if (!startX) { b.start(3); b.floor(0, 11); x = 12; if (cfg.sea) { b.boat(13); x = 14; } }
   // stages are about 40% longer than they first were, with a checkpoint every quarter (every third on stage 1's extension)
   const n = nChunks || Math.round((13 + stage * 3) * 1.45), ck = nChunks ? [Math.floor(n / 3), Math.floor(2 * n / 3)] : [Math.floor(n / 4), Math.floor(n / 2), Math.floor(3 * n / 4)];
   for (let i = 0; i < n; i++) {
     if (ck.includes(i)) { if (!cfg.sea) b.floor(x, x + 5); b.check(x + 2); x += 6; }
-    let c; do { c = pick(bag); } while ((c === last && c !== 'rest') || (c === 'storm' && last === 'storm'));
+    const c = draw(last);
     x = C[c](x); last = c;
-    if ((c === 'storm' || c === 'pit') && !cfg.sea) { b.floor(x, x + 2); x += 3; }
+    if ((c === 'storm' || c === 'stormFoes' || c === 'pit' || c === 'plankRun') && !cfg.sea) { b.floor(x, x + 2); x += 3; }
   }
   if (stage === STAGES - 1) {
     if (world === LEVELS.length - 1) { b.floor(x, x + 31); b.storm(x + 2, 6, 'mix', STORM_BASE.mix); x += 16; b.goal(x + 6); return x + 16; }
@@ -2655,6 +2711,8 @@ const G = { taken: new Set(), state: 'title', level: 0, stage: 0, progress: 0, m
 try {
   // saves from the 5-stage version are mapped onto 3 stages per realm
   // each save key predates some realms; those push later stages back by one realm (first stage index each one took)
+  // the realm order changed (the sea moved from 2nd to 7th): stages are mapped onto the new order
+  const p8 = localStorage.getItem('mjolnir.progress8');
   const SAVES = [['mjolnir.progress7', []], ['mjolnir.progress6', [6]], ['mjolnir.progress5', [21, 6]], ['mjolnir.progress4', [18, 21, 6]], ['mjolnir.progress3', [3, 18, 21, 6]]];
   let p = 0, shifts = [3, 18, 21, 6];
   const key = SAVES.find(([k]) => localStorage.getItem(k) != null);
@@ -2665,13 +2723,15 @@ try {
     else p = (parseInt(old || '0', 10) || 0) * STAGES;
   }
   for (const at of shifts) if (p >= at) p += STAGES;
+  if (key || p > 0) { const r = Math.floor(p / STAGES); if (r === 1) p = STAGES; else if (r >= 2 && r <= 6) p -= STAGES; }
+  if (p8 != null) p = parseInt(p8, 10) || 0;
   G.progress = clamp(p, 0, LEVELS.length * STAGES - 1);
 } catch (e) { G.progress = 0; }
 G.unlocked = Math.floor(G.progress / STAGES);
 function unlock(idx) {
   if (G.level === BONUS) return;
   idx = Math.min(idx, LEVELS.length * STAGES - 1);
-  if (idx > G.progress) { G.progress = idx; G.unlocked = Math.floor(idx / STAGES); try { localStorage.setItem('mjolnir.progress7', String(idx)); } catch (e) { /* storage unavailable */ } }
+  if (idx > G.progress) { G.progress = idx; G.unlocked = Math.floor(idx / STAGES); try { localStorage.setItem('mjolnir.progress8', String(idx)); } catch (e) { /* storage unavailable */ } }
 }
 let L = null, P = null, parts = [], floats = [], fx = [], layers = null, tiles = null, weather = [], loki = null;
 const cam = { x: 0, look: 0 };
@@ -2729,10 +2789,17 @@ const TROPHIES = [
   { id: 'ravenbane', name: 'Huginn\u2019s Dread', desc: 'Defeat 15 ravens.', rune: 'n' },
   { id: 'shepherd', name: 'Tanngrisnir\u2019s Kin', desc: 'Bounce on sheep 25 times. Thor\u2019s goats would be proud.', rune: 'j' },
   { id: 'fafnir', name: 'Fafnir\u2019s Gold', desc: 'Gather 1000 treasure in total.', rune: 'g' },
-  { id: 'valhalla', name: 'Einherjar’s Feast', desc: 'Finish the quest a second time, cross Valhalla and drink with Odin.', rune: 'o' },
+  { id: 'boarbane', name: 'Gullinbursti’s Fall', desc: 'Put out the fire of 20 fire boars.', rune: 's' },
+  { id: 'serpentbane', name: 'Jörmungandr’s Brood', desc: 'Defeat 15 fire serpents.', rune: 'l' },
+  { id: 'dwarfbane', name: 'Brokkr’s Rival', desc: 'Knock out 15 dwarf miners.', rune: 'p' },
+  { id: 'stagbane', name: 'Dáinn’s Antlers', desc: 'Stomp 10 stags of Yggdrasil.', rune: 'b' },
+  { id: 'wispbane', name: 'Ljósálfar’s Lantern', desc: 'Pop 25 elf lights.', rune: 't' },
+  { id: 'narwhalbane', name: 'Rán’s Net', desc: 'Defeat 10 narwhals on the stormy sea.', rune: 'ei' },
+  { id: 'brisingamen', name: 'Brísingamen', desc: 'Gather 100 gems in total, enough for Freyja’s necklace.', rune: 'ng' },
+  { id: 'valhalla', name: 'Einherjar’s Feast', desc: 'Finish the quest a second time, cross Valhalla and drink with Odin.', rune: 'd' },
   { id: 'allfather', name: 'Allfather', desc: 'Unlock every other trophy. You are unbeatable.', rune: 'm' },
 ];
-const STAT_GOALS = { wolf: ['wolfbane', 50], draugr: ['draugrbane', 20], raven: ['ravenbane', 15], sheep: ['shepherd', 25], treasure: ['fafnir', 1000] };
+const STAT_GOALS = { wolf: ['wolfbane', 50], draugr: ['draugrbane', 20], raven: ['ravenbane', 15], sheep: ['shepherd', 25], treasure: ['fafnir', 1000], boar: ['boarbane', 20], snake: ['serpentbane', 15], dwarf: ['dwarfbane', 15], stag: ['stagbane', 10], wisp: ['wispbane', 25], narwhal: ['narwhalbane', 10], gem: ['brisingamen', 100] };
 try { G.trophies = new Set(JSON.parse(localStorage.getItem('mjolnir.trophies') || '[]')); G.stats = JSON.parse(localStorage.getItem('mjolnir.stats') || '{}'); }
 catch (e) { G.trophies = new Set(); G.stats = {}; }
 try { if (localStorage.getItem('mjolnir.won') && !G.trophies.has('worthy')) { G.trophies.add('worthy'); localStorage.setItem('mjolnir.trophies', JSON.stringify([...G.trophies])); } } catch (e) { /* storage unavailable */ }
@@ -2845,7 +2912,7 @@ function addScore(n, x, y) { G.score += n; if (x != null) floatText(x, y, '+' + 
 const TREASURE = { wood: 1, gold: 10, gem: 50 };
 function addCoin(x, y, kind = 'wood') {
   const v = TREASURE[kind], before = G.coins;
-  G.coins += v; addScore(v * 10); bumpStat('treasure', v);
+  G.coins += v; addScore(v * 10); bumpStat('treasure', v); if (kind === 'gem') bumpStat('gem', 1);
   if (kind === 'wood') SFX.coin(); else if (kind === 'gold') SFX.gold(); else SFX.gem();
   if (kind !== 'wood') floatText(x - 6, y - 4, kind === 'gem' ? (L && L.def.bonus ? '+50' : 'SECRET GEM +50') : '+10', kind === 'gem' ? '#9ff0ff' : '#ffe28a');
   if (Math.floor(G.coins / 100) > Math.floor(before / 100)) { G.lives++; floatText(x, y - 26, '+1 LIFE', '#9fe3ff'); SFX.horn(); }
@@ -3729,6 +3796,8 @@ function handleMenus() {
     if (input.back) G.titleMode = null;
     else if (input.confirm) startGame(Math.floor(G.mapSel / STAGES), G.mapSel % STAGES);
   } else if (G.state === 'title' && G.titleMode === 'trophies') {
+    if (input.leftP) G.trophyPage = Math.max(0, (G.trophyPage || 0) - 1);
+    if (input.rightP) G.trophyPage = Math.min(Math.ceil(TROPHIES.length / 12) - 1, (G.trophyPage || 0) + 1);
     if (input.back || input.confirm) G.titleMode = null;
   } else if (G.state === 'title') {
     const items = titleItems(), n = items.length;
@@ -4354,8 +4423,10 @@ function drawTrophies(g) {
   const w = Math.min(980, VW - 16), h = 556, x = (VW - w) / 2, y = 10;
   panel(g, x, y, w, h);
   txt(g, `Trophy Hall   ${G.trophies.size} / ${TROPHIES.length}`, VW / 2, y + 38, 28, '#f6ecd4', 'center', DISPLAY, 400, '#140a1e', 6);
-  const cols = 4, cw = (w - 48) / cols, ch = 108;
-  TROPHIES.forEach((tr, i) => {
+  // one trophy for each of the 24 runes of the Elder Futhark, twelve to a page
+  const cols = 4, cw = (w - 48) / cols, ch = 108, per = 12, pages = Math.ceil(TROPHIES.length / per);
+  G.trophyPage = clamp(G.trophyPage || 0, 0, pages - 1);
+  TROPHIES.slice(G.trophyPage * per, G.trophyPage * per + per).forEach((tr, i) => {
     const cx = x + 24 + (i % cols) * cw, cy = y + 64 + Math.floor(i / cols) * ch, got = G.trophies.has(tr.id);
     g.fillStyle = got ? 'rgba(80,56,24,.35)' : 'rgba(30,26,40,.6)'; rr(g, cx + 4, cy + 4, cw - 8, ch - 10, 10); g.fill();
     g.strokeStyle = got ? 'rgba(224,180,90,.7)' : 'rgba(120,110,100,.35)'; g.lineWidth = 1.5; rr(g, cx + 4, cy + 4, cw - 8, ch - 10, 10); g.stroke();
@@ -4365,6 +4436,9 @@ function drawTrophies(g) {
     wrapText(g, tr.desc, cw - 76).slice(0, 4).forEach((l, k) => txt(g, l, cx + 64, cy + 44 + k * 15, 12, got ? '#e9dcc0' : 'rgba(170,160,150,.75)', 'left', BODY, 500, null));
   });
   button(g, VW / 2 - 80, y + h - 50, 160, 36, 'Back', false, () => { G.titleMode = null; });
+  button(g, VW / 2 - 250, y + h - 50, 120, 36, '◀  Prev', false, () => { G.trophyPage = (G.trophyPage + pages - 1) % pages; });
+  button(g, VW / 2 + 130, y + h - 50, 120, 36, 'Next  ▶', false, () => { G.trophyPage = (G.trophyPage + 1) % pages; });
+  txt(g, `Page ${G.trophyPage + 1} / ${pages}`, VW / 2, y + h - 64, 14, 'rgba(224,180,90,.8)', 'center', BODY, 800, null);
 }
 function drawToast(g) {
   const to = G.toasts[0]; if (!to) return;
