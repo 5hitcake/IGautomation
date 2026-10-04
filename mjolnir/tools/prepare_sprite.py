@@ -225,7 +225,11 @@ if __name__ == "__main__":
     ap.add_argument("--frames", type=int, help="number of poses, when they touch each other")
     a = ap.parse_args()
     if a.backdrop:
-        Image.open(a.raw).convert("RGB").save(ASSETS / f"{a.name}.webp", "WEBP", quality=86, method=6)
+        # the game draws backdrops 576 px tall (864 on sharp screens), so larger paintings only cost download size
+        im = Image.open(a.raw).convert("RGB")
+        if im.size[1] > 864:
+            im = im.resize((round(im.size[0] * 864 / im.size[1]), 864), Image.LANCZOS)
+        im.save(ASSETS / f"{a.name}.webp", "WEBP", quality=84, method=6)
         print(f"{a.name}: backdrop saved")
     else:
         build(a.name, a.raw, a.height, a.frames)
