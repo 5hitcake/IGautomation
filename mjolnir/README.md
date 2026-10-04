@@ -59,12 +59,16 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Hidden ale**: one wooden tankard of ale is hidden in every stage, inside a plain stone block or a rune crate. Thor
   drinks it and starts a 10-second **Rainbow Rush**: he glows in rainbow colours, runs much faster, the music speeds up,
   and every wolf, raven or draugr he touches is knocked out. Lightning can't hurt him either, but pits still can.
+- **Valhalla**, the bonus realm: finishing the quest a second time opens it (and adds it to the title menu). Thor already
+  carries Mjölnir; there are no enemies and no coins, only gems and boards that fall the moment you land on them. At the
+  end Odin welcomes Thor, they raise their horns and drink, and the Einherjar's Feast trophy is yours.
+- Falling into a pit during a Rainbow Rush ends it: the Valkyrie brings Thor back without the rainbow.
 - **Floating planks** hold for a moment after Thor lands on them, then shake, fall, and grow back a few seconds later.
 - **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full).
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
 - **Trophy Hall**: trophies are a reward for playing again. During the first journey nothing is counted and the hall
   is hidden. Taking Mjölnir back for the first time earns the first trophy, Worthy of Mjölnir, and opens the hall on the
-  title screen. It holds 16 trophies, all named from the myths (Andvari's Hoard, Mímir's Eye, Baldr's Blessing,
+  title screen. It holds 17 trophies, all named from the myths (Andvari's Hoard, Mímir's Eye, Baldr's Blessing,
   Valhalla Can Wait, Fenrir's Bane, Hel's Gatekeeper, Huginn's Dread and more), up to the Allfather's trophy for
   earning all the others. Locked trophies are greyed out but say how to earn them.
 
