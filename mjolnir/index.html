@@ -2103,7 +2103,7 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
   const C = {
     rest(x) { const n = ri(6, 9); b.floor(x, x + n - 1); if (R() < .5) b.coins(x + 2, 4, ri(2, 4)); if (R() < .25) b.sheep(x + Math.floor(n / 2), 1.5); return x + n; },
     gap(x) { const g = Math.min(4, 2 + Math.round(d * 2 * R() + d)); b.arc(x, 6, g); b.floor(x + g, x + g + 5); return x + g + 6; },
-    pit(x) { b.plank(x + 2, 4, 2); b.plank(x + 6, 5, 2); b.coins(x + 2, 5, 2); b.coins(x + 6, 6, 2); b.floor(x + 10, x + 14); return x + 15; },
+    pit(x) { b.floor(x, x + 2); x += 3; b.plank(x + 2, 4, 2); b.plank(x + 6, 5, 2); b.coins(x + 2, 5, 2); b.coins(x + 6, 6, 2); b.floor(x + 10, x + 14); return x + 15; },
     wolves(x) {
       const n = ri(11, 14), k = 1 + Math.min(2, Math.floor(d * 2 + R()));
       b.floor(x, x + n - 1);
@@ -2136,13 +2136,13 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
     stairs(x) { b.floor(x, x + 12); b.stairs(x + 2, 4, 1); b.stairs(x + 6, 4, -1); b.coins(x + 5, 8, 2); return x + 13; },
     // stone columns of different heights to hop across, over pits once things get harder
     pillars(x) {
-      const k = ri(3, 4), pits = d > .3 || R() < .4;
+      const k = ri(3, 4), pits = d > .3 || (tier >= 2 && R() < .4);
       b.floor(x, x + 1); let cx = x + 2, prev = 0;
       for (let i = 0; i < k; i++) {
-        let h = ri(1, 3); if (Math.abs(h - prev) > 2) h = prev + Math.sign(h - prev) * 2; prev = h;
-        b.floor(cx, cx); for (let j = 0; j < h; j++) b.brick(cx, 3 + j); b.coins(cx, 4 + h, 1);
-        if (!pits) b.floor(cx + 1, cx + 2);
-        cx += 3;
+        const h = clamp(prev + ri(-1, 1) + (i === 0 ? 1 : 0), 1, 3); prev = h;
+        b.floor(cx, cx + 1); for (let j = 0; j < h; j++) b.brick(cx, 3 + j, 2); b.coins(cx, 4 + h, 2);
+        if (!pits) b.floor(cx + 2, cx + 3);
+        cx += 4;
       }
       b.floor(cx, cx + 4); if (R() < .5) foe(cx + 3); return cx + 5;
     },
@@ -2155,8 +2155,9 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
     stormFoes(x) { const e = C.storm(x); foe(x + 7 + ri(0, 4)); return e; },
     // falling boards at changing heights over a long pit
     plankRun(x) {
-      const k = ri(3, 4); b.floor(x, x + 1); let px = x + 2;
-      for (let i = 0; i < k; i++) { const y = ri(4, 6); b.plank(px, y, 2); b.coins(px, y + 2, 2); px += 4; }
+      const k = ri(3, 4); b.floor(x, x + 3); let px = x + 4;
+      let y = 4;
+      for (let i = 0; i < k; i++) { b.plank(px, y, 2); b.coins(px, y + 2, 2); px += 4; y = clamp(y + ri(-1, 1), 4, 6); }
       b.floor(px, px + 4); return px + 5;
     },
     // up a stair, over a gap at the top, down again, and something waiting at the bottom
@@ -2797,6 +2798,7 @@ const TROPHIES = [
   { id: 'narwhalbane', name: 'Rán’s Net', desc: 'Defeat 10 narwhals on the stormy sea.', rune: 'ei' },
   { id: 'brisingamen', name: 'Brísingamen', desc: 'Gather 100 gems in total, enough for Freyja’s necklace.', rune: 'ng' },
   { id: 'valhalla', name: 'Einherjar’s Feast', desc: 'Finish the quest a second time, cross Valhalla and drink with Odin.', rune: 'd' },
+  { id: 'angel', name: 'Angel of Death', desc: 'Cursed: lose 5 lives in one stage. Hel knows your name.', cursed: true },
   { id: 'allfather', name: 'Allfather', desc: 'Unlock every other trophy. You are unbeatable.', rune: 'm' },
 ];
 const STAT_GOALS = { wolf: ['wolfbane', 50], draugr: ['draugrbane', 20], raven: ['ravenbane', 15], sheep: ['shepherd', 25], treasure: ['fafnir', 1000], boar: ['boarbane', 20], snake: ['serpentbane', 15], dwarf: ['dwarfbane', 15], stag: ['stagbane', 10], wisp: ['wispbane', 25], narwhal: ['narwhalbane', 10], gem: ['brisingamen', 100] };
@@ -2822,7 +2824,7 @@ function award(id) {
   G.trophies.add(id);
   try { localStorage.setItem('mjolnir.trophies', JSON.stringify([...G.trophies])); } catch (e) { /* storage unavailable */ }
   const t = TROPHIES.find(x => x.id === id); G.toasts.push({ t: 0, tr: t }); SFX.trophy();
-  if (id !== 'allfather' && TROPHIES.every(x => x.id === 'allfather' || G.trophies.has(x.id))) award('allfather');
+  if (id !== 'allfather' && TROPHIES.every(x => x.id === 'allfather' || x.cursed || G.trophies.has(x.id))) award('allfather');
 }
 function bumpStat(k, n) {
   if (!trophiesOpen()) return;
@@ -2958,6 +2960,10 @@ function hurt(srcX, kind) {
 }
 function die() {
   G.run.died = true; G.realmDied = true; G.run.hurt = true;
+  // lives lost in this stage, counted across game overs: five earns the cursed trophy
+  const key = G.level + '-' + G.stage;
+  if (G.deathKey !== key) { G.deathKey = key; G.stageDeaths = 0; }
+  if (++G.stageDeaths >= 5) award('angel');
   G.state = 'dying'; G.dieT = 0; G.hearts = 0; P.vy = 0; P.vx = 0; SFX.die();
   G.valk = { x: P.x + P.w / 2 + 320, y: -90, sang: false };
 }
@@ -3797,7 +3803,7 @@ function handleMenus() {
     else if (input.confirm) startGame(Math.floor(G.mapSel / STAGES), G.mapSel % STAGES);
   } else if (G.state === 'title' && G.titleMode === 'trophies') {
     if (input.leftP) G.trophyPage = Math.max(0, (G.trophyPage || 0) - 1);
-    if (input.rightP) G.trophyPage = Math.min(Math.ceil(TROPHIES.length / 12) - 1, (G.trophyPage || 0) + 1);
+    if (input.rightP) G.trophyPage = Math.min(Math.ceil(TROPHIES.length / 16) - 1, (G.trophyPage || 0) + 1);
     if (input.back || input.confirm) G.titleMode = null;
   } else if (G.state === 'title') {
     const items = titleItems(), n = items.length;
@@ -4407,7 +4413,16 @@ function drawTrophyIcon(g, x, y, r, tr, got) {
   if (got) glow(g, 0, 0, r * 2, tr.id === 'allfather' ? '160,220,255' : '255,200,90', .45);
   g.beginPath(); g.arc(0, 0, r, 0, 7); g.fillStyle = got ? 'rgba(60,40,20,.9)' : 'rgba(40,36,48,.9)'; g.fill();
   g.lineWidth = 2.5; g.strokeStyle = got ? '#e0b54c' : 'rgba(130,120,110,.6)'; g.stroke();
-  if (tr.id === 'allfather') drawValknut(g, 0, 2, r * 1.3, got ? '#cfeaff' : 'rgba(150,140,130,.6)', 2.2);
+  if (tr.cursed) {
+    // a skull for the cursed trophy
+    if (got) glow(g, 0, 0, r * 2, '255,60,50', .45);
+    g.beginPath(); g.arc(0, -r * .12, r * .5, 0, 7); g.fillStyle = got ? '#efe6d6' : '#5a5560'; g.fill();
+    g.fillRect(-r * .28, r * .2, r * .56, r * .32);
+    g.fillStyle = got ? '#7a0c0c' : 'rgba(20,18,24,.8)';
+    g.beginPath(); g.arc(-r * .2, -r * .14, r * .13, 0, 7); g.arc(r * .2, -r * .14, r * .13, 0, 7); g.fill();
+    for (let k = -1; k <= 1; k++) g.fillRect(k * r * .14 - r * .03, r * .26, r * .06, r * .22);
+  }
+  else if (tr.id === 'allfather') drawValknut(g, 0, 2, r * 1.3, got ? '#cfeaff' : 'rgba(150,140,130,.6)', 2.2);
   else {
     // a drinking-horn cup with the trophy's rune
     g.beginPath(); g.moveTo(-r * .55, -r * .5); g.lineTo(r * .55, -r * .5); g.quadraticCurveTo(r * .5, r * .15, 0, r * .25); g.quadraticCurveTo(-r * .5, r * .15, -r * .55, -r * .5); g.closePath();
@@ -4423,8 +4438,8 @@ function drawTrophies(g) {
   const w = Math.min(980, VW - 16), h = 556, x = (VW - w) / 2, y = 10;
   panel(g, x, y, w, h);
   txt(g, `Trophy Hall   ${G.trophies.size} / ${TROPHIES.length}`, VW / 2, y + 38, 28, '#f6ecd4', 'center', DISPLAY, 400, '#140a1e', 6);
-  // one trophy for each of the 24 runes of the Elder Futhark, twelve to a page
-  const cols = 4, cw = (w - 48) / cols, ch = 108, per = 12, pages = Math.ceil(TROPHIES.length / per);
+  // one trophy for each of the 24 runes of the Elder Futhark, plus the cursed Angel of Death
+  const cols = 4, cw = (w - 48) / cols, ch = 100, per = 16, pages = Math.ceil(TROPHIES.length / per);
   G.trophyPage = clamp(G.trophyPage || 0, 0, pages - 1);
   TROPHIES.slice(G.trophyPage * per, G.trophyPage * per + per).forEach((tr, i) => {
     const cx = x + 24 + (i % cols) * cw, cy = y + 64 + Math.floor(i / cols) * ch, got = G.trophies.has(tr.id);

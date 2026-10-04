@@ -1,12 +1,13 @@
 # Mjölnir Lost
 
 A Mario-style Viking platformer. Loki has stolen Thor's hammer, and you chase him through ten Norse realms:
-Midgard, Ægir's Sea, Vanaheim, Jötunheim, Járnviðr (the Iron Wood), Niflheim, Muspelheim, Svartalfheim, Alfheim and Asgard, with 3 stages each (1-1 to 10-3). Stages 1-2 of a
+Midgard, Vanaheim, Jötunheim, Járnviðr (the Iron Wood), Niflheim, Muspelheim, Ægir's Sea, Svartalfheim, Alfheim and Asgard, roughly from easiest to hardest, with 3 stages each (1-1 to 10-3). Stages 1-2 of a
 realm end at a rune gate; in stage 3 Thor almost grabs Mjölnir, but Loki snatches it and flees to the next realm. In
 Asgard 10-3, Thor finally takes it back.
 
 Stage 1 of every realm is hand-built (with Ratatoskr's lessons) and continues into a generated stretch. Stages 2-3 are assembled by `genStage()` from
-hand-made chunks (gaps, plank pits, wolf packs, draugar, ravens, rune blocks, hills, spikes, sheep jumps, stairs and
+hand-made chunks drawn from a shuffled deck (stone columns, bridges, falling-board runs, stair pyramids, ambushes,
+storms with foes caught in them, and each realm's own enemies) (gaps, plank pits, wolf packs, draugar, ravens, rune blocks, hills, spikes, sheep jumps, stairs and
 lightning storms), seeded so they are the same every time and getting harder each stage. A realm map on the title
 screen lets you replay any unlocked stage.
 
@@ -68,9 +69,10 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
 - **Trophy Hall**: trophies are a reward for playing again. During the first journey nothing is counted and the hall
   is hidden. Taking Mjölnir back for the first time earns the first trophy, Worthy of Mjölnir, and opens the hall on the
-  title screen. It holds 17 trophies, all named from the myths (Andvari's Hoard, Mímir's Eye, Baldr's Blessing,
-  Valhalla Can Wait, Fenrir's Bane, Hel's Gatekeeper, Huginn's Dread and more), up to the Allfather's trophy for
-  earning all the others. Locked trophies are greyed out but say how to earn them.
+  title screen. There is one trophy for each of the 24 runes of the Elder Futhark, all named from the myths (Andvari's
+  Hoard, Mímir's Eye, Baldr's Blessing, Gullinbursti's Fall, Rán's Net, Brísingamen, Einherjar's Feast and more), up to
+  the Allfather's trophy for earning all the others, plus one cursed trophy, the Angel of Death, for losing 5 lives in a
+  single stage. Locked trophies are greyed out but say how to earn them.
 
 ## Painted art
 
