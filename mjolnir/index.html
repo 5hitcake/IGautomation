@@ -2041,7 +2041,7 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
     },
     draugr(x) { b.floor(x, x + 11); b.draugr(x + 7); if (R() < .5) b.coins(x + 3, 4, 3); return x + 12; },
     boar(x) { const n = ri(14, 16); b.floor(x, x + n - 1); b.boar(x + 9); if (R() < .5) b.coins(x + 3, 5, 3); return x + n; },
-    stags(x) { const n = ri(14, 17); b.floor(x, x + n - 1); b.stag(x + 10); b.coins(x + 3, 5, 3); return x + n; },
+    stags(x) { const n = ri(15, 17); b.floor(x, x + n - 1); b.stag(x + 7); b.coins(x + 3, 5, 3); return x + n; },
     wisps(x) { const n = ri(12, 15); b.floor(x, x + n - 1); b.wisp(x + 6, ri(5, 7)); if (d > .3 || R() < .5) b.wisp(x + 10, ri(5, 8)); b.coins(x + 3, 4, 4); return x + n; },
     dwarves(x) { const n = ri(13, 16); b.floor(x, x + n - 1); b.dwarf(x + 8); if (d > .3 && R() < .5) b.dwarf(x + 12); if (R() < .5) b.coins(x + 3, 5, 3); return x + n; },
     falls(x) { const n = ri(12, 14); b.floor(x, x + n - 1); for (let i = 0; i < 3; i++) b.stalactite(x + 3 + i * 3 + ri(0, 1)); b.coins(x + 3, 4, 8); return x + n; },
