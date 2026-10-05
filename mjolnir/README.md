@@ -43,11 +43,11 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Svartalfheim**, the deep halls of the dwarves: dwarf miners march along and hurl their pickaxes in spinning arcs
   (dodge, then stomp them), and stalactites tremble and fall when you walk below them, their crystal tips glowing as a
   warning.
-- **Alfheim**, the shining forest of the light elves: mischievous elf lights drift about and chase you when you come
-  close; stomp them to pop them. The dark stags of Yggdrasil crouch and leap at you in big arcs: run under them
+- **Alfheim**, the shining forest of the light elves: eagles circle above the trees, follow you, screech and swoop
+  down in a long arc; stomp them. The dark stags of Yggdrasil crouch and leap at you in big arcs: run under them
   or stomp them.
 - **Helheim**, the cold realm of the dead: misty barrows, the river Gjöll and Hel's hall Éljúðnir. Draugr rise in
-  numbers, Garm's wolves hunt you and ghost lights follow you through the fog.
+  numbers, Garm's wolves hunt you and carrion eagles swoop out of the fog.
 - **Vanaheim**, the golden hills of the Vanir, with standing stones, the great oak and turf-roofed longhouses.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
   and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
@@ -69,6 +69,10 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Floating planks** hold for a moment after Thor lands on them, then shake, fall, and grow back a few seconds later.
 - **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full).
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
+- **Save & back to menu** in the pause menu keeps the stage, the last checkpoint, score, treasure and lives;
+  **Continue** on the title screen carries on from there. The journey is also saved at the start of every stage.
+- **Sleipnir**: when a realm is done and Loki has fled, Odin's eight-legged horse gallops down from the sky and
+  carries Thor off to the next realm.
 - **Trophy Hall**: trophies are a reward for playing again. During the first journey nothing is counted and the hall
   is hidden. Taking Mjölnir back for the first time earns the first trophy, Worthy of Mjölnir, and opens the hall on the
   title screen. There is one trophy for each of the 24 runes of the Elder Futhark, all named from the myths (Andvari's
