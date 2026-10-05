@@ -72,17 +72,18 @@
     62,
     38,
     42,
-    30
+    30,
+    51
   ],
   "posted_reel_ids": [
     5
   ],
   "recent_backgrounds": [
-    "bg_01_mountain_dawn.png",
     "bg_09_starry_sky.png",
     "bg_10_abstract_smoke.png",
     "bg_03_city_night.png",
-    "bg_13_cliff_sunset.png"
+    "bg_13_cliff_sunset.png",
+    "bg_02_mountain_climb.png"
   ],
   "recent_bg_videos": [
     "reel_07_rooftop.mp4",
