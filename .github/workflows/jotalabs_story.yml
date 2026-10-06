@@ -1,0 +1,65 @@
+name: Daily Jota Labs Story
+
+on:
+  schedule:
+    - cron: "7 23 * * *"  # ~20:07 Uhr Buenos Aires (UTC-3, keine Sommerzeit)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  story:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pruefen, ob heute schon gepostet wurde und die Secrets gesetzt sind
+        id: gate
+        env:
+          HAS_TOKEN: ${{ secrets.JOTALABS_IG_ACCESS_TOKEN != '' && secrets.JOTALABS_IG_ACCOUNT_ID != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::JOTALABS_IG_ACCESS_TOKEN / JOTALABS_IG_ACCOUNT_ID fehlen - Story wird uebersprungen (siehe README)."
+            exit 0
+          fi
+          today="$(TZ="America/Argentina/Buenos_Aires" date +%Y-%m-%d)"
+          if [ "${{ github.event_name }}" = "schedule" ] && git log --grep="Neue Jota-Labs-Story: $today" --oneline | grep -q .; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Ueberspringe: heute ($today) wurde bereits eine Story gepostet."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        # Nur requests noetig - die schweren KI-Pakete aus requirements.txt braucht dieser Job nicht.
+        run: pip install requests
+
+      - name: Naechste Story auswaehlen
+        if: steps.gate.outputs.run == 'true'
+        run: python scripts/jotalabs_pick_story.py
+
+      - name: Commit Auswahl
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/jotalabs_generated jotalabs_posted_log.json
+          git commit -m "Neue Jota-Labs-Story: $(TZ="America/Argentina/Buenos_Aires" date +%Y-%m-%d)"
+          git push
+
+      - name: Publish Story to Instagram (@jota_labsweb)
+        if: steps.gate.outputs.run == 'true'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.JOTALABS_IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.JOTALABS_IG_ACCOUNT_ID }}
+        run: python scripts/publish.py --post-file assets/jotalabs_generated/next_post.json

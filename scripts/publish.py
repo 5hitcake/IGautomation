@@ -101,12 +101,18 @@ def wait_for_media_ready(creation_id, access_token, dry_run):
 
 def create_media_container(ig_account_id, access_token, post, dry_run):
     asset_url = public_asset_url(post["file"], dry_run=dry_run)
-    params = {"caption": post["caption"], "access_token": access_token}
+    params = {"access_token": access_token}
     if post["type"] == "reel":
         params["media_type"] = "REELS"
         params["video_url"] = asset_url
+    elif post["type"] == "story":
+        # Stories haben keine Caption; die API nimmt Bilder nur als JPEG an.
+        params["media_type"] = "STORIES"
+        params["image_url"] = asset_url
     else:
         params["image_url"] = asset_url
+    if post["type"] != "story":
+        params["caption"] = post["caption"]
 
     if dry_run:
         print("[dry-run] POST /media mit:")

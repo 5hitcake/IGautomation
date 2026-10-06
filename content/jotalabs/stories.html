@@ -1,0 +1,76 @@
+<!doctype html><meta charset="utf-8">
+<!-- Vorlage fuer die Jota-Labs-Stories (1080x1920). Neu rendern: node render_stories.mjs (braucht Playwright). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500&display=swap">
+<style>
+:root{--acc:#9be22d;--chrome:linear-gradient(180deg,#fff 0%,#d9dde2 38%,#8d939b 52%,#e9ecef 70%,#a7adb5 100%)}
+*{box-sizing:border-box;margin:0}
+body{background:#000;font-family:Geist,sans-serif;color:#e9ebee;width:1080px}
+.s{position:relative;width:1080px;height:1920px;padding:300px 90px 0;overflow:hidden;
+ background:radial-gradient(800px 700px at 90% 10%,rgba(155,226,45,.17),transparent 70%),radial-gradient(700px 700px at 0% 95%,rgba(155,226,45,.10),transparent 70%),linear-gradient(180deg,#16181c,#0b0c0e)}
+.s::before{content:"";position:absolute;inset:22px;border-radius:40px;padding:2px;background:linear-gradient(135deg,#f2f4f6,#5c6168 30%,#9be22d 55%,#3a3e44 75%,#d9dde2);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.7;pointer-events:none}
+.tag{font:500 24px "Geist Mono";letter-spacing:.2em;text-transform:uppercase;color:#9aa0a8;display:flex;align-items:center;gap:16px}
+.tag i{width:14px;height:14px;border-radius:50%;background:var(--acc);box-shadow:0 0 18px var(--acc)}
+h2{margin-top:30px;font:800 112px/0.98 Geist;letter-spacing:-.045em}
+h2 .c{color:transparent;-webkit-text-stroke:2.6px #d9dde2}
+h2 em,.g{font:italic 400 1.12em/1.02 "Instrument Serif";letter-spacing:-.01em;background:linear-gradient(180deg,#d6ff8a,#9be22d 55%,#5f9a12);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(155,226,45,.3))}
+.lead{margin-top:40px;font:400 42px/1.38 Geist;color:#c2c7cd}
+.lead b{color:#fff;font-weight:600}
+.foot{position:absolute;left:90px;right:90px;bottom:250px;display:flex;justify-content:space-between;align-items:center;font:500 26px "Geist Mono";color:#9aa0a8}
+.foot b{color:var(--acc);font-weight:500}
+.chrome{background:var(--chrome);-webkit-background-clip:text;background-clip:text;color:transparent}
+.phone{position:absolute;left:50%;width:520px;aspect-ratio:390/760;margin-left:-260px;border-radius:72px;padding:16px;background:linear-gradient(160deg,#f4f6f8,#7d838b 35%,#2a2d31 60%,#b9bec4);box-shadow:0 50px 100px rgba(0,0,0,.75)}
+.phone div{width:100%;height:100%;border-radius:58px;overflow:hidden;background:#000}
+.phone img{width:100%;margin-top:-11.6%}
+.chips{display:flex;flex-wrap:wrap;gap:14px;margin-top:36px}
+.chips span{font:500 32px Geist;padding:14px 24px;border-radius:999px;border:2px solid rgba(217,221,226,.28);background:rgba(255,255,255,.05)}
+.chips span::before{content:"✓ ";color:var(--acc);font-weight:700}
+.card{margin-top:28px;display:grid;grid-template-columns:1fr auto;align-items:center;padding:40px 44px;border-radius:30px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:2px solid rgba(217,221,226,.22)}
+.card.hot{border-color:var(--acc);box-shadow:0 0 50px rgba(155,226,45,.2)}
+.card h3{font:700 50px Geist;letter-spacing:-.02em}.card p{margin-top:10px;font:400 30px/1.35 Geist;color:#9aa0a8;max-width:470px}
+.card .pr{font:800 64px/1 Geist;white-space:nowrap;padding-left:20px;letter-spacing:-.04em}
+.step{margin-top:24px;display:grid;grid-template-columns:140px 1fr;gap:20px;align-items:center;padding:36px 40px;border-radius:30px;border:2px solid rgba(217,221,226,.2);background:rgba(255,255,255,.04)}
+.step .n{font:italic 400 120px/0.8 "Instrument Serif"}.step h3{font:700 48px Geist}.step p{margin-top:6px;font:400 30px Geist;color:#9aa0a8}
+.vs{margin-top:50px;display:grid;gap:26px}
+.col{padding:40px 44px;border-radius:30px;border:2px solid rgba(217,221,226,.2);background:rgba(255,255,255,.03)}
+.col.good{border-color:var(--acc);background:linear-gradient(180deg,rgba(155,226,45,.11),rgba(155,226,45,.02))}
+.col h3{font:700 44px Geist;margin-bottom:24px}.col ul{list-style:none;padding:0;display:grid;gap:18px}
+.col li{font:400 36px/1.25 Geist;display:flex;gap:16px}.col li::before{flex:none;font-weight:700}
+.bad li{color:#9aa0a8}.bad li::before{content:"✕";color:#6b7078}.good li::before{content:"✓";color:var(--acc)}
+.tipno{font:italic 400 300px/0.8 "Instrument Serif";position:absolute;right:70px;top:230px;opacity:.9}
+.big{margin-top:70px;padding:50px 56px;border-radius:36px;border:2px solid var(--acc);background:linear-gradient(180deg,rgba(155,226,45,.12),rgba(155,226,45,.02));font:600 46px/1.35 Geist}
+.btn{display:inline-block;margin-top:60px;padding:34px 52px;border-radius:26px;font:700 46px Geist;color:#0c0d0f;background:linear-gradient(180deg,#c4ff63,#9be22d 60%,#76b51c);box-shadow:0 0 50px rgba(155,226,45,.45)}
+.boxes{display:flex;gap:22px;margin-top:70px}
+.box{padding:34px 40px;border-radius:26px;border:2px solid rgba(217,221,226,.22);background:rgba(255,255,255,.04)}
+.box b{display:block;font:700 80px "Geist Mono"}.box span{font:500 24px "Geist Mono";color:#9aa0a8;letter-spacing:.1em;text-transform:uppercase}
+.reply{margin-top:80px;display:inline-flex;align-items:center;gap:22px;padding:30px 44px;border-radius:999px;border:2px solid rgba(217,221,226,.35);font:500 40px Geist;color:#c2c7cd}
+.reply b{font:800 52px Geist;color:var(--acc);letter-spacing:.04em}
+</style>
+<body></body>
+<script>
+const TAG='<div class="tag"><i></i>Jota Labs · Diseño web</div>';
+const FOOT='<div class="foot"><span>@jota_labsweb</span><span><b>●</b> Link en la bio</span></div>';
+const h=(a,b)=>`<h2><span class="c">${a}</span><br><em>${b}</em></h2>`;
+const demo=(img,a,b,lead,chips)=>`${TAG}${h(a,b)}<p class="lead">${lead}</p><div class="chips">${chips.map(c=>`<span>${c}</span>`).join('')}</div>
+ <div class="phone" style="top:950px;width:400px;margin-left:-200px;border-radius:58px;padding:13px;transform:rotate(3deg)"><div><img src="m-${img}.png"></div></div>
+ <div class="foot" style="bottom:120px"><span>Demo · negocio ficticio</span><span><b>●</b> Link en la bio</span></div>`;
+const tip=(n,a,b,lead,box)=>`${TAG}<div class="tipno g">${n}</div><p class="lead" style="margin-top:60px;font:500 30px 'Geist Mono';letter-spacing:.16em;color:#9be22d">TIP PARA TU NEGOCIO</p>${h(a,b)}<p class="lead">${lead}</p><div class="big">${box}</div>${FOOT}`;
+const S=[
+ `${TAG}<h2 style="margin-top:160px;font-size:140px"><span class="c">Boceto gratis</span><br><em>en 48 horas.</em></h2><p class="lead" style="margin-top:60px">Mandame el Instagram de tu negocio por DM y te muestro <b>cómo se vería tu web</b>. Sin compromiso.</p><span class="btn">Escribime por DM →</span>${FOOT}`,
+ demo('fuego-lento','Parrilla','Fuego Lento','Una parrilla que se reserva sola.',['Carta digital','Reservas por WhatsApp','Horarios en vivo']),
+ demo('navaja-club','Barbería','Navaja Club','Turnos sin llamadas ni mensajes.',['Turnos online','Lista de precios','Confirmación por WhatsApp']),
+ demo('farbwerk','Oficios','Farbwerk','Presupuestos mientras dormís.',['Calculadora de precio','Antes / después','Consultas directas']),
+ `${TAG}${h('Precios fijos.','Sin sorpresas.')}
+  <div style="margin-top:70px">${[['Inicial','USD 290','One page, WhatsApp, Google Maps. Online en 5 días.'],['Negocio','USD 490','Hasta 5 secciones, turnos online, perfil de Google.'],['Pro','USD 790','Precios autoadministrables, bilingüe ES/EN.']].map(([n,p,d],i)=>`<div class="card ${i==1?'hot':''}"><div><h3>${n}</h3><p>${d}</p></div><div class="pr chrome">${p}</div></div>`).join('')}</div>
+  <p class="lead" style="font-size:32px;color:#8d939b">Pago único · 50 % al empezar, 50 % cuando estés conforme</p>${FOOT}`,
+ `${TAG}${h('De la charla','a online en 7 días.')}<div style="margin-top:60px">${[['Charla corta','15 min por WhatsApp'],['Boceto gratis','Lo ves antes de pagar'],['Ajustes','Tus fotos y textos'],['Online','Dominio, Google y listo']].map(([a,b],i)=>`<div class="step"><span class="n g">0${i+1}</span><div><h3>${a}</h3><p>${b}</p></div></div>`).join('')}</div>${FOOT}`,
+ `${TAG}${h('¿Linktree','o web propia?')}<p class="lead">Si pagás publicidad, <b>cada clic cuenta</b>.</p><div class="vs"><div class="col bad"><h3>Linktree</h3><ul><li>Un clic más antes de reservar</li><li>Los precios no se ven</li><li>No aparece en Google</li></ul></div><div class="col good"><h3>Tu propia web</h3><ul><li>Turno directo en 1 clic</li><li>Precios, fotos y reseñas</li><li>Te encuentran en Google</li></ul></div></div>${FOOT}`,
+ tip('01','Tu horario','en Google.','Si el horario en Google está mal, el cliente va <b>al local de al lado</b>.','✓ Buscá tu negocio en Google Maps hoy y revisá horario, teléfono y fotos. Es gratis y lleva 5 minutos.'),
+ tip('02','WhatsApp','con un toque.','Nadie copia un número a mano. Un botón de WhatsApp en tu web y en tu bio <b>trae más consultas</b>.','✓ Usá un link wa.me con un mensaje ya escrito, así el cliente solo toca “Enviar”.'),
+ tip('03','Precios','a la vista.','“¿Precio?” por DM, cincuenta veces al día. Mostrá tus precios y <b>ahorrá tiempo</b>.','✓ Una lista de precios clara filtra consultas y genera confianza.'),
+ tip('04','Fotos reales,','no de stock.','Tu local, tu equipo, tus platos. La gente quiere ver <b>dónde va a ir</b>.','✓ Con el celular y buena luz natural alcanza. Mejor real que perfecto.'),
+ tip('05','Abrí tu web','en el celular.','La mayoría de tus clientes te visita desde el teléfono. <b>¿Se ve bien? ¿Carga rápido?</b>','✓ Si tarda más de 3 segundos, mucha gente se va antes de verla.'),
+ `${TAG}${h('Soy Jan.','Alemán en Buenos Aires.')}<p class="lead">Vengo de la Selva Negra y hago webs para negocios locales en <b>Argentina, Suiza y Alemania</b>. Prolijas, rápidas y sin vueltas.</p><div class="boxes">${[['AR','Argentina'],['CH','Suiza'],['DE','Alemania']].map(([k,n])=>`<div class="box"><b>${k}</b><span>${n}</span></div>`).join('')}</div>${FOOT}`,
+ `${TAG}<h2 style="margin-top:160px;font-size:130px"><span class="c">¿Tenés negocio</span><br><em>y no tenés web?</em></h2><p class="lead" style="margin-top:60px">Respondé a esta historia y te cuento <b>qué te conviene</b>, sin compromiso.</p><div class="reply">Escribí <b>WEB</b> 👇</div>${FOOT}`,
+];
+document.body.innerHTML=S.map((x,i)=>`<section class="s" id="s${i+1}">${x}</section>`).join('');
+</script>
