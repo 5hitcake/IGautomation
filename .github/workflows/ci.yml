@@ -36,3 +36,9 @@ jobs:
 
       - name: Dry-Run Publish (kein echter API-Call)
         run: python scripts/publish.py --dry-run
+
+      - name: Dry-Run Jota-Labs-Story (kein echter API-Call)
+        run: |
+          python scripts/jotalabs_pick_story.py
+          python scripts/publish.py --post-file assets/jotalabs_generated/next_post.json --dry-run
+          git checkout -- . && git clean -fdq assets/jotalabs_generated jotalabs_posted_log.json

@@ -295,6 +295,42 @@ eine reale Person möglichst akkurat dargestellt werden soll.
 
 ---
 
+## Jota-Labs-Stories (@jota_labsweb)
+
+Täglich um ca. **20 Uhr Buenos-Aires-Zeit** postet `jotalabs_story.yml` eine Story
+für das Webdesign-Konto **@jota_labsweb**, über dieselbe Instagram Graph API
+(`publish.py`, Typ `story`). Das kostet nichts und braucht keine KI-Generierung.
+
+- **Stories**: 14 fertige Bilder (1080x1920, JPEG) in `assets/jotalabs_stories/`, darunter
+  Demos, Preise, Ablauf, Tipps und Aufrufe zum Schreiben. Sie werden der Reihe nach gepostet;
+  nach der letzten beginnt die Rotation wieder bei `story_01`. Wo sie steht, protokolliert
+  `jotalabs_posted_log.json`.
+- **Neue Stories**: In `content/jotalabs/stories.html` eine weitere `section` ergänzen
+  und mit `node content/jotalabs/render_stories.mjs` neu rendern (braucht Playwright).
+  Alternativ einfach ein eigenes JPEG (1080x1920) als `story_15.jpg` usw. in den Ordner legen.
+- **Einschränkungen der API**: Link-Sticker, Umfragen und Musik lassen sich per API
+  nicht setzen. Deshalb verweisen die Stories auf „Link en la bio“ bzw. aufs Antworten per DM.
+
+### Einrichtung
+
+1. @jota_labsweb in der Instagram-App auf ein **professionelles Konto** umstellen.
+2. Wie in [Schritt 2](#schritt-2-instagram-api-einrichten-ohne-facebook-seite) einen Token
+   für @jota_labsweb erzeugen: das Konto als Instagram-Tester in der bestehenden Meta-App
+   hinzufügen, die Einladung annehmen und auf „Generate token“ klicken.
+3. Zwei GitHub Secrets anlegen:
+
+| Name | Wert |
+|---|---|
+| `JOTALABS_IG_ACCESS_TOKEN` | Long-Lived Token von @jota_labsweb |
+| `JOTALABS_IG_ACCOUNT_ID` | Instagram-Account-ID von @jota_labsweb |
+
+4. Test: **Actions → Daily Jota Labs Story → Run workflow**.
+
+Solange die Secrets fehlen, überspringt der Workflow den Lauf mit einer Warnung, statt
+fehlzuschlagen. Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieben.
+
+---
+
 ## Content erweitern
 
 - **Neue Zitate**: In `content/quotes_de.json` einfach neue Einträge mit fortlaufender
@@ -331,4 +367,7 @@ tests/                   Unit-Tests fuer scripts/common.py und scripts/tiktok_co
 requirements-dev.txt     Zusaetzliche Dev-Abhaengigkeiten (pytest, ruff)
 posted_log.json          Trackt bereits verwendete Zitate/Assets (wird automatisch committet)
 tiktok_posted_log.json   Trackt bereits verwendete TikTok-Themen (wird automatisch committet)
+assets/jotalabs_stories/ Fertige Story-Bilder fuer @jota_labsweb
+content/jotalabs/        HTML-Vorlage + Render-Skript fuer die Jota-Labs-Stories
+jotalabs_posted_log.json Merkt sich die zuletzt gepostete Jota-Labs-Story (wird automatisch committet)
 ```
