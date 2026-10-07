@@ -74,17 +74,18 @@
     42,
     30,
     51,
-    44
+    44,
+    89
   ],
   "posted_reel_ids": [
     5
   ],
   "recent_backgrounds": [
-    "bg_10_abstract_smoke.png",
     "bg_03_city_night.png",
     "bg_13_cliff_sunset.png",
     "bg_02_mountain_climb.png",
-    "bg_08_forest.png"
+    "bg_08_forest.png",
+    "bg_05_gym.png"
   ],
   "recent_bg_videos": [
     "reel_07_rooftop.mp4",
