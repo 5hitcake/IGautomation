@@ -82,7 +82,8 @@
     74
   ],
   "posted_reel_ids": [
-    5
+    5,
+    4
   ],
   "recent_backgrounds": [
     "bg_05_gym.png",
@@ -92,10 +93,10 @@
     "bg_14_snow_peak.png"
   ],
   "recent_bg_videos": [
-    "reel_07_rooftop.mp4",
     "reel_06_clouds_dawn.mp4",
     "reel_04_mountain_walk.mp4",
     "reel_08_night_road.mp4",
-    "reel_02_ocean_waves.mp4"
+    "reel_02_ocean_waves.mp4",
+    "reel_01_mountain_drone.mp4"
   ]
 }
