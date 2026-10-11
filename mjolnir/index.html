@@ -972,8 +972,8 @@ function drawSquirrel(g, s, t) {
   if (imgReady('volva')) {
     // the Völva, the seeress who teaches Thor the way: she turns to him and lifts her skull staff when she speaks
     const talk = s.a > .5, face = P && P.x + P.w / 2 < s.x;
-    drawSprite(g, 'volva', talk ? 1 : 0, s.x, s.y + 1 + (talk ? 0 : Math.sin(t * 1.6) * .6), 92, face);
-    glow(g, s.x + (face ? 26 : -26), s.y - 84, 18, '255,220,160', .2 + Math.sin(t * 2) * .06);
+    drawSprite(g, 'volva', talk ? 1 : 0, s.x, s.y + 1 + (talk ? 0 : Math.sin(t * 1.6) * .6), 66, face);
+    glow(g, s.x + (face ? 19 : -19), s.y - 61, 13, '255,220,160', .2 + Math.sin(t * 2) * .06);
     return;
   }
   if (imgReady('critters')) {
@@ -4317,7 +4317,7 @@ function drawSign(g, s) {
   s.a = clamp((s.a || 0) + (near ? .08 : -.08), 0, 1);
   if (s.a > 0) {
     g.save(); g.globalAlpha = s.a;
-    bubble(g, s.x, s.y - (imgReady('volva') ? 100 : 58), s.text, 'squirrel');
+    bubble(g, s.x, s.y - (imgReady('volva') ? 76 : 58), s.text, 'squirrel');
     g.restore();
   }
 }
