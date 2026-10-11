@@ -55,7 +55,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Fire serpents** lie coiled on the path in Muspelheim. When you come close they hiss and rear back, then snap low
   along the ground: jump over the bite, or stomp them. The pits there are lava.
 - **Sheep** are bouncy trampolines that reach high platforms.
-- **The Völva**, a seeress with a horned skull staff, turns to Thor and gives hints along the way.
+- **The Völva**, a bald seeress with a ram-horned staff, turns to Thor and gives hints along the way.
 - **Valkyries** fly by when you raise a raven banner, and one carries Thor back when he falls.
 - **Treasure** comes three ways: wooden rune coins (worth 1), rarer gold coins (worth 10, also inside some rune crates),
   and secret gems (worth 50) hidden inside one or two plain-looking stone blocks per stage. Every 100 earns an extra life.
