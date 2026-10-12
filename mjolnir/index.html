@@ -2605,7 +2605,7 @@ const Music = {
     }
     return this.pending[key];
   },
-  prefetch(spec) { if (Sound.ctx) this.get(spec); },
+  prefetch(spec) { if (Sound.ctx && !Object.keys(this.pending).length && this.cache[this.want]) this.get(spec); },
   rate(r) { this.rt = r; if (this.src && Sound.ctx) this.src.playbackRate.setTargetAtTime(r, Sound.ctx.currentTime, .15); },
   async apply() {
     const ac = Sound.ctx; if (!ac) return;
@@ -2630,7 +2630,18 @@ const Music = {
     const bus = c.createGain(); bus.gain.value = 1; bus.connect(c.destination);
     const verb = c.createConvolver(); verb.buffer = makeImpulse(c, 1.2, 2.2);
     const vg = c.createGain(); vg.gain.value = .5; verb.connect(vg); vg.connect(c.destination);
-    const out = wet => { const g = c.createGain(); g.connect(bus); if (wet) { const w = c.createGain(); w.gain.value = wet; g.connect(w); w.connect(verb); } return g; };
+    // notes share their outputs and filters (one per reverb amount / cutoff) so a long loop renders quickly on phones
+    const outs = {}, filt = {};
+    const out = wet => {
+      if (outs[wet]) return outs[wet];
+      const g = c.createGain(); g.connect(bus); if (wet) { const w = c.createGain(); w.gain.value = wet; g.connect(w); w.connect(verb); }
+      return (outs[wet] = g);
+    };
+    const lowpass = (fc, wet) => {
+      const k = fc + '|' + wet; if (filt[k]) return filt[k];
+      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = fc; f.connect(out(wet));
+      return (filt[k] = f);
+    };
     const noiseBuf = c.createBuffer(1, sr * 2, sr), nd = noiseBuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
     const NOTE = { C: 36, D: 38, Eb: 39, E: 40, F: 41, G: 43, A: 45, Bb: 46, B: 47 };
     const PROG = [
@@ -2647,11 +2658,10 @@ const Music = {
     ][pat] || ['Dm', 'Bb', 'F', 'C', 'Dm', 'Bb', 'C', 'A'];
     const chord = name => { const minor = name.endsWith('m'), r = NOTE[minor ? name.slice(0, -1) : name]; return [r, r + (minor ? 3 : 4), r + 7]; };
     const voice = (type, hz, t, dur, vol, wet, fc, det = 0, att = .01) => {
-      const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+      const o = c.createOscillator(), g = c.createGain();
       o.type = type; o.frequency.value = hz; o.detune.value = det;
-      f.type = 'lowpass'; f.frequency.value = fc * .75;
       g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + att); g.gain.setTargetAtTime(.0001, t + dur * .7, dur * .25);
-      o.connect(f); f.connect(g); g.connect(out(wet)); o.start(t); o.stop(t + dur * 1.6 + .1);
+      o.connect(g); g.connect(lowpass(fc * .75, wet)); o.start(t); o.stop(t + dur * 1.6 + .1);
     };
     const hit = (t, v, hz, decay = .55) => {
       const o = c.createOscillator(), g = c.createGain();
@@ -2661,10 +2671,11 @@ const Music = {
       noiseHit(t, .3 * v, 'lowpass', 900, .09, 0);
     };
     const noiseHit = (t, v, type, fc, dur, wet = .3) => {
-      const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-      s.buffer = noiseBuf; f.type = type; f.frequency.value = fc; f.Q.value = .7;
+      const s = c.createBufferSource(), g = c.createGain(), k = type + fc + '|' + wet;
+      if (!filt[k]) { const f = c.createBiquadFilter(); f.type = type; f.frequency.value = fc; f.Q.value = .7; f.connect(out(wet)); filt[k] = f; }
+      s.buffer = noiseBuf;
       g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-      s.connect(f); f.connect(g); g.connect(out(wet)); s.start(t, Math.random()); s.stop(t + dur + .05);
+      s.connect(g); g.connect(filt[k]); s.start(t, Math.random()); s.stop(t + dur + .05);
     };
     // low drone under everything
     { const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.value = 73.42; f.type = 'lowpass'; f.frequency.value = 260; g.gain.value = .035; o.connect(f); f.connect(g); g.connect(bus); o.start(); }
@@ -2704,11 +2715,11 @@ const Music = {
       if (pos === 0 && bar % 8 === 0) noiseHit(t, title ? .07 : .12, 'highpass', 5500, 2.2, .7);
       // choir pad
       if (pos === 0) for (const n of ch) for (const det of [0]) {
-        const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(), dur = spb * 8;
+        const o = c.createOscillator(), g = c.createGain(), dur = spb * 8;
         o.type = 'sawtooth'; o.frequency.value = midiHz(n + 24); o.detune.value = det;
-        f.type = 'bandpass'; f.frequency.value = 850; f.Q.value = 1.4;
+        if (!filt.choir) { const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 850; f.Q.value = 1.4; f.connect(out(1.1)); filt.choir = f; }
         g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(second ? .05 : .035, t + dur * .3); g.gain.linearRampToValueAtTime(.0001, t + dur * 1.08);
-        o.connect(f); f.connect(g); g.connect(out(1.1)); o.start(t); o.stop(t + dur * 1.1);
+        o.connect(g); g.connect(filt.choir); o.start(t); o.stop(t + dur * 1.1);
       }
       // horn melody (and an octave-up double on the second pass)
       for (const m of mel) if (m.step === s % 64) {
@@ -4864,7 +4875,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated checks
 window.__snd = Sound; window.Music = Music; window.__musicSpecs = () => [TITLE_MUSIC, realmMusic(0), realmMusic(3)];
-window.__mjolnir = { G, input, hitBlock, get L() { return L; }, get P() { return P; }, beginStage, startGame, LEVELS, STAGES, IMG, filterPixels };
+window.__mjolnir = { G, input, hitBlock, get L() { return L; }, get P() { return P; }, beginStage, startGame, LEVELS, STAGES, IMG, filterPixels, realmMusic };
 })();
 </script>
 </body>
