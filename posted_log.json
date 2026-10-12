@@ -80,18 +80,19 @@
     7,
     104,
     74,
-    17
+    17,
+    3
   ],
   "posted_reel_ids": [
     5,
     4
   ],
   "recent_backgrounds": [
-    "bg_01_mountain_dawn.png",
     "bg_15_night_road.png",
     "bg_12_rain_window.png",
     "bg_14_snow_peak.png",
-    "bg_06_desert_road.png"
+    "bg_06_desert_road.png",
+    "bg_03_city_night.png"
   ],
   "recent_bg_videos": [
     "reel_06_clouds_dawn.mp4",
