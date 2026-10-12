@@ -2,7 +2,7 @@ name: Daily TikTok Post
 
 on:
   schedule:
-    - cron: "0 15 * * *"  # ~16-17 Uhr deutsche Zeit (MEZ/MESZ)
+    - cron: "38 15 * * *"  # ~16-17 Uhr deutsche Zeit (MEZ/MESZ), unrunde Minute gegen GitHub-Lastspitzen
   workflow_dispatch:
     inputs:
       regenerate:
