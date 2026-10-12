@@ -2,7 +2,7 @@ name: Weekly Reel Post
 
 on:
   schedule:
-    - cron: "30 16 * * 0"  # jeden Sonntag 16:30 UTC (~17-18 Uhr MEZ/MESZ)
+    - cron: "41 16 * * 0"  # jeden Sonntag ~16:41 UTC (~17-18 Uhr MEZ/MESZ), unrunde Minute gegen GitHub-Lastspitzen
   workflow_dispatch: {}
 
 permissions:
