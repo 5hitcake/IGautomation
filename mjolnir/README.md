@@ -86,3 +86,15 @@ and draugr sprite sheets, sheep, the Völva, Sleipnir, the mead horn, the Valkyr
 `tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
+
+## Download and install
+
+`python3 mjolnir/tools/build_dist.py` builds `mjolnir/dist/` (not in git):
+
+- `mjolnir-lost-web.zip`: unzip it into a folder on the homepage (for example `/mjolnir-lost/`) and link to that
+  folder. Served over HTTPS it is an installable app (PWA): on Android/Chrome "Install app" or "Add to home screen", on
+  iPhone Share → "Add to Home Screen", on a PC the install icon in the address bar (Chrome/Edge). After the first visit it
+  works offline, with its own icon, full screen.
+- `mjolnir-lost.html`: the whole game in one file to download; open it by double-click in any browser, no internet needed.
+
+Both embed the fonts, so nothing is loaded from the internet. Progress and trophies are kept per browser.
