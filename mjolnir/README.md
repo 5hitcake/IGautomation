@@ -104,6 +104,8 @@ holds the translations and `ES_RX` the ones with numbers or names in them.
   folder. Served over HTTPS it is an installable app (PWA): on Android/Chrome "Install app" or "Add to home screen", on
   iPhone Share → "Add to Home Screen", on a PC the install icon in the address bar (Chrome/Edge). After the first visit it
   works offline, with its own icon, full screen.
+- Installed apps update themselves: online the game page is always loaded fresh (network first), offline the last
+  saved copy starts.
 - `mjolnir-lost.html`: the whole game in one file to download; open it by double-click in any browser, no internet needed.
 
 The installable build shows "Install as an app" in the main menu: on Android and desktop Chrome/Edge it opens the
