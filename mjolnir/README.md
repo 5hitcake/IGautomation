@@ -43,8 +43,8 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Svartalfheim**, the deep halls of the dwarves: dwarf miners march along and hurl their pickaxes in spinning arcs
   (dodge, then stomp them), and stalactites tremble and fall when you walk below them, their crystal tips glowing as a
   warning.
-- **Alfheim**, the shining forest of the light elves: eagles circle above the trees, follow you, screech and swoop
-  down in a long arc; stomp them. The dark stags of Yggdrasil crouch and leap at you in big arcs: run under them
+- **Alfheim**, the shining forest of the light elves: sea eagles circle above the trees, follow you, screech and swoop
+  down in a long arc, or drop a stone when they are right above you; stomp them. The dark stags of Yggdrasil crouch and leap at you in big arcs: run under them
   or stomp them.
 - **Helheim**, the cold realm of the dead: misty barrows, the river Gjöll and Hel's hall Éljúðnir. Draugr rise in
   numbers, Garm's wolves hunt you and carrion eagles swoop out of the fog.
@@ -73,6 +73,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
 - **Save & back to menu** in the pause menu keeps the stage, the last checkpoint, score, treasure and lives;
   **Continue** on the title screen carries on from there. The journey is also saved at the start of every stage.
+- **Speech bubbles** in cutscenes can be skipped with a tap, Space or Enter.
 - **Sleipnir**: when a realm is done and Loki has fled, Odin's eight-legged horse gallops down from the sky and
   carries Thor off to the next realm.
 - **Trophy Hall**: trophies are a reward for playing again. During the first journey nothing is counted and the hall
