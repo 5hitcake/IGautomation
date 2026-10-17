@@ -4009,6 +4009,8 @@ function handleMenus() {
     if (input.down) G.mapSel = Math.min(max, G.mapSel + STAGES);
     if (input.back) G.titleMode = null;
     else if (input.confirm) startGame(Math.floor(G.mapSel / STAGES), G.mapSel % STAGES);
+  } else if (G.state === 'title' && G.titleMode === 'install') {
+    if (input.back || input.confirm) G.titleMode = null;
   } else if (G.state === 'title' && G.titleMode === 'trophies') {
     if (input.leftP) G.trophyPage = Math.max(0, (G.trophyPage || 0) - 1);
     if (input.rightP) G.trophyPage = Math.min(Math.ceil(TROPHIES.length / 16) - 1, (G.trophyPage || 0) + 1);
@@ -4503,6 +4505,13 @@ const ES = {
   'Loki slinks off to plot his next trick. Asgard is safe, and the thunder answers to Thor once more.': 'Loki se escabulle para tramar su próxima trampa. Asgard está a salvo y el trueno vuelve a obedecer a Thor.',
   'To Valhalla!': '¡Al Valhalla!', 'Skál!': '¡Skál!', 'A seat in Valhalla!': '¡Un lugar en el Valhalla!',
   "Odin raises his horn to the god of thunder. The Allfather's hall will always have a place for you.": 'Odín levanta su cuerno por el dios del trueno. En el salón del Padre de Todos siempre habrá un lugar para vos.',
+  'Install as an app': 'Instalar como app',
+  '1.  Tap the Share button (the square with the arrow) in the browser bar.': '1.  Tocá el botón Compartir (el cuadrado con la flecha) en la barra del navegador.',
+  '2.  Scroll and choose “Add to Home Screen”.': '2.  Deslizá y elegí «Agregar a inicio».',
+  '3.  Tap “Add”. Mjölnir appears on your home screen and works offline.': '3.  Tocá «Agregar». Mjölnir aparece en tu pantalla de inicio y funciona sin internet.',
+  '1.  Open the browser menu (⋮ at the top right).': '1.  Abrí el menú del navegador (⋮ arriba a la derecha).',
+  '2.  Choose “Install app” or “Add to Home screen”.': '2.  Elegí «Instalar app» o «Agregar a pantalla de inicio».',
+  '3.  Confirm. Mjölnir appears on your home screen and works offline.': '3.  Confirmá. Mjölnir aparece en tu pantalla de inicio y funciona sin internet.',
   'Paused': 'Pausa', 'Continue': 'Continuar', 'Save & back to menu': 'Guardar y volver al menú',
   'Your journey is also saved at the start of every stage': 'Tu aventura también se guarda al comienzo de cada nivel',
   'Journey saved. Pick Continue to go on.': 'Aventura guardada. Elegí Continuar para seguir.',
@@ -4797,12 +4806,46 @@ function button(g, x, y, w, h, label, sel, fn) {
   txt(g, label, x + w / 2, y + h / 2 + 1, 21, '#f6ecd4', 'center', BODY, 800, null);
   uiButtons.push({ x, y, w, h, fn });
 }
+/* ---------- Install as an app (only where the page has a web app manifest, i.e. the homepage build) ---------- */
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
+window.addEventListener('appinstalled', () => { installPrompt = null; });
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function canOfferInstall() {
+  if (!document.querySelector('link[rel="manifest"]')) return false;
+  const standalone = (window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches) || navigator.standalone;
+  return !standalone && (!!installPrompt || IS_IOS || document.body.classList.contains('touch'));
+}
+function installApp() {
+  if (installPrompt) { const p = installPrompt; installPrompt = null; p.prompt(); return; }
+  G.titleMode = 'install';
+}
+function drawInstall(g) {
+  g.fillStyle = 'rgba(6,4,16,.75)'; g.fillRect(0, 0, VW, VH);
+  const w = Math.min(640, VW - 16), h = 400, x = (VW - w) / 2, y = (VH - h) / 2;
+  panel(g, x, y, w, h);
+  txt(g, 'Install as an app', VW / 2, y + 44, 30, '#f6ecd4', 'center', DISPLAY, 400, '#140a1e', 6);
+  const steps = IS_IOS
+    ? ['1.  Tap the Share button (the square with the arrow) in the browser bar.', '2.  Scroll and choose “Add to Home Screen”.', '3.  Tap “Add”. Mjölnir appears on your home screen and works offline.']
+    : ['1.  Open the browser menu (⋮ at the top right).', '2.  Choose “Install app” or “Add to Home screen”.', '3.  Confirm. Mjölnir appears on your home screen and works offline.'];
+  let ty = y + 100;
+  for (const st of steps) { g.font = `600 19px ${BODY}`; const lines = wrapText(g, st, w - (IS_IOS ? 170 : 120)); lines.forEach((l, i) => txt(g, l, x + 56, ty + i * 24, 19, '#e3d6bc', 'left', BODY, 600, null)); ty += lines.length * 24 + 18; }
+  if (IS_IOS) {
+    // the iOS share icon, so it is easy to find
+    const ix = x + w - 70, iy = y + 104;
+    g.strokeStyle = '#7ab8ff'; g.lineWidth = 3; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(ix - 12, iy - 4); g.lineTo(ix - 16, iy - 4); g.lineTo(ix - 16, iy + 20); g.lineTo(ix + 16, iy + 20); g.lineTo(ix + 16, iy - 4); g.lineTo(ix + 12, iy - 4); g.stroke();
+    g.beginPath(); g.moveTo(ix, iy + 8); g.lineTo(ix, iy - 18); g.moveTo(ix - 8, iy - 10); g.lineTo(ix, iy - 18); g.lineTo(ix + 8, iy - 10); g.stroke();
+  }
+  button(g, VW / 2 - 90, y + h - 66, 180, 44, 'Back', true, () => { G.titleMode = null; });
+}
 function titleItems() {
   const sv = loadSave(), items = [];
   if (sv) items.push([`Continue  ${sv.level === BONUS ? 'Valhalla' : `${LEVELS[sv.level].name} ${sv.level + 1}-${sv.stage + 1}`}`, resumeSave]);
   items.push(['Begin the Quest', () => startGame(0)]);
   if (G.progress > 0) items.push(['Realm map', () => { G.titleMode = 'map'; G.mapSel = G.progress; }]);
   if (G.wins >= 2) items.push(['Valhalla  (bonus)', startBonus]);
+  if (canOfferInstall()) items.push(['Install as an app', installApp]);
   items.push([LANG === 'es' ? 'Idioma: Español' : 'Language: English', () => setLang(LANG === 'es' ? 'en' : 'es')]);
   if (G.trophies.has('worthy')) items.push([`Trophy Hall  ${G.trophies.size}/${TROPHIES.length}`, () => { G.titleMode = 'trophies'; }]);
   return items;
@@ -4867,6 +4910,7 @@ function drawToast(g) {
 }
 function drawTitle(g) {
   if (G.titleMode === 'trophies') { drawTrophies(g); return; }
+  if (G.titleMode === 'install') { drawInstall(g); return; }
   if (G.titleMode === 'map') { drawMap(g); return; }
   g.fillStyle = lgrad(g, 0, 0, 0, VH, ['rgba(6,4,16,.55)', 'rgba(6,4,16,.15)', 'rgba(6,4,16,.6)']); g.fillRect(0, 0, VW, VH);
   const cx = VW / 2;
@@ -4881,8 +4925,8 @@ function drawTitle(g) {
   drawMjolnir(g, cx - Math.min(300, VW * .33), 160, 1.5, -.35, 1);
   drawValknut(g, cx + Math.min(300, VW * .33), 150, 70, 'rgba(224,180,90,.9)', 4);
   txt(g, 'Loki has stolen Mjölnir. Chase the trickster through eleven realms and take it back!', cx, 258, 19, '#efe3c8');
-  const items = titleItems(), many = items.length >= 4, lots = items.length >= 6, bw = 290, bh = lots ? 40 : many ? 44 : 50;
-  items.forEach(([label, fn], i) => button(g, cx - bw / 2, (lots ? 274 : many ? 280 : 286) + i * (lots ? 46 : many ? 52 : 58), bw, bh, label, G.sel === i, fn));
+  const items = titleItems(), many = items.length >= 4, lots = items.length >= 6, packed = items.length >= 7, bw = 290, bh = packed ? 36 : lots ? 40 : many ? 44 : 50;
+  items.forEach(([label, fn], i) => button(g, cx - bw / 2, (lots ? 274 : many ? 280 : 286) + i * (packed ? 41 : lots ? 46 : many ? 52 : 58), bw, bh, label, G.sel === i, fn));
   const touchUI = document.body.classList.contains('touch');
   if (!many) txt(g, touchUI ? 'Use the rune stones at the bottom: left and right to run, the arrow rune to jump.' : '← → / A D run  ·  SPACE / W jump  ·  SHIFT sprint  ·  P pause  ·  M sound', cx, VH - 70, 17, 'rgba(243,231,201,.9)');
   if (!many) txt(g, 'Stomp wolves, ravens and draugar · bounce on sheep · read the runes before the lightning strikes', cx, VH - 44, 16, 'rgba(255,216,138,.85)');

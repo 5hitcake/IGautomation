@@ -105,4 +105,7 @@ holds the translations and `ES_RX` the ones with numbers or names in them.
   works offline, with its own icon, full screen.
 - `mjolnir-lost.html`: the whole game in one file to download; open it by double-click in any browser, no internet needed.
 
+The installable build shows "Install as an app" in the main menu: on Android and desktop Chrome/Edge it opens the
+browser's install dialog, on iPhone it shows the three steps with the Share icon.
+
 Both embed the fonts, so nothing is loaded from the internet. Progress and trophies are kept per browser.
