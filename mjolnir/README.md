@@ -55,6 +55,8 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Fire serpents** lie coiled on the path in Muspelheim. When you come close they hiss and rear back, then snap low
   along the ground: jump over the bite, or stomp them. The pits there are lava.
 - **Sheep** are bouncy trampolines that reach high platforms.
+- **Touch controls** are carved runestones (painted stone disc via Higgsfield, runes drawn in SVG): ᚲ and its mirror
+  to run, ᛏ (Tiwaz, the arrow rune) to jump; the rune glows when pressed.
 - **The Völva**, a bald seeress with a ram-horned staff, turns to Thor and gives hints along the way.
 - **Valkyries** fly by when you raise a raven banner, and one carries Thor back when he falls.
 - **Treasure** comes three ways: wooden rune coins (worth 1), rarer gold coins (worth 10, also inside some rune crates),
