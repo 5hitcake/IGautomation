@@ -87,6 +87,12 @@ and draugr sprite sheets, sheep, the Völva, Sleipnir, the mead horn, the Valkyr
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
 
+## Language
+
+The game starts in Spanish (Argentina, with *vos*); the main menu switches to English ("Idioma / Language"), and the
+choice is remembered. All text is written in English in the code and goes through `tr()` when drawn: the `ES` table
+holds the translations and `ES_RX` the ones with numbers or names in them.
+
 ## Download and install
 
 `python3 mjolnir/tools/build_dist.py` builds `mjolnir/dist/` (not in git):

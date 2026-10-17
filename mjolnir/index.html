@@ -4394,8 +4394,181 @@ function drawGoal(g) {
   }
 }
 
+/* ---------- Language: Spanish (Argentina) by default, English to choose in the main menu ---------- */
+// every text on screen is written in English in the code and passes through tr() when it is drawn
+let LANG = (() => { try { return localStorage.getItem('mjolnir.lang') || 'es'; } catch (e) { return 'es'; } })();
+const ES = {
+  // realms: subtitles, intros, Loki's taunts and where he flees
+  'The Fjord of Beginnings': 'El fiordo de los comienzos',
+  'Loki has stolen Mjölnir! Chase the trickster across the fjords of Midgard.': '¡Loki robó a Mjölnir! Perseguí al embaucador por los fiordos de Midgard.',
+  'Looking for this, brother? Catch me in Vanaheim!': '¿Buscás esto, hermano? ¡Atrapame en Vanaheim!',
+  'Loki fled into Vanaheim, the green realm of the Vanir gods.': 'Loki huyó a Vanaheim, el reino verde de los dioses Vanir.',
+  'The Golden Hills of the Vanir': 'Las colinas doradas de los Vanir',
+  "Golden fields, standing stones and the great oak of the Vanir. Beautiful, but Loki's friends are waiting.": 'Campos dorados, menhires y el gran roble de los Vanir. Precioso, pero los amigos de Loki te esperan.',
+  "The Vanir won't help you either, brother! On to Jötunheim!": '¡Los Vanir tampoco te van a ayudar, hermano! ¡Me voy a Jötunheim!',
+  'Loki fled into Jötunheim, land of the frost giants.': 'Loki huyó a Jötunheim, la tierra de los gigantes de escarcha.',
+  'The Frost Giant Pass': 'El paso de los gigantes de escarcha',
+  'Snow, ice and frost-wolves. The green smoke of Loki leads through the land of the giants.': 'Nieve, hielo y lobos de escarcha. El humo verde de Loki cruza la tierra de los gigantes.',
+  'The frost giants send their regards! Follow me into the Iron Wood!': '¡Saludos de los gigantes de escarcha! ¡Seguime al Bosque de Hierro!',
+  'Loki escaped into Járnviðr, the dark Iron Wood.': 'Loki escapó a Járnviðr, el oscuro Bosque de Hierro.',
+  'The Iron Wood': 'El Bosque de Hierro',
+  "The Iron Wood, where Fenrir's kin hunt and Odin's ravens keep watch.": 'El Bosque de Hierro, donde caza la estirpe de Fenrir y vigilan los cuervos de Odín.',
+  'Wolves, ravens, lightning… and still you come? To Niflheim!': 'Lobos, cuervos, rayos… ¿y todavía venís? ¡A Niflheim!',
+  'Loki vanished into the endless storms of Niflheim.': 'Loki desapareció entre las tormentas eternas de Niflheim.',
+  'The Peaks of Endless Storm': 'Los picos de la tormenta eterna',
+  "Without its master, Mjölnir's thunder runs wild. Here the storm never ends.": 'Sin su dueño, el trueno de Mjölnir anda desbocado. Acá la tormenta nunca termina.',
+  "Cold, isn't it? Let me warm you up. Follow me into Muspelheim… if you dare!": '¿Hace frío, no? Dejame calentarte. Seguime a Muspelheim… ¡si te animás!',
+  'Loki fled into Muspelheim, the burning realm of the fire giants.': 'Loki huyó a Muspelheim, el reino ardiente de los gigantes de fuego.',
+  'The Realm of Fire': 'El reino del fuego',
+  'Rivers of lava and the fire giants of Surtr. Loki hides his trail in the smoke.': 'Ríos de lava y los gigantes de fuego de Surtr. Loki esconde su rastro en el humo.',
+  'Too hot for you, brother? The sea of Ægir will cool you down!': '¿Mucho calor, hermano? ¡El mar de Ægir te va a refrescar!',
+  'Loki stole a longship and fled across the stormy sea of Ægir.': 'Loki robó un drakkar y huyó por el mar tormentoso de Ægir.',
+  'The Storm Between the Realms': 'La tormenta entre los reinos',
+  'Ægir, lord of the sea, is angry tonight. Take the longship and chase Loki through the storm!': 'Ægir, señor del mar, está furioso esta noche. ¡Subí al drakkar y perseguí a Loki por la tormenta!',
+  "Wet beard, brother? The dwarves forged your hammer. Let's see if they can break it!": '¿Barba mojada, hermano? Los enanos forjaron tu martillo. ¡A ver si lo pueden romper!',
+  'Loki washed ashore and slipped down into Svartalfheim, the deep halls of the dwarves.': 'Loki llegó a la orilla y bajó a Svartalfheim, las salas profundas de los enanos.',
+  'The Deep Halls of the Dwarves': 'Las salas profundas de los enanos',
+  'Deep under the mountains the dwarves forged Mjölnir. Now they guard their halls from everyone. Mind the ceiling!': 'Bajo las montañas los enanos forjaron a Mjölnir. Ahora defienden sus salas de todos. ¡Cuidado con el techo!',
+  "Even the dwarves can't break it… Maybe the light elves of Alfheim will hide it for me!": 'Ni los enanos lo pueden romper… ¡Quizás los elfos de la luz de Alfheim me lo escondan!',
+  'Loki fled up into Alfheim, the shining forest of the light elves.': 'Loki subió hasta Alfheim, el bosque resplandeciente de los elfos de la luz.',
+  'The Shining Forest of the Light Elves': 'El bosque resplandeciente de los elfos de la luz',
+  'Silver trees, elven towers and lights that dance in the dark. In Alfheim even the lights play tricks.': 'Árboles de plata, torres élficas y luces que bailan en la oscuridad. En Alfheim hasta las luces hacen trampa.',
+  "Not even the elves would take it… Then I'll hide it where no living god may walk. Helheim!": 'Ni los elfos lo quisieron… Entonces lo escondo donde ningún dios vivo puede pisar. ¡Helheim!',
+  'Loki slipped down the roots of Yggdrasil into Helheim, the cold realm of the dead.': 'Loki bajó por las raíces de Yggdrasil hasta Helheim, el frío reino de los muertos.',
+  'The Cold Realm of the Dead': 'El frío reino de los muertos',
+  'Mist, bones and the restless dead. Cross the river Gjöll before Hel herself notices you.': 'Niebla, huesos y muertos inquietos. Cruzá el río Gjöll antes de que la misma Hel se dé cuenta.',
+  "Hel says even you can't stay here, brother. One realm left. Meet me at the gates of Asgard!": 'Hel dice que ni vos te podés quedar acá, hermano. Queda un solo reino. ¡Te espero en las puertas de Asgard!',
+  'Loki fled up from the dark and raced across the Bifröst toward Asgard itself.': 'Loki salió de la oscuridad y cruzó el Bifröst a toda velocidad hacia el mismísimo Asgard.',
+  'The Gates of the Gods': 'Las puertas de los dioses',
+  'The Bifröst glows beneath your boots. Mjölnir is close. Take back what is yours!': 'El Bifröst brilla bajo tus botas. Mjölnir está cerca. ¡Recuperá lo que es tuyo!',
+  'The Hall of the Fallen': 'El salón de los caídos',
+  'Mjölnir in hand, Thor is called to Valhalla. Only gems here, and boards that fall the moment you touch them. Keep jumping!': 'Con Mjölnir en la mano, Thor es llamado al Valhalla. Acá solo hay gemas y tablas que caen apenas las tocás. ¡Seguí saltando!',
+  "Loki's green smoke still hangs in the air. The storms grow louder. Keep running.": 'El humo verde de Loki todavía flota en el aire. Las tormentas suenan más fuerte. Seguí corriendo.',
+  'Mjölnir hums close by. Loki is waiting at the end of this road.': 'Mjölnir vibra muy cerca. Loki te espera al final de este camino.',
+  // the Völva's hints
+  'Hail, Thor! I am the Völva, seeress of Midgard. Run with ← → (A / D), jump with SPACE, W or ↑, hold SHIFT to sprint.': '¡Salve, Thor! Soy la Völva, vidente de Midgard. Corré con ← → (A / D), saltá con ESPACIO, W o ↑ y mantené SHIFT para correr más rápido.',
+  "Wolves of Fenrir's blood! Land on their heads to send them running.": '¡Lobos de la sangre de Fenrir! Caeles en la cabeza para espantarlos.',
+  'A glowing rune on the ground means lightning strikes there next. Wait for it, then run!': 'Una runa que brilla en el suelo avisa que ahí cae el próximo rayo. Esperá y después corré.',
+  'Sheep are bouncy. Land on one to fly high!': 'Las ovejas rebotan. ¡Caé sobre una para volar alto!',
+  'Stone roofs shelter you from the storm.': 'Los techos de piedra te protegen de la tormenta.',
+  'Vanaheim, home of Freyr and Freyja! Even here Loki has friends. Keep your eyes open.': '¡Vanaheim, hogar de Freyr y Freyja! Hasta acá Loki tiene amigos. Abrí bien los ojos.',
+  'This storm sweeps toward you! Step back, let it pass, then charge through.': '¡Esta tormenta avanza hacia vos! Retrocedé, dejala pasar y después cruzá a toda carrera.',
+  'Draugar! The restless dead need TWO stomps: one for the helmet, one to send them back to Hel.': '¡Draugar! Los muertos inquietos necesitan DOS pisotones: uno para el casco y otro para mandarlos de vuelta con Hel.',
+  'This one bounces back and forth. Hide under the stone roof if you must!': 'Esta va y viene. ¡Escondete bajo el techo de piedra si hace falta!',
+  'Ravens dive when you walk below them. Watch for their red eye, then dodge or stomp!': 'Los cuervos se lanzan cuando pasás por debajo. Mirá su ojo rojo, después esquivalos o pisalos.',
+  'This storm hunts you. Keep moving and never stand still!': 'Esta tormenta te persigue. ¡Movete y nunca te quedes quieto!',
+  'The storms of Niflheim never rest. Read the runes and find the rhythm.': 'Las tormentas de Niflheim nunca descansan. Leé las runas y encontrá el ritmo.',
+  'Muspelheim, realm of fire! Fire boars charge when they see you, and fire serpents snap at your feet. Jump, then stomp them!': '¡Muspelheim, reino del fuego! Los jabalíes de fuego te embisten cuando te ven y las serpientes de fuego te muerden los pies. ¡Saltá y pisalos!',
+  'The planks over the lava will not hold for long. Keep moving!': 'Las tablas sobre la lava no aguantan mucho. ¡No te detengas!',
+  'The sea of Ægir! Jump into the longship and sail on. Jump over the great waves, and watch out for leaping narwhals!': '¡El mar de Ægir! Subí al drakkar y navegá. Saltá las olas gigantes y ojo con los narvales que saltan.',
+  'Svartalfheim! The dwarves throw their pickaxes at strangers. Jump over them, then stomp the dwarf. And watch the stalactites above!': '¡Svartalfheim! Los enanos les tiran el pico a los extraños. Saltalos y después pisá al enano. ¡Y cuidado con las estalactitas!',
+  'Alfheim! Eagles circle above the trees and swoop down when they spot you, and the stags of Yggdrasil leap at you. Dodge them or stomp them!': '¡Alfheim! Las águilas vuelan sobre los árboles y se lanzan cuando te ven, y los ciervos de Yggdrasil te saltan encima. ¡Esquivalos o pisalos!',
+  'Helheim! The dead walk here and the carrion eagles swoop from the mist. Keep moving, and stomp what rises against you!': '¡Helheim! Acá caminan los muertos y las águilas carroñeras bajan de la niebla. ¡Seguí avanzando y pisá todo lo que se te ponga enfrente!',
+  'Asgard! Mjölnir is near. You can feel it humming in your beard.': '¡Asgard! Mjölnir está cerca. Lo sentís vibrar en la barba.',
+  'The last storm, and it changes its rhythm. Mjölnir waits beyond!': 'La última tormenta, y cambia de ritmo. ¡Mjölnir te espera del otro lado!',
+  'Valhalla! The boards fall as soon as you land. Jump, jump, jump, and gather every gem on the way to Odin!': '¡Valhalla! Las tablas caen apenas las pisás. ¡Saltá, saltá, saltá y juntá todas las gemas camino a Odín!',
+  // cutscenes
+  'Welcome to Valhalla, my son. You have earned your seat at my table.': 'Bienvenido al Valhalla, hijo mío. Te ganaste un lugar en mi mesa.',
+  'Then let us drink, Father!': '¡Entonces brindemos, padre!',
+  'SKÅL!': '¡SKÅL!',
+  'Sleipnir! After him!': '¡Sleipnir! ¡A perseguirlo!',
+  'LOKI!!!': '¡¡¡LOKI!!!',
+  'Get back here, trickster!': '¡Volvé acá, embaucador!',
+  'By my beard… not again!': 'Por mi barba… ¡otra vez no!',
+  'You will pay for this, Loki!': '¡Me las vas a pagar, Loki!',
+  "Mine! It's MINE! Why won't it… BUDGE?!": '¡Mío! ¡Es MÍO! ¿Por qué no se… MUEVE?!',
+  'Because only the worthy may lift it.': 'Porque solo quien es digno puede levantarlo.',
+  'MJÖLNIR! You are mine again!': '¡MJÖLNIR! ¡Volvés a ser mío!',
+  // floating texts
+  '+1 LIFE': '+1 VIDA', 'SECRET GEM +50': 'GEMA SECRETA +50', 'RAINBOW RUSH!': '¡FURIA ARCOÍRIS!', 'A hidden ale!': '¡Una cerveza escondida!',
+  'The ale wears off': 'Se pasa el efecto de la cerveza', 'Helmet off!': '¡Sin casco!', 'SKÅL! +1 shield': '¡SKÅL! +1 escudo', 'SKÅL! +1 life': '¡SKÅL! +1 vida',
+  'BAAA!': '¡BEEE!', 'A Valkyrie watches over you': 'Una valquiria te protege',
+  // menus and screens
+  'The Lost Hammer of Thor': 'El martillo perdido de Thor',
+  'Loki has stolen Mjölnir. Chase the trickster through eleven realms and take it back!': 'Loki robó a Mjölnir. ¡Perseguí al embaucador por once reinos y recuperalo!',
+  'Use the buttons at the bottom: ◀ ▶ to run, JUMP to leap.': 'Usá los botones de abajo: ◀ ▶ para correr y SALTAR para saltar.',
+  '← → / A D run  ·  SPACE / W jump  ·  SHIFT sprint  ·  P pause  ·  M sound': '← → / A D correr  ·  ESPACIO / W saltar  ·  SHIFT acelerar  ·  P pausa  ·  M sonido',
+  'Stomp wolves, ravens and draugar · bounce on sheep · read the runes before the lightning strikes': 'Pisá lobos, cuervos y draugar · rebotá en las ovejas · leé las runas antes de que caiga el rayo',
+  'Begin the Quest': 'Comenzar la aventura', 'Realm map': 'Mapa de reinos', 'Valhalla  (bonus)': 'Valhalla  (bonus)',
+  'Back': 'Volver', '◀  Prev': '◀  Anterior', 'Next  ▶': 'Siguiente  ▶',
+  'Trophy Hall unlocked!': '¡Salón de trofeos desbloqueado!', 'Trophy unlocked!': '¡Trofeo desbloqueado!',
+  'Bonus realm': 'Reino bonus', 'Press JUMP to begin': 'Presioná SALTAR para empezar',
+  'Mjölnir slipped away!': '¡Mjölnir se escapó!', 'Chase Loki  →': 'Perseguir a Loki  →', 'Stage cleared!': '¡Nivel superado!',
+  'You have fallen': 'Caíste', 'The Valkyries carry you back to try again.': 'Las valquirias te llevan de vuelta para intentarlo otra vez.', 'Rise again': 'Levantate',
+  'Mjölnir is yours again!': '¡Mjölnir vuelve a ser tuyo!',
+  'Loki slinks off to plot his next trick. Asgard is safe, and the thunder answers to Thor once more.': 'Loki se escabulle para tramar su próxima trampa. Asgard está a salvo y el trueno vuelve a obedecer a Thor.',
+  'To Valhalla!': '¡Al Valhalla!', 'Skál!': '¡Skál!', 'A seat in Valhalla!': '¡Un lugar en el Valhalla!',
+  "Odin raises his horn to the god of thunder. The Allfather's hall will always have a place for you.": 'Odín levanta su cuerno por el dios del trueno. En el salón del Padre de Todos siempre habrá un lugar para vos.',
+  'Paused': 'Pausa', 'Continue': 'Continuar', 'Save & back to menu': 'Guardar y volver al menú',
+  'Your journey is also saved at the start of every stage': 'Tu aventura también se guarda al comienzo de cada nivel',
+  'Journey saved. Pick Continue to go on.': 'Aventura guardada. Elegí Continuar para seguir.',
+  'Turn your phone sideways for a bigger view': 'Girá el celular para ver más grande',
+  // trophies
+  'Worthy of Mjölnir': 'Digno de Mjölnir', 'Finish the quest and take Mjölnir back for the first time.': 'Terminá la aventura y recuperá a Mjölnir por primera vez.',
+  "Andvari's Hoard": 'El tesoro de Andvari', 'Collect every coin in a single stage.': 'Juntá todas las monedas de un nivel.',
+  "Mímir's Eye": 'El ojo de Mímir', 'Find every hidden gem in a single stage.': 'Encontrá todas las gemas escondidas de un nivel.',
+  "Baldr's Blessing": 'La bendición de Baldr', 'Clear a stage without taking any damage.': 'Superá un nivel sin recibir daño.',
+  'Valhalla Can Wait': 'El Valhalla puede esperar', 'Clear a stage without losing a life.': 'Superá un nivel sin perder una vida.',
+  'Swift as Sleipnir': 'Veloz como Sleipnir', 'Clear a stage in under 80 seconds.': 'Superá un nivel en menos de 80 segundos.',
+  'Lord of Thunder': 'Señor del trueno', 'Clear a stage with storms without being struck by lightning.': 'Superá un nivel con tormentas sin que te caiga un rayo.',
+  "Ratatoskr's Run": 'La carrera de Ratatoskr', 'Clear all three stages of a realm in a row without losing a life.': 'Superá los tres niveles de un reino seguidos sin perder una vida.',
+  'Find a hidden ale and drink it.': 'Encontrá una cerveza escondida y tomátela.',
+  'Bifröst Rider': 'Jinete del Bifröst', 'Defeat 5 enemies during a single Rainbow Rush.': 'Vencé a 5 enemigos durante una sola Furia Arcoíris.',
+  "Fenrir's Bane": 'La perdición de Fenrir', 'Defeat 50 wolves.': 'Vencé a 50 lobos.',
+  "Hel's Gatekeeper": 'Guardián de Hel', 'Send 20 draugar back to Hel.': 'Mandá a 20 draugar de vuelta con Hel.',
+  "Huginn's Dread": 'El terror de Huginn', 'Defeat 15 ravens.': 'Vencé a 15 cuervos.',
+  "Tanngrisnir's Kin": 'Pariente de Tanngrisnir', "Bounce on sheep 25 times. Thor's goats would be proud.": 'Rebotá 25 veces en ovejas. Las cabras de Thor estarían orgullosas.',
+  "Fafnir's Gold": 'El oro de Fafnir', 'Gather 1000 treasure in total.': 'Juntá 1000 de tesoro en total.',
+  "Gullinbursti's Fall": 'La caída de Gullinbursti', 'Put out the fire of 20 fire boars.': 'Apagá el fuego de 20 jabalíes de fuego.',
+  "Jörmungandr's Brood": 'La cría de Jörmungandr', 'Defeat 15 fire serpents.': 'Vencé a 15 serpientes de fuego.',
+  "Brokkr's Rival": 'Rival de Brokkr', 'Knock out 15 dwarf miners.': 'Noqueá a 15 enanos mineros.',
+  "Dáinn's Antlers": 'Las astas de Dáinn', 'Stomp 10 stags of Yggdrasil.': 'Pisá a 10 ciervos de Yggdrasil.',
+  "Hræsvelgr's Brood": 'La cría de Hræsvelgr', 'Stomp 25 eagles.': 'Pisá a 25 águilas.',
+  "Rán's Net": 'La red de Rán', 'Defeat 10 narwhals on the stormy sea.': 'Vencé a 10 narvales en el mar tormentoso.',
+  "Gather 100 gems in total, enough for Freyja's necklace.": 'Juntá 100 gemas en total, suficientes para el collar de Freyja.',
+  "Einherjar's Feast": 'El banquete de los einherjar', 'Finish the quest a second time, cross Valhalla and drink with Odin.': 'Terminá la aventura por segunda vez, cruzá el Valhalla y brindá con Odín.',
+  'Angel of Death': 'Ángel de la muerte', 'Cursed: lose 5 lives in one stage. Hel knows your name.': 'Maldito: perdé 5 vidas en un nivel. Hel ya sabe tu nombre.',
+  'Allfather': 'Padre de Todos', 'Unlock every other trophy. You are unbeatable.': 'Desbloqueá todos los demás trofeos. Sos invencible.',
+};
+const ES_RX = [
+  [/^Continue  (.+)$/, 'Continuar  $1'],
+  [/^Trophy Hall +(\d+) ?\/ ?(\d+)$/, 'Salón de trofeos  $1 / $2'],
+  [/^Page (\d+) \/ (\d+)$/, 'Página $1 / $2'],
+  [/^(.+) cleared$/, '$1 superado'],
+  [/^Coins (\d+)( +· +)Score (\d+)$/, 'Monedas $1$2Puntos $3'],
+  [/^On to (\S+)  →$/, 'Seguir a $1  →'],
+  [/^Final score (\d+)( +· +)Coins (\d+)$/, 'Puntaje final $1$2Monedas $3'],
+  [/^Gems (\d+)( +· +)Score (\d+)$/, 'Gemas $1$2Puntos $3'],
+  [/^Realm (\d+) of (\d+)( +· +)Stage (\d+) of (\d+)$/, 'Reino $1 de $2$3Nivel $4 de $5'],
+  [/^Sleipnir! Take me to (.+)!$/, '¡Sleipnir! ¡Llevame a $1!'],
+];
+const ES_N = {}; for (const k in ES) ES_N[k.replace(/[’']/g, "'")] = ES[k];
+const TR_CACHE = new Map();
+function tr(s) {
+  if (LANG !== 'es' || typeof s !== 'string' || !s) return s;
+  let r = TR_CACHE.get(s);
+  if (r !== undefined) return r;
+  const k = s.replace(/[’']/g, "'");
+  r = ES_N[k];
+  if (r === undefined) { r = s; for (const [re, to] of ES_RX) if (re.test(k)) { r = k.replace(re, to); break; } }
+  if (r.includes('Ægir')) r = r.replace(/Ægir['’]s Sea/g, 'Mar de Ægir');
+  TR_CACHE.set(s, r);
+  return r;
+}
+function langLabels() {
+  const es = LANG === 'es', set = (id, t, a) => { const el = document.getElementById(id); if (!el) return; if (t) el.textContent = t; el.setAttribute('aria-label', a); };
+  document.documentElement.lang = es ? 'es-AR' : 'en';
+  set('bJump', es ? 'SALTAR' : 'JUMP', es ? 'Saltar' : 'Jump');
+  set('bLeft', null, es ? 'Izquierda' : 'Move left'); set('bRight', null, es ? 'Derecha' : 'Move right');
+  set('bSound', null, es ? 'Sonido' : 'Toggle sound'); set('bPause', null, es ? 'Pausa' : 'Pause');
+}
+function setLang(l) {
+  LANG = l; TR_CACHE.clear(); langLabels();
+  try { localStorage.setItem('mjolnir.lang', l); } catch (e) { /* storage unavailable */ }
+}
+langLabels();
 function wrapText(g, text, maxW) {
-  const words = text.split(' '), lines = []; let cur = '';
+  const words = tr(text).split(' '), lines = []; let cur = '';
   for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
   if (cur) lines.push(cur); return lines;
 }
@@ -4535,8 +4708,8 @@ function drawWorld(g) {
   g.globalAlpha = 1;
   for (const f of floats) {
     g.globalAlpha = clamp(1.1 - f.t, 0, 1); g.font = `800 17px ${BODY}`; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
-    g.lineWidth = 4; g.strokeStyle = 'rgba(14,10,20,.85)'; g.strokeText(f.text, f.x, f.y - f.t * 50);
-    g.fillStyle = f.color; g.fillText(f.text, f.x, f.y - f.t * 50);
+    g.lineWidth = 4; g.strokeStyle = 'rgba(14,10,20,.85)'; g.strokeText(tr(f.text), f.x, f.y - f.t * 50);
+    g.fillStyle = f.color; g.fillText(tr(f.text), f.x, f.y - f.t * 50);
   }
   g.globalAlpha = 1;
   if (G.state === 'cutscene' && G.cut && G.cut.bubble) {
@@ -4569,7 +4742,13 @@ function drawWorld(g) {
 }
 
 /* ---------- HUD & screens ---------- */
+function fitSize(g, s, size, maxW, weight = 800, font = BODY) {
+  // the largest size up to `size` at which the (translated) text fits in maxW
+  g.font = `${weight} ${size}px ${font}`; const w = g.measureText(tr(s)).width;
+  return w > maxW ? Math.max(10, Math.floor(size * maxW / w)) : size;
+}
 function txt(g, s, x, y, size, color, align = 'center', font = BODY, weight = 800, stroke = 'rgba(10,6,16,.85)', sw = 5) {
+  s = tr(s);
   g.font = `${weight} ${size}px ${font}`; g.textAlign = align; g.textBaseline = 'middle';
   if (stroke) { g.lineWidth = sw; g.strokeStyle = stroke; g.lineJoin = 'round'; g.strokeText(s, x, y); }
   g.fillStyle = color; g.fillText(s, x, y);
@@ -4616,6 +4795,7 @@ function titleItems() {
   items.push(['Begin the Quest', () => startGame(0)]);
   if (G.progress > 0) items.push(['Realm map', () => { G.titleMode = 'map'; G.mapSel = G.progress; }]);
   if (G.wins >= 2) items.push(['Valhalla  (bonus)', startBonus]);
+  items.push([LANG === 'es' ? 'Idioma: Español' : 'Language: English', () => setLang(LANG === 'es' ? 'en' : 'es')]);
   if (G.trophies.has('worthy')) items.push([`Trophy Hall  ${G.trophies.size}/${TROPHIES.length}`, () => { G.titleMode = 'trophies'; }]);
   return items;
 }
@@ -4657,13 +4837,13 @@ function drawTrophies(g) {
     g.fillStyle = got ? 'rgba(80,56,24,.35)' : 'rgba(30,26,40,.6)'; rr(g, cx + 4, cy + 4, cw - 8, ch - 10, 10); g.fill();
     g.strokeStyle = got ? 'rgba(224,180,90,.7)' : 'rgba(120,110,100,.35)'; g.lineWidth = 1.5; rr(g, cx + 4, cy + 4, cw - 8, ch - 10, 10); g.stroke();
     drawTrophyIcon(g, cx + 34, cy + 40, 22, tr, got);
-    txt(g, tr.name, cx + 64, cy + 24, 15, got ? '#ffe2a0' : 'rgba(200,190,175,.7)', 'left', BODY, 800, null);
+    txt(g, tr.name, cx + 64, cy + 24, fitSize(g, tr.name, 15, cw - 72), got ? '#ffe2a0' : 'rgba(200,190,175,.7)', 'left', BODY, 800, null);
     g.font = `500 12px ${BODY}`;
     wrapText(g, tr.desc, cw - 76).slice(0, 4).forEach((l, k) => txt(g, l, cx + 64, cy + 44 + k * 15, 12, got ? '#e9dcc0' : 'rgba(170,160,150,.75)', 'left', BODY, 500, null));
   });
   button(g, VW / 2 - 80, y + h - 50, 160, 36, 'Back', false, () => { G.titleMode = null; });
-  button(g, VW / 2 - 250, y + h - 50, 120, 36, '◀  Prev', false, () => { G.trophyPage = (G.trophyPage + pages - 1) % pages; });
-  button(g, VW / 2 + 130, y + h - 50, 120, 36, 'Next  ▶', false, () => { G.trophyPage = (G.trophyPage + 1) % pages; });
+  button(g, VW / 2 - 275, y + h - 50, 175, 36, '◀  Prev', false, () => { G.trophyPage = (G.trophyPage + pages - 1) % pages; });
+  button(g, VW / 2 + 100, y + h - 50, 175, 36, 'Next  ▶', false, () => { G.trophyPage = (G.trophyPage + 1) % pages; });
   txt(g, `Page ${G.trophyPage + 1} / ${pages}`, VW / 2, y + h - 64, 14, 'rgba(224,180,90,.8)', 'center', BODY, 800, null);
 }
 function drawToast(g) {
@@ -4693,8 +4873,8 @@ function drawTitle(g) {
   drawMjolnir(g, cx - Math.min(300, VW * .33), 160, 1.5, -.35, 1);
   drawValknut(g, cx + Math.min(300, VW * .33), 150, 70, 'rgba(224,180,90,.9)', 4);
   txt(g, 'Loki has stolen Mjölnir. Chase the trickster through eleven realms and take it back!', cx, 258, 19, '#efe3c8');
-  const items = titleItems(), many = items.length >= 5, bw = 290, bh = many ? 44 : 50;
-  items.forEach(([label, fn], i) => button(g, cx - bw / 2, (many ? 280 : 286) + i * (many ? 52 : 58), bw, bh, label, G.sel === i, fn));
+  const items = titleItems(), many = items.length >= 4, lots = items.length >= 6, bw = 290, bh = lots ? 40 : many ? 44 : 50;
+  items.forEach(([label, fn], i) => button(g, cx - bw / 2, (lots ? 274 : many ? 280 : 286) + i * (lots ? 46 : many ? 52 : 58), bw, bh, label, G.sel === i, fn));
   const touchUI = document.body.classList.contains('touch');
   if (!many) txt(g, touchUI ? 'Use the buttons at the bottom: ◀ ▶ to run, JUMP to leap.' : '← → / A D run  ·  SPACE / W jump  ·  SHIFT sprint  ·  P pause  ·  M sound', cx, VH - 70, 17, 'rgba(243,231,201,.9)');
   if (!many) txt(g, 'Stomp wolves, ravens and draugar · bounce on sheep · read the runes before the lightning strikes', cx, VH - 44, 16, 'rgba(255,216,138,.85)');
@@ -4831,7 +5011,7 @@ function render() {
   if (G.paused) {
     ctx.fillStyle = 'rgba(6,4,12,.6)'; ctx.fillRect(0, 0, VW, VH);
     txt(ctx, 'Paused', VW / 2, VH / 2 - 90, 48, '#f6ecd4', 'center', DISPLAY, 400);
-    PAUSE_ITEMS.forEach(([label, fn], i) => button(ctx, VW / 2 - 150, VH / 2 - 40 + i * 62, 300, 50, label, (G.pauseSel || 0) === i, fn));
+    PAUSE_ITEMS.forEach(([label, fn], i) => button(ctx, VW / 2 - 175, VH / 2 - 40 + i * 62, 350, 50, label, (G.pauseSel || 0) === i, fn));
     txt(ctx, 'Your journey is also saved at the start of every stage', VW / 2, VH / 2 + 110, 17, '#e3d6bc');
   }
   if (window.innerHeight > window.innerWidth * 1.1) {
@@ -4875,7 +5055,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated checks
 window.__snd = Sound; window.Music = Music; window.__musicSpecs = () => [TITLE_MUSIC, realmMusic(0), realmMusic(3)];
-window.__mjolnir = { G, input, hitBlock, get L() { return L; }, get P() { return P; }, beginStage, startGame, LEVELS, STAGES, IMG, filterPixels, realmMusic };
+window.__mjolnir = { G, input, hitBlock, get L() { return L; }, get P() { return P; }, beginStage, startGame, LEVELS, STAGES, IMG, filterPixels, realmMusic, tr, setLang, TROPHIES };
 })();
 </script>
 </body>
