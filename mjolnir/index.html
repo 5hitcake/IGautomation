@@ -3964,7 +3964,7 @@ function skipBubble() {
   const c = G.cut; if (!c || !c.bubble) return;
   if (c.horse && c.horse.mode === 'wait') { c.horse.t = Math.max(c.horse.t, SLEIPNIR_LINE); return; }
   const R = LOKI_READ;
-  const ends = c.feast ? [2.4, 3.6, 4.2] : c.final ? [2.6 + R, 3.4 + R + 1, 6 + R + 1] : [2.4 + R, 4.2 + R];
+  const ends = c.feast ? [2.4, 3.6, 4.2] : c.final ? [2.6 + R, 3.4 + R + 1, 6 + R + 1] : [2.2 + R, 4.2 + R];
   const next = ends.find(e => e > c.t + .05);
   if (next != null) c.t = next;
 }
@@ -4008,7 +4008,9 @@ function updateCutscene(dt) {
     walkTo(stopX);
     if (c.t > .6 && !loki) { loki = { x: gx + 64, y: L.goal.y + TS, face: -1, hammer: false, vx: 0, vy: 0, fly: false }; burst(loki.x, loki.y - 30, 30, '#5fd47a', 220, .8, 4, -60); SFX.whoosh(); }
     // Loki's taunt stays up long enough to read (LOKI_READ extra seconds), then the rest follows
-    if (c.t > .9 && c.t < 2.4 + LOKI_READ) c.bubble = { who: 'loki', text: L.def.loki };
+    // (it ends the moment he grabs the hammer and jumps onto the altar, so it never hops to a new spot)
+    if (c.t > .9 && c.t < 2.2 + LOKI_READ) c.bubble = { who: 'loki', text: L.def.loki };
+    else if (c.bubble && c.bubble.who === 'loki') c.bubble = null;
     if (c.t > 2.2 + LOKI_READ && loki && !loki.hammer) { loki.hammer = true; loki.x = gx + 20; SFX.laugh(); }
     if (c.t > 2.6 + LOKI_READ && loki && !loki.fly) { loki.fly = true; loki.vx = 380; loki.vy = -520; SFX.whoosh(); }
     if (c.t > 2.6 + LOKI_READ && !(c.horse && c.horse.mode !== 'arrive')) { c.bubble = { who: 'thor', text: ['LOKI!!!', 'Get back here, trickster!', 'By my beard… not again!', 'You will pay for this, Loki!'][G.level % 4] }; P.fist = true; }
