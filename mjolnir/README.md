@@ -40,7 +40,8 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Ægir's Sea** is a water realm: at the start of each stage Thor jumps into a Viking longship and sails the whole
   stage through a storm. The boat jumps with him. Great waves roll in and must be jumped, narwhals leap out of the
   water (stomp them or stay clear), and lightning, ravens and floating rune blocks wait above the waves.
-- **Svartalfheim**, the deep halls of the dwarves: dwarf miners march along and hurl their pickaxes in spinning arcs
+- **Svartalfheim**, the deep halls of the dwarves: little red-capped gnomes (tomtes) dash at you as soon as they see you, and Viking dwarves
+  march along and hurl their axes in spinning arcs (walking empty-handed until they fetch another)
   (dodge, then stomp them), and stalactites tremble and fall when you walk below them, their crystal tips glowing as a
   warning.
 - **Alfheim**, the shining forest of the light elves: sea eagles circle above the trees, follow you, screech and swoop
