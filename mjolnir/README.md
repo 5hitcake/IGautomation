@@ -42,7 +42,7 @@ stylesheet, and the game falls back to system fonts without it.)
   water (stomp them or stay clear), and lightning, ravens and floating rune blocks wait above the waves.
 - **Svartalfheim**, the deep halls of the dwarves: little red-capped gnomes (tomtes) dash at you as soon as they see you, and Viking dwarves
   march along and hurl their axes in spinning arcs (walking empty-handed until they fetch another)
-  (dodge, then stomp them), and stalactites tremble and fall when you walk below them, their crystal tips glowing as a
+  (dodge, then stomp them), and stalactites tremble and fall when you walk below them, (dripstone of wet cave rock built by `tools/make_stalactite.py` from the amethyst image) their crystal tips glowing as a
   warning.
 - **Alfheim**, the shining forest of the light elves: sea eagles circle above the trees, follow you, screech and swoop
   down in a long arc, or drop a stone when they are right above you; stomp them. The dark stags of Yggdrasil crouch and leap at you in big arcs: run under them
@@ -59,7 +59,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Touch controls** are carved runestones (painted stone disc via Higgsfield, runes drawn in SVG): ᚲ and its mirror
   to run, ᛏ (Tiwaz, the arrow rune) to jump; the rune glows when pressed.
 - **The Völva**, a bald seeress with a ram-horned staff, turns to Thor and gives hints along the way.
-- **Valkyries** fly by when you raise a raven banner, and one carries Thor back when he falls.
+- **Valkyries** fly by when you raise a checkpoint banner, and one carries Thor back when he falls.
 - **Treasure** comes three ways: wooden rune coins (worth 1), rarer gold coins (worth 10, also inside some rune crates),
   and secret gems (worth 50) hidden inside one or two plain-looking stone blocks per stage. Every 100 earns an extra life.
 - **Hidden ale**: one wooden tankard of ale is hidden in every stage, inside a plain stone block or a rune crate. Thor
@@ -71,7 +71,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - Falling into a pit during a Rainbow Rush ends it: the Valkyrie brings Thor back without the rainbow.
 - **Floating planks** hold for a moment after Thor lands on them, then shake, fall, and grow back a few seconds later.
 - **Rune blocks** (ᚠ) give coins or a horn of mead (+1 shield, or +1 life when all shields are full).
-- **Raven-banner checkpoints**, 3 shields of health per life, and 3 lives. Your furthest stage is saved.
+- **Lightning-banner checkpoints** (a red banner with Thor's golden lightning bolt that unrolls when you reach it), 3 shields of health per life, and 3 lives. Your furthest stage is saved.
 - **Save & back to menu** in the pause menu keeps the stage, the last checkpoint, score, treasure and lives;
   **Continue** on the title screen carries on from there. The journey is also saved at the start of every stage.
 - **Speech bubbles** in cutscenes can be skipped with a tap, Space or Enter.
@@ -86,7 +86,7 @@ stylesheet, and the game falls back to system fonts without it.)
 ## Painted art
 
 Some art is generated (Higgsfield GPT Image 2.5 and Google Gemini) and lives in `assets/` as WebP: the Thor, Loki, wolf, raven
-and draugr sprite sheets, sheep, the Völva, Sleipnir, the mead horn, the Valkyrie, Mjölnir, the rune coin, the raven banners, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf, two Svartalfheim cave backdrops, three Alfheim backdrops (day, dusk, night), three Helheim backdrops, the Alfheim stag, three Vanaheim backdrops, the longship, narwhal, great wave and storm backdrop of Ægir's Sea, Odin for the Valhalla feast (standing with Gungnir, welcoming, raising his horn) and a midday and a night backdrop for Asgard. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
+and draugr sprite sheets, sheep, the Völva, Sleipnir, the mead horn, the Valkyrie, Mjölnir, the rune coin, the lightning-bolt checkpoint banners, real amethyst crystal spikes for Svartalfheim, glacier ice spikes for the frozen realms, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf, two Svartalfheim cave backdrops, three Alfheim backdrops (day, dusk, night), three Helheim backdrops, the Alfheim stag, three Vanaheim backdrops, the longship, narwhal, great wave and storm backdrop of Ægir's Sea, Odin for the Valhalla feast (standing with Gungnir, welcoming, raising his horn) and a midday and a night backdrop for Asgard. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
 `tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
