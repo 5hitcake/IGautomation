@@ -2265,19 +2265,22 @@ const LEVELS = [
 /* ---------- Valhalla: the bonus realm after the second victory ---------- */
 const BONUS = 99;
 const VALHALLA = {
-  name: 'Valhalla', sub: 'The Hall of the Fallen', theme: 'asgard', w: 320, tier: 5, seed: 11, bonus: true,
+  name: 'Valhalla', sub: 'The Hall of the Fallen', theme: 'asgard', w: 460, tier: 5, seed: 11, bonus: true,
   intro: 'Mjölnir in hand, Thor is called to Valhalla. Only gems here, and boards that fall the moment you touch them. Keep jumping!',
   build(b) {
     b.start(3); b.floor(0, 11);
     b.sign(5, 'Valhalla! The boards fall as soon as you land. Jump, jump, jump, and gather every gem on the way to Odin!');
-    // one long unbroken run of falling boards from the first jump to Odin: no banners, no resting stones
-    const hs = [4, 5, 6, 5, 4, 5, 6, 7, 6, 5, 4, 5, 6, 5, 6, 7, 6, 5, 4, 3, 4, 5, 6, 7, 8, 7, 6, 5];
-    let x = 13;
-    for (let k = 0; k < 64; k++) {
-      const y = hs[k % hs.length], wd = k > 20 && k % 5 === 4 ? 1 : k % 4 === 3 ? 3 : 2, gap = k > 30 && k % 7 === 6 ? 3 : 2;
+    // one long unbroken run of falling boards from the first jump to Odin: no banners, no resting stones.
+    // It gets trickier as it goes: more single boards, steeper steps, and wide gaps only on the way down
+    const hs = [4, 5, 6, 5, 4, 5, 6, 7, 6, 5, 4, 5, 6, 5, 6, 7, 6, 5, 4, 3, 4, 5, 6, 7, 8, 7, 6, 5, 3, 5, 7, 6, 4, 6, 8, 6, 4, 3, 5, 7, 5, 3];
+    let x = 13, prev = 4;
+    for (let k = 0; k < 92; k++) {
+      const y = hs[k % hs.length], down = y <= prev, late = k > 55;
+      const wd = (late ? k % 3 === 2 : k > 20 && k % 5 === 4) ? 1 : k % 4 === 3 ? 3 : 2;
+      const gap = down && (late ? k % 3 !== 1 : k > 30 && k % 7 === 6) ? (late && y < prev ? 4 : 3) : 2;
       b.plank(x, y, wd); b.gems(x, y + 2, wd);
       if (k % 3 === 1) b.gems(x + wd, y + 4, 1);
-      x += wd + gap;
+      x += wd + gap; prev = y;
     }
     b.floor(x, x + 24); b.gems(x + 3, 4, 6);
     b.odin(x + 17);
