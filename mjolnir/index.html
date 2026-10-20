@@ -1126,16 +1126,66 @@ function drawMug(g, x, y, s, tilt, shine, flip) {
   g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(-9, -33, 3, 26);
   g.restore();
 }
-function drawGem(g, x, y, t) {
-  // hidden treasure: a faceted rune diamond
-  glow(g, x, y, 34, '140,230,255', .6 + Math.sin(t * 8) * .15);
-  g.save(); g.translate(x, y); g.rotate(Math.sin(t * 3) * .15);
-  g.beginPath(); g.moveTo(-12, -4); g.lineTo(-6, -12); g.lineTo(6, -12); g.lineTo(12, -4); g.lineTo(0, 14); g.closePath();
-  ink(g, lgrad(g, -12, -12, 12, 14, ['#e8fbff', '#6fd8ff', '#2a7ad8', '#1a3a8a']), 1.6);
-  g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 1;
-  g.beginPath(); g.moveTo(-12, -4); g.lineTo(12, -4); g.moveTo(-6, -12); g.lineTo(-3, -4); g.lineTo(0, 14); g.lineTo(3, -4); g.lineTo(6, -12); g.stroke();
-  g.fillStyle = '#fff'; g.fillRect(-5, -10, 3, 3);
+// a brilliant-cut diamond, pre-rendered as a turning 3D model: ten crown and pavilion facets
+// lit from the upper left, a tilted table on top, white facet edges and a dark ink outline
+const GEM_FR = 16, GEM_PX = 80;
+let GEM_SHEET = null;
+function gemSheet() {
+  if (GEM_SHEET) return GEM_SHEET;
+  const c = document.createElement('canvas'); c.width = GEM_PX * GEM_FR; c.height = GEM_PX;
+  const g = c.getContext('2d'), K = 10, R = 33, TR = .56, TOP = -15, BOT = 30, TILT = .2, CY = 32, step = Math.PI * 2 / K;
+  for (let f = 0; f < GEM_FR; f++) {
+    const a = f / GEM_FR * step, faces = [];
+    const gird = th => [Math.sin(th) * R, Math.cos(th) * R * TILT];
+    const tab = th => [Math.sin(th) * R * TR, TOP + Math.cos(th) * R * TR * TILT];
+    for (let i = 0; i < K; i++) {
+      const t0 = a + i * step, t1 = t0 + step, mid = (t0 + t1) / 2, z = Math.cos(mid);
+      if (z <= -.05) continue;
+      // alternate facets throw back light or the dark of the stone, some flash a little colour fire
+      const lit = .5 + .5 * Math.cos(mid + .95), alt = i % 2, fire = [0, 0, 62, 0, -28, 0, 0, 40, 0, -20][i];
+      faces.push({ z, pts: [gird(t0), gird(t1), [0, BOT]], L: alt ? 70 + lit * 22 : 20 + lit * 28, kind: 'pav', h: 208 + fire });
+      faces.push({ z: z + .01, pts: [gird(t0), gird(t1), tab(t1), tab(t0)], L: alt ? 40 + lit * 30 : 66 + lit * 30, kind: 'crown', h: 194 + fire * .5 });
+    }
+    faces.sort((p, q) => p.z - q.z);
+    g.save(); g.translate(f * GEM_PX + GEM_PX / 2, CY);
+    const table = []; for (let i = 0; i < K; i++) table.push(tab(a + i * step));
+    const poly = pts => { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) g.lineTo(p[0], p[1]); g.closePath(); };
+    // ink outline first, under everything
+    g.lineJoin = 'round'; g.strokeStyle = '#0b2440'; g.lineWidth = 4.5;
+    for (const fc of faces) { poly(fc.pts); g.stroke(); } poly(table); g.stroke();
+    poly(table); g.fillStyle = 'hsl(192,95%,88%)'; g.fill();
+    for (const fc of faces) {
+      poly(fc.pts);
+      const [p0, , p2] = fc.pts, gr = g.createLinearGradient(p0[0], p0[1], p2[0], p2[1]);
+      gr.addColorStop(0, `hsl(${fc.h},95%,${Math.min(97, fc.L + 14)}%)`);
+      gr.addColorStop(1, `hsl(${fc.h + 8},90%,${Math.max(14, fc.L - 16)}%)`);
+      g.fillStyle = gr; g.fill();
+      g.strokeStyle = 'rgba(235,252,255,.75)'; g.lineWidth = 1.1; g.stroke();
+    }
+    // the table catches the light: a soft gloss and a hard highlight
+    const tg = g.createLinearGradient(-R * TR, TOP - 4, R * TR, TOP + 4);
+    tg.addColorStop(0, 'rgba(255,255,255,.95)'); tg.addColorStop(.5, 'rgba(200,245,255,.4)'); tg.addColorStop(1, 'rgba(120,200,255,.2)');
+    poly(table); g.fillStyle = tg; g.fill(); g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 1.2; g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.ellipse(-R * .38, TOP + 6, 7, 2.6, -.5, 0, 7); g.fill();
+    g.restore();
+  }
+  return (GEM_SHEET = c);
+}
+function gemStar(g, x, y, r, a) {
+  if (a <= .02) return;
+  g.save(); g.globalAlpha = a; g.translate(x, y); g.fillStyle = '#fff';
+  g.beginPath(); for (let k = 0; k < 8; k++) { const ang = k * Math.PI / 4, rr = k % 2 ? r * .18 : r; g.lineTo(Math.cos(ang) * rr, Math.sin(ang) * rr); } g.closePath(); g.fill();
   g.restore();
+}
+function drawGem(g, x, y, t, size = 34) {
+  // hidden treasure and the gems of Valhalla: a turning, sparkling brilliant
+  glow(g, x, y, size * 1.15, '140,230,255', .55 + Math.sin(t * 6) * .15);
+  const sh = gemSheet(), fi = Math.floor(t * 9) % GEM_FR, s = size / 66;
+  g.drawImage(sh, fi * GEM_PX, 0, GEM_PX, GEM_PX, x - GEM_PX * s / 2, y - 32 * s - 2 * s, GEM_PX * s, GEM_PX * s);
+  // light flares on the crown now and then
+  const tw = Math.pow(Math.max(0, Math.sin(t * 2.6)), 10), tw2 = Math.pow(Math.max(0, Math.sin(t * 2.6 + 2.2)), 10);
+  gemStar(g, x - size * .22, y - size * .38, size * .42, tw);
+  gemStar(g, x + size * .25, y - size * .12, size * .3, tw2);
 }
 function drawCoin(g, x, y, t, spin, kind = 'gold', size = 1) {
   if (imgReady('items')) {
@@ -2215,22 +2265,19 @@ const LEVELS = [
 /* ---------- Valhalla: the bonus realm after the second victory ---------- */
 const BONUS = 99;
 const VALHALLA = {
-  name: 'Valhalla', sub: 'The Hall of the Fallen', theme: 'asgard', w: 230, tier: 5, seed: 11, bonus: true,
+  name: 'Valhalla', sub: 'The Hall of the Fallen', theme: 'asgard', w: 320, tier: 5, seed: 11, bonus: true,
   intro: 'Mjölnir in hand, Thor is called to Valhalla. Only gems here, and boards that fall the moment you touch them. Keep jumping!',
   build(b) {
     b.start(3); b.floor(0, 11);
     b.sign(5, 'Valhalla! The boards fall as soon as you land. Jump, jump, jump, and gather every gem on the way to Odin!');
-    const hs = [4, 5, 6, 5, 4, 5, 6, 7, 6, 5, 4, 5, 6, 5, 6, 7, 6, 5];
-    let x = 13, k = 0;
-    for (let part = 0; part < 4; part++) {
-      for (let i = 0; i < 9; i++, k++) {
-        const y = hs[k % hs.length], wd = i % 4 === 3 ? 3 : 2;
-        b.plank(x, y, wd); b.gems(x, y + 2, wd);
-        if (i % 3 === 1) b.gems(x + wd, y + 4, 1);
-        x += wd + 2;
-      }
-      // a small stone island with a raven banner between the runs
-      b.floor(x, x + 4); b.check(x + 2); b.gems(x + 1, 5, 3); x += 6;
+    // one long unbroken run of falling boards from the first jump to Odin: no banners, no resting stones
+    const hs = [4, 5, 6, 5, 4, 5, 6, 7, 6, 5, 4, 5, 6, 5, 6, 7, 6, 5, 4, 3, 4, 5, 6, 7, 8, 7, 6, 5];
+    let x = 13;
+    for (let k = 0; k < 64; k++) {
+      const y = hs[k % hs.length], wd = k > 20 && k % 5 === 4 ? 1 : k % 4 === 3 ? 3 : 2, gap = k > 30 && k % 7 === 6 ? 3 : 2;
+      b.plank(x, y, wd); b.gems(x, y + 2, wd);
+      if (k % 3 === 1) b.gems(x + wd, y + 4, 1);
+      x += wd + gap;
     }
     b.floor(x, x + 24); b.gems(x + 3, 4, 6);
     b.odin(x + 17);
@@ -3144,7 +3191,7 @@ function addCoin(x, y, kind = 'wood') {
   G.coins += v; addScore(v * 10); bumpStat('treasure', v); if (kind === 'gem') bumpStat('gem', 1);
   if (kind === 'wood') SFX.coin(); else if (kind === 'gold') SFX.gold(); else SFX.gem();
   if (kind !== 'wood') floatText(x - 6, y - 4, kind === 'gem' ? (L && L.def.bonus ? '+50' : 'SECRET GEM +50') : '+10', kind === 'gem' ? '#9ff0ff' : '#ffe28a');
-  if (Math.floor(G.coins / 100) > Math.floor(before / 100)) { G.lives++; floatText(x, y - 26, '+1 LIFE', '#9fe3ff'); SFX.horn(); }
+  if (!(L && L.def.bonus) && Math.floor(G.coins / 100) > Math.floor(before / 100)) { G.lives++; floatText(x, y - 26, '+1 LIFE', '#9fe3ff'); SFX.horn(); }
 }
 const RAINBOW_TIME = 10;
 function rainbowRGB(h, a = 1) {
@@ -3192,7 +3239,8 @@ function die() {
   if (G.deathKey !== key) { G.deathKey = key; G.stageDeaths = 0; }
   if (++G.stageDeaths >= 5) award('angel');
   G.state = 'dying'; G.dieT = 0; G.hearts = 0; P.vy = 0; P.vx = 0; SFX.die();
-  G.valk = { x: P.x + P.w / 2 + 320, y: -90, sang: false };
+  // in Valhalla no Valkyrie comes for him
+  G.valk = L.def.bonus ? null : { x: P.x + P.w / 2 + 320, y: -90, sang: false };
 }
 function fallInPit() {
   G.run.hurt = true; G.hearts--; SFX.hurt(); G.flash = .3;
@@ -3936,6 +3984,7 @@ function updateDying(dt) {
   // a Valkyrie swoops down and carries Thor back to the last banner
   G.dieT += dt;
   const v = G.valk, tx = P.x + P.w / 2, ty = P.y - 6;
+  if (!v) { if (G.dieT > 1.6) { if (G.lives <= 0) { G.state = 'gameover'; G.st = 0; return; } G.lives--; G.hearts = 3; loadLevel(G.level, true); G.state = 'play'; P.invuln = 1.2; } return; }
   if (G.dieT > .5 && G.dieT < 1.5) { const k = Math.min(1, dt * 4); v.x = lerp(v.x, tx, k); v.y = lerp(v.y, ty, k); if (!v.sang) { v.sang = true; SFX.valk(); } }
   else if (G.dieT >= 1.5) { P.carried = true; P.y -= 230 * dt; P.x += 60 * dt; v.x = P.x + P.w / 2; v.y = P.y - 6; }
   if (Math.random() < .5) parts.push({ x: v.x + (Math.random() - .5) * 40, y: v.y - 20 + (Math.random() - .5) * 30, vx: 0, vy: 20, life: .8, max: .8, color: 'rgba(200,230,255,.8)', size: 3, g: 0, gl: true });
@@ -4745,7 +4794,7 @@ function drawEntity(g, e) {
   switch (e.type) {
     case 'coin': {
       const y = e.y + 12 + Math.sin(G.t * 3 + e.ph) * 2;
-      if (e.kind === 'gem') { glow(g, e.x + 12, y, 24, '150,240,255', .4); drawGem(g, e.x + 12, y, G.t + e.ph); break; }
+      if (e.kind === 'gem') { drawGem(g, e.x + 12, y, G.t + e.ph); break; }
       if (e.kind === 'gold') { glow(g, e.x + 12, y, 26, '255,210,100', .35 + Math.sin(G.t * 4 + e.ph) * .1); drawCoin(g, e.x + 12, y, G.t, G.t * 3 + e.ph, 'gold', 1.25); }
       else drawCoin(g, e.x + 12, y, G.t, G.t * 3 + e.ph, 'wood');
       break;
@@ -5248,7 +5297,7 @@ requestAnimationFrame(frame);
 
 // small hook for automated checks
 window.__snd = Sound; window.Music = Music; window.__musicSpecs = () => [TITLE_MUSIC, realmMusic(0), realmMusic(3)];
-window.__mjolnir = { G, input, hitBlock, get L() { return L; }, get P() { return P; }, beginStage, startGame, LEVELS, STAGES, IMG, filterPixels, realmMusic, tr, setLang, TROPHIES };
+window.__mjolnir = { G, input, hitBlock, get L() { return L; }, get P() { return P; }, beginStage, startGame, drawGem, gemSheet, LEVELS, STAGES, IMG, filterPixels, realmMusic, tr, setLang, TROPHIES };
 })();
 </script>
 </body>

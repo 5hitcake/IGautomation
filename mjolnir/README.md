@@ -66,7 +66,10 @@ stylesheet, and the game falls back to system fonts without it.)
   drinks it and starts a 10-second **Rainbow Rush**: he glows in rainbow colours, runs much faster, the music speeds up,
   and every wolf, raven or draugr he touches is knocked out. Lightning can't hurt him either, but pits still can.
 - **Valhalla**, the bonus realm: finishing the quest a second time opens it (and adds it to the title menu). Thor already
-  carries Mjölnir; there are no enemies and no coins, only gems and boards that fall the moment you land on them. At the
+  carries Mjölnir; there are no enemies and no coins, only gems and boards that fall the moment you land on them.
+  It is one long, unbroken run of 64 falling boards: no banners, no resting stones, no Valkyrie to carry you, and gems
+  never add extra lives here. A fall sends Thor back to the start. The gems are spinning, brilliant-cut diamonds with
+  light flares, rendered once as a turning 3D model (`gemSheet`). At the
   end Odin welcomes Thor, they raise their horns and drink, and the Einherjar's Feast trophy is yours.
 - Falling into a pit during a Rainbow Rush ends it: the Valkyrie brings Thor back without the rainbow.
 - **Floating planks** hold for a moment after Thor lands on them, then shake, fall, and grow back a few seconds later.
