@@ -909,7 +909,7 @@ function drawDwarf(g, e) {
   }
   g.restore();
 }
-const CAT_H = 50, CAT_SINK = { calico: .09, orange: .1, tuxedo: .13 };
+const CAT_H = 50, CAT_SINK = { calico: .15, orange: .11, tuxedo: .13 };
 function drawCat(g, e) {
   // Freyja's cats: paw lick (0), startled leap (1), trotting (2), leg-up bottom wash (3), knocked out (4)
   const name = 'cat_' + e.coat, x = e.x + e.w / 2, y = e.y + e.h + 2, ko = e.dead === 'squash';
