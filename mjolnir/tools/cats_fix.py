@@ -66,6 +66,16 @@ blackish = (lum < 120) & ~bg & ~((r > g + 40) & (b > g))  # not the pink tongue/
 stripe = np.stack([lum * 1.25 + 70, lum * .72 + 30, lum * .28 + 8], -1)
 g0[blackish] = stripe[blackish]
 orange[:, :800] = g0
+# the generated ginger tom is fully orange in the second sheet: give the first three poses the same coat,
+# turning the white chest, belly and paws ginger (only fur, never the white background around the cat)
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from prepare_sprite import key_white
+inside = np.asarray(key_white(Image.fromarray(orange.astype('uint8')), False).getchannel('A')) > 128
+r, g, b, sat, lum = hsv(orange)
+whitefur = inside & (orange.min(-1) > 140) & (sat < .22)
+ginger = np.stack([np.minimum(255, lum * .98 + 18), lum * .66 + 8, lum * .36], -1)
+orange[whitefur] = ginger[whitefur]
 
 # tuxedo: the orange in its tail and elbow turns black
 tux = row(2)
@@ -89,5 +99,12 @@ for name, (y0, y1) in zip(['cat_calico', 'cat_orange', 'cat_tuxedo'], ROWS2):
     row = np.full((h, base.shape[1] + 80 + extra.shape[1], 3), 255.0)
     row[:base.shape[0], :base.shape[1]] = base
     row[:extra.shape[0], base.shape[1] + 80:] = extra
+    if name == 'cat_orange':
+        # same all-ginger coat in the extra poses (the leg-up pose shows a white belly)
+        inside = np.asarray(key_white(Image.fromarray(row.astype('uint8')), False).getchannel('A')) > 128
+        r, g, b, sat, lum = hsv(row)
+        whitefur = inside & (row.min(-1) > 140) & (sat < .22)
+        whitefur[:, :base.shape[1]] = False
+        row[whitefur] = np.stack([np.minimum(255, lum * .98 + 18), lum * .66 + 8, lum * .36], -1)[whitefur]
     Image.fromarray(row.astype('uint8')).save(RAW / f'{name}.png')
 print('poses added')
