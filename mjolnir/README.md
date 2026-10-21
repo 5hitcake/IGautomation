@@ -53,7 +53,8 @@ stylesheet, and the game falls back to system fonts without it.)
   sit there in threes (calico, ginger and tuxedo), a little smaller than the wolves, washing a paw or, leg in the air,
   their bottom; when Thor comes close they leap up in fright and hop wildly around their spot (never into a pit), and
   scratch if they hit you; once he is past they trot back and groom again. A stomp knocks a cat out, spiral eyes and
-  all, like any other foe. The cat sheets were generated and their mixed-up coats fixed by `tools/cats_fix.py`.
+  all, like any other foe. Each cat has its own painted sheet (`assets/raw/cat_<coat>_sheet.png`), cut into poses along their outlines
+  by `tools/cats_fix.py`.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
   and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
   them and their fire goes out.

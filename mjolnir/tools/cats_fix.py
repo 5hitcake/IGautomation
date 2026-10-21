@@ -12,6 +12,9 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 RAW = pathlib.Path(__file__).resolve().parent.parent / 'assets' / 'raw'
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from prepare_sprite import key_white  # noqa: E402
 im = np.asarray(Image.open(RAW / 'cats.png').convert('RGB')).astype(float)
 ROWS = [(0, 560), (560, 1105), (1105, 1664)]
 
@@ -68,9 +71,6 @@ g0[blackish] = stripe[blackish]
 orange[:, :800] = g0
 # the generated ginger tom is fully orange in the second sheet: give the first three poses the same coat,
 # turning the white chest, belly and paws ginger (only fur, never the white background around the cat)
-import sys
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from prepare_sprite import key_white
 inside = np.asarray(key_white(Image.fromarray(orange.astype('uint8')), False).getchannel('A')) > 128
 r, g, b, sat, lum = hsv(orange)
 whitefur = inside & (orange.min(-1) > 140) & (sat < .22)
@@ -108,3 +108,61 @@ for name, (y0, y1) in zip(['cat_calico', 'cat_orange', 'cat_tuxedo'], ROWS2):
         row[whitefur] = np.stack([np.minimum(255, lum * .98 + 18), lum * .66 + 8, lum * .36], -1)[whitefur]
     Image.fromarray(row.astype('uint8')).save(RAW / f'{name}.png')
 print('poses added')
+
+# full painted sheets (assets/raw/cat_<coat>_sheet.png: paw lick, grooming with the face at the tail, startled
+# arch, running, knocked out) replace a cat entirely. The poses overlap a little in x, so each pose is cut out
+# along its own outline (connected parts of the keyed image) and they are laid out in the game's order
+from collections import deque
+
+
+def sheet_row(path):
+    img = Image.open(path).convert('RGB')
+    a = np.asarray(img).astype(float)
+    alpha = np.asarray(key_white(img, False).getchannel('A')) > 60
+    k = 3
+    small = alpha[::k, ::k]
+    h, w = small.shape
+    lab = np.zeros((h, w), int)
+    comps = []
+    for y in range(h):
+        for x in range(w):
+            if small[y, x] and not lab[y, x]:
+                n = len(comps) + 1; lab[y, x] = n; q = deque([(y, x)]); pts = []
+                while q:
+                    cy, cx = q.popleft(); pts.append((cy, cx))
+                    for ny in range(cy - 1, cy + 2):
+                        for nx in range(cx - 1, cx + 2):
+                            if 0 <= ny < h and 0 <= nx < w and small[ny, nx] and not lab[ny, nx]:
+                                lab[ny, nx] = n; q.append((ny, nx))
+                ys, xs = zip(*pts)
+                comps.append((len(pts), min(xs), max(xs), sum(xs) / len(xs), sum(ys) / len(ys)))
+    big = sorted(range(len(comps)), key=lambda i: -comps[i][0])[:5]
+    big.sort(key=lambda i: comps[i][3])
+    owner = {}
+    for i, c in enumerate(comps):
+        owner[i + 1] = min(big, key=lambda j: abs(comps[j][3] - c[3]) + abs(comps[j][4] - c[4])) + 1
+    full = np.repeat(np.repeat(lab, k, 0), k, 1)[:a.shape[0], :a.shape[1]]
+    full = np.pad(full, ((0, a.shape[0] - full.shape[0]), (0, a.shape[1] - full.shape[1])))
+    poses = []
+    for j in big:
+        m = np.isin(full, [i for i, o in owner.items() if o == j + 1])
+        m = np.asarray(Image.fromarray((m * 255).astype('uint8')).filter(ImageFilter.MaxFilter(7))) > 0
+        ys, xs = np.where(m)
+        c = np.where(m[..., None], a, 255.0)[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+        poses.append(c)
+    lick, groom, leap, run, ko = poses
+    parts = [lick, leap, run, groom, ko]
+    H = max(p_.shape[0] for p_ in parts)
+    row = np.full((H, sum(p_.shape[1] for p_ in parts) + 80 * len(parts), 3), 255.0)
+    x = 0
+    for p_ in parts:
+        row[H - p_.shape[0]:, x:x + p_.shape[1]] = p_
+        x += p_.shape[1] + 80
+    return row
+
+
+for coat in ['calico', 'orange', 'tuxedo']:
+    sheet = RAW / f'cat_{coat}_sheet.png'
+    if sheet.exists():
+        Image.fromarray(sheet_row(sheet).astype('uint8')).save(RAW / f'cat_{coat}.png')
+        print(coat, 'sheet used')
