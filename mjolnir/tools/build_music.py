@@ -21,6 +21,7 @@ LOOP_XF = 1.5
 TRACKS = {
     'hero': ('heldenthema_b.mp3', 4.0, 103, 28, 4),
     'adventure': ('abenteuer.mp3', 60.0, 144, 42, 4),
+    'vanaheim': ('vanaheim.mp3', 10.0, 103, 26, 4),
     'cold': ('kaelte_und_tod.mp3', 6.5, 99, 25, 4),
     'fire': ('feuer_und_sturm.mp3', 2.0, 112, 30, 4),
     'rainbow': ('regenbogen_bier.mp3', 13.0, 152, 7, 4),
