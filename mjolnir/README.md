@@ -40,7 +40,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Ægir's Sea** is a water realm: at the start of each stage Thor jumps into a Viking longship and sails the whole
   stage through a storm. The boat jumps with him. Great waves roll in and must be jumped, narwhals leap out of the
   water (stomp them or stay clear), and lightning, ravens and floating rune blocks wait above the waves.
-- **Svartalfheim**, the deep halls of the dwarves: little red-capped gnomes (tomtes) dash at you as soon as they see you, and Viking dwarves
+- **Svartalfheim**, the deep halls of the dwarves: plenty of little red-capped gnomes (tomtes), often in pairs, dash at you as soon as they see you, and Viking dwarves
   march along and hurl their axes in spinning arcs (walking empty-handed until they fetch another)
   (dodge, then stomp them), and stalactites tremble and fall when you walk below them, (dripstone of wet cave rock built by `tools/make_stalactite.py` from the amethyst image) their crystal tips glowing as a
   warning.
@@ -49,7 +49,10 @@ stylesheet, and the game falls back to system fonts without it.)
   or stomp them.
 - **Helheim**, the cold realm of the dead: misty barrows, the river Gjöll and Hel's hall Éljúðnir. Draugr rise in
   numbers, Garm's wolves hunt you and carrion eagles swoop out of the fog.
-- **Vanaheim**, the golden hills of the Vanir, with standing stones, the great oak and turf-roofed longhouses.
+- **Vanaheim**, the golden hills of the Vanir, with standing stones, the great oak and turf-roofed longhouses. Freyja's cats
+  sit there in threes (calico, ginger and tuxedo), grooming themselves; when Thor comes close they leap up in fright, hop
+  wildly all around (and scratch if they hit you), then bolt. A stomp sends a cat running for good. The cat sheet was
+  generated once and its mixed-up coats fixed by `tools/cats_fix.py`.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
   and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
   them and their fire goes out.
@@ -90,7 +93,7 @@ stylesheet, and the game falls back to system fonts without it.)
 ## Painted art
 
 Some art is generated (Higgsfield GPT Image 2.5 and Google Gemini) and lives in `assets/` as WebP: the Thor, Loki, wolf, raven
-and draugr sprite sheets, sheep, the Völva, Sleipnir, the mead horn, the Valkyrie, Mjölnir, the rune coin, the checkpoint banners (black and orange with a painted golden lightning bolt, `tools/flag_bolt.py`; the older red raven banner, its raven swapped for a bolt by `tools/raven_to_bolt.py`, stays as the fallback), real amethyst crystal spikes for Svartalfheim, glacier ice spikes for the frozen realms, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf, two Svartalfheim cave backdrops, three Alfheim backdrops (day, dusk, night), three Helheim backdrops, the Alfheim stag, three Vanaheim backdrops, the longship, narwhal, great wave and storm backdrop of Ægir's Sea, Odin for the Valhalla feast (standing with Gungnir, welcoming, raising his horn) and a midday and a night backdrop for Asgard. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
+and draugr sprite sheets, sheep, the Völva, Sleipnir, the mead horn, the Valkyrie, Mjölnir, the rune coin, the checkpoint banners (black and orange with a painted golden lightning bolt, `tools/flag_bolt.py`; the older red raven banner, its raven swapped for a bolt by `tools/raven_to_bolt.py`, stays as the fallback), real amethyst crystal spikes for Svartalfheim, glossy obsidian spikes with lava cracks for Muspelheim (`tools/obsidian_spike.py`), glacier ice spikes for the frozen realms, ground props (runestones, mushrooms, lanterns, bones, ice crystals, ferns, boulders, snow mounds, frost grass), rune crates, stone blocks, stakes, ice spikes, golden spears, bridge planks, the rune gate, Asgard braziers, shield racks and golden shrubs, and painted backdrops for all six realms, the Muspelheim fire boar and fire serpent, the Svartalfheim dwarf, two Svartalfheim cave backdrops, three Alfheim backdrops (day, dusk, night), three Helheim backdrops, the Alfheim stag, three Vanaheim backdrops, the longship, narwhal, great wave and storm backdrop of Ægir's Sea, Odin for the Valhalla feast (standing with Gungnir, welcoming, raising his horn) and a midday and a night backdrop for Asgard. Thor also has painted poses for cutscenes (lifting Mjölnir, shaking his fist, being carried off by the Valkyrie). The untouched originals are in `assets/raw/`.
 `tools/prepare_sprite.py` keys out a white background, splits the poses and builds the atlas. `tools/embed_assets.py` embeds them into `index.html` so the
 game stays one file. Every character or realm without a painted image keeps its code-drawn version, so new images can be
 added one at a time: drop the `.webp` (and sprite frames in `sprites.json`) into `assets/` and rerun the script.
