@@ -26,6 +26,11 @@ TRACKS = {
     'fire': ('feuer_und_sturm.mp3', 2.0, 112, 30, 4),
     'rainbow': ('regenbogen_bier.mp3', 13.0, 152, 7, 4),
 }
+# hand-found seams (start s, loop length s) where a track's own repetition lines up: found by comparing
+# 6 s of spectrum and loudness around every pair of points and then aligning the beats at the best pair
+SEAMS = {
+    'cold': (20.0, 43.1844),  # the build-up to the final climax made the bar-count loop jump from loud to quiet
+}
 
 
 def load(path):
@@ -38,6 +43,7 @@ meta = {}
 for name, (src, start, bpm, bars, bpb) in TRACKS.items():
     a = load(RAW / src)
     L = int(round(bars * bpb * 60 / bpm * SR))
+    if name in SEAMS: start, L = SEAMS[name][0], int(round(SEAMS[name][1] * SR))
     xf = int((LOOP_XF if name != 'rainbow' else .5) * SR)
     s0 = int(start * SR)
     seg = a[s0:s0 + L + xf]
