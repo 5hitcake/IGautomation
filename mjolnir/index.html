@@ -2332,8 +2332,8 @@ const GEN = {
   niflheim: { chunks: { rest: 2, gap: 3, wolves: 2, draugr: 3, raven: 2, blocks: 1, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['double', 'bounce', 'hunt', 'rain', 'checker', 'pairs'] },
   muspelheim: { chunks: { rest: 2, gap: 3, boar: 5, snake: 4, raven: 1, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 3 }, storms: ['sweepR', 'bounce', 'hunt', 'pairs', 'double'] },
   svartalfheim: { chunks: { rest: 2, gap: 3, dwarves: 6, falls: 3, draugr: 1, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, pit: 2 }, storms: [] },
-  alfheim: { chunks: { rest: 2, gap: 3, eagles: 3, stags: 3, wolves: 1, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['rain', 'pairs', 'bounce', 'checker'] },
-  helheim: { chunks: { rest: 2, gap: 3, draugr: 4, wolves: 2, eagles: 2, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['hunt', 'double', 'rain', 'checker'] },
+  alfheim: { chunks: { rest: 2, gap: 3, eagles: 4, stags: 4, raven: 1, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['rain', 'pairs', 'bounce', 'checker'] },
+  helheim: { chunks: { rest: 2, gap: 3, draugr: 4, wolves: 1, eagles: 3, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 2, pit: 2 }, storms: ['hunt', 'double', 'rain', 'checker'] },
   asgard: { chunks: { rest: 2, gap: 3, wolves: 3, draugr: 2, raven: 2, blocks: 2, hills: 2, spikes: 2, sheepHigh: 1, stairs: 1, storm: 3, pit: 2 }, storms: ['pairs', 'bounce', 'hunt', 'double', 'checker', 'sweepL'] },
 };
 const STORM_BASE = {
@@ -2364,7 +2364,7 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
     draugr(x) { b.floor(x, x + 11); b.draugr(x + 7); if (R() < .5) b.coins(x + 3, 4, 3); return x + 12; },
     boar(x) { const n = ri(14, 17); b.floor(x, x + n - 1); b.boar(x + 9); if (d > .2 || R() < .5) b.boar(x + 14); if (R() < .5) b.coins(x + 3, 5, 3); return x + n; },
     cats(x) { const n = ri(13, 16); b.floor(x, x + n - 1); b.cats(x + 6); if (R() < .5) b.coins(x + 2, 5, 3); return x + n; },
-    stags(x) { const n = ri(15, 17); b.floor(x, x + n - 1); b.stag(x + 7); b.coins(x + 3, 5, 3); return x + n; },
+    stags(x) { const n = ri(17, 20); b.floor(x, x + n - 1); b.stag(x + 7); if (d > .2 || R() < .5) b.stag(x + 15); b.coins(x + 3, 5, 3); return x + n; },
     eagles(x) { const n = ri(12, 15); b.floor(x, x + n - 1); b.eagle(x + 6, ri(6, 8)); if (d > .3 || R() < .5) b.eagle(x + 11, ri(7, 8)); b.coins(x + 3, 4, 4); return x + n; },
     dwarves(x) { const n = ri(13, 16); b.floor(x, x + n - 1); b.gnome(x + 4); if (R() < .5) b.gnome(x + 8); else b.dwarf(x + 8); if (d > .2 && R() < .7) b.gnome(x + 12); if (R() < .5) b.coins(x + 3, 5, 3); return x + n; },
     falls(x) { const n = ri(12, 14); b.floor(x, x + n - 1); for (let i = 0; i < 3; i++) b.stalactite(x + 3 + i * 3 + ri(0, 1)); b.coins(x + 3, 4, 8); return x + n; },
@@ -3293,7 +3293,7 @@ function snakeBite(e) {
 }
 const FOES = new Set(['wolf', 'raven', 'draugr', 'snake', 'boar', 'narwhal', 'dwarf', 'gnome', 'eagle', 'stag', 'cat']);
 function rainbowKill(e) {
-  e.dead = 'fall'; e.vy = -620; e.dt = 0; SFX.stomp(); countKill(e.type);
+  e.dead = 'fall'; e.vy = -620; e.dt = 0; SFX.stomp(); countKill(e.type === 'gnome' ? 'dwarf' : e.type);
   addScore(300, e.x, e.y); P.rainbowKills++;
   burst(e.x + e.w / 2, e.y + e.h / 2, 16, rainbowRGB(G.t * 3, 1), 260, .6, 3.5, 200, true);
   if (P.rainbowKills >= 5) award('bifrost');
