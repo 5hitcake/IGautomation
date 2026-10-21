@@ -1957,7 +1957,7 @@ const LEVELS = [
       b.floor(164, 210);
       b.check(166);
       b.storm(170, 6, 'checker', { interval: 1.3, warn: 1 }); b.brick(172, 5, 2); b.brick(176, 5, 2);
-      b.cats(179); b.stairs(190, 5);
+      b.cats(183); b.stairs(190, 5);
       b.goal(198);
     },
   },
@@ -2403,7 +2403,7 @@ function genStage(b, world, stage, R, startX = 0, nChunks = 0) {
       foe(x + 9); if (d > .4 && R() < .5) foe(x + 13); return x + 16;
     },
     // a storm with foes caught in it (the lightning hits them too)
-    stormFoes(x) { const e = C.storm(x); foe(x + 7 + ri(0, 4)); return e; },
+    stormFoes(x) { const e = C.storm(x); const f = foes.filter(k => k !== 'cats'); if (f.length) FOE[pick(f)](x + 7 + ri(0, 4)); return e; },
     // falling boards at changing heights over a long pit
     plankRun(x) {
       const k = ri(3, 4); b.floor(x, x + 3); let px = x + 4;
@@ -3638,7 +3638,8 @@ function updateEnts(dt) {
         if (!near && !e.awake) break;
         e.awake = true; e.t += dt;
         if (e.home == null) e.home = e.x;
-        const dx = (P.x + P.w / 2) - (e.x + e.w / 2), close = Math.abs(dx) < 230 && Math.abs(P.y - e.y) < 150 && G.state === 'play';
+        const dx = (P.x + P.w / 2) - (e.x + e.w / 2), close = e.spook || (Math.abs(dx) < 230 && Math.abs(P.y - e.y) < 150 && G.state === 'play');
+        e.spook = false;
         const fy = Math.floor((e.y + e.h + 4) / TS);
         const safe = x => { const tx = Math.floor(x / TS); return (solidAt(tx, fy) || tileAt(tx, fy) === T.PLANK) && tileAt(tx, fy - 1) !== T.SPIKE && !solidAt(tx, fy - 1); };
         // a startled cat jumps all over the place around its own spot, never into a pit
@@ -3989,7 +3990,9 @@ function updateStorms(dt) {
           for (const e of L.ents) {
             if (e.dead) continue;
             if (Math.abs(e.x + e.w / 2 - k.x) < 40 && e.y < k.gy) {
-              if (FOES.has(e.type)) { e.dead = 'fall'; e.vy = -500; e.dt = 0; burst(e.x + e.w / 2, e.y, 10, '#333', 150, .6, 3); }
+              // cats are too quick for the storm: a bolt only startles them into a leap
+              if (e.type === 'cat') { e.spook = true; burst(e.x + e.w / 2, e.y, 6, '#ffe2b0', 120, .4, 2); }
+              else if (FOES.has(e.type)) { e.dead = 'fall'; e.vy = -500; e.dt = 0; burst(e.x + e.w / 2, e.y, 10, '#333', 150, .6, 3); }
               else if (e.type === 'sheep') { e.burnt = 4; e.vy = -360; SFX.baa(); }
             }
           }
