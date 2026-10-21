@@ -909,7 +909,7 @@ function drawDwarf(g, e) {
   }
   g.restore();
 }
-const CAT_H = 50;
+const CAT_H = 50, CAT_SINK = { calico: .09, orange: .1, tuxedo: .13 };
 function drawCat(g, e) {
   // Freyja's cats: paw lick (0), startled leap (1), trotting (2), leg-up bottom wash (3), knocked out (4)
   const name = 'cat_' + e.coat, x = e.x + e.w / 2, y = e.y + e.h + 2, ko = e.dead === 'squash';
@@ -922,6 +922,8 @@ function drawCat(g, e) {
     if (fi === 0 || fi === 3) { sq = Math.sin(e.t * 2.2 + e.ph) * .025; if (Math.sin(e.t * 1.3 + e.ph) > .5) bob = -Math.abs(Math.sin(e.t * 9)) * 1.2; }
     if (fi === 2) bob = -Math.abs(Math.sin(e.t * 14)) * 3;
     if (fi === 1 && !e.onGround) { g.translate(x, y - 16); g.rotate(clamp(e.vy / 2400, -.25, .25) * (e.dir < 0 ? -1 : 1)); g.translate(-x, -(y - 16)); }
+    // in the grooming pose the curled tail hangs below the paws: sink the frame so the cat sits on the ground
+    if (fi === 3) { const f = SPRITE_META[name].frames[3]; bob += CAT_H * f[3] / SPRITE_META[name].h * CAT_SINK[e.coat]; }
     drawSprite(g, name, fi, x, y + bob, CAT_H, e.dir < 0, sq);
   } else { g.beginPath(); g.ellipse(x, y - 12, 15, 10, 0, 0, 7); ink(g, e.coat === 'orange' ? '#d88a3a' : e.coat === 'tuxedo' ? '#222' : '#e8e0d0'); }
   g.restore();
