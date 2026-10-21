@@ -5023,7 +5023,7 @@ function drawWorld(g) {
     }
     if (P.drink > 0) { const k = 1 - P.drink / 1.1; const hi = imgReady('thorpose');
       // held in front of his face, tipped toward the mouth as he drinks (handle away from him)
-      if (imgReady('mug')) drawMug(g, hx + P.face * 34, hy - 30, .7, -P.face * (.35 + k * 1.05), false, P.face < 0);
+      if (imgReady('mug')) drawMug(g, hx + P.face * 31, hy - 37, .7, -P.face * (.35 + k * 1.05), false, P.face < 0);
       else drawMug(g, hx + P.face * (hi ? 20 : 6), hy - (hi ? 74 : 62), .75, -P.face * (.3 + k * 1.6), false); if (Math.random() < .3) parts.push({ x: hx + P.face * 18, y: hy - 56, vx: P.face * 30, vy: -60, life: .4, max: .4, color: 'rgba(255,248,230,.9)', size: 3, g: 300 }); }
   }
   if (G.state === 'dying' && G.valk) drawValkyrie(g, G.valk.x, G.valk.y, G.t, clamp(G.dieT * 2 - .6, 0, 1));
