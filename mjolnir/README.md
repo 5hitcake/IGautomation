@@ -50,9 +50,10 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Helheim**, the cold realm of the dead: misty barrows, the river Gjöll and Hel's hall Éljúðnir. Draugr rise in
   numbers, Garm's wolves hunt you and carrion eagles swoop out of the fog.
 - **Vanaheim**, the golden hills of the Vanir, with standing stones, the great oak and turf-roofed longhouses. Freyja's cats
-  sit there in threes (calico, ginger and tuxedo), grooming themselves; when Thor comes close they leap up in fright, hop
-  wildly all around (and scratch if they hit you), then bolt. A stomp sends a cat running for good. The cat sheet was
-  generated once and its mixed-up coats fixed by `tools/cats_fix.py`.
+  sit there in threes (calico, ginger and tuxedo), a little smaller than the wolves, washing a paw or, leg in the air,
+  their bottom; when Thor comes close they leap up in fright and hop wildly around their spot (never into a pit), and
+  scratch if they hit you; once he is past they trot back and groom again. A stomp knocks a cat out, spiral eyes and
+  all, like any other foe. The cat sheets were generated and their mixed-up coats fixed by `tools/cats_fix.py`.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
   and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
   them and their fire goes out.

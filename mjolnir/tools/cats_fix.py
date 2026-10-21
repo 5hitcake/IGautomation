@@ -69,10 +69,25 @@ orange[:, :800] = g0
 
 # tuxedo: the orange in its tail and elbow turns black
 tux = row(2)
-m = orange_mask(tux)
+r, g, b, sat, lum = hsv(tux)
+m = orange_mask(tux) | ((r > g + 22) & (g > b) & (r > b + 35) & (tux.min(-1) < 225))  # orange and brown rings, not the pink nose
 _, _, _, _, lum = hsv(tux)
 tux[m] = np.stack([lum * .3 + 14, lum * .29 + 13, lum * .3 + 15], -1)[m]
 
 for name, a in [('cat_calico', calico), ('cat_orange', orange), ('cat_tuxedo', tux)]:
     Image.fromarray(np.clip(a, 0, 255).astype('uint8')).save(RAW / f'{name}.png')
 print('ok')
+
+# second sheet (assets/raw/cats2.png): grooming with a hind leg up and knocked out with spiral eyes.
+# Appended to each cat's row so the frames are: paw lick, leap, run, leg-up lick, knocked out
+two = np.asarray(Image.open(RAW / 'cats2.png').convert('RGB')).astype(float)
+ROWS2 = [(0, 541), (541, 1102), (1102, 1664)]
+for name, (y0, y1) in zip(['cat_calico', 'cat_orange', 'cat_tuxedo'], ROWS2):
+    base = np.asarray(Image.open(RAW / f'{name}.png').convert('RGB')).astype(float)
+    extra = two[y0:y1].copy()
+    h = max(base.shape[0], extra.shape[0])
+    row = np.full((h, base.shape[1] + 80 + extra.shape[1], 3), 255.0)
+    row[:base.shape[0], :base.shape[1]] = base
+    row[:extra.shape[0], base.shape[1] + 80:] = extra
+    Image.fromarray(row.astype('uint8')).save(RAW / f'{name}.png')
+print('poses added')

@@ -21,7 +21,7 @@ from PIL import Image, ImageDraw, ImageFilter
 ASSETS = pathlib.Path(__file__).resolve().parent.parent / "assets"
 
 
-def key_white(im):
+def key_white(im, islands=True):
     im = im.convert("RGBA")
     w, h = im.size
     px = im.load()
@@ -54,7 +54,7 @@ def key_white(im):
         return min(r, g, b) > 200 and max(r, g, b) - min(r, g, b) < 26
 
     seen = bytearray(w * h)
-    for sy in range(h):
+    for sy in (range(h) if islands else ()):
         for sx in range(w):
             i0 = sy * w + sx
             if bg[i0] or seen[i0] or not island(sx, sy):
@@ -179,10 +179,10 @@ def apply_edits(frames, edits_path):
     return out, pts
 
 
-def build(name, raw, target_h, count=None):
+def build(name, raw, target_h, count=None, islands=True):
     im = Image.open(raw)
     if im.mode != "RGBA" or im.getchannel("A").getextrema()[0] > 10:
-        im = key_white(im)
+        im = key_white(im, islands)
     frames, pts = apply_edits(frames_of(im, count), pathlib.Path(raw).with_suffix(".edits.json"))
     sc = target_h / max(f.size[1] for f in frames)
     parts = []
@@ -223,6 +223,7 @@ if __name__ == "__main__":
     ap.add_argument("--height", type=int, default=220)
     ap.add_argument("--backdrop", action="store_true")
     ap.add_argument("--frames", type=int, help="number of poses, when they touch each other")
+    ap.add_argument("--keep-islands", action="store_true", help="keep enclosed white areas (white fur, eye whites)")
     a = ap.parse_args()
     if a.backdrop:
         # the game draws backdrops 576 px tall (864 on sharp screens), so larger paintings only cost download size
@@ -232,4 +233,4 @@ if __name__ == "__main__":
         im.save(ASSETS / f"{a.name}.webp", "WEBP", quality=84, method=6)
         print(f"{a.name}: backdrop saved")
     else:
-        build(a.name, a.raw, a.height, a.frames)
+        build(a.name, a.raw, a.height, a.frames, not a.keep_islands)
