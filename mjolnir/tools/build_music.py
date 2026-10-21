@@ -28,8 +28,12 @@ TRACKS = {
 }
 # hand-found seams (start s, loop length s) where a track's own repetition lines up: found by comparing
 # 6 s of spectrum and loudness around every pair of points and then aligning the beats at the best pair
-SEAMS = {
+SEAMS = {  # found with tools/find_loop.py
+    'hero': (11.447, 55.4522),
+    'adventure': (110.016, 51.4380),
+    'vanaheim': (21.107, 41.7205),
     'cold': (20.0, 43.1844),  # the build-up to the final climax made the bar-count loop jump from loud to quiet
+    'fire': (21.664, 47.0756),
 }
 
 
