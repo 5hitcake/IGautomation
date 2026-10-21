@@ -52,7 +52,8 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Vanaheim**, the golden hills of the Vanir, with standing stones, the great oak and turf-roofed longhouses. Freyja's cats
   sit there in threes (calico, ginger and tuxedo), a little smaller than the wolves, washing a paw or, leg in the air,
   their bottom; when Thor comes close they leap up in fright and hop wildly around their spot (never into a pit), and
-  scratch if they hit you (lightning only startles them, it never kills a cat); once he is past they trot back and groom again. A stomp knocks a cat out, spiral eyes and
+  scratch if they hit you (lightning only startles them, it never kills a cat). They spit and yowl when startled and let out a sinking
+  mew when knocked out (`yowl()`, synthesized with moving vowel formants); once he is past they trot back and groom again. A stomp knocks a cat out, spiral eyes and
   all, like any other foe. Each cat has its own painted sheet (`assets/raw/cat_<coat>_sheet.png`), cut into poses along their outlines
   by `tools/cats_fix.py`.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,

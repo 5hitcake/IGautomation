@@ -2669,6 +2669,30 @@ function noise(dur, vol, ftype, f0, f1, when = 0, wet = 0, dest) {
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   s.connect(f); f.connect(g); g.connect(out(dest, wet)); s.start(t, Math.random()); s.stop(t + dur + .05);
 }
+function yowl(p = 1, dur = .7, vol = .2, when = 0, sad = false) {
+  // a cat's voice: a buzzy, pitch-gliding source shaped by two moving vowel formants ("mrr-AAOW") with a rough
+  // vibrato; an angry yowl rises and bends hard, a defeated one sinks away
+  const c = Sound.ctx; if (!c) return;
+  const t = c.currentTime + when, o = c.createOscillator(), o2 = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain();
+  const f1 = c.createBiquadFilter(), f2 = c.createBiquadFilter(), g = c.createGain(), mix = c.createGain();
+  o.type = 'sawtooth'; o2.type = 'square';
+  const base = 520 * p, peak = sad ? base * 1.1 : base * 1.75, end = sad ? base * .45 : base * .8;
+  for (const [osc, k] of [[o, 1], [o2, 1.006]]) {
+    osc.frequency.setValueAtTime(base * .7 * k, t);
+    osc.frequency.exponentialRampToValueAtTime(peak * k, t + dur * .35);
+    osc.frequency.exponentialRampToValueAtTime(end * k, t + dur);
+  }
+  lfo.frequency.value = sad ? 6 : 11; lg.gain.value = base * (sad ? .04 : .09);
+  lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+  f1.type = 'bandpass'; f1.Q.value = 5; f2.type = 'bandpass'; f2.Q.value = 7;
+  f1.frequency.setValueAtTime(350, t); f1.frequency.linearRampToValueAtTime(950, t + dur * .35); f1.frequency.linearRampToValueAtTime(550, t + dur);
+  f2.frequency.setValueAtTime(2300, t); f2.frequency.linearRampToValueAtTime(1500, t + dur * .4); f2.frequency.linearRampToValueAtTime(900, t + dur);
+  mix.gain.value = .55;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .06);
+  g.gain.setValueAtTime(vol, t + dur * .55); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(f1); o.connect(f2); o2.connect(mix); mix.connect(f1); f1.connect(g); f2.connect(g); g.connect(out(undefined, .25));
+  for (const osc of [o, o2, lfo]) { osc.start(t); osc.stop(t + dur + .05); }
+}
 function bell(f, vol, when = 0, wet = .5) { tone('sine', f, 0, 1.2, vol, when, wet); tone('sine', f * 2.76, 0, .5, vol * .35, when, wet); tone('sine', f * 5.4, 0, .25, vol * .15, when, wet); }
 const SFX = {
   jump() { noise(.16, .12, 'bandpass', 500, 1400); tone('sine', 180, 320, .12, .1); },
@@ -2699,7 +2723,9 @@ const SFX = {
   die() { [294, 262, 220, 147].forEach((f, i) => tone('triangle', f, 0, .8, .12, i * .28, .7)); },
   whoosh() { noise(.6, .3, 'bandpass', 250, 2200, 0, .4); },
   hiss() { noise(.45, .22, 'highpass', 2500, 6000, 0, .05); },
-  meow(p = 1) { tone('triangle', 560 * p, 880 * p, .14, .07, 0, .2); tone('triangle', 880 * p, 470 * p, .32, .07, .13, .2); },
+  // the angry cat: a short spitting hiss, then a bent, rising yowl
+  catAngry(p = 1) { noise(.18, .1, 'highpass', 3800, 6500); yowl(p, .62, .22, .08); },
+  catKO(p = 1) { yowl(p * .9, .55, .16, 0, true); },
   snap() { noise(.12, .35, 'bandpass', 1800, 600); tone('square', 320, 120, .08, .08); },
   splash() { noise(.5, .3, 'lowpass', 1400, 300, 0, .2); },
   wave() { noise(1.1, .35, 'lowpass', 600, 1600, 0, .3); },
@@ -3659,7 +3685,7 @@ function updateEnts(dt) {
           e.poseT -= dt; if (e.poseT <= 0) { e.lick = e.lick === 3 ? 0 : 3; e.poseT = 4 + Math.random() * 4; }
           if (close) {
             e.mode = 'scared'; leap(true);
-            SFX.hiss(); SFX.meow(e.coat === 'orange' ? .9 : e.coat === 'tuxedo' ? 1.15 : 1);
+            SFX.catAngry(e.coat === 'orange' ? .85 : e.coat === 'tuxedo' ? 1.15 : 1);
             if (!L.ents.some(o => o.type === 'cat' && o !== e && o.mode !== 'groom' && Math.abs(o.x - e.x) < 200)) floatText(e.x - 10, e.y - 40, 'MIAU!', '#ffe2b0');
           }
         } else if (e.mode === 'scared') {
@@ -3883,7 +3909,7 @@ function collideEnts() {
         if (P.rainbow > 0) { rainbowKill(e); break; }
         if (p.vy > 0 && p.prevBottom <= e.y + 14) {
           // stomped: knocked out flat with spiral eyes, like any other foe
-          e.dead = 'squash'; e.dt = 0; e.vx = 0; e.vy = Math.max(e.vy, 0); SFX.stomp(); SFX.meow(1.3);
+          e.dead = 'squash'; e.dt = 0; e.vx = 0; e.vy = Math.max(e.vy, 0); SFX.stomp(); SFX.catKO(e.coat === 'orange' ? .85 : e.coat === 'tuxedo' ? 1.15 : 1);
           p.vy = input.jump ? -820 : -540; p.onGround = false;
           addScore(200, e.x, e.y); countKill('cat'); burst(e.x + e.w / 2, e.y + e.h / 2, 8, 'rgba(240,220,190,.8)', 160, .5, 3);
         } else if (e.mode !== 'groom') hurt(e.x + e.w / 2);
@@ -5388,7 +5414,7 @@ G.state = 'title';
 requestAnimationFrame(frame);
 
 // small hook for automated checks
-window.__snd = Sound; window.Music = Music; window.__musicSpecs = () => [TITLE_MUSIC, realmMusic(0), realmMusic(3)];
+window.__snd = Sound; window.__sfx = SFX; window.Music = Music; window.__musicSpecs = () => [TITLE_MUSIC, realmMusic(0), realmMusic(3)];
 window.__mjolnir = { G, input, hitBlock, get L() { return L; }, get P() { return P; }, beginStage, startGame, drawGem, gemSheet, LEVELS, STAGES, IMG, filterPixels, realmMusic, tr, setLang, TROPHIES };
 })();
 </script>
