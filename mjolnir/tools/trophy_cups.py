@@ -1,4 +1,5 @@
-"""Paint the 25 Trophy Hall cups with FLUX.2 Klein on Cloudflare Workers AI (free daily allowance).
+"""Paint the 25 Trophy Hall cups (the animal trophies were later redone as plain lidded cups with one big,
+simple animal figure on the lid, so they stay readable at icon size) with FLUX.2 Klein on Cloudflare Workers AI (free daily allowance).
 
 Needs CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (Workers AI) in the environment. Writes
 assets/raw/trophies/cup_<id>.jpg (skips existing ones; pass ids to redo only those), then run
