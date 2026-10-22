@@ -1,10 +1,11 @@
 """Generiert ein TikTok-Video (1080x1920) im Ghibli/Anime-Stil aus einem Thema
 aus content/tiktok_topics.json, im Hybrid-Verfahren:
   1. Fuer die 4 Beats, in denen ein Charakter ein bestimmtes Artefakt in der
-     Hand haelt (Hook, Fund, Reaktion, Aufloesung), wird ueber ein groesseres
-     Modell auf der kostenlosen Hugging-Face-Inference-API generiert (siehe
-     tiktok_common.generate_hf_critical_image) - das kleine selbst gehostete
-     Modell scheitert zuverlaessig an "Person haelt spezifisches Objekt".
+     Hand haelt (Hook, Fund, Reaktion, Aufloesung), wird ueber FLUX.1-schnell
+     auf Cloudflare Workers AI generiert (siehe
+     tiktok_common.generate_cloudflare_critical_image) - das kleine selbst
+     gehostete Modell scheitert zuverlaessig an "Person haelt spezifisches
+     Objekt".
   2. Fuer die restlichen 5 Beats (Ort, Suche, Vertuschung x2, Follow-CTA -
      reine Umgebungs-/Handlungsbilder ohne kritische Objekt-Interaktion) wird
      ein selbst gehostetes, kostenloses Ghibli-Diffusion-Modell lokal
@@ -18,8 +19,8 @@ aus content/tiktok_topics.json, im Hybrid-Verfahren:
      assets/tiktok_generated/next_post.json fuer tiktok_publish.py geschrieben.
 
 Benoetigt ffmpeg und die Python-Pakete edge-tts, torch, diffusers, transformers,
-accelerate (siehe requirements.txt). Umgebungsvariable HF_API_TOKEN muss
-gesetzt sein (siehe README Setup) - komplett kostenlos, kein Kreditkarten-Zwang.
+accelerate (siehe requirements.txt). Umgebungsvariablen CLOUDFLARE_API_TOKEN
+und CLOUDFLARE_ACCOUNT_ID muessen gesetzt sein (siehe README Setup).
 """
 import asyncio
 import io
@@ -39,7 +40,7 @@ from tiktok_common import (
     TIKTOK_GENERATED_DIR,
     build_beats,
     build_caption,
-    generate_hf_critical_image,
+    generate_cloudflare_critical_image,
     load_state,
     pick_next_topic,
     pick_tiktok_music,
@@ -232,9 +233,10 @@ def mix_background_music(video_path, music_path, output_path, volume=MUSIC_VOLUM
 
 def main():
     check_ffmpeg()
-    hf_token = os.environ.get("HF_API_TOKEN")
-    if not hf_token:
-        print("HF_API_TOKEN ist nicht gesetzt (siehe README Setup).")
+    cf_account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+    cf_api_token = os.environ.get("CLOUDFLARE_API_TOKEN")
+    if not cf_account_id or not cf_api_token:
+        print("CLOUDFLARE_ACCOUNT_ID und CLOUDFLARE_API_TOKEN muessen gesetzt sein (siehe README Setup).")
         sys.exit(1)
 
     os.makedirs(TIKTOK_GENERATED_DIR, exist_ok=True)
@@ -253,7 +255,9 @@ def main():
 
             image_path = os.path.join(work_dir, f"beat_{i:02d}.jpg")
             if beat["critical"]:
-                image_bytes = generate_hf_critical_image(beat["image_prompt"], hf_token)
+                image_bytes = generate_cloudflare_critical_image(
+                    beat["image_prompt"], cf_account_id, cf_api_token
+                )
             else:
                 image_bytes = generate_free_image(free_pipe, beat["free_image_prompt"])
             with open(image_path, "wb") as f:

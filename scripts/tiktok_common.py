@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import random
@@ -11,19 +12,15 @@ TIKTOK_STATE_PATH = os.path.join(ROOT, "tiktok_posted_log.json")
 TIKTOK_GENERATED_DIR = os.path.join(ROOT, "assets", "tiktok_generated")
 TIKTOK_MUSIC_DIR = os.path.join(ROOT, "assets", "tiktok_music")
 
-# Groesseres Modell ueber die kostenlose Hugging-Face-Inference-API fuer die
-# Beats, in denen ein Charakter ein bestimmtes Artefakt korrekt in der Hand
-# halten muss. Das kleine selbst gehostete SD1.5-Modell scheitert
-# zuverlaessig an "Person haelt spezifisches Objekt". FLUX.1-schnell waere
-# architektonisch staerker gewesen, wurde aber vom kostenlosen hf-inference-
-# Provider bereits abgekuendigt (410 im Live-Test) - SD3-medium ist laut
-# aktueller HF-Doku das einzige noch unterstuetzte Text-zu-Bild-Modell auf
-# diesem kostenlosen Provider.
-HF_CRITICAL_MODEL_ID = "stabilityai/stable-diffusion-3-medium-diffusers"
-# Die alte Domain api-inference.huggingface.co wurde abgeschaltet (DNS-Fehler
-# im ersten Live-Test) - HF hat auf einen zentralen "Inference Providers"
-# Router umgestellt, ueber den auch der kostenlose hf-inference-Provider laeuft.
-HF_INFERENCE_URL = f"https://router.huggingface.co/hf-inference/models/{HF_CRITICAL_MODEL_ID}"
+# Groesseres Modell ueber Cloudflare Workers AI fuer die Beats, in denen ein
+# Charakter ein bestimmtes Artefakt korrekt in der Hand halten muss. Das
+# kleine selbst gehostete SD1.5-Modell scheitert zuverlaessig an "Person
+# haelt spezifisches Objekt". Vorher lief das ueber die Hugging-Face-
+# Inference-API (stable-diffusion-3-medium), die aber auf "0 Credits"
+# umgestellt wurde und seitdem mit 402 ablehnt - Cloudflare Workers AI bietet
+# FLUX.1-schnell (das urspruenglich vorgesehene, architektonisch staerkere
+# Modell) mit grosszuegigem kostenlosem Kontingent an.
+CLOUDFLARE_CRITICAL_MODEL_ID = "@cf/black-forest-labs/flux-1-schnell"
 
 # Reichhaltiger Stil-Prefix fuer FLUX (grosses Modell, vertraegt lange Prompts).
 STYLE_PREFIX = (
@@ -248,25 +245,28 @@ def build_caption(topic):
     return f"{topic['hook']}\n\n{HANDLE}\n\n{' '.join(tags)}"
 
 
-def generate_hf_critical_image(prompt, hf_token, width=832, height=1472, max_wait_seconds=300):
-    """Generiert ein Bild ueber das aktuell auf dem kostenlosen hf-inference-
-    Provider verfuegbare Modell (siehe HF_CRITICAL_MODEL_ID) und gibt die
-    Bild-Bytes zurueck. Ist das Modell gerade "am Aufwaermen" (503 mit
-    estimated_time), wird automatisch erneut versucht, bis max_wait_seconds
-    erreicht ist."""
-    headers = {"Authorization": f"Bearer {hf_token}"}
-    payload = {
-        "inputs": prompt,
-        "parameters": {"width": width, "height": height, "num_inference_steps": 28},
-    }
+def generate_cloudflare_critical_image(prompt, account_id, api_token, max_wait_seconds=120):
+    """Generiert ein Bild ueber FLUX.1-schnell auf Cloudflare Workers AI (siehe
+    CLOUDFLARE_CRITICAL_MODEL_ID) und gibt die Bild-Bytes zurueck. Das Modell
+    liefert das Ergebnis base64-kodiert in einer JSON-Antwort statt als
+    rohe Bilddaten. Bei voruebergehender Ueberlastung (429/503) wird
+    automatisch erneut versucht, bis max_wait_seconds erreicht ist."""
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{CLOUDFLARE_CRITICAL_MODEL_ID}"
+    headers = {"Authorization": f"Bearer {api_token}"}
+    # flux-1-schnell ist fuer wenige Schritte trainiert - mehr als 8 bringt
+    # kaum zusaetzliche Qualitaet, nur laengere Laufzeit.
+    payload = {"prompt": prompt, "steps": 8}
     waited = 0
     poll_interval = 10
     while True:
-        resp = requests.post(HF_INFERENCE_URL, headers=headers, json=payload, timeout=120)
-        if resp.ok and resp.headers.get("content-type", "").startswith("image/"):
-            return resp.content
-        if resp.status_code == 503 and waited < max_wait_seconds:
+        resp = requests.post(url, headers=headers, json=payload, timeout=120)
+        if resp.ok:
+            data = resp.json()
+            if data.get("success") and data.get("result", {}).get("image"):
+                return base64.b64decode(data["result"]["image"])
+            raise RuntimeError(f"Cloudflare-Antwort ohne Bild: {data}")
+        if resp.status_code in (429, 503) and waited < max_wait_seconds:
             time.sleep(poll_interval)
             waited += poll_interval
             continue
-        raise RuntimeError(f"FLUX-Anfrage fehlgeschlagen ({resp.status_code}): {resp.text}")
+        raise RuntimeError(f"Cloudflare-Anfrage fehlgeschlagen ({resp.status_code}): {resp.text}")

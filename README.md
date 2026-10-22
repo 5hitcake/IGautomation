@@ -203,13 +203,13 @@ Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Higgsfield
 (Bezahl-API) war ein Zwischenschritt, ist aber ohne Guthaben nicht nutzbar. Deshalb:
 
 - **4 kritische Beats** (Hook, Fund, Reaktion, Auflösung - dort hält der Charakter
-  das Artefakt) laufen über **`stabilityai/stable-diffusion-3-medium-diffusers`**
-  auf der kostenlosen Hugging-Face-Inference-API (`router.huggingface.co/hf-inference`)
-  - laut aktueller HF-Doku das einzige Text-zu-Bild-Modell, das dieser kostenlose
-  Provider noch bedient (FLUX.1-schnell wurde dort bereits abgekündigt, 410 im
-  Live-Test). SD3-medium nutzt einen T5-Textencoder statt CLIPs 77-Token-Cutoff
-  und ist damit potenziell staerker bei komplexen Kompositionen als SD1.5-Modelle -
-  aber noch nicht firmenspezifisch für "Person hält Objekt" verifiziert.
+  das Artefakt) laufen über **FLUX.1-schnell** auf **Cloudflare Workers AI**.
+  Lief anfangs über die Hugging-Face-Inference-API
+  (`stabilityai/stable-diffusion-3-medium-diffusers`), die aber auf ein reines
+  Credits-Modell umgestellt wurde und seitdem mit „no remaining credits" (402)
+  ablehnt. Cloudflare Workers AI bietet FLUX.1-schnell - das ursprünglich
+  vorgesehene, architektonisch stärkere Modell - mit großzügigem kostenlosem
+  Kontingent an.
 - **5 einfache Beats** (Ort, Suche, Vertuschung ×2, Follow-CTA - reine Umgebungs-/
   Handlungsbilder ohne kritische Objekt-Interaktion) laufen über ein **selbst gehostetes,
   kostenloses** `nitrosocke/Ghibli-Diffusion`-Modell direkt im GitHub-Actions-Runner
@@ -217,17 +217,23 @@ Modellklasse (im Chat mehrfach gegengetestet, siehe Session-Verlauf). Higgsfield
   Qualität hat hier Vorrang vor Geschwindigkeit, die Automation läuft ohnehin
   unbeaufsichtigt).
 
-### Schritt 1: Hugging-Face-API-Token einrichten
+### Schritt 1: Cloudflare Workers AI einrichten
 
-1. Auf [huggingface.co](https://huggingface.co) anmelden (bestehender oder neuer
-   Account, kostenlos, keine Kreditkarte nötig).
-2. Unter **Settings → Access Tokens** einen neuen Token erzeugen (Typ "Read"
-   reicht für die Inference API).
-3. Den Token als GitHub Secret `HF_API_TOKEN` hinterlegen (Settings → Secrets
-   and variables → Actions → New repository secret).
+1. Auf [dash.cloudflare.com](https://dash.cloudflare.com) anmelden (bestehender
+   oder neuer Account) und die **Account-ID** notieren (rechte Seitenleiste des
+   Dashboards, oder unter **Workers & Pages → Overview**).
+2. Unter **My Profile → API Tokens → Create Token** einen Token mit der
+   Berechtigung **„Workers AI – Edit"** (oder das Template „Workers AI")
+   erzeugen.
+3. Beide Werte als GitHub Secrets hinterlegen (Settings → Secrets and
+   variables → Actions → New repository secret):
 
-Die kostenlose Inference API ist ratenlimitiert (nicht unbegrenzt parallel
-nutzbar), für 4 Bilder/Tag aber problemlos ausreichend.
+| Name | Wert |
+|---|---|
+| `CLOUDFLARE_ACCOUNT_ID` | Account-ID aus Schritt 1 |
+| `CLOUDFLARE_API_TOKEN` | API-Token aus Schritt 2 |
+
+Das kostenlose Kontingent von Workers AI reicht für 4 Bilder/Tag problemlos aus.
 
 ### Schritt 2: TikTok Content Posting API einrichten
 
@@ -262,7 +268,8 @@ nicht überschreiben):
 **Lokal (benötigt ffmpeg + `pip install -r requirements.txt`; der erste Lauf lädt
 zusätzlich das ca. 2 GB große Ghibli-Diffusion-Modell einmalig herunter):**
 ```
-export HF_API_TOKEN=...
+export CLOUDFLARE_ACCOUNT_ID=...
+export CLOUDFLARE_API_TOKEN=...
 python scripts/tiktok_generate_video.py
 python scripts/tiktok_publish.py --dry-run
 python scripts/publish.py --post-file assets/tiktok_generated/next_post.json --dry-run

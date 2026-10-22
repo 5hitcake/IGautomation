@@ -37,7 +37,8 @@ jobs:
       - name: Generate TikTok video
         if: github.event.inputs.regenerate != 'false'
         env:
-          HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: python scripts/tiktok_generate_video.py
 
       - name: Commit generated asset
