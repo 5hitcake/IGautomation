@@ -59,7 +59,7 @@ stylesheet, and the game falls back to system fonts without it.)
   cry when knocked out: two recorded clips ("angry cat" by tanweraman and "angry cat meow" by cartoon_music,
   Pixabay), trimmed into `assets/sounds/` and embedded; each coat plays them at its own pitch. The synthesized
   `yowl()` is only the fallback; once he is past they trot back and groom again. A stomp knocks a cat out, spiral eyes and
-  all, like any other foe. Each cat has its own painted sheet (`assets/raw/cat_<coat>_sheet.png`), cut into poses along their outlines
+  all, like any other foe. Each cat has its own painted sheet (`assets/raw/cat_<coat>_sheet.png`, repainted with FLUX.2 Klein on Cloudflare in the wolf sprites' style from the earlier `_v1` sheets), cut into poses along their outlines
   by `tools/cats_fix.py`.
 - **Fire boars** hunt you through Muspelheim: they trot toward you, paw the ground and charge with a trail of flame,
   and between charges (or when you are out of reach above them) they snort fireballs at you. Jump over them or stomp
