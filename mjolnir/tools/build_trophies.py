@@ -18,6 +18,7 @@ RAW = ROOT / 'assets' / 'raw' / 'trophies'
 ids = re.findall(r"^  \{ id: '(\w+)'", (ROOT / 'index.html').read_text(), re.M)
 plaques = json.loads((RAW / 'plaques.json').read_text())
 H = 160
+HARD = {'worthy', 'stormwalker', 'dwarfbane'}
 parts, pts = [], {}
 for i, k in enumerate(ids):
     src = Image.open(RAW / f'cup_{k}.jpg').convert('RGB')
@@ -32,26 +33,28 @@ for i, k in enumerate(ids):
     # near-white, colourless pixels that is not on the plaque itself
     from collections import deque
     rgb0 = a0[..., :3].astype(int)
-    wh = (rgb0.min(-1) > 196) & (rgb0.max(-1) - rgb0.min(-1) < 32) & (a0[..., 3] > 0)
+    hard = k in HARD  # dark cups with no white of their own: any pale patch is background showing through
+    wh = (rgb0.min(-1) > (165 if hard else 196)) & (rgb0.max(-1) - rgb0.min(-1) < (45 if hard else 32)) & (a0[..., 3] > 0)
     plq = (xx - px0 * src.width) ** 2 + (yy - py0 * src.height) ** 2 < (pr0 * src.width * 1.15) ** 2
     seen = np.zeros(wh.shape, bool); Hh, Ww = wh.shape; cleared = np.zeros(wh.shape, bool)
     for sy, sx in zip(*np.where(wh)):
         if seen[sy, sx]: continue
-        comp, q, onplaque = [], deque([(sy, sx)]), False; seen[sy, sx] = True
+        comp, q, onplaque = [], deque([(sy, sx)]), 0; seen[sy, sx] = True
         while q:
-            y_, x_ = q.popleft(); comp.append((y_, x_)); onplaque |= plq[y_, x_]
+            y_, x_ = q.popleft(); comp.append((y_, x_)); onplaque += plq[y_, x_]
             for ny, nx in ((y_ + 1, x_), (y_ - 1, x_), (y_, x_ + 1), (y_, x_ - 1)):
                 if 0 <= ny < Hh and 0 <= nx < Ww and wh[ny, nx] and not seen[ny, nx]: seen[ny, nx] = True; q.append((ny, nx))
-        if not onplaque and len(comp) >= 60:
+        if onplaque < len(comp) * .5 and len(comp) >= (15 if hard else 60):
             cy, cx = map(np.array, zip(*comp)); mean = rgb0[cy, cx].min(-1).mean()
             # paper-white holes anywhere, or slightly greyer holes out at the handles; bright metal highlights stay
             side = abs(cx.mean() - px0 * src.width) > pr0 * src.width * 1.7
-            if mean > 242 or (side and mean > 210): a0[cy, cx, 3] = 0; cleared[cy, cx] = True
+            off = ~plq[cy, cx]  # never punch the plaque itself
+            if mean > 242 or (side and mean > 210) or hard: a0[cy[off], cx[off], 3] = 0; cleared[cy[off], cx[off]] = True
     # and the soft grey rim those holes leave: pale pixels touching a cleared hole
-    for _ in range(6):
+    for _ in range(10 if hard else 6):
         clr = cleared
         nb = np.zeros_like(clr); nb[1:] |= clr[:-1]; nb[:-1] |= clr[1:]; nb[:, 1:] |= clr[:, :-1]; nb[:, :-1] |= clr[:, 1:]
-        rim = nb & ~clr & ~plq & (rgb0.min(-1) > 185) & (rgb0.max(-1) - rgb0.min(-1) < 30)
+        rim = nb & ~clr & ~plq & (rgb0.min(-1) > (150 if hard else 185)) & (rgb0.max(-1) - rgb0.min(-1) < (50 if hard else 30))
         a0[rim, 3] = 0; cleared |= rim
     im = Image.fromarray(a0)
     # the soft grey floor shadow under each painted cup: eat away pale, colourless pixels next to the background
