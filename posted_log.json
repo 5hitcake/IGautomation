@@ -91,7 +91,8 @@
     64,
     4,
     100,
-    48
+    48,
+    54
   ],
   "posted_reel_ids": [
     5,
@@ -99,11 +100,11 @@
     2
   ],
   "recent_backgrounds": [
-    "bg_09_starry_sky.png",
     "bg_03_city_night.png",
     "bg_02_mountain_climb.png",
     "bg_14_snow_peak.png",
-    "bg_07_beach_run.png"
+    "bg_07_beach_run.png",
+    "bg_04_ocean_waves.png"
   ],
   "recent_bg_videos": [
     "reel_04_mountain_walk.mp4",
