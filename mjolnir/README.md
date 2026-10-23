@@ -95,7 +95,7 @@ stylesheet, and the game falls back to system fonts without it.)
 - **Trophy Hall**: trophies are a reward for playing again. During the first journey nothing is counted and the hall
   is hidden. Taking Mjölnir back for the first time earns the first trophy, Worthy of Mjölnir, and opens the hall on the
   title screen. Each trophy has its own painted cup (FLUX.2 Klein on Cloudflare Workers AI, `tools/trophy_cups.py`,
-  `tools/build_trophies.py`) themed to it, with its rune engraved on the cup's plaque. Counting trophies (wolves, eagles, gems, sheep jumps, Allfather...) show a gold progress bar
+  `tools/build_trophies.py`) themed to it, with its rune carved into the metal (grooves, shading and inlay, `tools/carve_trophy_runes.py`). Counting trophies (wolves, eagles, gems, sheep jumps, Allfather...) show a gold progress bar
   and "12 / 20" in the hall. There is one trophy for each of the 24 runes of the Elder Futhark, all named from the myths (Andvari's
   Hoard, Mímir's Eye, Baldr's Blessing, Gullinbursti's Fall, Rán's Net, Brísingamen, Einherjar's Feast and more), plus one cursed trophy, the Angel of
   Death, for losing 5 lives in a single stage, and the Allfather's trophy for earning all the others, the cursed one included. Locked trophies are greyed out but say how to earn them.
