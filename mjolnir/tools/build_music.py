@@ -22,6 +22,7 @@ TRACKS = {
     'hero': ('heldenthema_b.mp3', 4.0, 103, 28, 4),
     'adventure': ('abenteuer.mp3', 60.0, 144, 42, 4),
     'vanaheim': ('vanaheim.mp3', 10.0, 103, 26, 4),
+    'anthem': ('anthem.mp3', 0.0, 100, 1, 4),
     'cold': ('kaelte_und_tod.mp3', 6.5, 99, 25, 4),
     'fire': ('feuer_und_sturm.mp3', 2.0, 112, 30, 4),
     'rainbow': ('regenbogen_bier.mp3', 13.0, 152, 7, 4),
@@ -32,6 +33,7 @@ SEAMS = {  # found with tools/find_loop.py
     'hero': (11.447, 55.4522),
     'adventure': (110.016, 51.4380),
     'vanaheim': (21.107, 41.7205),
+    'anthem': (68.429, 46.2280),
     'cold': (20.0, 43.1844),  # the build-up to the final climax made the bar-count loop jump from loud to quiet
     'fire': (21.664, 47.0756),
 }

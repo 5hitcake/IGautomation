@@ -12,8 +12,8 @@ lightning storms), seeded so they are the same every time and getting harder eac
 screen lets you replay any unlocked stage.
 
 The art style is dark, misty chibi-anime: ink-outlined characters with big anime eyes, layered moonlit landscapes,
-fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly, wild-haired shapeshifter with ram horns and seiðr-green flame. The soundtrack is six recorded tracks (made with the music AI Donna, originals in `assets/raw/music/`), cut into
-seamless loops by `tools/build_music.py`: a hero theme (title, Asgard, Valhalla), adventure (Midgard, Alfheim), Vanaheim's own playful theme, cold and death (Jötunheim, Járnviðr, Niflheim, Helheim), fire and storm (Muspelheim, Ægir's Sea,
+fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly, wild-haired shapeshifter with ram horns and seiðr-green flame. The soundtrack is seven recorded tracks (made with the music AI Donna, originals in `assets/raw/music/`), cut into
+seamless loops by `tools/build_music.py`: a hero theme (title, Asgard, Valhalla), an anthem for Midgard, adventure (Alfheim), Vanaheim's own playful theme, cold and death (Jötunheim, Járnviðr, Niflheim, Helheim), fire and storm (Muspelheim, Ægir's Sea,
 Svartalfheim), each realm playing its track a touch faster or slower, and a fast track for the Rainbow Rush.
 Without them the game falls back to its own music, epic quest music rendered once per realm into a seamless loop: a driving string ostinato,
 war drums and toms, a heroic horn melody, choir and cymbals, with its own chord progression per realm.
