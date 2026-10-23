@@ -5509,7 +5509,10 @@ const DT = 1 / 120;
 function syncMusic() {
   if (!Sound.ctx) return;
   // the recorded soundtrack: five tracks shared out between the realms, each played a touch faster or slower
-  const rec = G.state === 'title' ? ['hero', .96] : realmTrack(G.level);
+  let rec = G.state === 'title' ? ['hero', .96] : realmTrack(G.level);
+  // the main menu song plays on the title screen and in the very last stage, Asgard 11-3 (once it is recorded)
+  const finale = G.state !== 'title' && G.level === LEVELS.length - 1 && G.stage === STAGES - 1;
+  if ((G.state === 'title' || finale) && Music.hasTrack('menu')) rec = ['menu', 1];
   if (rec && Music.hasTrack(rec[0])) { Music.play(rec[0], rec[1]); return; }
   const spec = G.state === 'title' ? TITLE_MUSIC : realmMusic(G.level);
   if (Music.key(spec) !== Music.want) Music.set(...spec);
