@@ -77,7 +77,20 @@ for i, k in enumerate(ids):
     bb = im.getbbox(); im = im.crop(bb)
     s = H / im.height; im = im.resize((max(1, round(im.width * s)), H), Image.LANCZOS)
     px, py, pr = plaques[k]
-    pts[str(i)] = {'plaque': [round((px * src.width - bb[0]) * s / im.width, 4), round((py * src.height - bb[1]) * s / H, 4), round(pr * src.width * s / H, 4)]}
+    plx, ply = (px * src.width - bb[0]) * s, (py * src.height - bb[1]) * s
+    # centre the rune on the cup's body: at the plaque's height (and a little above and below) take the solid
+    # run of pixels around the plaque, so asymmetric handles or figures do not pull it sideways
+    al = np.asarray(im.getchannel('A')) > 128; mids = []
+    for yy_ in (ply - 8, ply, ply + 8):
+        row = al[int(min(max(yy_, 0), H - 1))]; x_ = int(plx)
+        if not row[x_]: continue
+        l = x_
+        while l > 0 and row[l - 1]: l -= 1
+        r_ = x_
+        while r_ < len(row) - 1 and row[r_ + 1]: r_ += 1
+        mids.append((l + r_) / 2)
+    cxp = sorted(mids)[len(mids) // 2] if mids else plx
+    pts[str(i)] = {'plaque': [round(cxp / im.width, 4), round(ply / H, 4), round(pr * src.width * s / H, 4)]}
     parts.append(im)
 W = sum(p.width for p in parts) + 4 * len(parts)
 atlas = Image.new('RGBA', (W, H), (0, 0, 0, 0))
