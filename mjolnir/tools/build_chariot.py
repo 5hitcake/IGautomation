@@ -91,23 +91,35 @@ def black_metal(k):
     for _ in range(3):   # a cheap 7 px box blur
         dk = (dk + np.roll(dk, 3, 0) + np.roll(dk, -3, 0) + np.roll(dk, 3, 1) + np.roll(dk, -3, 1)) / 5
     bfur = team & (s < .35) & (v < .5) & (v > .05) & (dk > .7) & (xx > 840) & ~iris
-    lift = (np.stack([v, v, v], -1) * 1.0 + .5).clip(0, .95) * np.array([.95, .95, .97])
+    lift = (np.stack([v, v, v], -1) * 1.0 + .55).clip(0, .96) * np.array([.95, .95, .97])
     out[bfur] = lift[bfur]
-    # the black eye patches: around each eye and back towards the ear; the blaze and muzzle stay white
+    # the black eye masks (like corpse paint, or a border collie): an almond around each eye that sweeps back and a
+    # little up towards the ear, soft at the rim, with the fur texture still showing through the black
+    def blob(cx, cy, rx, ry, ang):
+        c, sn = np.cos(ang), np.sin(ang); dx, dy = xx - cx, yy - cy
+        d = np.sqrt(((dx * c + dy * sn) / rx) ** 2 + ((-dx * sn + dy * c) / ry) ** 2)
+        return np.clip((1 - d - fray) * 6, 0, 1)
+    # a frayed, furry rim: the edge follows the painted fur strokes (and a little noise), not a clean oval
+    rng = np.random.default_rng(7)
+    fray = (v - .75) * .5 + rng.normal(0, .06, v.shape)
     patch = np.zeros(v.shape)
     for ex, ey in (ew, eb):
-        # a crisp mask over the eye, reaching back and up towards the ear (the blaze in front of the eye stays white)
-        d = np.sqrt(((xx - (ex - 8)) / 22) ** 2 + ((yy - (ey - 3)) / 13) ** 2)
-        patch = np.maximum(patch, np.clip((1 - d) * 5, 0, 1))
-    patch = patch * team
+        patch = np.maximum(patch, blob(ex, ey - 1, 16.5, 11.5, -.1))
+        patch = np.maximum(patch, blob(ex - 20, ey - 7, 22, 10, .4))
+    patch *= team
+    tex = np.stack([v, v, v], -1)
+    ink = (.03 + .09 * tex) * np.array([.95, .95, 1])
     legs = np.clip((yy - 440) / 45, 0, 1) * .8 * team
-    shade = np.maximum(patch * .95, legs)
-    out = out * (1 - shade[..., None]) + np.array([.04, .04, .05]) * shade[..., None]
-    # the eyes painted back on top of the mask: an amber iris with a black pupil and a glint
+    out = out * (1 - legs[..., None]) + np.array([.04, .04, .05]) * legs[..., None]
+    out = out * (1 - patch[..., None]) + ink * patch[..., None]
+    # the eyes painted back on top: a small almond-shaped amber eye with the goat's sideways pupil and a glint
     for ex, ey in (ew, eb):
-        d = np.sqrt((xx - ex) ** 2 + (yy - ey) ** 2)
-        out[d < 5.5] = [.86, .52, .12]; out[d < 2.6] = [.03, .02, .02]
-        out[(np.abs(xx - ex - 1.5) < 1.2) & (np.abs(yy - ey + 2) < 1.2)] = [1, .95, .8]
+        eye = ((xx - ex) / 5.8) ** 2 + ((yy - ey) / 4.2) ** 2
+        out[eye < 1.35] = [.06, .04, .03]
+        iris = eye < 1
+        out[iris] = (np.array([.95, .62, .16]) * (1.05 - .35 * np.clip((yy - ey + 3) / 6, 0, 1))[..., None])[iris]
+        out[iris & (np.abs(yy - ey) < .8) & (np.abs(xx - ex) < 2.4)] = [.03, .02, .02]
+        out[(np.abs(xx - ex - 2) < 1) & (np.abs(yy - ey + 1.6) < .9)] = [1, .96, .85]
     a[..., :3] = out * 255
     return a.round().clip(0, 255).astype(np.uint8)
 
