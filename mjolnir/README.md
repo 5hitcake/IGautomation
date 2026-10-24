@@ -19,7 +19,8 @@ green eyes from `tools/eye_colour.py`. The soundtrack is seven recorded tracks (
 seamless loops by `tools/build_music.py`: a Valhalla triumph (title screen, Asgard 11-3 and the hidden Valhalla realm: two epic orchestral pieces made with MiniMax Music on Hugging Face,
 joined on the beat into `assets/raw/music/triumph.mp3`), a hero theme (Asgard), an anthem for Midgard, adventure (Alfheim), Vanaheim's own playful theme, cold and death (Jötunheim, Járnviðr, Niflheim, Helheim), fire and storm (Muspelheim, Ægir's Sea,
 Svartalfheim), each realm playing its track a touch faster or slower, and a fast track for the Rainbow Rush.
-In Járnviðr Thor rides a compact goat chariot drawn by Tanngrisnir and Tanngnjóstr (the stages are unchanged): a small cart with
+In Járnviðr Thor rides a compact goat chariot drawn by Tanngrisnir and Tanngnjóstr (the stages are unchanged), the goats white with
+black eye masks and brown horns of their own, as in the old paintings: a small cart with
 the two goats pulled right up against it, only about twice his length, the team galloping through three painted phases
 (`tools/build_chariot.py` from `assets/raw/chariot_gallop0..2.png`, a Z-Image painting and two FLUX.1 Kontext edits). At the goal he
 hops off and leaves it standing behind him.
