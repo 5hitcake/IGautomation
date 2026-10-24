@@ -166,3 +166,18 @@ for coat in ['calico', 'orange', 'tuxedo']:
     if sheet.exists():
         Image.fromarray(sheet_row(sheet).astype('uint8')).save(RAW / f'cat_{coat}.png')
         print(coat, 'sheet used')
+
+# the ginger tom must read as orange only: his dark brown stripes are lifted to a deep orange and the whole
+# coat warmed and brightened; only the true black ink outlines (and eyes, nose) stay dark
+o = np.asarray(Image.open(RAW / 'cat_orange.png').convert('RGB')).astype(float) / 255
+import colorsys
+mx, mn = o.max(-1), o.min(-1); lum = (mx + mn) / 2
+fur = (mn < .93) & (lum > .13) & (o[..., 0] >= o[..., 2])
+outv = o.copy()
+for yy, xx in zip(*np.where(fur)):
+    h_, l_, s_ = colorsys.rgb_to_hls(*o[yy, xx])
+    if h_ > .2 and h_ < .9: continue  # eyes, nose and tongue keep their colours
+    l2 = .26 + l_ * .72 if l_ < .45 else min(.88, l_ * 1.08)
+    outv[yy, xx] = colorsys.hls_to_rgb(.072, l2, min(1, max(s_, .78)))
+Image.fromarray((outv * 255).round().astype('uint8')).save(RAW / 'cat_orange.png')
+print('ginger coat brightened')

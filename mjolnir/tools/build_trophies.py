@@ -73,6 +73,10 @@ for i, k in enumerate(ids):
     from PIL import ImageFilter
     al = Image.fromarray(a[..., 3]); op = al.filter(ImageFilter.MinFilter(7)).filter(ImageFilter.MaxFilter(9))
     a[..., 3] = np.minimum(a[..., 3], np.asarray(op))
+    # no paper-white patches left on the cup: blown-out highlights and pearl plaques become a warm polished silver
+    rgb = a[..., :3].astype(float); hi = rgb.min(-1)
+    k_ = np.clip((hi - 205) / 50, 0, 1)[..., None] * (a[..., 3:] > 0)
+    a[..., :3] = (rgb * (1 - k_) + rgb * np.array([.9, .87, .8]) * k_).astype(np.uint8)
     im = Image.fromarray(a)
     bb = im.getbbox(); im = im.crop(bb)
     s = H / im.height; im = im.resize((max(1, round(im.width * s)), H), Image.LANCZOS)

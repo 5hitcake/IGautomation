@@ -26,6 +26,7 @@ TRACKS = {
     'cold': ('kaelte_und_tod.mp3', 6.5, 99, 25, 4),
     'fire': ('feuer_und_sturm.mp3', 2.0, 112, 30, 4),
     'rainbow': ('regenbogen_bier.mp3', 13.0, 152, 7, 4),
+    'menu': ('triumph.mp3', 0.0, 120, 38, 4),  # the Valhalla triumph: title screen, Asgard 11-3 and the hidden bonus realm
 }
 # hand-found seams (start s, loop length s) where a track's own repetition lines up: found by comparing
 # 6 s of spectrum and loudness around every pair of points and then aligning the beats at the best pair
@@ -36,6 +37,7 @@ SEAMS = {  # found with tools/find_loop.py
     'anthem': (68.429, 46.2280),
     'cold': (20.0, 43.1844),  # the build-up to the final climax made the bar-count loop jump from loud to quiet
     'fire': (21.664, 47.0756),
+    'menu': (0.0, 76.0),  # two Valhalla pieces in D at 120 bpm joined on the beat; loops back from the second into the first
 }
 
 

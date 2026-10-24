@@ -13,8 +13,14 @@ screen lets you replay any unlocked stage.
 
 The art style is dark, misty chibi-anime: ink-outlined characters with big anime eyes, layered moonlit landscapes,
 fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly, wild-haired shapeshifter with ram horns and seiðr-green flame. The soundtrack is seven recorded tracks (made with the music AI Donna, originals in `assets/raw/music/`), cut into
-seamless loops by `tools/build_music.py`: a hero theme (title, Asgard, Valhalla), an anthem for Midgard, adventure (Alfheim), Vanaheim's own playful theme, cold and death (Jötunheim, Járnviðr, Niflheim, Helheim), fire and storm (Muspelheim, Ægir's Sea,
+seamless loops by `tools/build_music.py`: a Valhalla triumph (title screen, Asgard 11-3 and the hidden Valhalla realm: two epic orchestral pieces made with MiniMax Music on Hugging Face,
+joined on the beat into `assets/raw/music/triumph.mp3`), a hero theme (Asgard), an anthem for Midgard, adventure (Alfheim), Vanaheim's own playful theme, cold and death (Jötunheim, Járnviðr, Niflheim, Helheim), fire and storm (Muspelheim, Ægir's Sea,
 Svartalfheim), each realm playing its track a touch faster or slower, and a fast track for the Rainbow Rush.
+The animals have real voices, cut by `tools/cut_sfx.py` from field recordings on Wikimedia Commons (originals in `assets/raw/sfx/`):
+the sheep's "baaaah" when Thor bounces on it ("Sheep bleating", earthcalling, public domain), a wolf howl when a wolf first
+steps onto the screen ("Wolf howls", U.S. Fish and Wildlife Service, public domain) and the raven's angry caw as it dives
+(Yellowstone sound library, National Park Service, public domain). The eagle's screech before its swoop, the serpent's long hiss
+when it appears and before it strikes, and the boar's heavy breathing before it charges are synthesized.
 Without them the game falls back to its own music, epic quest music rendered once per realm into a seamless loop: a driving string ostinato,
 war drums and toms, a heroic horn melody, choir and cymbals, with its own chord progression per realm.
 
