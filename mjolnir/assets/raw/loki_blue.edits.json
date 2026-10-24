@@ -1,0 +1,23 @@
+{
+ "_doc": "Per-frame fixes in raw frame pixels (after keying and splitting). points: named spots the game attaches things to.",
+ "2": {
+  "points": {
+   "handL": [
+    167,
+    23
+   ],
+   "handR": [
+    292,
+    23
+   ]
+  }
+ },
+ "3": {
+  "points": {
+   "hands": [
+    466,
+    244
+   ]
+  }
+ }
+}

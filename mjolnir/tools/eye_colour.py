@@ -3,7 +3,7 @@
 In each frame's head region the iris pixels are picked by their original hue, kept only where they touch the
 white of an eye (so a glint on armour or a gold headband stays), and given the new hue with the painted shading;
 the darkest iris pixels become a black pupil, so the eyes keep their normal dark centre.
-Usage: python3 mjolnir/tools/eye_colour.py   (works from assets/raw/<name>_orig_eyes.webp, the untouched atlases)
+Usage: python3 mjolnir/tools/eye_colour.py   (works from assets/raw/<name>_orig_eyes.webp, the atlases straight from prepare_sprite)
 """
 import colorsys
 import json
@@ -20,7 +20,7 @@ meta = json.loads((ASSETS / 'sprites.json').read_text())
 JOBS = {
     'thor': (lambda r, g, b, h, s, l: (b > r + .08) & (b >= g * .95) & (s > .22), .34, 1.0, (1.25, .12)),
     'thorpose': (lambda r, g, b, h, s, l: (b > r + .08) & (b >= g * .95) & (s > .22), .34, 1.0, (1.25, .12)),
-    'loki': (lambda r, g, b, h, s, l: (((g >= r * .9) & (b < g * .92)) | ((b < r * .45) & (g > r * .6))) & (l > .12) & (l < .8) & (g > .2), .62, .8, (.55, .03)),
+    # Loki's eyes are set in tools/loki_finish.py since his blue-and-black repaint
 }
 EYE_BOXES = {'loki': [(74, 60, 87, 74), (263, 72, 280, 87), (383, 52, 400, 66), (505, 82, 521, 92)]}
 for name, (pick, hue, sat, (lmul, ladd)) in JOBS.items():
@@ -55,7 +55,7 @@ for name, (pick, hue, sat, (lmul, ladd)) in JOBS.items():
                     if 0 <= ny < H_ and 0 <= nx < W_:
                         touch |= white[ny, nx]
                         if m[ny, nx] and not seen[ny, nx] and abs(ny - y_) <= 1 and abs(nx - x_) <= 1: seen[ny, nx] = True; q.append((ny, nx))
-        if touch and len(comp) <= 70:
+        if touch and len(comp) <= 160:
             for y_, x_ in comp: keep[y_, x_] = True
     out = a.copy()
     for yy, xx in zip(*np.where(keep)):

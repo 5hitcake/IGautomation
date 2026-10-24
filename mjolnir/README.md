@@ -12,7 +12,10 @@ lightning storms), seeded so they are the same every time and getting harder eac
 screen lets you replay any unlocked stage.
 
 The art style is dark, misty chibi-anime: ink-outlined characters with big anime eyes, layered moonlit landscapes,
-fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly, wild-haired shapeshifter with ram horns and seiðr-green flame. The soundtrack is seven recorded tracks (made with the music AI Donna, originals in `assets/raw/music/`), cut into
+fog, glowing runes and fireflies. Loki follows the old myths rather than Marvel: a sly shapeshifter with wild black hair, ram horns, dark blue eyes, a royal-blue cloak over black leather and blue seiðr flame
+(repainted from the green original with FLUX.2 edits, `assets/raw/loki_blue.png`, finished by `tools/loki_finish.py`). Thor wears dark
+earthy colours: green mail, brown trousers and a burnt-orange cloak (`assets/raw/thor_earth.png`, `thorpose_earth.png`), with bright
+green eyes from `tools/eye_colour.py`. The soundtrack is seven recorded tracks (made with the music AI Donna, originals in `assets/raw/music/`), cut into
 seamless loops by `tools/build_music.py`: a Valhalla triumph (title screen, Asgard 11-3 and the hidden Valhalla realm: two epic orchestral pieces made with MiniMax Music on Hugging Face,
 joined on the beat into `assets/raw/music/triumph.mp3`), a hero theme (Asgard), an anthem for Midgard, adventure (Alfheim), Vanaheim's own playful theme, cold and death (Jötunheim, Járnviðr, Niflheim, Helheim), fire and storm (Muspelheim, Ægir's Sea,
 Svartalfheim), each realm playing its track a touch faster or slower, and a fast track for the Rainbow Rush.
