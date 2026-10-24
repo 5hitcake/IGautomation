@@ -19,9 +19,12 @@ green eyes from `tools/eye_colour.py`. The soundtrack is seven recorded tracks (
 seamless loops by `tools/build_music.py`: a Valhalla triumph (title screen, Asgard 11-3 and the hidden Valhalla realm: two epic orchestral pieces made with MiniMax Music on Hugging Face,
 joined on the beat into `assets/raw/music/triumph.mp3`), a hero theme (Asgard), an anthem for Midgard, adventure (Alfheim), Vanaheim's own playful theme, cold and death (Jötunheim, Járnviðr, Niflheim, Helheim), fire and storm (Muspelheim, Ægir's Sea,
 Svartalfheim), each realm playing its track a touch faster or slower, and a fast track for the Rainbow Rush.
+In Járnviðr Thor rides his goat chariot, drawn by Tanngrisnir and Tanngnjóstr, the way he sails the longship over Ægir's sea: the
+stages are unchanged, he stands at the front rail while the goats gallop (three painted phases, `tools/build_chariot.py` from
+`assets/raw/chariot_gallop0..2.png`, a Z-Image painting and two FLUX.1 Kontext edits), and he leaves it parked behind him at the goal.
 The animals have real voices, cut by `tools/cut_sfx.py` from field recordings on Wikimedia Commons (originals in `assets/raw/sfx/`):
-the sheep's "baaaah" when Thor bounces on it ("Sheep bleating", earthcalling, public domain), a wolf howl when a wolf first
-steps onto the screen ("Wolf howls", U.S. Fish and Wildlife Service, public domain) and the raven's angry caw as it dives
+a short, high lamb's bleat when Thor bounces on a sheep ("Sheep bleating", earthcalling, public domain, cut short and pitched up),
+now and then a wolf howling far off in the woods when a wolf steps onto the screen (muffled and quiet) ("Wolf howls", U.S. Fish and Wildlife Service, public domain) and the raven's angry caw as it dives
 (Yellowstone sound library, National Park Service, public domain). The eagle's screech before its swoop, the serpent's long hiss
 when it appears and before it strikes, and the boar's heavy breathing before it charges are synthesized.
 Without them the game falls back to its own music, epic quest music rendered once per realm into a seamless loop: a driving string ostinato,

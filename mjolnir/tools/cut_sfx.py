@@ -15,7 +15,7 @@ OUT = ROOT / 'assets' / 'sounds'
 SR = 44100
 # name: (source, start s, end s, fade in s, fade out s, peak)
 CLIPS = {
-    'sheep_baa': ('Sheep_bleating.ogg', 5.30, 7.65, .02, .35, .9),
+    'sheep_baa': ('Sheep_bleating.ogg', 5.30, 6.35, .02, .25, .9),   # short: the game plays it pitched up like a lamb
     'wolf_howl': ('Wolf_howls.ogg', 0.0, 2.6, .25, .9, .8),
     'raven_caw': ('Yellowstone_sound_library_-_Common_Raven_-_001.mp3', 7.33, 8.20, .01, .08, .9),
 }
