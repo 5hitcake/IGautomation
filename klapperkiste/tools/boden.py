@@ -6,7 +6,7 @@ eine Kachel heraus, blendet die Ränder weich über (damit sich die Kachel ohne
 Kante wiederholt) und rechnet sie auf den Kartenmaßstab um (32 px pro Meter).
 
 Aufruf:
-  python klapperkiste/tools/boden.py kachel EINGABE NAME [--meter 8]
+  python klapperkiste/tools/boden.py kachel EINGABE NAME [--meter 8] [--ohne-erde]
   python klapperkiste/tools/boden.py probe NAME [ausgabe.png]
 
 Ergebnis: assets/karte/boden/NAME.png
@@ -18,7 +18,7 @@ import argparse
 import os
 import sys
 
-from PIL import Image, ImageChops, ImageDraw, ImageStat
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageStat
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BODEN_DIR = os.path.join(ROOT, "assets", "karte", "boden")
@@ -60,10 +60,27 @@ def nahtlos(kachel: Image.Image, anteil: float = UEBERGANG) -> Image.Image:
     return ImageChops.offset(gemischt, -(w // 2), -(h // 2))
 
 
-def kachel(eingabe: str, name: str, meter: float) -> str:
+def erde_weg(bild: Image.Image, versatz: tuple[int, int] = (97, 61)) -> Image.Image:
+    """Braune Erdstellen mit Gras von einer verschobenen Stelle der Kachel übermalen."""
+    rgb = bild.convert("RGB")
+    r, g, b = rgb.split()
+    rot_vor_gruen = ImageChops.subtract(r, g).point(lambda v: 255 if v > 0 else 0)
+    dunkel = g.point(lambda v: 255 if v < 110 else 0)  # Blumen (gelb, weiß) sind hell und bleiben
+    braun = ImageChops.multiply(rot_vor_gruen, dunkel)
+    braun = braun.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(3))
+    ersatz = ImageChops.offset(rgb, *versatz)
+    ersatz_braun = ImageChops.offset(braun, *versatz)
+    nutzbar = ImageChops.subtract(braun, ersatz_braun)  # nur wo die Ersatzstelle selbst grün ist
+    return Image.composite(ersatz, rgb, nutzbar)
+
+
+def kachel(eingabe: str, name: str, meter: float, ohne_erde: bool = False) -> str:
     bild = Image.open(eingabe).convert("RGB")
     px, py = periode(bild, "x"), periode(bild, "y")
     teil = nahtlos(bild.crop((0, 0, px, py)))
+    if ohne_erde:
+        for v in ((97, 61), (-131, 83), (53, -149)):
+            teil = erde_weg(teil, v)
     ziel_px = round(meter * PX_PRO_M)
     teil = teil.resize((ziel_px, ziel_px), Image.LANCZOS)
     os.makedirs(BODEN_DIR, exist_ok=True)
@@ -95,13 +112,14 @@ def main(argv: list[str] | None = None) -> int:
     k.add_argument("eingabe")
     k.add_argument("name")
     k.add_argument("--meter", type=float, default=8, help="Kantenlänge der Kachel in Metern (Standard 8)")
+    k.add_argument("--ohne-erde", action="store_true", help="braune Erdstellen übermalen (z. B. für Gras)")
     pr = sub.add_parser("probe")
     pr.add_argument("name")
     pr.add_argument("ausgabe", nargs="?")
     pr.add_argument("--auto", help="Draufsicht eines Autos als Größenvergleich")
     args = p.parse_args(argv)
     if args.befehl == "kachel":
-        kachel(args.eingabe, args.name, args.meter)
+        kachel(args.eingabe, args.name, args.meter, args.ohne_erde)
     else:
         ziel = args.ausgabe or os.path.join(BODEN_DIR, f"probe_{args.name}.png")
         probe(args.name, args.auto).save(ziel)
