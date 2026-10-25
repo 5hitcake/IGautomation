@@ -85,6 +85,16 @@ Einzelbilder gehen weiterhin:
      radH=assets/teile/schubkarre/seite.png radV=assets/teile/schubkarre/seite.png
    ```
 5. Ablage: `klapperkiste/assets/teile/<teil-id>/seite.png` und `oben.png`.
+6. Stand aktualisieren: `python klapperkiste/tools/teilwerk.py geliefert` schreibt
+   `design/geliefert.js` (Prompt-Liste) und `design/teile.js` (volle Auflösung
+   für Fahrprobe und Spiel, wird nicht eingecheckt).
+
+Korrekturen beim Einpassen eines Doppelbilds:
+
+- `--kappen seite unten 27`: ungewollte Anbauten abschneiden (z. B. Bettrollen
+  unter dem Rahmen), Prozent vom Teil.
+- `--rot-grau oben`: rote Reste grau färben (z. B. Felge in der Rad-Draufsicht).
+- `einpassen ... --drehen 90`: Einzelbild drehen, wenn vorne nicht rechts ist.
 
 ## 4. Prompt-Vorlagen
 

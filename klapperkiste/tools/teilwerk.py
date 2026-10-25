@@ -152,7 +152,8 @@ def rot_entsaettigen(bild: Image.Image, abstand: int = 22) -> Image.Image:
 
 
 def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
-              toleranz: int = 40, inseln: bool = True) -> tuple[Image.Image, list[str]]:
+              toleranz: int = 40, inseln: bool = True,
+              freigestellt: bool = False) -> tuple[Image.Image, list[str]]:
     """Stellt frei, schneidet zu und setzt das Teil exakt in seine Rasterbox.
 
     Gibt das fertige Bild und eine Liste von Hinweisen zurück (z. B. wenn das
@@ -162,7 +163,7 @@ def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
     ziel_b, ziel_h = box_px(raster, kategorie, ansicht)
     anker_x, anker_y = kat["anker_seite" if ansicht == "seite" else "anker_oben"]
 
-    teil = freistellen(bild, toleranz, inseln)
+    teil = bild.convert("RGBA") if freigestellt else freistellen(bild, toleranz, inseln)
     rahmen = teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox()
     if not rahmen:
         raise ValueError("Im Bild wurde kein Teil gefunden (alles transparent).")
@@ -236,14 +237,30 @@ def blatt_teilen(bild: Image.Image, toleranz: int = 40,
     return teil.crop((0, 0, teil.width, mitte)), teil.crop((0, mitte, teil.width, teil.height))
 
 
+def kappen(teil: Image.Image, kante: str, prozent: float) -> Image.Image:
+    """Schneidet vom freigestellten Teil an einer Kante einen Anteil ab, z. B.
+    ungewollte Rollen unter einem Rahmen ('unten', 27). Prozent beziehen sich
+    auf das zugeschnittene Teil, nicht auf das ganze Bild."""
+    rahmen = teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox()
+    teil = teil.crop(rahmen) if rahmen else teil
+    b, h = teil.size
+    weg_x, weg_y = round(b * prozent / 100), round(h * prozent / 100)
+    box = {"oben": (0, weg_y, b, h), "unten": (0, 0, b, h - weg_y),
+           "links": (weg_x, 0, b, h), "rechts": (0, 0, b - weg_x, h)}[kante]
+    return teil.crop(box)
+
+
 def blatt_einpassen(bild: Image.Image, raster: dict, kategorie: str, toleranz: int = 40,
-                    inseln: bool = True) -> dict[str, tuple[Image.Image, list[str]]]:
-    """Doppelbild teilen und beide Ansichten auf ihre Rastergröße bringen."""
-    seite, oben = blatt_teilen(bild, toleranz, inseln)
-    return {
-        "seite": einpassen(seite, raster, kategorie, "seite", toleranz, inseln),
-        "oben": einpassen(oben, raster, kategorie, "oben", toleranz, inseln),
-    }
+                    inseln: bool = True,
+                    schnitte: list[tuple[str, str, float]] = ()) -> dict[str, tuple[Image.Image, list[str]]]:
+    """Doppelbild teilen und beide Ansichten auf ihre Rastergröße bringen.
+
+    schnitte: (ansicht, kante, prozent), z. B. ("seite", "unten", 27).
+    """
+    ansichten = dict(zip(("seite", "oben"), blatt_teilen(bild, toleranz, inseln)))
+    for ansicht, kante, prozent in schnitte:
+        ansichten[ansicht] = kappen(ansichten[ansicht], kante, prozent)
+    return {a: einpassen(t, raster, kategorie, a, freigestellt=True) for a, t in ansichten.items()}
 
 
 # --- Vorlagen -----------------------------------------------------------------
@@ -391,6 +408,7 @@ def alle_vorlagen(raster: dict, ziel: str = VORLAGEN_DIR) -> list[str]:
 
 TEILE_DIR = os.path.join(ROOT, "assets", "teile")
 GELIEFERT_JS = os.path.join(ROOT, "design", "geliefert.js")
+TEILE_JS = os.path.join(ROOT, "design", "teile.js")
 
 
 def lieferstand(raster: dict, teile_dir: str = TEILE_DIR) -> dict:
@@ -424,11 +442,24 @@ def lieferstand(raster: dict, teile_dir: str = TEILE_DIR) -> dict:
     return stand
 
 
-def schreibe_lieferstand(raster: dict, ziel: str = GELIEFERT_JS) -> int:
+def _data_uri(pfad: str) -> str:
+    with open(pfad, "rb") as f:
+        return "data:image/png;base64," + base64.b64encode(f.read()).decode("ascii")
+
+
+def schreibe_lieferstand(raster: dict, ziel: str = GELIEFERT_JS, teile_ziel: str = TEILE_JS) -> int:
+    """Schreibt geliefert.js (Vorschau + Notiz für die Prompt-Liste) und
+    teile.js (alle Teile in voller Auflösung für Fahrprobe und Spiel)."""
     stand = lieferstand(raster)
+    kopf = "// Automatisch erzeugt von tools/teilwerk.py geliefert. Nicht von Hand ändern.\n"
     with open(ziel, "w", encoding="utf-8") as f:
-        f.write("// Automatisch erzeugt von tools/teilwerk.py geliefert. Nicht von Hand ändern.\n")
-        f.write("window.GELIEFERT = " + json.dumps(stand, ensure_ascii=False, indent=1) + ";\n")
+        f.write(kopf + "window.GELIEFERT = " + json.dumps(stand, ensure_ascii=False, indent=1) + ";\n")
+    voll = {}
+    for schluessel in stand:
+        teil_id, ansicht = schluessel.rsplit("_", 1)
+        voll[schluessel] = _data_uri(os.path.join(TEILE_DIR, teil_id, f"{ansicht}.png"))
+    with open(teile_ziel, "w", encoding="utf-8") as f:
+        f.write(kopf + "window.TEILE = " + json.dumps(voll, indent=1) + ";\n")
     return len(stand)
 
 
@@ -455,6 +486,8 @@ def main(argv: list[str] | None = None) -> int:
     bl.add_argument("kategorie")
     bl.add_argument("--toleranz", type=int, default=40)
     bl.add_argument("--keine-inseln", action="store_true")
+    bl.add_argument("--kappen", nargs=3, action="append", default=[], metavar=("ANSICHT", "KANTE", "PROZENT"),
+                    help="Rand abschneiden, z. B. --kappen seite unten 27 (wiederholbar)")
     bl.add_argument("--rot-grau", choices=["seite", "oben"],
                     help="Rote Stellen in dieser Ansicht grau färben (z. B. Felgenrest in der Draufsicht)")
     bb = sub.add_parser("bauen", help="Teile zu einem Auto zusammensetzen")
@@ -480,8 +513,9 @@ def main(argv: list[str] | None = None) -> int:
     elif args.befehl == "blatt":
         ziel = os.path.join(TEILE_DIR, args.teil_id)
         os.makedirs(ziel, exist_ok=True)
+        schnitte = [(a, k, float(p)) for a, k, p in args.kappen]
         ergebnis = blatt_einpassen(Image.open(args.eingabe), raster, args.kategorie, args.toleranz,
-                                   not args.keine_inseln)
+                                   not args.keine_inseln, schnitte)
         for ansicht, (fertig, hinweise) in ergebnis.items():
             if args.rot_grau == ansicht:
                 fertig = rot_entsaettigen(fertig)

@@ -58,7 +58,7 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
   <header style="display:grid;gap:8px">
     <p class="eyebrow">Probe mit den echten Teilen</p>
     <h1>Klapperkiste Fahrprobe</h1>
-    <p class="lead">Motor und Schubkarrenräder aus deinen Bildern, eingepasst ins Raster. Der Rahmen ist noch ein Platzhalter.</p>
+    <p class="lead">Rahmen, Motor und Schubkarrenräder aus deinen Bildern, eingepasst ins Raster. Die Achsen in der Draufsicht zeichnet das Spiel selbst.</p>
   </header>
 
   <section class="stage">
@@ -95,9 +95,11 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 </div>
 
 <script src="geliefert.js"></script>
+<script src="teile.js"></script>
 <script>
 (function () {
   const G = window.GELIEFERT || {};
+  const FULL = window.TEILE || {};
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const CELL = 128; // Rasterzelle in Pixeln, siehe assets/raster.json
 
@@ -107,11 +109,12 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 
   function load(key) {
     return new Promise((ok, fail) => {
-      if (!G[key]) return fail(new Error("Fehlt: " + key));
+      const src = FULL[key] || (G[key] && G[key].bild);
+      if (!src) return ok(null);
       const img = new Image();
       img.onload = () => ok(img);
       img.onerror = fail;
-      img.src = G[key].bild;
+      img.src = src;
     });
   }
 
@@ -194,7 +197,8 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
     ctx.restore();
   }
 
-  Promise.all(["schubkarre_oben", "schubkarre_seite", "maeher_oben", "maeher_seite"].map(load)).then(([wTop, wSide, mTop, mSide]) => {
+  Promise.all(["schubkarre_oben", "schubkarre_seite", "maeher_oben", "maeher_seite", "bettgestell_oben", "bettgestell_seite"].map(load)).then(([wTop, wSide, mTop, mSide, fTop, fSide]) => {
+    if (!wTop || !wSide || !mTop || !mSide) throw new Error("Motor und Räder");
     const rolling = makeRollingWheel(wTop);
     const speedIn = document.getElementById("speed"), steerIn = document.getElementById("steer"), autoIn = document.getElementById("auto");
     let dist = 0, last = 0;
@@ -217,8 +221,12 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
         }
       }
       const cell = CELL * s;
+      // Achsen: dunkle Stangen quer unter dem Rahmen, von Rad zu Rad
+      ctx.fillStyle = "#1d2730";
+      for (const ax of [2, 8]) ctx.fillRect(ox + ax * cell - 6 * s * 4, oy + 0.5 * cell, 12 * s * 4, 3 * cell);
       const [fx, fy, fw, fh] = TOP.frame;
-      placeholderFrame(ctx, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell, s);
+      if (fTop) ctx.drawImage(fTop, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell);
+      else placeholderFrame(ctx, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell, s);
       const tex = rolling(dist / 1.0 * (wTop.naturalWidth / (2 * CELL)));
       for (const [cx, cy, front] of TOP.wheels) {
         const bw = 2 * cell, bh = cell;
@@ -247,7 +255,8 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
       ctx.fillStyle = "rgba(255,240,210,0.25)";
       for (let x = -((dist * s) % step); x < w; x += step) ctx.fillRect(x, ground + 6, 18, 3);
       const [fx, fy, fw, fh] = SIDE.frame;
-      placeholderFrame(ctx, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell, s);
+      if (fSide) ctx.drawImage(fSide, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell);
+      else placeholderFrame(ctx, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell, s);
       const [mx, my, mw, mh] = SIDE.motor;
       const shake = reduce ? 0 : Math.sin(t * 50) * 0.8;
       ctx.drawImage(mSide, ox + mx * cell, oy + my * cell + shake, mw * cell, mh * cell);

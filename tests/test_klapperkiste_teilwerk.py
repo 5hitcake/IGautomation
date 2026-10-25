@@ -140,3 +140,16 @@ def test_rot_entsaettigen_faerbt_nur_rot(raster):
     r, g, b, a = neu.getpixel((0, 0))
     assert r == g == b and a == 255
     assert neu.getpixel((1, 0)) == (60, 60, 60, 255)
+
+
+def test_kappen_schneidet_rollen_unter_dem_rahmen_ab(raster):
+    roh = Image.new("RGB", (1000, 900), (255, 255, 255))
+    d = ImageDraw.Draw(roh)
+    d.rectangle((100, 100, 900, 200), fill=(90, 120, 80))  # Balken (Seite)
+    d.ellipse((120, 200, 180, 260), fill=(30, 30, 30))  # Rolle darunter
+    d.rectangle((100, 500, 900, 700), fill=(90, 120, 80))  # Draufsicht
+    ergebnis = teilwerk.blatt_einpassen(roh, raster, "rahmen", schnitte=[("seite", "unten", 38)])
+    seite, _ = ergebnis["seite"]
+    # Nach dem Abschneiden ist die ganze Box Balkenfarbe, keine schwarze Rolle mehr
+    r, g, b, a = seite.getpixel((10, seite.height - 3))
+    assert a == 255 and g > r
