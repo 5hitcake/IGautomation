@@ -106,6 +106,11 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
   in der Werkstatt darf man auch mischen und ausprobieren. Losfahren geht aber
   nur ohne Karosserie oder mit allen drei Teilen desselben Modells. Am Anfang
   fährt man ohne Karosserie (die Schrottkarre ist nur Rahmen, Motor, Sitz).
+  Ohne Karosserie hat das Auto **keine Fähigkeit**, mit komplettem Satz genau
+  die Fähigkeit dieses Modells. Halbe oder gemischte Karosserien fahren nicht.
+- **Offen, später durchdenken:** Nicht jedes Bauteil passt zu jeder Karosserie
+  (z. B. braucht ein schwerer Aufbau einen stärkeren Motor). Regeln dafür
+  legen wir fest, wenn die Teile Werte bekommen.
 - Die Karosserie wird **als Letztes** eingebaut, wenn das Auto fahrbereit ist,
   und muss als Erstes wieder ab.
 - Jeder Satz bringt seine Fähigkeit mit (Liste in `KAROSSERIEN.md`).
