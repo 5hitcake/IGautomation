@@ -137,9 +137,9 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     { id: "wohnwagen_hinten", kat: "karosserie_hinten", name: "Mini-Wohnwagen hinten" },
     { id: "wohnwagen_mitte", kat: "karosserie_mitte", name: "Mini-Wohnwagen Mitte" },
     { id: "wohnwagen_vorne", kat: "karosserie_vorne", name: "Mini-Wohnwagen vorne" },
-    { id: "weinfass_hinten", kat: "karosserie_hinten", name: "Weinfass hinten" },
-    { id: "weinfass_mitte", kat: "karosserie_mitte", name: "Weinfass Mitte" },
-    { id: "weinfass_vorne", kat: "karosserie_vorne", name: "Weinfass vorne" },
+    { id: "betonmischer_hinten", kat: "karosserie_hinten", name: "Betonmischer hinten" },
+    { id: "betonmischer_mitte", kat: "karosserie_mitte", name: "Betonmischer Mitte" },
+    { id: "betonmischer_vorne", kat: "karosserie_vorne", name: "Betonmischer vorne" },
     { id: "feuerwehr_hinten", kat: "karosserie_hinten", name: "Feuerwehr hinten" },
     { id: "feuerwehr_mitte", kat: "karosserie_mitte", name: "Feuerwehr Mitte" },
     { id: "feuerwehr_vorne", kat: "karosserie_vorne", name: "Feuerwehr vorne" },
@@ -219,6 +219,12 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     const src = FULL[`${p.id}_${v}`] || (G[`${p.id}_${v}`] && G[`${p.id}_${v}`].bild);
     if (!src) continue;
     const im = new Image(); im.src = src; IMG[`${p.id}_${v}`] = im;
+  }
+  // Anbauteile (z. B. Räumschild der Schneeraupe) kommen mit ihrem Teil automatisch mit
+  const ANBAU = Object.fromEntries(Object.entries(R.anbauten || {}).filter(([k]) => !k.startsWith("_")));
+  for (const a of Object.values(ANBAU)) for (const v of ["seite", "oben"]) {
+    const src = FULL[`${a.teil}_${v}`];
+    if (src) { const im = new Image(); im.src = src; IMG[`${a.teil}_${v}`] = im; }
   }
 
   const $ = (id) => document.getElementById(id);
@@ -398,6 +404,15 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     if (t0 && !reduce) k = Math.max(0, Math.min(1, (now - t0) / 380));
     const ease = 1 - Math.pow(1 - k, 3);
     const drop = (1 - ease) * L.cell * 1.2;
+    const anbau = ANBAU[state.mounted[slot]];
+    const aImg = anbau && IMG[`${anbau.teil}_${state.view}`];
+    if (aImg && aImg.complete) {
+      const [ax, ay, aw, ah] = anbau[state.view];
+      ctx.save();
+      ctx.globalAlpha = 0.3 + 0.7 * ease;
+      ctx.drawImage(aImg, L.ox + ax * L.cell, L.oy + ay * L.cell - drop, aw * L.cell, ah * L.cell);
+      ctx.restore();
+    }
     for (const r of rects(slot, L)) {
       ctx.save();
       ctx.globalAlpha = 0.3 + 0.7 * ease;
