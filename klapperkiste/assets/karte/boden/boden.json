@@ -2,5 +2,8 @@
   "_hinweis": "gerichtet: Pinselstriche laufen in eine Richtung, beim Mischen nur um 180 Grad drehen",
   "erde": {
     "gerichtet": true
+  },
+  "sand": {
+    "gerichtet": true
   }
 }

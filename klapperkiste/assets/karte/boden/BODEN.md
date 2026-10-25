@@ -9,3 +9,4 @@ Erzeugt mit `tools/boden.py kachel` aus den Rohbildern in `roh/`:
 | erde | `kachel roh/erde.jpg erde --wiederholung 512 --ausgleichen` |
 | schotter | `kachel roh/schotter.jpg schotter --meter 6 --ausgleichen` |
 | asphalt | `kachel roh/asphalt.jpg asphalt --meter 16 --wiederholung 1024 --ausgleichen --saettigung 0.45 --helligkeit 0.78` |
+| sand | `kachel roh/sand.jpg sand --meter 16 --wiederholung 1024 --ausgleichen` |
