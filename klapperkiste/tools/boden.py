@@ -8,6 +8,7 @@ Kante wiederholt) und rechnet sie auf den Kartenmaßstab um (32 px pro Meter).
 Aufruf:
   python klapperkiste/tools/boden.py kachel EINGABE NAME [--meter 8] [--ohne-erde]
   python klapperkiste/tools/boden.py probe NAME [ausgabe.png]
+  python klapperkiste/tools/boden.py flaeche gras_ruhig gras --ausgabe probe.png [--meter 32]
 
 Ergebnis: assets/karte/boden/NAME.png
 """
@@ -16,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import random
 import sys
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageStat
@@ -105,6 +107,60 @@ def probe(name: str, auto: str | None = None, meter: int = 32) -> Image.Image:
     return flaeche
 
 
+def _kachelflaeche(k: Image.Image, groesse: int) -> Image.Image:
+    flaeche = Image.new("RGB", (groesse, groesse))
+    for y in range(0, groesse, k.height):
+        for x in range(0, groesse, k.width):
+            flaeche.paste(k, (x, y))
+    return flaeche
+
+
+def _stempeln(flaeche: Image.Image, k: Image.Image, anzahl: int, rnd: random.Random) -> None:
+    """Gedrehte Ausschnitte der Kachel mit weichem Rand verstreut aufstempeln.
+    Bricht die sichtbare Wiederholung auf, ohne Kanten zu erzeugen."""
+    gross = _kachelflaeche(k, k.width * 2)
+    r = k.width // 2
+    maske = Image.new("L", (2 * r, 2 * r), 0)
+    ImageDraw.Draw(maske).ellipse((r * 0.25, r * 0.25, r * 1.75, r * 1.75), fill=255)
+    maske = maske.filter(ImageFilter.GaussianBlur(r * 0.25))
+    for _ in range(anzahl):
+        x0, y0 = rnd.randrange(k.width), rnd.randrange(k.height)
+        stueck = gross.crop((x0, y0, x0 + 2 * r, y0 + 2 * r)).rotate(rnd.choice((90, 180, 270)))
+        if rnd.random() < 0.5:
+            stueck = stueck.transpose(Image.FLIP_LEFT_RIGHT)
+        ziel = (rnd.randrange(-r, flaeche.width - r), rnd.randrange(-r, flaeche.height - r))
+        flaeche.paste(stueck, ziel, maske)
+
+
+def _rauschen(groesse: int, rnd: random.Random, zellen: int = 6) -> Image.Image:
+    """Weiche, großflächige Graustufen-Maske zum Mischen zweier Böden."""
+    klein = Image.new("L", (zellen, zellen))
+    klein.putdata([rnd.randrange(256) for _ in range(zellen * zellen)])
+    return klein.resize((groesse, groesse), Image.BICUBIC).filter(ImageFilter.GaussianBlur(groesse / 40))
+
+
+def flaeche(namen: list[str], meter: int = 32, seed: int = 1, auto: str | None = None) -> Image.Image:
+    """Fläche aus einem oder zwei Böden: verstreut gedreht gegen Wiederholung,
+    bei zwei Böden über eine weiche Rauschmaske gemischt."""
+    rnd = random.Random(seed)
+    groesse = meter * PX_PRO_M
+    lagen = []
+    for name in namen:
+        k = Image.open(os.path.join(BODEN_DIR, f"{name}.png")).convert("RGB")
+        f = _kachelflaeche(k, groesse)
+        _stempeln(f, k, anzahl=(meter // 4) ** 2, rnd=rnd)
+        lagen.append(f)
+    bild = lagen[0]
+    if len(lagen) > 1:
+        maske = _rauschen(groesse, rnd).point(lambda v: max(0, min(255, (v - 110) * 4)))
+        bild = Image.composite(lagen[1], lagen[0], maske)
+    if auto and os.path.exists(auto):
+        wagen = Image.open(auto).convert("RGBA")
+        wagen = wagen.resize((4 * PX_PRO_M, round(4 * PX_PRO_M * wagen.height / wagen.width)), Image.LANCZOS)
+        bild.paste(wagen, ((groesse - wagen.width) // 2, (groesse - wagen.height) // 2), wagen)
+    return bild
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="befehl", required=True)
@@ -117,9 +173,18 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("name")
     pr.add_argument("ausgabe", nargs="?")
     pr.add_argument("--auto", help="Draufsicht eines Autos als Größenvergleich")
+    fl = sub.add_parser("flaeche", help="Fläche gegen Wiederholung gedreht und gemischt")
+    fl.add_argument("namen", nargs="+", help="ein oder zwei Böden, z. B. gras_ruhig gras")
+    fl.add_argument("--ausgabe", required=True)
+    fl.add_argument("--meter", type=int, default=32)
+    fl.add_argument("--seed", type=int, default=1)
+    fl.add_argument("--auto")
     args = p.parse_args(argv)
     if args.befehl == "kachel":
         kachel(args.eingabe, args.name, args.meter, args.ohne_erde)
+    elif args.befehl == "flaeche":
+        flaeche(args.namen, args.meter, args.seed, args.auto).save(args.ausgabe)
+        print(os.path.relpath(args.ausgabe))
     else:
         ziel = args.ausgabe or os.path.join(BODEN_DIR, f"probe_{args.name}.png")
         probe(args.name, args.auto).save(ziel)
