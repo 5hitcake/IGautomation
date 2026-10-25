@@ -58,7 +58,7 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
   <header style="display:grid;gap:8px">
     <p class="eyebrow">Probe mit den echten Teilen</p>
     <h1>Klapperkiste Fahrprobe</h1>
-    <p class="lead">Rahmen, Motor und Schubkarrenräder aus deinen Bildern, eingepasst ins Raster. Die Achsen in der Draufsicht zeichnet das Spiel selbst.</p>
+    <p class="lead">Alle bisher gelieferten Teile der Schrottkarre, eingepasst ins Raster. Die Achsen in der Draufsicht zeichnet das Spiel selbst.</p>
   </header>
 
   <section class="stage">
@@ -106,6 +106,12 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
   // Plätze aus assets/raster.json (Draufsicht und Seite), in Zellen
   const TOP = { car: [10, 4], frame: [1, 1, 8, 2], motor: [1, 1, 2, 2], wheels: [[1, 0, false], [1, 3, false], [7, 0, true], [7, 3, true]] };
   const SIDE = { car: [10, 6], frame: [1, 4, 8, 1], motor: [1, 2, 2, 2], wheels: [[1, 4], [7, 4]] };
+  // Weitere Teile der Schrottkarre: erscheinen, sobald sie geliefert sind
+  const EXTRAS = [
+    { id: "giesskanne", top: [3, 1, 1, 2], side: [3, 2, 1, 2] },
+    { id: "kuechenstuhl", top: [4, 1, 2, 2], side: [4, 2, 2, 2] },
+    { id: "fahrradlenker", top: [6, 1, 1, 2], side: [6, 2, 1, 2] },
+  ];
 
   function load(key) {
     return new Promise((ok, fail) => {
@@ -197,8 +203,10 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
     ctx.restore();
   }
 
-  Promise.all(["schubkarre_oben", "schubkarre_seite", "maeher_oben", "maeher_seite", "bettgestell_oben", "bettgestell_seite"].map(load)).then(([wTop, wSide, mTop, mSide, fTop, fSide]) => {
+  const extraKeys = EXTRAS.flatMap((e) => [e.id + "_oben", e.id + "_seite"]);
+  Promise.all(["schubkarre_oben", "schubkarre_seite", "maeher_oben", "maeher_seite", "bettgestell_oben", "bettgestell_seite", ...extraKeys].map(load)).then(([wTop, wSide, mTop, mSide, fTop, fSide, ...extraImgs]) => {
     if (!wTop || !wSide || !mTop || !mSide) throw new Error("Motor und Räder");
+    EXTRAS.forEach((e, i) => { e.imgTop = extraImgs[i * 2]; e.imgSide = extraImgs[i * 2 + 1]; });
     const rolling = makeRollingWheel(wTop);
     const speedIn = document.getElementById("speed"), steerIn = document.getElementById("steer"), autoIn = document.getElementById("auto");
     let dist = 0, last = 0;
@@ -239,6 +247,11 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
       }
       const [mx, my, mw, mh] = TOP.motor;
       ctx.drawImage(mTop, ox + mx * cell, oy + my * cell, mw * cell, mh * cell);
+      for (const e of EXTRAS) {
+        if (!e.imgTop) continue;
+        const [ex, ey, ew, eh] = e.top;
+        ctx.drawImage(e.imgTop, ox + ex * cell, oy + ey * cell, ew * cell, eh * cell);
+      }
     }
 
     function drawSide(t) {
@@ -260,6 +273,11 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
       const [mx, my, mw, mh] = SIDE.motor;
       const shake = reduce ? 0 : Math.sin(t * 50) * 0.8;
       ctx.drawImage(mSide, ox + mx * cell, oy + my * cell + shake, mw * cell, mh * cell);
+      for (const e of EXTRAS) {
+        if (!e.imgSide) continue;
+        const [ex, ey, ew, eh] = e.side;
+        ctx.drawImage(e.imgSide, ox + ex * cell, oy + ey * cell + shake * 0.4, ew * cell, eh * cell);
+      }
       const angle = dist / CELL; // Radius = 1 Zelle (Rad ist 2x2 Zellen)
       for (const [cx, cy] of SIDE.wheels) {
         ctx.save();
