@@ -21,10 +21,10 @@ immer, dann gibt es keinen Bonus, aber jedes Teil behält seine eigene Wirkung.
 | 8 | Kutsche | Gepäckablage mit Koffern | Kutschenkabine mit Gardinen | Kutschbock mit Laterne | Komfort, Hochzeitsauftrag | Schloss |
 | 9 | Hot-Dog-Kastenwagen | hoher Kasten mit Hecktür und Ketchup- und Senfflaschen | hoher Kasten mit Verkaufsklappe und Riesen-Hot-Dog auf dem Dach | hohe Fahrerkabine mit Würstchen als Stoßstange | unterwegs verkaufen, Hunde laufen hinterher | Kirmes, Fußballplatz |
 | 10 | Feuerwehr | Wassertank mit Schlauchtrommel | Mannschaftskabine mit Glocke | rote Haube mit Martinshorn | Brände löschen | Feuerwache |
-| 11 | Weinfass | halbes Fass mit Zapfhahn | großes Fass mit Türchen | kleines Fass als Haube | sehr robust | Weinberg, Kneipe |
+| 11 | (offen, Weinfass fällt weg) | | | | | |
 | 12 | Mini-Wohnwagen | Küchenklappe mit Töpfen | runde Wohnkabine mit Fensterchen | Gasflaschenkasten | übernachten (Tag und Nacht) | Campingplatz |
-| 13 | Tresor | Stahlplatte mit Nieten | Panzerschrank mit Drehrad | Stahlbug mit Rammsporn | Robustheit hoch | Bank, Steinbruch |
-| 14 | Iglu | Eisblöcke | Iglu-Kuppel mit Eingang | Schneeschaufel-Bug | Kälteschutz, Schnee | Frostpass |
+| 13 | Geldtransporter | gepanzerter Laderaum mit Doppeltür und Tresorrad | Laderaum mit vergitterten Sehschlitzen und Tresor-Drehrad | kurze Panzerkabine mit Rammstoßstange | Robustheit hoch | Bank, Steinbruch |
+| 14 | Schneeraupe | kleine Ladefläche mit Kanister und Schneeschaufel | beheizte Fahrerkabine mit Rundumleuchte | Haube mit großem Räumschild | Kälteschutz, fährt durch Schnee | Frostpass |
 | 15 | Gewächshaus | Blumenkasten mit Tulpen | Glashaus mit Tomatenpflanzen | Haube aus Gießkannen | Pflanzen liefern | Gärtnerei |
 | 16 | Zirkus | Menschenkanone | gestreifte Zirkuszelt-Kuppel | Clownsnase als Kühler | Zuschauer locken | Zirkus |
 | 17 | Ruderboot | Bootsheck mit Außenborder | Bootsmitte mit Ruderbank | spitzer Bug mit Anker | als kompletter Satz über die Seen zu den Inseln | Hafen, See |
@@ -50,10 +50,10 @@ bleibt gleich.
 | 8 | A horse carriage car body with a luggage rack with suitcases at the rear, a carriage cabin with curtains in the middle and a coachman's box with a lantern at the front |
 | 9 | A tall boxy hot dog food truck body (a tall box along its whole length, with a straight lower edge), rear doors with ketchup and mustard bottles painted on, a serving hatch and a giant hot dog sculpture on the roof in the middle, a driver's cab with a sausage-shaped bumper at the front |
 | 10 | A fire engine body with a water tank and hose reel at the rear, a crew cab with a bell in the middle and a red hood with a siren at the front |
-| 11 | A car body made from wine barrels: half a barrel with a tap at the rear, a big barrel with a little door in the middle, a small barrel as the front hood |
+| 11 | (offen) |
 | 12 | A tiny teardrop camper car body with a kitchen hatch with pots at the rear, a round living cabin with small windows in the middle and a gas bottle box at the front |
-| 13 | An armoured safe car body with riveted steel plates at the rear, a big safe with a dial in the middle and a steel ram bow at the front |
-| 14 | An igloo car body with ice blocks at the rear, an igloo dome with an entrance in the middle and a snow shovel bow at the front |
+| 13 | An armoured money transport box van body (hoher Aufbau, siehe Prompt-Liste) |
+| 14 | A snowcat car body (siehe Prompt-Liste) |
 | 15 | A greenhouse car body with a flower box with tulips at the rear, a glass house with tomato plants in the middle and a hood made of watering cans at the front |
 | 16 | A circus car body with a human cannon at the rear, a striped circus tent dome in the middle and a red clown nose as the front grille |
 | 17 | A rowing boat car body with a boat stern and an outboard motor at the rear, a rowing bench in the middle and a pointed bow with an anchor at the front |
@@ -78,13 +78,20 @@ auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
 | 8 | Kutsche | warmes Orange und Ocker mit dunklem Holz |
 | 9 | Hot-Dog-Kastenwagen | Senfgelb und Ketchuprot |
 | 10 | Feuerwehr | Signalrot mit weißen Streifen und Chrom |
-| 11 | Weinfass | honigfarbene Eiche, dunkle Eisenreifen, Weinflecken |
+| 11 | (offen) | |
 | 12 | Mini-Wohnwagen | Mintgrün und Creme |
-| 13 | Tresor | dunkles Stahlgrau, Messingnieten |
-| 14 | Iglu | blasses Eisblau, hellgraue Eisblöcke |
+| 13 | Geldtransporter | dunkles Stahlgrau, Messingnieten, gelber Warnstreifen |
+| 14 | Schneeraupe | leuchtendes Eisblau und Weiß, schwarzer Gummi |
 | 15 | Gewächshaus | grüne Fensterrahmen, Glas, Terrakotta |
 | 16 | Zirkus | Lila und Gold gestreift |
 | 17 | Ruderboot | helle lackierte Planken, marineblauer Rumpf, weißer Wasserpass |
 | 18 | Wohnzimmer | Senfgelb und Olivgrün, 70er-Jahre-Blumenmuster |
 | 19 | Bienenstock | Honiggelb mit schwarzen Streifen |
 | 20 | Dampflok | glänzend Schwarz, Messing, rote Zierlinien |
+
+## Schneeraupe und Raupenketten
+
+Die Ketten gehören nicht zur Karosserie, sonst passt sie nicht auf jedes
+Fahrgestell. Die Raupenkette wird ein eigenes Teil in der Kategorie Räder:
+sie ersetzt beide Räder einer Seite, fährt durch Schnee und Matsch, ist aber
+langsam. Zusammen mit der Schneeraupen-Karosserie gibt es den Satz-Bonus.

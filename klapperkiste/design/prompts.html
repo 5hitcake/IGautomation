@@ -195,15 +195,17 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
       modell: "A tall boxy hot dog food truck body (a tall box along its whole length, with a straight lower edge), rear doors with ketchup and mustard bottles painted on, a serving hatch and a giant hot dog sculpture on the roof in the middle, a driver's cab with a sausage-shaped bumper at the front" },
     { nr: 10, id: "feuerwehr", farbe: "bright signal red with white stripes and shiny chrome", name: "Feuerwehr", bonus: "Brände löschen",
       modell: "A fire engine body with a water tank and hose reel at the rear, a crew cab with a bell in the middle and a red hood with a siren at the front" },
-    { nr: 11, id: "weinfass", farbe: "honey-coloured oak wood with dark iron hoops and wine-red stains", name: "Weinfass", bonus: "sehr robust",
-      modell: "A car body made from wine barrels: half a barrel with a tap at the rear, a big barrel with a little door in the middle, a small barrel as the front hood" },
+    { nr: 11, id: "offen-11", farbe: "", name: "Neues Modell (Idee offen)", bonus: "noch offen", offen: true,
+      modell: "" },
     { nr: 12, id: "wohnwagen", farbe: "mint green and cream", name: "Mini-Wohnwagen", bonus: "übernachten (Tag und Nacht)", hoch: true,
       form: "the body is a tall boxy 1960s style camper van along its whole length with a straight closed lower edge without wheel arch cut-outs, a flat roof with a small roof rack, the camping kitchen with pots is built into the rear end of the van behind an open hatch, the gas bottle sits in a recess in the front bumper, nothing sticks out beyond the front and rear ends of the van body, no logos or emblems",
       modell: "A small 1960s style camper van body with a camping kitchen with pots at the rear, a living cabin with windows and a sliding door in the middle and a gas bottle at the front" },
-    { nr: 13, id: "tresor", farbe: "dark gunmetal grey with brass rivets", name: "Tresor", bonus: "Robustheit hoch",
-      modell: "An armoured safe car body with riveted steel plates at the rear, a big safe with a dial in the middle and a steel ram bow at the front" },
-    { nr: 14, id: "iglu", farbe: "pale icy blue and light grey ice blocks", name: "Iglu", bonus: "Kälteschutz, Schnee",
-      modell: "An igloo car body with ice blocks at the rear, an igloo dome with an entrance in the middle and a snow shovel bow at the front" },
+    { nr: 13, id: "geldtransporter", farbe: "dark gunmetal grey with brass rivets and a yellow warning stripe", name: "Geldtransporter", bonus: "Robustheit hoch", hoch: true,
+      form: "the body is a tall armoured box van along its whole length with a straight closed lower edge without wheel arch cut-outs, the rear section is the armoured cargo box with a heavy double door with a big safe wheel handle, the middle section continues the tall cargo box with small barred slit windows and a round safe dial on the side, the front section is a short armoured driver's cab with a narrow barred windscreen and a steel ram bumper, nothing sticks out beyond the front and rear ends, no logos or emblems",
+      modell: "An armoured money transport box van body" },
+    { nr: 14, id: "schneeraupe", farbe: "bright icy blue and white with black rubber trim", name: "Schneeraupe", bonus: "Kälteschutz, fährt durch Schnee",
+      form: "the body is a snowcat body: the lower body is low and straight along its whole length with a straight closed lower edge without wheel arch cut-outs, at the rear a low cargo bed with a spare fuel can and a snow shovel, in the middle a boxy heated driver's cab with big windows and a round roof light that takes up exactly the middle third of the length, at the front a short sloping hood with a big snow plough blade, the tracks are not part of the body, no logos or emblems",
+      modell: "A snowcat car body" },
     { nr: 15, id: "gewaechshaus", farbe: "green-painted window frames, clear glass and terracotta pots", name: "Gewächshaus", bonus: "Pflanzen liefern",
       modell: "A greenhouse car body with a flower box with tulips at the rear, a glass house with tomato plants in the middle and a hood made of watering cans at the front" },
     { nr: 16, id: "zirkus", farbe: "purple and gold stripes", name: "Zirkus", bonus: "Zuschauer locken",
@@ -292,9 +294,14 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   }
 
   const karoGeliefert = (m) => ["hinten", "mitte", "vorne"].every((t) => GELIEFERT[`${m.id}_${t}_seite`]);
-  const karoDa = (m) => karoGeliefert(m) && !m.redo;
+  const karoDa = (m) => m.offen || (karoGeliefert(m) && !m.redo);
 
   function karoCard(m, idSuffix) {
+    if (m.offen) {
+      const c = el("article", "card");
+      c.append(el("p", "note", "Hier kommt ein neues Modell hin. Die Idee ist noch offen."));
+      return c;
+    }
     const text = karoPrompt(m);
     const c = el("article", "card");
     const meta = el("div", "meta");
@@ -334,7 +341,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 
   const nextTask = PARTS.flatMap(openTasks)[0];
   const nextBox = document.getElementById("next");
-  const nextKaro = KARO.find((m) => !karoGeliefert(m)) || KARO.find((m) => !karoDa(m));
+  const nextKaro = KARO.find((m) => !m.offen && !karoGeliefert(m)) || KARO.find((m) => !karoDa(m));
   if (nextTask) {
     nextBox.append(el("h2", null, `Als Nächstes: ${nextTask.part.name}, ${VIEWS[nextTask.kind]}`), taskCard(nextTask, "-next"));
   } else if (nextKaro) {
@@ -354,7 +361,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     list.append(sec);
   });
 
-  const karoFertig = KARO.filter(karoDa).length;
+  const karoFertig = KARO.filter((m) => karoDa(m) && !m.offen).length;
   const kopf = el("h2", "abschnitt", `Karosserien · ${karoFertig} / ${KARO.length} geliefert`);
   list.append(kopf, el("p", "note", "Ein Bild pro Modell, Seite oben und Draufsicht unten. Ich schneide es in hinten, Mitte und vorne. Jedes Modell hat eine eigene Hauptfarbe, damit man die Teile auseinanderhält. Reihenfolge ist egal, nimm, worauf du Lust hast."));
   KARO.forEach((m) => {
@@ -363,7 +370,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     h.append(el("small", null, "Karosserie"));
     sec.append(h);
     if (karoGeliefert(m)) sec.append(karoDoneCard(m));
-    if (!karoDa(m)) sec.append(karoCard(m, ""));
+    if (!karoDa(m) || m.offen) sec.append(karoCard(m, ""));
     list.append(sec);
   });
 })();
