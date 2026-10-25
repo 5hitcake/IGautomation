@@ -69,6 +69,8 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--mint); ou
 .next > h2 { color: var(--mustard); }
 .next .card { border-left-color: var(--mustard); }
 .chip.ok { background: rgba(111,211,163,0.18); color: var(--mint); }
+.chip.redo { background: rgba(224,75,58,0.2); color: #ff9a8a; }
+.note { color: var(--chalk-dim); font-size: 14px; }
 .preview { display: flex; gap: 14px; align-items: center; }
 .preview img {
   width: 120px; height: auto; max-width: 100%; border-radius: 10px; padding: 8px;
@@ -139,10 +141,11 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
       top: "a long rectangle with a mesh of bed springs inside",
       format: { blatt: "21:9 quer (oder breitestes Format)", seite: "21:9", oben: "4:1" } },
     { id: "giesskanne", name: "Gießkanne als Tank", cat: "Energie",
-      subject: "A dented green metal watering can used as a fuel tank, with a cork in the spout",
-      side: "tall and narrow, the spout points to the right",
-      top: "the round filler opening and the spout pointing to the right",
-      format: { blatt: "9:16 hochkant (oder schmalstes Format)", seite: "1:2 hochkant", oben: "1:2 hochkant" } },
+      subject: "A tall narrow old watering can used as a fuel tank, much taller than wide, dented green metal with scratched paint, grime and rust spots, the carrying handle arches over the top, the short spout rises steeply upward close to the body and is closed with a cork",
+      side: "the spout points up and slightly to the right",
+      top: "the round filler opening, the handle across the top and the short spout pointing to the right",
+      format: { blatt: "9:16 hochkant (oder schmalstes Format)", seite: "1:2 hochkant", oben: "1:2 hochkant" },
+      redo: "Version 1 war breiter als hoch und dadurch im schmalen Tank-Platz sehr klein. Außerdem zu sauber im Vergleich zu Motor und Rahmen. Neuer Prompt: hoch und schmal, verbeult und rostig. Motor als Stil-Referenz mitgeben." },
     { id: "kuechenstuhl", name: "Küchenstuhl als Sitz", cat: "Sitz",
       subject: "An empty old wooden kitchen chair seat with backrest but without legs, mounted on two short metal brackets",
       side: "the backrest is on the left",
@@ -189,6 +192,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 
   // Pro Teil: fehlen beide Ansichten -> ein Doppelbild-Prompt, fehlt eine -> Einzel-Prompt
   function openTasks(part) {
+    if (part.redo) return [{ part, kind: "blatt" }];
     const missing = ["seite", "oben"].filter((v) => !GELIEFERT[`${part.id}_${v}`]);
     if (missing.length === 2) return [{ part, kind: "blatt" }];
     return missing.map((v) => ({ part, kind: v }));
@@ -203,15 +207,20 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
       el("span", "chip file", `${part.id}_${kind}.png`));
     const pre = el("p", "prompt", text);
     pre.id = `prompt-${part.id}_${kind}${idSuffix}`;
-    c.append(meta, pre, copyButton(text, pre));
+    c.append(meta);
+    if (part.redo) {
+      meta.prepend(el("span", "chip redo", "Nochmal"));
+      c.append(el("p", "note", part.redo));
+    }
+    c.append(pre, copyButton(text, pre));
     return c;
   }
 
-  function doneCard(part, view) {
+  function doneCard(part, view, old) {
     const got = GELIEFERT[`${part.id}_${view}`];
-    const c = el("article", "card done");
+    const c = el("article", "card" + (old ? "" : " done"));
     const meta = el("div", "meta");
-    meta.append(el("span", "chip ok", "✓ geliefert"), el("span", "chip view", VIEWS[view]));
+    meta.append(el("span", old ? "chip" : "chip ok", old ? "Version 1 (Platzhalter)" : "✓ geliefert"), el("span", "chip view", VIEWS[view]));
     const pv = el("div", "preview");
     const img = el("img");
     img.src = got.bild;
@@ -222,7 +231,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   }
 
   const total = PARTS.length * 2;
-  const delivered = PARTS.reduce((n, p) => n + ["seite", "oben"].filter((v) => GELIEFERT[`${p.id}_${v}`]).length, 0);
+  const delivered = PARTS.reduce((n, p) => n + (p.redo ? 0 : ["seite", "oben"].filter((v) => GELIEFERT[`${p.id}_${v}`]).length), 0);
   document.getElementById("count").textContent = `${delivered} / ${total} Ansichten geliefert`;
   document.getElementById("bar").style.width = (delivered / total) * 100 + "%";
 
@@ -240,7 +249,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     const h = el("h2", null, `${i + 1}. ${part.name}`);
     h.append(el("small", null, part.cat));
     sec.append(h);
-    for (const v of ["seite", "oben"]) if (GELIEFERT[`${part.id}_${v}`]) sec.append(doneCard(part, v));
+    for (const v of ["seite", "oben"]) if (GELIEFERT[`${part.id}_${v}`]) sec.append(doneCard(part, v, part.redo));
     openTasks(part).forEach((t) => sec.append(taskCard(t, "")));
     list.append(sec);
   });
