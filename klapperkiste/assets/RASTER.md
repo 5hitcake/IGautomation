@@ -184,7 +184,8 @@ Orthographic model sheet showing this same car body twice, stacked vertically wi
 gap between the two views. Top half: flat side elevation, the front points to the right, the body is
 long and low, the lower body has the same height along its whole length with a straight waistline
 and a straight closed lower edge without wheel arch cut-outs,
-only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay low. Bottom half: plan view seen straight from directly above, same length, the body has the same
+only the middle section (cabin) rises higher with roof and windows, the cabin takes up exactly the
+middle third of the length and no more, the rear and front sections stay low. Bottom half: plan view seen straight from directly above, same length, the body has the same
 width along its whole length. Both views at the same scale and aligned. + Stil-Block
 ```
 
