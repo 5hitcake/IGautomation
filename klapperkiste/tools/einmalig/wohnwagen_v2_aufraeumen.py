@@ -34,8 +34,8 @@ def bearbeiten(original: Image.Image) -> Image.Image:
 
 
 def main() -> int:
-    original = Image.open(os.path.join(ROH, "wohnwagen_blatt_original.jpg"))
-    ziel = os.path.join(ROH, "wohnwagen_blatt.png")
+    original = Image.open(os.path.join(ROH, "wohnwagen_blatt_v2_original.jpg"))
+    ziel = os.path.join(ROH, "wohnwagen_blatt_v2.png")
     bearbeiten(original).save(ziel)
     print(f"{os.path.relpath(ziel)}: Schrift und Logo entfernt")
     return 0

@@ -53,8 +53,8 @@ def bearbeiten(original: Image.Image) -> Image.Image:
 
 
 def main() -> int:
-    original = Image.open(os.path.join(ROH, "wohnwagen_blatt_original.png"))
-    ziel = os.path.join(ROH, "wohnwagen_blatt.png")
+    original = Image.open(os.path.join(ROH, "wohnwagen_blatt_v1_original.png"))
+    ziel = os.path.join(ROH, "wohnwagen_blatt_v1.png")
     bearbeiten(original).save(ziel)
     print(f"{os.path.relpath(ziel)}: Räder und Schatten entfernt")
     return 0
