@@ -43,7 +43,8 @@ def erzeugen(prompt: str, steps: int = 8, seed: int | None = None) -> bytes:
         with urllib.request.urlopen(anfrage, timeout=120) as antwort:
             ergebnis = json.load(antwort)
     except urllib.error.HTTPError as fehler:
-        raise SystemExit(f"Cloudflare antwortet mit {fehler.code}: {fehler.read().decode('utf-8', 'replace')}")
+        text = fehler.read().decode("utf-8", "replace")
+        raise SystemExit(f"Cloudflare antwortet mit {fehler.code}: {text}")
     if not ergebnis.get("success"):
         raise SystemExit(f"Cloudflare meldet einen Fehler: {ergebnis.get('errors')}")
     return base64.b64decode(ergebnis["result"]["image"])
