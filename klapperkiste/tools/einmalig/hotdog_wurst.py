@@ -30,6 +30,9 @@ WURST_SEITE = (230, 120, 720)   # x0, y0, x1 der Dach-Wurst (bis DACH_Y)
 WURST_OBEN = (205, 958, 700, 1196)  # Rahmen der Wurst in der Draufsicht
 FUGE_X = range(292, 302)        # Blechfuge im Dach, läuft unter der Wurst durch
 STAUCHEN = 0.8                  # Kasten in der Seitenansicht auf 80 % Höhe
+# Ketchup und Senf an der Hecktür: Rahmen der Flasche und des Türgriffs davor
+FLASCHEN = [((70, 316, 134, 512), (113, 474, 132, 511)),
+            ((141, 316, 206, 512), (143, 474, 162, 511))]
 
 
 def _aus_weiss(teil: Image.Image) -> Image.Image:
@@ -60,8 +63,48 @@ def _wurst_oben(original: Image.Image) -> tuple[Image.Image, tuple[int, int]]:
     return wurst.crop(maske.getbbox()), (x0 + maske.getbbox()[0], y0 + maske.getbbox()[1])
 
 
+def _flasche_drehen(bild: Image.Image, rahmen: tuple, griff: tuple) -> None:
+    """Dreht eine Flasche an der Hecktür auf den Kopf, der Türgriff bleibt."""
+    feld = bild.crop(rahmen)
+    b, h = feld.size
+    gx0, gy0, gx1, gy1 = (g - r for g, r in zip(griff, (*rahmen[:2], *rahmen[:2])))
+    # Tür = alles, was vom Rand aus ohne schwarze Kontur erreichbar ist
+    markiert = feld.copy()
+    rand = [(x, y) for x in range(b) for y in (0, h - 1)] + [(x, y) for x in (0, b - 1) for y in range(h)]
+    for x, y in rand:
+        if markiert.getpixel((x, y)) != (1, 254, 3) and sum(feld.getpixel((x, y))) > 400:
+            ImageDraw.floodfill(markiert, (x, y), (1, 254, 3), thresh=60)
+    tuer = ImageChops.difference(markiert, Image.new("RGB", (b, h), (1, 254, 3))).convert("L")
+    flasche = tuer.point(lambda v: 255 if v > 0 else 0)
+    tuerfarbe = Image.new("RGB", (b, h), (252, 186, 40))
+    # Hinter dem Griff liegt ein Stück Flasche: Umriss von der gespiegelten Seite,
+    # Farbe aus der Zeile direkt über dem Griff (der Flaschenbauch ist senkrecht gleich)
+    box = flasche.crop((0, 0, b, gy0)).getbbox()
+    mitte2 = box[0] + box[2] - 1
+    fpx, mpx, spx = feld.load(), flasche.load(), feld.copy().load()
+    for y in range(gy0, min(gy1, h)):
+        for x in range(gx0, min(gx1, b)):
+            sx = mitte2 - x
+            if 0 <= sx < b and not (gx0 <= sx < gx1):
+                mpx[x, y] = mpx[sx, y]
+                fpx[x, y] = spx[sx, y] if sum(spx[sx, y]) < 200 else spx[x, gy0 - 1]
+    gedreht = feld.transpose(Image.FLIP_TOP_BOTTOM)
+    maske_gedreht = flasche.transpose(Image.FLIP_TOP_BOTTOM)
+    hoch = flasche.getbbox()
+    versatz = hoch[1] - (h - hoch[3])  # gleiche Höhe auf der Tür wie vorher
+    neu = Image.composite(tuerfarbe, bild.crop(rahmen), flasche)
+    neu.paste(gedreht, (0, versatz), maske_gedreht)
+    # Griff wieder obendrauf (graue und schwarze Pixel im Griffrahmen)
+    alt = bild.crop(griff)
+    grau = alt.convert("HSV").getchannel("S").point(lambda v: 255 if v < 70 else 0)
+    neu.paste(alt, (gx0, gy0), grau)
+    bild.paste(neu, rahmen[:2])
+
+
 def bearbeiten(original: Image.Image) -> tuple[Image.Image, float]:
     original = original.convert("RGB")
+    for rahmen, griff in FLASCHEN:
+        _flasche_drehen(original, rahmen, griff)
     breite = original.width
     raster = teilwerk.lade_raster()
     z = raster["zelle_px"]
