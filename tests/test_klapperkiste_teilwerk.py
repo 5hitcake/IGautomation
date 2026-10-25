@@ -112,3 +112,11 @@ def test_blatt_ohne_luecke_gibt_verstaendlichen_fehler(raster):
     ImageDraw.Draw(roh).rectangle((50, 50, 350, 750), fill=(0, 0, 0))
     with pytest.raises(ValueError, match="Lücke"):
         teilwerk.blatt_teilen(roh)
+
+
+def test_drehen_legt_hochkant_teil_quer(raster):
+    roh = Image.new("RGB", (300, 600), (255, 255, 255))
+    ImageDraw.Draw(roh).rectangle((100, 50, 200, 120), fill=(200, 40, 40))  # Merkmal oben
+    gedreht = teilwerk.drehen(roh, 90)
+    assert gedreht.size == (600, 300)
+    assert gedreht.getpixel((80, 150))[:3] == (200, 40, 40)  # jetzt links

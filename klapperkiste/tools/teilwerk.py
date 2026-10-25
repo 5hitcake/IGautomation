@@ -133,6 +133,13 @@ def freistellen(bild: Image.Image, toleranz: int = 40, inseln: bool = True) -> I
     return bild
 
 
+def drehen(bild: Image.Image, grad: int) -> Image.Image:
+    """Dreht gegen den Uhrzeigersinn um 0, 90, 180 oder 270 Grad (verlustfrei)."""
+    schritte = {0: None, 90: Image.Transpose.ROTATE_90, 180: Image.Transpose.ROTATE_180,
+                270: Image.Transpose.ROTATE_270}
+    return bild.transpose(schritte[grad]) if schritte[grad] is not None else bild
+
+
 def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
               toleranz: int = 40, inseln: bool = True) -> tuple[Image.Image, list[str]]:
     """Stellt frei, schneidet zu und setzt das Teil exakt in seine Rasterbox.
@@ -422,6 +429,8 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--toleranz", type=int, default=40, help="Farbabstand für den Hintergrund (Standard 40)")
     e.add_argument("--keine-inseln", action="store_true",
                    help="Eingeschlossene weiße Flächen nicht entfernen (für Teile mit reinweißen Flächen)")
+    e.add_argument("--drehen", type=int, default=0, choices=[0, 90, 180, 270],
+                   help="Bild vorher gegen den Uhrzeigersinn drehen, z. B. wenn vorne nicht rechts ist")
     bl = sub.add_parser("blatt", help="Doppelbild (Seite oben, Draufsicht unten) teilen und einpassen")
     bl.add_argument("eingabe")
     bl.add_argument("teil_id", help="z. B. maeher; Ausgabe nach assets/teile/<teil_id>/")
@@ -441,7 +450,8 @@ def main(argv: list[str] | None = None) -> int:
         for pfad in alle_vorlagen(raster):
             print(os.path.relpath(pfad))
     elif args.befehl == "einpassen":
-        fertig, hinweise = einpassen(Image.open(args.eingabe), raster, args.kategorie, args.ansicht,
+        roh = drehen(Image.open(args.eingabe), args.drehen)
+        fertig, hinweise = einpassen(roh, raster, args.kategorie, args.ansicht,
                                      args.toleranz, not args.keine_inseln)
         fertig.save(args.ausgabe)
         print(f"{args.ausgabe}: {fertig.width}×{fertig.height} px")
