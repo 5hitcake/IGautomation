@@ -21,7 +21,7 @@ immer, dann gibt es keinen Bonus, aber jedes Teil behält seine eigene Wirkung.
 | 8 | Kutsche | Gepäckablage mit Koffern | Kutschenkabine mit Gardinen | Kutschbock mit Laterne | Komfort, Hochzeitsauftrag | Schloss |
 | 9 | Hot-Dog-Kastenwagen | hoher Kasten mit Hecktür und Ketchup- und Senfflaschen | hoher Kasten mit Verkaufsklappe und Riesen-Hot-Dog auf dem Dach | hohe Fahrerkabine mit Würstchen als Stoßstange | unterwegs verkaufen, Hunde laufen hinterher | Kirmes, Fußballplatz |
 | 10 | Feuerwehr | Wassertank mit Schlauchtrommel | Mannschaftskabine mit Glocke | rote Haube mit Martinshorn | Brände löschen | Feuerwache |
-| 11 | (offen, Weinfass fällt weg) | | | | | |
+| 11 | Betonmischer | Plattform mit Betonrutsche und Leiter | große schräge Mischtrommel | kurze Fahrerkabine mit Wassertank | Beton liefern, kaputte Brücken und Wege reparieren | Baustelle, Kieswerk |
 | 12 | Mini-Wohnwagen | Küchenklappe mit Töpfen | runde Wohnkabine mit Fensterchen | Gasflaschenkasten | übernachten (Tag und Nacht) | Campingplatz |
 | 13 | Geldtransporter | gepanzerter Laderaum mit Doppeltür und Tresorrad | Laderaum mit vergitterten Sehschlitzen und Tresor-Drehrad | kurze Panzerkabine mit Rammstoßstange | Robustheit hoch | Bank, Steinbruch |
 | 14 | Schneeraupe | kleine Ladefläche mit Kanister und Schneeschaufel | beheizte Fahrerkabine mit Rundumleuchte | Haube mit großem Räumschild | Kälteschutz, fährt durch Schnee | Frostpass |
@@ -50,7 +50,7 @@ bleibt gleich.
 | 8 | A horse carriage car body with a luggage rack with suitcases at the rear, a carriage cabin with curtains in the middle and a coachman's box with a lantern at the front |
 | 9 | A tall boxy hot dog food truck body (a tall box along its whole length, with a straight lower edge), rear doors with ketchup and mustard bottles painted on, a serving hatch and a giant hot dog sculpture on the roof in the middle, a driver's cab with a sausage-shaped bumper at the front |
 | 10 | A fire engine body with a water tank and hose reel at the rear, a crew cab with a bell in the middle and a red hood with a siren at the front |
-| 11 | (offen) |
+| 11 | A concrete mixer truck car body (siehe Prompt-Liste) |
 | 12 | A tiny teardrop camper car body with a kitchen hatch with pots at the rear, a round living cabin with small windows in the middle and a gas bottle box at the front |
 | 13 | An armoured money transport box van body (hoher Aufbau, siehe Prompt-Liste) |
 | 14 | A snowcat car body (siehe Prompt-Liste) |
@@ -78,7 +78,7 @@ auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
 | 8 | Kutsche | warmes Orange und Ocker mit dunklem Holz |
 | 9 | Hot-Dog-Kastenwagen | Senfgelb und Ketchuprot |
 | 10 | Feuerwehr | Signalrot mit weißen Streifen und Chrom |
-| 11 | (offen) | |
+| 11 | Betonmischer | Betongrau und leuchtendes Limettengrün, dunkle Schrägstreifen auf der Trommel |
 | 12 | Mini-Wohnwagen | Mintgrün und Creme |
 | 13 | Geldtransporter | dunkles Stahlgrau, Messingnieten, gelber Warnstreifen |
 | 14 | Schneeraupe | leuchtendes Eisblau und Weiß, schwarzer Gummi |

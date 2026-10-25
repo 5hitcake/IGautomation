@@ -60,6 +60,7 @@ Auto befahrbar:
 | Schmale oder schwache Brücke | Wenig Gewicht |
 | Furt, flaches Wasser | Große Räder |
 | See (tiefes Wasser) zu den Inseln | Kompletter Satz Ruderboot-Karosserie (alle drei Teile) |
+| Eingestürzte Brücke, Loch in der Straße | Betonmischer-Karosserie: Quest beim Kieswerk, Beton holen und die Stelle reparieren, danach dauerhaft offen |
 
 ### Achsen
 
