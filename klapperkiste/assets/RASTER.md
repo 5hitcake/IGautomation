@@ -116,9 +116,14 @@ mischen**. Geplant sind etwa 20 Modelle, also 60 Teile. Damit das passt, gilt:
   Radläufe. Die Räder liegen darunter.
 - **Nähte** bei x = 3 und x = 6 Zellen. Hinten ist 3 Zellen lang, die Mitte 3,
   vorne 4.
-- **Gürtellinie:** An beiden Nähten ist die Karosserie genau 2 Zellen hoch
-  (y = 2 bis 4). Nur die Mitte darf höher hinaus (Kabine, Dach, Kuppel). Hinten
-  und vorne bleiben unter y = 1.
+- **Gürtellinie als Mindestmaß:** An beiden Nähten ist die Karosserie
+  mindestens 2 Zellen hoch geschlossen (y = 2 bis 4), sonst entsteht neben
+  anderen Modellen eine Lücke. Darüber ist jede Höhe erlaubt, auch hinten und
+  vorne (Kastenwagen, Bus). Neben flacheren Modellen gibt es dann eine Stufe,
+  aber nie eine Lücke.
+- Normale Autos (Nahthöhe ungefähr 2 Zellen) rasten beim Schneiden **genau**
+  auf die Gürtellinie ein und sitzen untereinander bündig. Hohe Aufbauten
+  behalten ihre Proportionen.
 - **Draufsicht:** An den Nähten reicht die Karosserie von y = 0,5 bis 3,5.
 
 Erzeugt wird **jedes Modell als ganze Karosserie** (Doppelbild: Seite oben,
@@ -130,9 +135,9 @@ python klapperkiste/tools/teilwerk.py karosserie roh_karosserie.png kaefer
 # -> assets/teile/kaefer_hinten, kaefer_mitte, kaefer_vorne (je seite.png + oben.png)
 ```
 
-Weicht ein Modell an einer Naht deutlich ab, meldet das Werkzeug das. Zwei
-gezeichnete Platzhalter (`karosserie-platzhalter`) zeigen, wie das Mischen
-aussieht.
+Liegt ein Modell an einer Naht unter der Gürtellinie, meldet das Werkzeug das.
+Drei gezeichnete Platzhalter (`karosserie-platzhalter`: Pick-up, Kugel,
+Kastenwagen) zeigen, wie das Mischen aussieht.
 
 ## 4. Prompt-Vorlagen
 
@@ -179,6 +184,9 @@ only the middle section (cabin) rises higher with roof and windows, the rear and
 low. Bottom half: plan view seen straight from directly above, same length, the body has the same
 width along its whole length. Both views at the same scale and aligned. + Stil-Block
 ```
+
+Für hohe Aufbauten (Kastenwagen, Bus) statt „only the middle section … stay low“:
+`the body is a tall box along its whole length, with a straight lower edge`.
 
 Bildgeneratoren rutschen gern in eine schräge Dreiviertel-Ansicht. Ist das
 Teil sichtbar gedreht, lieber neu erzeugen: Räder wären sonst oval und die

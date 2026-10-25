@@ -11,7 +11,7 @@
     "unterkante_y": 4,
     "guertel_y": 2,
     "breite_oben": [0.5, 3.5],
-    "regel": "Seite: Unterkante liegt auf der Rahmenoberkante (y=4). An den Nähten (x=3 und x=6) ist die Karosserie genau von y=2 bis y=4 geschlossen. Nur das Mittelteil darf über y=2 hinaus nach oben (Kabine, Dach), hinten und vorne höchstens bis y=1. Draufsicht: an den Nähten reicht die Karosserie von y=0,5 bis y=3,5."
+    "regel": "Seite: Unterkante liegt auf der Rahmenoberkante (y=4). An den Nähten (x=3 und x=6) ist die Karosserie mindestens von y=2 bis y=4 geschlossen (Gürtellinie als Mindestmaß). Darüber ist jede Höhe erlaubt, auch hinten und vorne (Kastenwagen); neben flacheren Modellen entsteht dann eine Stufe. Normale Autos rasten beim Schneiden genau auf die Gürtellinie ein. Draufsicht: an den Nähten reicht die Karosserie von y=0,5 bis y=3,5."
   },
 
   "kategorien": {
@@ -56,7 +56,7 @@
                    "regel": "Hinterer Teil einer Karosserie. Wird vom Werkzeug aus einer ganzen Karosserie geschnitten." },
     "karosserie_mitte": { "name": "Karosserie Mitte", "seite": [3, 4], "oben": [3, 4],
                    "anker_seite": ["mitte", "unten"], "anker_oben": ["mitte", "mitte"], "karosserie": "mitte",
-                   "regel": "Mittelteil einer Karosserie (Kabine). Darf als einziges Teil über die Gürtellinie hinaus nach oben." },
+                   "regel": "Mittelteil einer Karosserie (Kabine, Aufbau)." },
     "karosserie_vorne": { "name": "Karosserie vorne", "seite": [4, 4], "oben": [4, 4],
                    "anker_seite": ["mitte", "unten"], "anker_oben": ["mitte", "mitte"], "karosserie": "vorne",
                    "regel": "Vorderer Teil einer Karosserie (Haube, Kühlergrill)." }

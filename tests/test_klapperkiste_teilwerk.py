@@ -198,9 +198,9 @@ def test_karosserie_naehte_schliessen_lueckenlos_an(raster):
 
 
 def _naht_hoehe(bild, x):
+    """Höhe an einer Naht, gemessen wie im Werkzeug (niedrigste Stelle im Fenster)."""
     alpha = bild.getchannel("A").point(lambda a: 255 if a > 16 else 0)
-    oben, unten = teilwerk._ausdehnung(alpha, x)
-    return unten - oben
+    return teilwerk._naht_mass(alpha, x, 24)
 
 
 def test_karosserie_modelle_lassen_sich_mischen(raster):
@@ -218,10 +218,22 @@ def test_karosserie_modelle_lassen_sich_mischen(raster):
     assert abs(b_mitte - soll) <= soll * 0.08 or b_mitte > soll  # Mitte darf nach oben (Kuppel)
 
 
-def test_karosserie_warnt_bei_falscher_guertellinie(raster):
+def test_karosserie_warnt_wenn_unter_der_guertellinie(raster):
     roh = Image.new("RGB", (1000, 900), (255, 255, 255))
     d = ImageDraw.Draw(roh)
-    d.polygon([(50, 300), (500, 100), (950, 300), (950, 380), (50, 380)], fill=(200, 60, 60))  # Seite: Keil
+    d.rectangle((50, 340, 950, 380), fill=(200, 60, 60))  # Seite: viel zu flaches Brett
     d.rectangle((50, 550, 950, 800), fill=(200, 60, 60))  # Draufsicht
     _, hinweise = teilwerk.karosserie_schneiden(roh, raster)
-    assert any("Naht" in h for h in hinweise)
+    assert any("Lücke" in h for h in hinweise)
+
+
+def test_karosserie_kastenwagen_bleibt_hoch(raster):
+    z = raster["zelle_px"]
+    roh = Image.new("RGB", (1000, 1100), (255, 255, 255))
+    d = ImageDraw.Draw(roh)
+    d.rectangle((50, 60, 950, 420), fill=(230, 180, 40))  # Seite: hoher Kasten über die ganze Länge
+    d.rectangle((50, 600, 950, 870), fill=(230, 180, 40))  # Draufsicht
+    teile, hinweise = teilwerk.karosserie_schneiden(roh, raster)
+    hoehe = _naht_hoehe(teile["hinten"]["seite"], 3 * z - 3)
+    assert hoehe > 3 * z  # nicht auf die Gürtellinie plattgedrückt
+    assert not any("Lücke" in h for h in hinweise)
