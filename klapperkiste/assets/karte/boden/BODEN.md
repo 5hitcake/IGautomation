@@ -11,3 +11,4 @@ Erzeugt mit `tools/boden.py kachel` aus den Rohbildern in `roh/`:
 | asphalt | `kachel roh/asphalt.jpg asphalt --meter 16 --wiederholung 1024 --ausgleichen --saettigung 0.45 --helligkeit 0.78` |
 | sand | `kachel roh/sand.jpg sand --meter 16 --wiederholung 1024 --ausgleichen` |
 | wasser | `kachel roh/wasser.jpg wasser --meter 16 --wiederholung 1024 --ausgleichen` |
+| fels | `kachel roh/fels.jpg fels --meter 8 --wiederholung 512 --ausgleichen` |
