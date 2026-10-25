@@ -88,7 +88,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 <body>
 <div class="wrap">
   <header>
-    <p class="eyebrow">Schritt A2 · erste Serie · Comic-Look</p>
+    <p class="eyebrow">Schritt A2 · Teile und Karosserien · Comic-Look</p>
     <h1>Klapperkiste Prompt-Liste</h1>
     <p class="lead">7 Teile und 20 Karosserien, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
     <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 geliefert</span></div>
@@ -168,8 +168,8 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   ];
 
   // Karosserien (KAROSSERIEN.md): ganzes Modell als Doppelbild, das Werkzeug schneidet es in 3 Teile
-  const KARO_NORMAL = "the body is long and low, the lower body has the same height along its whole length with a straight waistline, only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay low";
-  const KARO_HOCH = "the body is a tall box along its whole length, with a straight lower edge";
+  const KARO_NORMAL = "the body is long and low, the lower body has the same height along its whole length with a straight waistline and a straight closed lower edge without wheel arch cut-outs, only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay low";
+  const KARO_HOCH = "the body is a tall box along its whole length, with a straight closed lower edge without wheel arch cut-outs";
   const KARO = [
     { nr: 1, id: "rundling", name: "Rundling", bonus: "keiner, dafür leicht",
       modell: "A small round 1950s style compact car body shell with round windows and round headlights" },

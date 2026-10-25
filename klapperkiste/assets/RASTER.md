@@ -179,14 +179,18 @@ surface is barely visible, the front points to the right. + Stil-Block
 [MODELL] car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver.
 Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white
 gap between the two views. Top half: flat side elevation, the front points to the right, the body is
-long and low, the lower body has the same height along its whole length with a straight waistline,
+long and low, the lower body has the same height along its whole length with a straight waistline
+and a straight closed lower edge without wheel arch cut-outs,
 only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay
 low. Bottom half: plan view seen straight from directly above, same length, the body has the same
 width along its whole length. Both views at the same scale and aligned. + Stil-Block
 ```
 
 Für hohe Aufbauten (Kastenwagen, Bus) statt „only the middle section … stay low“:
-`the body is a tall box along its whole length, with a straight lower edge`.
+`the body is a tall box along its whole length, with a straight closed lower edge without wheel arch cut-outs`.
+
+Radausschnitte vermeiden: Liegt ein Ausschnitt auf einer Naht, ist die Karosserie dort zu niedrig
+und neben anderen Modellen sieht man durch.
 
 Bildgeneratoren rutschen gern in eine schräge Dreiviertel-Ansicht. Ist das
 Teil sichtbar gedreht, lieber neu erzeugen: Räder wären sonst oval und die
