@@ -56,12 +56,17 @@ def schatten(obj: Image.Image, versatz: float = 0.14,
 def probe(ausgabe: str, bodenname: str, objekte: list[str], meter: int = 32, auto: str | None = None) -> None:
     rnd = random.Random(1)
     bild = boden.flaeche([bodenname], meter, seed=1).convert("RGBA")
-    for eintrag in objekte:
+    def y_von(eintrag: str) -> float:
+        pos = eintrag.partition("@")[2]
+        return float(pos.split(",")[1]) if pos else meter / 2
+
+    for eintrag in sorted(objekte, key=y_von):  # von oben nach unten, untere überdecken obere
         name, _, pos = eintrag.partition("@")
         obj = Image.open(os.path.join(OBJEKT_DIR, f"{name}.png")).convert("RGBA")
         # Abwechslung: an der Diagonale spiegeln (Licht bleibt oben links), Größe leicht ändern
         if rnd.random() < 0.5:
             obj = obj.transpose(Image.TRANSPOSE)
+        obj = obj.rotate(rnd.uniform(-20, 20), Image.BICUBIC, expand=True)  # Licht bleibt fast gleich
         f = rnd.uniform(0.85, 1.15)
         obj = obj.resize((round(obj.width * f), round(obj.height * f)), Image.LANCZOS)
         x, y = (float(v) * PX for v in pos.split(",")) if pos else (bild.width / 2, bild.height / 2)
