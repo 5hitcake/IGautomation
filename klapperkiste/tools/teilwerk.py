@@ -354,7 +354,8 @@ def karosserie_schneiden(bild: Image.Image, raster: dict, toleranz: int = 40,
     """
     k, z = raster["karosserie"], raster["zelle_px"]
     laenge = raster["seite"]["breite"] * z
-    hoehe = k["unterkante_y"] * z
+    hoehe = k["unterkante_y"] * z           # Seite: bis zur Rahmenoberkante
+    hoehe_oben = raster["oben"]["hoehe"] * z  # Draufsicht: ganze Autobreite
     naehte = [x * z for x in k["naehte_x"]]
     grenzen = [0, *naehte, laenge]
     seite, oben = blatt_teilen(bild, toleranz, inseln)
@@ -365,7 +366,8 @@ def karosserie_schneiden(bild: Image.Image, raster: dict, toleranz: int = 40,
     soll_seite = (k["unterkante_y"] - k["guertel_y"]) * z
     s_bild, s_mass = _normieren(seite, laenge, hoehe, naehte, soll_seite, einrasten=(0.75, 1.33))
     if s_bild.height > hoehe:
-        hinweise.append("Seitenansicht ist höher als 4 Zellen und wurde oben abgeschnitten.")
+        hinweise.append(f"Seitenansicht ist höher als {k['unterkante_y']} Zellen "
+                        "und wurde oben abgeschnitten.")
         s_bild = s_bild.crop((0, s_bild.height - hoehe, laenge, s_bild.height))
     s_fertig = Image.new("RGBA", (laenge, hoehe), (0, 0, 0, 0))
     s_fertig.alpha_composite(s_bild, (0, hoehe - s_bild.height))
@@ -373,12 +375,12 @@ def karosserie_schneiden(bild: Image.Image, raster: dict, toleranz: int = 40,
     # Draufsicht: Breite an den Nähten auf Norm, mittig
     soll_oben = (k["breite_oben"][1] - k["breite_oben"][0]) * z
     o_bild, o_mass = _normieren(oben, laenge, hoehe, naehte, soll_oben)
-    if o_bild.height > hoehe:
-        rand = (o_bild.height - hoehe) // 2
-        o_bild = o_bild.crop((0, rand, laenge, rand + hoehe))
+    if o_bild.height > hoehe_oben:
+        rand = (o_bild.height - hoehe_oben) // 2
+        o_bild = o_bild.crop((0, rand, laenge, rand + hoehe_oben))
         hinweise.append("Draufsicht ist breiter als das Auto und wurde oben und unten gekürzt.")
-    o_fertig = Image.new("RGBA", (laenge, hoehe), (0, 0, 0, 0))
-    o_fertig.alpha_composite(o_bild, (0, (hoehe - o_bild.height) // 2))
+    o_fertig = Image.new("RGBA", (laenge, hoehe_oben), (0, 0, 0, 0))
+    o_fertig.alpha_composite(o_bild, (0, (hoehe_oben - o_bild.height) // 2))
 
     # Gürtellinie ist ein Mindestmaß: an den Nähten darf nichts darunter bleiben
     for x, m in zip(k["naehte_x"], s_mass):
@@ -402,7 +404,8 @@ def karosserie_schneiden(bild: Image.Image, raster: dict, toleranz: int = 40,
 
     teile = {}
     for teil, x0, x1 in zip(KAROSSERIE_TEILE, grenzen[:-1], grenzen[1:]):
-        teile[teil] = {"seite": s_fertig.crop((x0, 0, x1, hoehe)), "oben": o_fertig.crop((x0, 0, x1, hoehe))}
+        teile[teil] = {"seite": s_fertig.crop((x0, 0, x1, hoehe)),
+                       "oben": o_fertig.crop((x0, 0, x1, hoehe_oben))}
     return teile, hinweise
 
 
@@ -617,7 +620,8 @@ def gesamtplan(raster: dict, ansicht: str) -> Image.Image:
         text = "rot: Karosserie-Nähte · gestrichelt rot: Gürtellinie · achsen hinter den rädern"
     else:
         text = "unter allem: rahmen und achsen · karosserie gestrichelt, liegt oben drauf"
-    hoehe_text = int(1.55 * z) if ansicht == "seite" else int(3.5 * z)
+    guertel = raster["karosserie"]["guertel_y"]
+    hoehe_text = int((guertel - 0.45) * z) if ansicht == "seite" else int(3.5 * z)
     d.text((b // 2, hoehe_text), text, font=schrift, fill=INK, anchor="mm",
            stroke_width=4, stroke_fill=PAPIER)
     if ansicht == "seite":

@@ -8,7 +8,7 @@ dieser Datei.
 ## 1. Das Raster
 
 - **1 Zelle = 128 × 128 px** im fertigen Bild.
-- Ein Auto ist in der **Seitenansicht 10 × 6 Zellen** (1280 × 768 px) groß,
+- Ein Auto ist in der **Seitenansicht 10 × 7 Zellen** (1280 × 896 px) groß,
   in der **Draufsicht 10 × 4 Zellen** (1280 × 512 px).
 - **Vorne ist immer rechts**, in beiden Ansichten.
 - Jede Kategorie hat eine **feste Box**. Ein Motor ist immer 2 × 2 Zellen,
@@ -30,9 +30,9 @@ dieser Datei.
 | Heck | 1 × 2 | 128 × 256 | 1 × 2 | 128 × 256 | rechts (hängt am Rahmenende) |
 | Achse | 2 × 2 | 256 × 256 | 2 × 4 | 256 × 512 | Seite: Achsende mit Nabe in der Mitte, hinter dem Rad. Draufsicht: volle Höhe, von Rad zu Rad |
 | Licht | 1 × 1 | 128 × 128 | 1 × 1 | 128 × 128 | links (vorne vor der Karosserie), oben links und rechts je eine Lampe |
-| Karosserie hinten | 3 × 4 | 384 × 512 | 3 × 4 | 384 × 512 | wird aus einer ganzen Karosserie geschnitten |
-| Karosserie Mitte | 3 × 4 | 384 × 512 | 3 × 4 | 384 × 512 | wird aus einer ganzen Karosserie geschnitten |
-| Karosserie vorne | 4 × 4 | 512 × 512 | 4 × 4 | 512 × 512 | wird aus einer ganzen Karosserie geschnitten |
+| Karosserie hinten | 3 × 5 | 384 × 640 | 3 × 4 | 384 × 512 | wird aus einer ganzen Karosserie geschnitten |
+| Karosserie Mitte | 3 × 5 | 384 × 640 | 3 × 4 | 384 × 512 | wird aus einer ganzen Karosserie geschnitten |
+| Karosserie vorne | 4 × 5 | 512 × 640 | 4 × 4 | 512 × 512 | wird aus einer ganzen Karosserie geschnitten |
 
 **Einbaureihenfolge:** Rahmen, dann Achsen, dann Räder, dann der Rest. Die
 Karosserie kommt ganz zum Schluss, wenn das Auto fahrbereit ist, und muss als
@@ -112,12 +112,12 @@ Jedes Karosserie-Modell besteht aus **hinten, Mitte und vorne**. Die Teile
 werden einzeln gefunden (Karte, Aufträge) und lassen sich **modellübergreifend
 mischen**. Geplant sind etwa 20 Modelle, also 60 Teile. Damit das passt, gilt:
 
-- Die Karosserie sitzt auf der Rahmenoberkante (y = 4) und braucht keine
+- Die Karosserie sitzt auf der Rahmenoberkante (y = 5) und braucht keine
   Radläufe. Die Räder liegen darunter.
 - **Nähte** bei x = 3 und x = 6 Zellen. Hinten ist 3 Zellen lang, die Mitte 3,
   vorne 4.
 - **Gürtellinie als Mindestmaß:** An beiden Nähten ist die Karosserie
-  mindestens 2 Zellen hoch geschlossen (y = 2 bis 4), sonst entsteht neben
+  mindestens 2 Zellen hoch geschlossen (y = 3 bis 5), sonst entsteht neben
   anderen Modellen eine Lücke. Darüber ist jede Höhe erlaubt, auch hinten und
   vorne (Kastenwagen, Bus). Neben flacheren Modellen gibt es dann eine Stufe,
   aber nie eine Lücke.

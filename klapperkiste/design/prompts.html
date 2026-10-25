@@ -77,6 +77,10 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--mint); ou
   background: repeating-conic-gradient(#1a2e35 0% 25%, #22404a 0% 50%) 50% / 20px 20px;
 }
 .preview p { color: var(--chalk-dim); font-size: 13px; }
+.karo-preview { display: flex; align-items: flex-end; max-width: 100%; padding: 8px; border-radius: 10px;
+  background: repeating-conic-gradient(#1a2e35 0% 25%, #22404a 0% 50%) 50% / 20px 20px; }
+.karo-preview img { display: block; height: 72px; width: auto; min-width: 0; flex: 0 1 auto; }
+h2.abschnitt { margin-top: 18px; font-size: 24px; }
 details.prompt-box summary { cursor: pointer; color: var(--chalk-dim); font-size: 13px; }
 details.prompt-box[open] summary { margin-bottom: 8px; }
 </style>
@@ -85,8 +89,8 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 <div class="wrap">
   <header>
     <p class="eyebrow">Schritt A2 · erste Serie · Comic-Look</p>
-    <h1>Schrottkarre Prompt-Liste</h1>
-    <p class="lead">7 Teile, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
+    <h1>Klapperkiste Prompt-Liste</h1>
+    <p class="lead">7 Teile und 20 Karosserien, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
     <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 geliefert</span></div>
   </header>
 
@@ -163,6 +167,53 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
       format: { blatt: "9:16 hochkant (oder schmalstes Format)", seite: "1:1", oben: "1:2 hochkant" } },
   ];
 
+  // Karosserien (KAROSSERIEN.md): ganzes Modell als Doppelbild, das Werkzeug schneidet es in 3 Teile
+  const KARO_NORMAL = "the body is long and low, the lower body has the same height along its whole length with a straight waistline, only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay low";
+  const KARO_HOCH = "the body is a tall box along its whole length, with a straight lower edge";
+  const KARO = [
+    { nr: 1, id: "rundling", name: "Rundling", bonus: "keiner, dafür leicht",
+      modell: "A small round 1950s style compact car body shell with round windows and round headlights" },
+    { nr: 2, id: "pickup", name: "Pick-up", bonus: "große Ladefläche",
+      modell: "A pick-up truck body shell with an open cargo bed at the rear, a boxy cab in the middle and a long hood with a big grille at the front" },
+    { nr: 3, id: "badewanne", name: "Badewanne", bonus: "schwimmt durch Furten",
+      modell: "A car body made from an old enamel bathtub, a shower curtain rod with a shower head above the middle, a rubber duck as hood ornament at the front" },
+    { nr: 4, id: "telefonzelle", name: "Telefonzelle", bonus: "Regen- und Windschutz",
+      modell: "A car body whose middle is a red telephone box with glass panes, a cable reel as the rear, a rotary dial as the front grille" },
+    { nr: 5, id: "eiswagen", name: "Eiswagen", bonus: "Kühlware bleibt frisch, Eis verkaufen", hoch: true,
+      modell: "An ice cream van body with an ice cream chest full of scoops at the rear, a sales booth with a striped awning in the middle and a waffle cone figure on the front hood" },
+    { nr: 6, id: "heuscheune", name: "Heuscheune", bonus: "Tiere transportieren",
+      modell: "A car body with a small wooden barn with a roof in the middle, hay bales with a pitchfork at the rear and a plank hood with a cow bell at the front" },
+    { nr: 7, id: "rakete", name: "Rakete", bonus: "Tempo höher",
+      modell: "A retro rocket car body with rocket nozzles and tail fins at the rear, a riveted cockpit dome in the middle and a pointed rocket nose at the front" },
+    { nr: 8, id: "kutsche", name: "Kutsche", bonus: "Komfort, Hochzeitsauftrag",
+      modell: "A horse carriage car body with a luggage rack with suitcases at the rear, a carriage cabin with curtains in the middle and a coachman's box with a lantern at the front" },
+    { nr: 9, id: "hotdog", name: "Hot-Dog-Kastenwagen", bonus: "unterwegs verkaufen, Hunde laufen hinterher", hoch: true,
+      modell: "A tall boxy hot dog food truck body (a tall box along its whole length, with a straight lower edge), rear doors with ketchup and mustard bottles painted on, a serving hatch and a giant hot dog sculpture on the roof in the middle, a driver's cab with a sausage-shaped bumper at the front" },
+    { nr: 10, id: "feuerwehr", name: "Feuerwehr", bonus: "Brände löschen",
+      modell: "A fire engine body with a water tank and hose reel at the rear, a crew cab with a bell in the middle and a red hood with a siren at the front" },
+    { nr: 11, id: "weinfass", name: "Weinfass", bonus: "sehr robust",
+      modell: "A car body made from wine barrels: half a barrel with a tap at the rear, a big barrel with a little door in the middle, a small barrel as the front hood" },
+    { nr: 12, id: "wohnwagen", name: "Mini-Wohnwagen", bonus: "übernachten (Tag und Nacht)",
+      modell: "A tiny teardrop camper car body with a kitchen hatch with pots at the rear, a round living cabin with small windows in the middle and a gas bottle box at the front" },
+    { nr: 13, id: "tresor", name: "Tresor", bonus: "Robustheit hoch",
+      modell: "An armoured safe car body with riveted steel plates at the rear, a big safe with a dial in the middle and a steel ram bow at the front" },
+    { nr: 14, id: "iglu", name: "Iglu", bonus: "Kälteschutz, Schnee",
+      modell: "An igloo car body with ice blocks at the rear, an igloo dome with an entrance in the middle and a snow shovel bow at the front" },
+    { nr: 15, id: "gewaechshaus", name: "Gewächshaus", bonus: "Pflanzen liefern",
+      modell: "A greenhouse car body with a flower box with tulips at the rear, a glass house with tomato plants in the middle and a hood made of watering cans at the front" },
+    { nr: 16, id: "zirkus", name: "Zirkus", bonus: "Zuschauer locken",
+      modell: "A circus car body with a human cannon at the rear, a striped circus tent dome in the middle and a red clown nose as the front grille" },
+    { nr: 17, id: "ruderboot", name: "Ruderboot", bonus: "als kompletter Satz über die Seen zu den Inseln",
+      modell: "A rowing boat car body with a boat stern and an outboard motor at the rear, a rowing bench in the middle and a pointed bow with an anchor at the front" },
+    { nr: 18, id: "wohnzimmer", name: "Wohnzimmer", bonus: "Komfort, Fahrer ruht sich aus",
+      modell: "A living room car body with an old chest of drawers at the rear, a wing armchair with a floor lamp in the middle and an old tube television as the front hood" },
+    { nr: 19, id: "bienenstock", name: "Bienenstock", bonus: "Honig, Schafe gehen aus dem Weg",
+      modell: "A beehive car body with a honey pot at the rear, a straw bee skep dome in the middle and a honeycomb hood at the front" },
+    { nr: 20, id: "dampflok", name: "Dampflok", bonus: "Ziehen und Abschleppen",
+      modell: "A small steam locomotive car body with a coal tender at the rear, a driver's cab with a whistle in the middle and a boiler with a short chimney at the front" },
+  ];
+  const karoPrompt = (m) => `${m.modell}. Car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver. Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white gap between the two views. Top half: flat side elevation, the front points to the right, ${m.hoch ? KARO_HOCH : KARO_NORMAL}. Bottom half: ${TOP_VIEW}, same length, the body has the same width along its whole length. Both views at the same scale and aligned. ${LOOK} ${SHEET_BG}`;
+
   // Vom Werkzeug erzeugt (teilwerk.py geliefert): eingepasste Teile mit Vorschau
   const GELIEFERT = window.GELIEFERT || {};
 
@@ -235,6 +286,36 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     return c;
   }
 
+  const karoDa = (m) => ["hinten", "mitte", "vorne"].every((t) => GELIEFERT[`${m.id}_${t}_seite`]);
+
+  function karoCard(m, idSuffix) {
+    const text = karoPrompt(m);
+    const c = el("article", "card");
+    const meta = el("div", "meta");
+    meta.append(el("span", "chip view", "Seite + Draufsicht"), el("span", "chip", "Format 9:16 hochkant"),
+      el("span", "chip file", `${m.id}_blatt.png`));
+    if (m.hoch) meta.append(el("span", "chip", "hoher Aufbau"));
+    const pre = el("p", "prompt", text);
+    pre.id = `prompt-karo-${m.id}${idSuffix}`;
+    c.append(meta, el("p", "note", "Satz-Bonus: " + m.bonus), pre, copyButton(text, pre));
+    return c;
+  }
+
+  function karoDoneCard(m) {
+    const c = el("article", "card done");
+    const meta = el("div", "meta");
+    meta.append(el("span", "chip ok", "✓ geliefert"), el("span", "chip", "hinten · Mitte · vorne"));
+    const pv = el("div", "karo-preview");
+    for (const t of ["hinten", "mitte", "vorne"]) {
+      const img = el("img");
+      img.src = GELIEFERT[`${m.id}_${t}_seite`].bild;
+      img.alt = `${m.name} ${t}, Seitenansicht`;
+      pv.append(img);
+    }
+    c.append(meta, pv, el("p", "note", "Satz-Bonus: " + m.bonus));
+    return c;
+  }
+
   const total = PARTS.length * 2;
   const delivered = PARTS.reduce((n, p) => n + (p.redo ? 0 : ["seite", "oben"].filter((v) => GELIEFERT[`${p.id}_${v}`]).length), 0);
   document.getElementById("count").textContent = `${delivered} / ${total} Ansichten geliefert`;
@@ -242,10 +323,13 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 
   const nextTask = PARTS.flatMap(openTasks)[0];
   const nextBox = document.getElementById("next");
+  const nextKaro = KARO.find((m) => !karoDa(m));
   if (nextTask) {
     nextBox.append(el("h2", null, `Als Nächstes: ${nextTask.part.name}, ${VIEWS[nextTask.kind]}`), taskCard(nextTask, "-next"));
+  } else if (nextKaro) {
+    nextBox.append(el("h2", null, `Als Nächstes: Karosserie ${nextKaro.nr}, ${nextKaro.name}`), karoCard(nextKaro, "-next"));
   } else {
-    nextBox.append(el("h2", null, "Alle Ansichten sind da. Die Schrottkarre ist komplett."));
+    nextBox.append(el("h2", null, "Alles da: Schrottkarre und alle 20 Karosserien."));
   }
 
   const list = document.getElementById("list");
@@ -256,6 +340,17 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     sec.append(h);
     for (const v of ["seite", "oben"]) if (GELIEFERT[`${part.id}_${v}`]) sec.append(doneCard(part, v, part.redo));
     openTasks(part).forEach((t) => sec.append(taskCard(t, "")));
+    list.append(sec);
+  });
+
+  const karoFertig = KARO.filter(karoDa).length;
+  const kopf = el("h2", "abschnitt", `Karosserien · ${karoFertig} / ${KARO.length} geliefert`);
+  list.append(kopf, el("p", "note", "Ein Bild pro Modell, Seite oben und Draufsicht unten. Ich schneide es in hinten, Mitte und vorne. Reihenfolge ist egal, nimm, worauf du Lust hast."));
+  KARO.forEach((m) => {
+    const sec = el("section", "part");
+    const h = el("h2", null, `K${m.nr}. ${m.name}`);
+    h.append(el("small", null, "Karosserie"));
+    sec.append(h, karoDa(m) ? karoDoneCard(m) : karoCard(m, ""));
     list.append(sec);
   });
 })();

@@ -128,6 +128,12 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     { id: "giesskanne", kat: "energie", name: "Gießkanne" },
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
+    { id: "hotdog_hinten", kat: "karosserie_hinten", name: "Hot-Dog-Wagen hinten" },
+    { id: "hotdog_mitte", kat: "karosserie_mitte", name: "Hot-Dog-Wagen Mitte" },
+    { id: "hotdog_vorne", kat: "karosserie_vorne", name: "Hot-Dog-Wagen vorne" },
+    { id: "eiswagen_hinten", kat: "karosserie_hinten", name: "Eiswagen hinten" },
+    { id: "eiswagen_mitte", kat: "karosserie_mitte", name: "Eiswagen Mitte" },
+    { id: "eiswagen_vorne", kat: "karosserie_vorne", name: "Eiswagen vorne" },
     { id: "platzhalter-a_hinten", kat: "karosserie_hinten", name: "Pick-up hinten (Platzhalter)" },
     { id: "platzhalter-a_mitte", kat: "karosserie_mitte", name: "Pick-up Mitte (Platzhalter)" },
     { id: "platzhalter-a_vorne", kat: "karosserie_vorne", name: "Pick-up vorne (Platzhalter)" },
@@ -296,7 +302,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
       for (let y = 14; y < h * 0.9; y += 22) for (let x = 14 + ((y / 22) % 2) * 11; x < w; x += 22) {
         ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
       }
-      const floor = L.oy + 6 * L.cell;
+      const floor = L.oy + R.seite.boden * L.cell;
       ctx.fillStyle = "#14252b"; ctx.fillRect(0, floor, w, h - floor);
       ctx.fillStyle = "#f2b632";
       for (let x = 0; x < w; x += 40) {

@@ -105,12 +105,12 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 
   // Plätze aus assets/raster.json (Draufsicht und Seite), in Zellen
   const TOP = { car: [10, 4], frame: [1, 1, 8, 2], motor: [1, 1, 2, 2], wheels: [[1, 0, false], [1, 3, false], [7, 0, true], [7, 3, true]] };
-  const SIDE = { car: [10, 6], frame: [1, 4, 8, 1], motor: [1, 2, 2, 2], wheels: [[1, 4], [7, 4]] };
+  const SIDE = { car: [10, 7], frame: [1, 5, 8, 1], motor: [1, 3, 2, 2], wheels: [[1, 5], [7, 5]] };
   // Weitere Teile der Schrottkarre: erscheinen, sobald sie geliefert sind
   const EXTRAS = [
-    { id: "giesskanne", top: [3, 1, 1, 2], side: [3, 2, 1, 2] },
-    { id: "kuechenstuhl", top: [4, 1, 2, 2], side: [4, 2, 2, 2] },
-    { id: "fahrradlenker", top: [6, 1, 1, 2], side: [6, 2, 1, 2] },
+    { id: "giesskanne", top: [3, 1, 1, 2], side: [3, 3, 1, 2] },
+    { id: "kuechenstuhl", top: [4, 1, 2, 2], side: [4, 3, 2, 2] },
+    { id: "fahrradlenker", top: [6, 1, 1, 2], side: [6, 3, 1, 2] },
   ];
 
   function load(key) {
@@ -264,7 +264,7 @@ input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
       const s = Math.min((w * 0.86) / (SIDE.car[0] * CELL), (h * 0.86) / (SIDE.car[1] * CELL));
       const ox = (w - SIDE.car[0] * CELL * s) / 2, oy = h * 0.93 - SIDE.car[1] * CELL * s;
       const cell = CELL * s;
-      const ground = oy + 6 * cell;
+      const ground = oy + 7 * cell;
       ctx.fillStyle = "#24414a"; ctx.fillRect(0, 0, w, ground);
       ctx.fillStyle = "#8a6a48"; ctx.fillRect(0, ground, w, h - ground);
       ctx.strokeStyle = "#1d2730"; ctx.lineWidth = 3;
