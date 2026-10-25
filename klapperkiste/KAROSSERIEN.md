@@ -1,13 +1,13 @@
 # Klapperkiste – Karosserie-Modelle (Entwurf)
 
-20 Modelle à 3 Teile (hinten, Mitte, vorne) = 60 Teile. Alle Teile passen an
-alle anderen (Regeln in [`assets/RASTER.md`](assets/RASTER.md), Abschnitt 3b).
-Für das Bild: unten durchgehend mindestens bis zur Gürtellinie geschlossen,
-darüber ist alles erlaubt. Jedes Modell darf seine eigene Höhe haben, gemischt
-gibt es dann Stufen, nie Lücken. Das ist gewollt.
+20 Modelle à 3 Teile (hinten, Mitte, vorne) = 60 Teile. Die Teile werden
+einzeln gefunden (Karte, Aufträge), aufgesetzt wird aber **nur ein kompletter
+Satz** eines Modells. Mischen gibt es nicht. Bis der erste Satz komplett ist,
+fährt man ohne Karosserie.
 
-Ein kompletter Satz eines Modells gibt einen kleinen **Bonus**. Gemischt geht
-immer, dann gibt es keinen Bonus, aber jedes Teil behält seine eigene Wirkung.
+Jeder Satz bringt seine Fähigkeit (Spalte „Satz-Bonus“) mit. Weil nie
+gemischt wird, muss die Kabine nicht mehr genau ins Mittelteil passen und jedes
+Modell darf seine eigene Form und Höhe haben.
 
 | Nr. | Modell | hinten | Mitte | vorne | Satz-Bonus (Idee) | Fundort (Idee) |
 |---|---|---|---|---|---|---|

@@ -109,8 +109,10 @@ Korrekturen beim Einpassen eines Doppelbilds:
 ## 3b. Karosserie: drei Teile, alle untereinander kompatibel
 
 Jedes Karosserie-Modell besteht aus **hinten, Mitte und vorne**. Die Teile
-werden einzeln gefunden (Karte, Aufträge) und lassen sich **modellübergreifend
-mischen**. Geplant sind etwa 20 Modelle, also 60 Teile. Damit das passt, gilt:
+werden einzeln gefunden (Karte, Aufträge). **Im Spiel wird nur ein kompletter
+Satz aufgesetzt, gemischt wird nicht** (Entscheidung nach den ersten Modellen).
+Die folgenden Regeln für Nähte und Gürtellinie sind deshalb nur noch
+Richtwerte, das Schneiden nutzt sie weiter. Geplant sind etwa 20 Modelle:
 
 - Die Karosserie sitzt auf der Rahmenoberkante (y = 5) und braucht keine
   Radläufe. Die Räder liegen darunter.
@@ -181,8 +183,7 @@ Orthographic model sheet showing this same car body twice, stacked vertically wi
 gap between the two views. Top half: flat side elevation, the front points to the right, the body is
 long and low, the lower body has the same height along its whole length with a straight waistline
 and a straight closed lower edge without wheel arch cut-outs,
-only the middle section (cabin) rises higher with roof and windows, the cabin takes up exactly the
-middle third of the length and no more, the rear and front sections stay low. Bottom half: plan view seen straight from directly above, same length, the body has the same
+only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay low. Bottom half: plan view seen straight from directly above, same length, the body has the same
 width along its whole length. Both views at the same scale and aligned. + Stil-Block
 ```
 

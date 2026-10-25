@@ -101,21 +101,22 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
 
 - Jedes Modell besteht aus drei Teilen: **hinten, Mitte, vorne**. Die Teile
   sind auf der Karte und über Aufträge verteilt und werden einzeln gesammelt.
-- Ziel: etwa **20 Modelle, also 60 Teile**. Alle Teile passen an alle anderen
-  (feste Nähte und Gürtellinie, siehe `assets/RASTER.md`).
+- Ziel: etwa **20 Modelle, also 60 Teile**.
+- **Nur komplette Sätze:** Aufgesetzt wird eine Karosserie erst, wenn alle drei
+  Teile eines Modells gesammelt sind. Mischen gibt es nicht. Am Anfang fährt
+  man ohne Karosserie (die Schrottkarre ist nur Rahmen, Motor, Sitz).
 - Die Karosserie wird **als Letztes** eingebaut, wenn das Auto fahrbereit ist,
   und muss als Erstes wieder ab.
-- Idee: Ein **kompletter Satz** eines Modells (alle drei Teile gleich) gibt
-  einen kleinen Bonus. Gemischte Karossen sind erlaubt und gewollt.
-- Idee für Dredge: Das Mittelteil bestimmt die **Ladefläche** (Pick-up viel,
-  Kugel wenig), hinten und vorne beeinflussen Luftwiderstand und Robustheit.
+- Jeder Satz bringt seine Fähigkeit mit (Liste in `KAROSSERIEN.md`).
+- Manche Modelle bringen ein **Anbauteil** mit, das automatisch erscheint,
+  z. B. das Räumschild der Schneeraupe tief am Boden (`assets/raster.json`,
+  „anbauten“).
 
 ### Karten-Ideen
 
-- **Zwei Seen mit Inseln.** Die Inseln sind nur mit der **kompletten
-  Ruderboot-Karosserie** erreichbar, also hinten, Mitte und vorne vom
-  Ruderboot. Einzelne Bootsteile oder die Badewanne reichen nur für Furten
-  und flaches Wasser.
+- **Zwei Seen mit Inseln.** Die Inseln sind nur mit der
+  **Ruderboot-Karosserie** erreichbar. Die Badewanne reicht nur für Furten und
+  flaches Wasser.
 - Auf den Inseln liegen lohnende Funde (seltene Teile, Karosserie-Teile
   anderer Modelle, Aufträge).
 
