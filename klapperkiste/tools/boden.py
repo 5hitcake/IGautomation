@@ -21,7 +21,7 @@ import os
 import random
 import sys
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageMath, ImageStat
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageMath, ImageStat
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BODEN_DIR = os.path.join(ROOT, "assets", "karte", "boden")
@@ -105,12 +105,13 @@ def erde_weg(bild: Image.Image, versatz: tuple[int, int] = (97, 61)) -> Image.Im
 
 
 def kachel(eingabe: str, name: str, meter: float, ohne_erde: bool = False, wiederholung: int = 0,
-           ausgleich: bool = False) -> str:
+           ausgleich: bool = False, saettigung: float = 1.0, helligkeit: float = 1.0) -> str:
     bild = Image.open(eingabe).convert("RGB")
     px, py = (wiederholung, wiederholung) if wiederholung else (periode(bild, "x"), periode(bild, "y"))
     teil = nahtlos(bild.crop((0, 0, px, py)), 0.25 if ausgleich else UEBERGANG)
     if ausgleich:
         teil = ausgleichen(teil)
+    teil = ImageEnhance.Brightness(ImageEnhance.Color(teil).enhance(saettigung)).enhance(helligkeit)
     if px != py:  # nicht quadratisch: durch Aneinanderlegen quadratisch machen
         seite = max(px, py)
         quadrat = Image.new("RGB", (seite, seite))
@@ -218,6 +219,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="Wiederholung im Bild in Pixeln vorgeben, falls die Erkennung danebenliegt")
     k.add_argument("--ausgleichen", action="store_true",
                    help="großflächige Lichtverläufe entfernen (wenn Kanten oder Flecken sichtbar sind)")
+    k.add_argument("--saettigung", type=float, default=1.0, help="Farbstärke, z. B. 0.45 für grauen Asphalt")
+    k.add_argument("--helligkeit", type=float, default=1.0)
     k.add_argument("--ohne-erde", action="store_true", help="braune Erdstellen übermalen (z. B. für Gras)")
     pr = sub.add_parser("probe")
     pr.add_argument("name")
@@ -231,7 +234,8 @@ def main(argv: list[str] | None = None) -> int:
     fl.add_argument("--auto")
     args = p.parse_args(argv)
     if args.befehl == "kachel":
-        kachel(args.eingabe, args.name, args.meter, args.ohne_erde, args.wiederholung, args.ausgleichen)
+        kachel(args.eingabe, args.name, args.meter, args.ohne_erde, args.wiederholung, args.ausgleichen,
+               args.saettigung, args.helligkeit)
     elif args.befehl == "flaeche":
         flaeche(args.namen, args.meter, args.seed, args.auto).save(args.ausgabe)
         print(os.path.relpath(args.ausgabe))
