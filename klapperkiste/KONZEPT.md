@@ -59,6 +59,7 @@ Auto befahrbar:
 | Schnee | Schneeschild |
 | Schmale oder schwache Brücke | Wenig Gewicht |
 | Furt, flaches Wasser | Große Räder |
+| See (tiefes Wasser) zu den Inseln | Kompletter Satz Ruderboot-Karosserie (alle drei Teile) |
 
 ### Achsen
 
@@ -107,6 +108,15 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
   einen kleinen Bonus. Gemischte Karossen sind erlaubt und gewollt.
 - Idee für Dredge: Das Mittelteil bestimmt die **Ladefläche** (Pick-up viel,
   Kugel wenig), hinten und vorne beeinflussen Luftwiderstand und Robustheit.
+
+### Karten-Ideen
+
+- **Zwei Seen mit Inseln.** Die Inseln sind nur mit der **kompletten
+  Ruderboot-Karosserie** erreichbar, also hinten, Mitte und vorne vom
+  Ruderboot. Einzelne Bootsteile oder die Badewanne reichen nur für Furten
+  und flaches Wasser.
+- Auf den Inseln liegen lohnende Funde (seltene Teile, Karosserie-Teile
+  anderer Modelle, Aufträge).
 
 ### Anleihen bei Dredge
 

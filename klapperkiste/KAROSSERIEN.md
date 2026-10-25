@@ -27,7 +27,7 @@ immer, dann gibt es keinen Bonus, aber jedes Teil behält seine eigene Wirkung.
 | 14 | Iglu | Eisblöcke | Iglu-Kuppel mit Eingang | Schneeschaufel-Bug | Kälteschutz, Schnee | Frostpass |
 | 15 | Gewächshaus | Blumenkasten mit Tulpen | Glashaus mit Tomatenpflanzen | Haube aus Gießkannen | Pflanzen liefern | Gärtnerei |
 | 16 | Zirkus | Menschenkanone | gestreifte Zirkuszelt-Kuppel | Clownsnase als Kühler | Zuschauer locken | Zirkus |
-| 17 | Ruderboot | Bootsheck mit Außenborder | Bootsmitte mit Ruderbank | spitzer Bug mit Anker | Wasser und Furten | Hafen, See |
+| 17 | Ruderboot | Bootsheck mit Außenborder | Bootsmitte mit Ruderbank | spitzer Bug mit Anker | als kompletter Satz über die Seen zu den Inseln | Hafen, See |
 | 18 | Wohnzimmer | alte Kommode | Ohrensessel mit Stehlampe | Röhrenfernseher als Haube | Komfort, Fahrer ruht sich aus | Flohmarkt |
 | 19 | Bienenstock | Honigtopf | Bienenkorb-Kuppel | Wabenhaube | Honig, Schafe gehen aus dem Weg | Imkerei |
 | 20 | Dampflok | Kohlentender | Führerhaus mit Pfeife | Dampfkessel mit kurzem Schornstein | Ziehen und Abschleppen | Bahnhof, Bergwerk |
