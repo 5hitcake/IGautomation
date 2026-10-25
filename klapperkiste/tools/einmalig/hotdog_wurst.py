@@ -29,7 +29,7 @@ SEITE_UNTEN = 640               # unter der Karosserie (Seite)
 WURST_SEITE = (230, 120, 720)   # x0, y0, x1 der Dach-Wurst (bis DACH_Y)
 WURST_OBEN = (205, 958, 700, 1196)  # Rahmen der Wurst in der Draufsicht
 FUGE_X = range(292, 302)        # Blechfuge im Dach, läuft unter der Wurst durch
-STAUCHEN = 0.8                  # Kasten in der Seitenansicht auf 80 % Höhe
+STAUCHEN = 0.75                 # Kasten in der Seitenansicht auf 75 % Höhe
 # Ketchup und Senf an der Hecktür: Rahmen der Flasche und des Türgriffs davor
 FLASCHEN = [((70, 316, 134, 512), (113, 474, 132, 511)),
             ((141, 316, 206, 512), (143, 474, 162, 511))]
@@ -101,8 +101,25 @@ def _flasche_drehen(bild: Image.Image, rahmen: tuple, griff: tuple) -> None:
     bild.paste(neu, rahmen[:2])
 
 
+def _stossstange_weg(bild: Image.Image) -> None:
+    """Würstchen-Stoßstange vorne entfernen und die Kabinenecke neu zeichnen."""
+    rot, schwarz = (205, 50, 18), (12, 8, 6)
+    d = ImageDraw.Draw(bild)
+    # Seite: Kabine unten vorne bis zur Unterkante der Tür zuende führen, Rest weiß
+    d.rectangle((982, 541, 1023, 640), fill=WEISS)
+    d.rectangle((853, 628, 1023, 640), fill=WEISS)
+    d.rectangle((853, 541, 977, 621), fill=rot)
+    d.rectangle((853, 607, 977, 621), fill=(172, 38, 14))  # Schattenkante unten
+    d.line([(848, 624), (978, 624)], fill=schwarz, width=6)   # Unterkante
+    d.line([(978, 530), (978, 624)], fill=schwarz, width=6)   # Front
+    d.rectangle((975, 621, 981, 627), fill=schwarz)          # Ecke
+    # Draufsicht: Würstchen vor der Kabine weg
+    d.rectangle((946, 940, 1023, 1260), fill=WEISS)
+
+
 def bearbeiten(original: Image.Image) -> tuple[Image.Image, float]:
     original = original.convert("RGB")
+    _stossstange_weg(original)
     for rahmen, griff in FLASCHEN:
         _flasche_drehen(original, rahmen, griff)
     breite = original.width
