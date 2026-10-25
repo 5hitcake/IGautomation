@@ -171,49 +171,52 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   const KARO_NORMAL = "the body is long and low, the lower body has the same height along its whole length with a straight waistline and a straight closed lower edge without wheel arch cut-outs, only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay low";
   const KARO_HOCH = "the body is a tall box along its whole length, with a straight closed lower edge without wheel arch cut-outs";
   const KARO = [
-    { nr: 1, id: "rundling", name: "Rundling", bonus: "keiner, dafür leicht",
+    { nr: 1, id: "rundling", farbe: "faded pale blue paint with cream and lots of rust", name: "Rundling", bonus: "keiner, dafür leicht",
       modell: "A small round 1950s style compact car body shell with round windows and round headlights" },
-    { nr: 2, id: "pickup", name: "Pick-up", bonus: "große Ladefläche",
+    { nr: 2, id: "pickup", farbe: "dark forest green paint with rust patches and a wooden cargo bed", name: "Pick-up", bonus: "große Ladefläche",
+      redo: "Gleiche Farben wie der Rundling (blassblau, creme, Rost). Neu in dunklem Waldgrün.",
       modell: "A pick-up truck body shell with an open cargo bed at the rear, a boxy cab in the middle and a long hood with a big grille at the front" },
-    { nr: 3, id: "badewanne", name: "Badewanne", bonus: "schwimmt durch Furten",
+    { nr: 3, id: "badewanne", farbe: "white-cream enamel with chipped pale blue patches", name: "Badewanne", bonus: "schwimmt durch Furten",
       form: "the bathtub forms the whole body with a straight closed lower edge and a straight top rim along its whole length, only the shower curtain rod with the shower head rises above the middle section, the rubber duck sits on the front end",
       modell: "A car body made from an old enamel bathtub, a shower curtain rod with a shower head above the middle, a rubber duck as hood ornament at the front" },
-    { nr: 4, id: "telefonzelle", name: "Telefonzelle", bonus: "Regen- und Windschutz",
+    { nr: 4, id: "telefonzelle", farbe: "bright pillar-box red", name: "Telefonzelle", bonus: "Regen- und Windschutz",
       modell: "A car body whose middle is a red telephone box with glass panes, a cable reel as the rear, a rotary dial as the front grille" },
-    { nr: 5, id: "eiswagen", name: "Eiswagen", bonus: "Kühlware bleibt frisch, Eis verkaufen", hoch: true,
+    { nr: 5, id: "eiswagen", farbe: "cream with pastel pink and mint accents", name: "Eiswagen", bonus: "Kühlware bleibt frisch, Eis verkaufen", hoch: true,
       modell: "An ice cream van body with an ice cream chest full of scoops at the rear, a sales booth with a striped awning in the middle and a waffle cone figure on the front hood" },
-    { nr: 6, id: "heuscheune", name: "Heuscheune", bonus: "Tiere transportieren",
+    { nr: 6, id: "heuscheune", farbe: "weathered brown wood with a barn-red roof", name: "Heuscheune", bonus: "Tiere transportieren",
       modell: "A car body with a small wooden barn with a roof in the middle, hay bales with a pitchfork at the rear and a plank hood with a cow bell at the front" },
-    { nr: 7, id: "rakete", name: "Rakete", bonus: "Tempo höher",
+    { nr: 7, id: "rakete", farbe: "polished silver chrome with turquoise tail fins", name: "Rakete", bonus: "Tempo höher",
+      redo: "Gleiche Farbe wie die Telefonzelle (rot). Neu in Silber-Chrom mit türkisen Flossen.",
       modell: "A retro rocket car body with rocket nozzles and tail fins at the rear, a riveted cockpit dome in the middle and a pointed rocket nose at the front" },
-    { nr: 8, id: "kutsche", name: "Kutsche", bonus: "Komfort, Hochzeitsauftrag",
+    { nr: 8, id: "kutsche", farbe: "deep royal blue lacquer with gold trim and dark varnished wood", name: "Kutsche", bonus: "Komfort, Hochzeitsauftrag",
+      form: "the body is a classic wooden horse carriage: the carriage floor runs low and straight along the whole length with a straight closed lower edge without wheel arch cut-outs, only the carriage cabin in the middle rises higher with a gently curved roof and windows with curtains, the rear is a low luggage rack with suitcases, the front ends in a flat coachman's bench with a lantern and a blunt rounded end, no pointed nose, nothing that looks like a rocket",
       modell: "A horse carriage car body with a luggage rack with suitcases at the rear, a carriage cabin with curtains in the middle and a coachman's box with a lantern at the front" },
-    { nr: 9, id: "hotdog", name: "Hot-Dog-Kastenwagen", bonus: "unterwegs verkaufen, Hunde laufen hinterher", hoch: true,
+    { nr: 9, id: "hotdog", farbe: "mustard yellow and ketchup red", name: "Hot-Dog-Kastenwagen", bonus: "unterwegs verkaufen, Hunde laufen hinterher", hoch: true,
       modell: "A tall boxy hot dog food truck body (a tall box along its whole length, with a straight lower edge), rear doors with ketchup and mustard bottles painted on, a serving hatch and a giant hot dog sculpture on the roof in the middle, a driver's cab with a sausage-shaped bumper at the front" },
-    { nr: 10, id: "feuerwehr", name: "Feuerwehr", bonus: "Brände löschen",
+    { nr: 10, id: "feuerwehr", farbe: "bright signal red with white stripes and shiny chrome", name: "Feuerwehr", bonus: "Brände löschen",
       modell: "A fire engine body with a water tank and hose reel at the rear, a crew cab with a bell in the middle and a red hood with a siren at the front" },
-    { nr: 11, id: "weinfass", name: "Weinfass", bonus: "sehr robust",
+    { nr: 11, id: "weinfass", farbe: "honey-coloured oak wood with dark iron hoops and wine-red stains", name: "Weinfass", bonus: "sehr robust",
       modell: "A car body made from wine barrels: half a barrel with a tap at the rear, a big barrel with a little door in the middle, a small barrel as the front hood" },
-    { nr: 12, id: "wohnwagen", name: "Mini-Wohnwagen", bonus: "übernachten (Tag und Nacht)",
+    { nr: 12, id: "wohnwagen", farbe: "mint green and cream", name: "Mini-Wohnwagen", bonus: "übernachten (Tag und Nacht)",
       modell: "A tiny teardrop camper car body with a kitchen hatch with pots at the rear, a round living cabin with small windows in the middle and a gas bottle box at the front" },
-    { nr: 13, id: "tresor", name: "Tresor", bonus: "Robustheit hoch",
+    { nr: 13, id: "tresor", farbe: "dark gunmetal grey with brass rivets", name: "Tresor", bonus: "Robustheit hoch",
       modell: "An armoured safe car body with riveted steel plates at the rear, a big safe with a dial in the middle and a steel ram bow at the front" },
-    { nr: 14, id: "iglu", name: "Iglu", bonus: "Kälteschutz, Schnee",
+    { nr: 14, id: "iglu", farbe: "pale icy blue and light grey ice blocks", name: "Iglu", bonus: "Kälteschutz, Schnee",
       modell: "An igloo car body with ice blocks at the rear, an igloo dome with an entrance in the middle and a snow shovel bow at the front" },
-    { nr: 15, id: "gewaechshaus", name: "Gewächshaus", bonus: "Pflanzen liefern",
+    { nr: 15, id: "gewaechshaus", farbe: "green-painted window frames, clear glass and terracotta pots", name: "Gewächshaus", bonus: "Pflanzen liefern",
       modell: "A greenhouse car body with a flower box with tulips at the rear, a glass house with tomato plants in the middle and a hood made of watering cans at the front" },
-    { nr: 16, id: "zirkus", name: "Zirkus", bonus: "Zuschauer locken",
+    { nr: 16, id: "zirkus", farbe: "purple and gold stripes", name: "Zirkus", bonus: "Zuschauer locken",
       modell: "A circus car body with a human cannon at the rear, a striped circus tent dome in the middle and a red clown nose as the front grille" },
-    { nr: 17, id: "ruderboot", name: "Ruderboot", bonus: "als kompletter Satz über die Seen zu den Inseln",
+    { nr: 17, id: "ruderboot", farbe: "orange varnished wooden planks with a teal waterline stripe", name: "Ruderboot", bonus: "als kompletter Satz über die Seen zu den Inseln",
       modell: "A rowing boat car body with a boat stern and an outboard motor at the rear, a rowing bench in the middle and a pointed bow with an anchor at the front" },
-    { nr: 18, id: "wohnzimmer", name: "Wohnzimmer", bonus: "Komfort, Fahrer ruht sich aus",
+    { nr: 18, id: "wohnzimmer", farbe: "mustard yellow and olive green 1970s style with floral patterns", name: "Wohnzimmer", bonus: "Komfort, Fahrer ruht sich aus",
       modell: "A living room car body with an old chest of drawers at the rear, a wing armchair with a floor lamp in the middle and an old tube television as the front hood" },
-    { nr: 19, id: "bienenstock", name: "Bienenstock", bonus: "Honig, Schafe gehen aus dem Weg",
+    { nr: 19, id: "bienenstock", farbe: "honey yellow with black stripes", name: "Bienenstock", bonus: "Honig, Schafe gehen aus dem Weg",
       modell: "A beehive car body with a honey pot at the rear, a straw bee skep dome in the middle and a honeycomb hood at the front" },
-    { nr: 20, id: "dampflok", name: "Dampflok", bonus: "Ziehen und Abschleppen",
+    { nr: 20, id: "dampflok", farbe: "glossy black with brass fittings and red trim", name: "Dampflok", bonus: "Ziehen und Abschleppen",
       modell: "A small steam locomotive car body with a coal tender at the rear, a driver's cab with a whistle in the middle and a boiler with a short chimney at the front" },
   ];
-  const karoPrompt = (m) => `${m.modell}. Car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver. Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white gap between the two views. Top half: flat side elevation, the front points to the right, ${m.form || (m.hoch ? KARO_HOCH : KARO_NORMAL)}. Bottom half: ${TOP_VIEW}, same length, the body has the same width along its whole length. Both views at the same scale and aligned. ${LOOK} ${SHEET_BG}`;
+  const karoPrompt = (m) => `${m.modell}. Main colours: ${m.farbe}. Car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver. Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white gap between the two views. Top half: flat side elevation, the front points to the right, ${m.form || (m.hoch ? KARO_HOCH : KARO_NORMAL)}. Bottom half: ${TOP_VIEW}, same length, the body has the same width along its whole length. Both views at the same scale and aligned. ${LOOK} ${SHEET_BG}`;
 
   // Vom Werkzeug erzeugt (teilwerk.py geliefert): eingepasste Teile mit Vorschau
   const GELIEFERT = window.GELIEFERT || {};
@@ -287,7 +290,8 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     return c;
   }
 
-  const karoDa = (m) => ["hinten", "mitte", "vorne"].every((t) => GELIEFERT[`${m.id}_${t}_seite`]);
+  const karoGeliefert = (m) => ["hinten", "mitte", "vorne"].every((t) => GELIEFERT[`${m.id}_${t}_seite`]);
+  const karoDa = (m) => karoGeliefert(m) && !m.redo;
 
   function karoCard(m, idSuffix) {
     const text = karoPrompt(m);
@@ -296,16 +300,21 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     meta.append(el("span", "chip view", "Seite + Draufsicht"), el("span", "chip", "Format 9:16 hochkant"),
       el("span", "chip file", `${m.id}_blatt.png`));
     if (m.hoch) meta.append(el("span", "chip", "hoher Aufbau"));
+    meta.append(el("span", "chip", "Farbe: " + m.farbe));
+    if (m.redo) meta.prepend(el("span", "chip redo", "Nochmal"));
     const pre = el("p", "prompt", text);
     pre.id = `prompt-karo-${m.id}${idSuffix}`;
-    c.append(meta, el("p", "note", "Satz-Bonus: " + m.bonus), pre, copyButton(text, pre));
+    c.append(meta, el("p", "note", "Satz-Bonus: " + m.bonus));
+    if (m.redo) c.append(el("p", "note", m.redo));
+    c.append(pre, copyButton(text, pre));
     return c;
   }
 
   function karoDoneCard(m) {
-    const c = el("article", "card done");
+    const c = el("article", "card" + (m.redo ? "" : " done"));
     const meta = el("div", "meta");
-    meta.append(el("span", "chip ok", "✓ geliefert"), el("span", "chip", "hinten · Mitte · vorne"));
+    meta.append(el("span", m.redo ? "chip" : "chip ok", m.redo ? "Version 1 (wird ersetzt)" : "✓ geliefert"),
+      el("span", "chip", "hinten · Mitte · vorne"));
     const pv = el("div", "karo-preview");
     for (const t of ["hinten", "mitte", "vorne"]) {
       const img = el("img");
@@ -324,7 +333,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 
   const nextTask = PARTS.flatMap(openTasks)[0];
   const nextBox = document.getElementById("next");
-  const nextKaro = KARO.find((m) => !karoDa(m));
+  const nextKaro = KARO.find((m) => !karoGeliefert(m)) || KARO.find((m) => !karoDa(m));
   if (nextTask) {
     nextBox.append(el("h2", null, `Als Nächstes: ${nextTask.part.name}, ${VIEWS[nextTask.kind]}`), taskCard(nextTask, "-next"));
   } else if (nextKaro) {
@@ -346,12 +355,14 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 
   const karoFertig = KARO.filter(karoDa).length;
   const kopf = el("h2", "abschnitt", `Karosserien · ${karoFertig} / ${KARO.length} geliefert`);
-  list.append(kopf, el("p", "note", "Ein Bild pro Modell, Seite oben und Draufsicht unten. Ich schneide es in hinten, Mitte und vorne. Reihenfolge ist egal, nimm, worauf du Lust hast."));
+  list.append(kopf, el("p", "note", "Ein Bild pro Modell, Seite oben und Draufsicht unten. Ich schneide es in hinten, Mitte und vorne. Jedes Modell hat eine eigene Hauptfarbe, damit man die Teile auseinanderhält. Reihenfolge ist egal, nimm, worauf du Lust hast."));
   KARO.forEach((m) => {
     const sec = el("section", "part");
     const h = el("h2", null, `K${m.nr}. ${m.name}`);
     h.append(el("small", null, "Karosserie"));
-    sec.append(h, karoDa(m) ? karoDoneCard(m) : karoCard(m, ""));
+    sec.append(h);
+    if (karoGeliefert(m)) sec.append(karoDoneCard(m));
+    if (!karoDa(m)) sec.append(karoCard(m, ""));
     list.append(sec);
   });
 })();

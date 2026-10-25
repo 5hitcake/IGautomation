@@ -60,3 +60,31 @@ bleibt gleich.
 | 18 | A living room car body with an old chest of drawers at the rear, a wing armchair with a floor lamp in the middle and an old tube television as the front hood |
 | 19 | A beehive car body with a honey pot at the rear, a straw bee skep dome in the middle and a honeycomb hood at the front |
 | 20 | A small steam locomotive car body with a coal tender at the rear, a driver's cab with a whistle in the middle and a boiler with a short chimney at the front |
+
+## Hauptfarben
+
+Jedes Modell hat eine eigene Hauptfarbe, damit man die Teile auch gemischt
+auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
+
+| Nr. | Modell | Hauptfarbe |
+|---|---|---|
+| 1 | Rundling | blassblau, creme, viel Rost |
+| 2 | Pick-up | dunkles Waldgrün, Ladefläche aus Holz (neu, war zu nah am Rundling) |
+| 3 | Badewanne | weiß-cremige Emaille, abgeplatztes Blassblau |
+| 4 | Telefonzelle | Briefkastenrot |
+| 5 | Eiswagen | creme mit Pastellrosa und Mint |
+| 6 | Heuscheune | verwittertes Braunholz, scheunenrotes Dach |
+| 7 | Rakete | Silber-Chrom, türkise Flossen (neu, war rot wie die Telefonzelle) |
+| 8 | Kutsche | Königsblau mit Gold und dunklem Holz |
+| 9 | Hot-Dog-Kastenwagen | Senfgelb und Ketchuprot |
+| 10 | Feuerwehr | Signalrot mit weißen Streifen und Chrom |
+| 11 | Weinfass | honigfarbene Eiche, dunkle Eisenreifen, Weinflecken |
+| 12 | Mini-Wohnwagen | Mintgrün und Creme |
+| 13 | Tresor | dunkles Stahlgrau, Messingnieten |
+| 14 | Iglu | blasses Eisblau, hellgraue Eisblöcke |
+| 15 | Gewächshaus | grüne Fensterrahmen, Glas, Terrakotta |
+| 16 | Zirkus | Lila und Gold gestreift |
+| 17 | Ruderboot | orange lackierte Planken, türkiser Wasserpass |
+| 18 | Wohnzimmer | Senfgelb und Olivgrün, 70er-Jahre-Blumenmuster |
+| 19 | Bienenstock | Honiggelb mit schwarzen Streifen |
+| 20 | Dampflok | glänzend Schwarz, Messing, rote Zierlinien |
