@@ -17,7 +17,7 @@ immer, dann gibt es keinen Bonus, aber jedes Teil behält seine eigene Wirkung.
 | 6 | Heuscheune | Heuballen mit Mistgabel | kleine Holzscheune mit Dach | Bretterhaube mit Kuhglocke | Tiere transportieren | Bauernhof, Mühle |
 | 7 | Rakete | Düsen mit Heckflossen | Cockpit-Kuppel mit Nieten | spitze Raketennase | Tempo höher | Kirmes, Museum |
 | 8 | Kutsche | Gepäckablage mit Koffern | Kutschenkabine mit Gardinen | Kutschbock mit Laterne | Komfort, Hochzeitsauftrag | Schloss |
-| 9 | Eiswagen | Eistruhe mit Kugeln | Verkaufsbude mit gestreifter Markise | Haube mit Waffelhörnchen-Figur | unterwegs verkaufen | Eisdiele, Strand |
+| 9 | Hot-Dog-Wagen | Riesenflaschen Ketchup und Senf | hoher Verkaufskasten mit Klappe und Riesen-Hot-Dog auf dem Dach | Haube mit Würstchen als Stoßstange | unterwegs verkaufen, Hunde laufen hinterher | Kirmes, Fußballplatz |
 | 10 | Feuerwehr | Wassertank mit Schlauchtrommel | Mannschaftskabine mit Glocke | rote Haube mit Martinshorn | Brände löschen | Feuerwache |
 | 11 | Weinfass | halbes Fass mit Zapfhahn | großes Fass mit Türchen | kleines Fass als Haube | sehr robust | Weinberg, Kneipe |
 | 12 | Mini-Wohnwagen | Küchenklappe mit Töpfen | runde Wohnkabine mit Fensterchen | Gasflaschenkasten | übernachten (Tag und Nacht) | Campingplatz |
@@ -46,7 +46,7 @@ bleibt gleich.
 | 6 | A car body with a small wooden barn with a roof in the middle, hay bales with a pitchfork at the rear and a plank hood with a cow bell at the front |
 | 7 | A retro rocket car body with rocket nozzles and tail fins at the rear, a riveted cockpit dome in the middle and a pointed rocket nose at the front |
 | 8 | A horse carriage car body with a luggage rack with suitcases at the rear, a carriage cabin with curtains in the middle and a coachman's box with a lantern at the front |
-| 9 | An ice cream van body with an ice cream chest at the rear, a sales booth with a striped awning in the middle and a waffle cone figure on the front hood |
+| 9 | A hot dog food truck body with giant ketchup and mustard bottles lying at the low rear, a tall boxy sales cabin with a serving hatch and a giant hot dog sculpture on its roof in the middle, and a low front hood with a sausage-shaped bumper |
 | 10 | A fire engine body with a water tank and hose reel at the rear, a crew cab with a bell in the middle and a red hood with a siren at the front |
 | 11 | A car body made from wine barrels: half a barrel with a tap at the rear, a big barrel with a little door in the middle, a small barrel as the front hood |
 | 12 | A tiny teardrop camper car body with a kitchen hatch with pots at the rear, a round living cabin with small windows in the middle and a gas bottle box at the front |
