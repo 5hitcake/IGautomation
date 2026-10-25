@@ -77,6 +77,7 @@ Grob von Süd nach Nord, also von leicht zu schwer:
 | **Seen (zwei)** | Hafen, Strand, Inseln | tiefes Wasser | Schlauchboot (komplett), Bootsmotor |
 | **Weite Ebene** | Tankstelle am Ende einer langen Strecke | lange Strecke ohne Tankstelle | größerer Tank |
 | **Berge (Norden)** | Steinbruch, Bergwerk, Frostpass, Schloss | Steigungen, Schnee | starker Motor, Schneeraupe |
+| **Brandgebiet (Idee)** | verkohlter Wald, Köhlerei, glimmende Glut | Glutfelder, die Reifen beschädigen | Feuerwehr (löscht die Glut, danach dauerhaft offen) |
 
 Jeder Ort bekommt einen **Charakter** mit eigenem Wohnort, der Aufträge
 vergibt (liefern, abholen, Schnee räumen, Brücke reparieren). Die Belohnung
@@ -87,7 +88,7 @@ sind Teile, Karosserie-Teile oder neue Wege.
 | Schritt | Inhalt |
 |---|---|
 | **K1** | Dieses Konzept, Maßstab, Raster, Übersichtsskizze der ganzen Karte |
-| K2 | Boden-Texturen: Gras, Erde, Schotter, Asphalt, Sand, Wasser (Prompts, ich mache sie nahtlos) |
+| K2 | Boden-Texturen: Gras, Erde, Schotter, Asphalt, Sand, Wasser, Fels, Schnee, Glut (Prompts, ich mache sie nahtlos) |
 | K3 | Erste Objekte von oben: 2 Bäume, Busch, Felsen, Zaun, Schild |
 | K4 | Startgebiet (5 × 5 Abschnitte): Opas Schuppen und der Weg zum Schrottplatz, als Fahrprobe mit dem gebauten Auto |
 | K5 | Erster Ort als Bild: der Schrottplatz, mit erstem Charakter |
