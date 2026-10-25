@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Klapperkiste Fahrprobe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Layout: zwei Bühnen untereinander (Draufsicht, Seitenansicht), darunter
+   Regler. Gleicher dunkler Werkstatt-Look wie die anderen Klapperkiste-Seiten. */
+:root {
+  color-scheme: dark;
+  --wall: #1b3138;
+  --board: #12232a;
+  --card: #203a42;
+  --chalk: #e9efe6;
+  --chalk-dim: #a3b8b3;
+  --mustard: #f2b632;
+  --mint: #6fd3a3;
+  --line: #2c4a52;
+  --dirt: #8a6a48;
+  --font-display: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+}
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--wall); color: var(--chalk); font-family: var(--font-body); font-weight: 600; font-size: 15px; line-height: 1.5; }
+.wrap {
+  max-width: 900px; margin: 0 auto; padding-block: 24px 48px; display: grid; gap: 18px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1; color: var(--mustard); }
+h2 { font-size: 18px; color: var(--chalk-dim); letter-spacing: 0.04em; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mint); }
+.lead { color: var(--chalk-dim); max-width: 62ch; }
+.stage { display: grid; gap: 6px; }
+canvas { display: block; width: 100%; max-width: 100%; border-radius: 14px; background: var(--board); touch-action: manipulation; }
+#top { aspect-ratio: 16 / 9; }
+#side { aspect-ratio: 16 / 7; }
+.controls { background: var(--card); border-radius: 14px; padding: 14px 16px; display: grid; gap: 12px; }
+.row { display: grid; grid-template-columns: 90px 1fr 64px; gap: 10px; align-items: center; }
+.row output { font-variant-numeric: tabular-nums; text-align: right; color: var(--chalk-dim); }
+input[type="range"] { width: 100%; accent-color: var(--mustard); }
+label.check { display: flex; gap: 8px; align-items: center; cursor: pointer; color: var(--chalk-dim); }
+label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
+input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+.how { background: var(--board); border-radius: 14px; padding: 14px 18px; display: grid; gap: 6px; }
+.how ul { margin: 0; padding-left: 20px; color: var(--chalk-dim); display: grid; gap: 4px; }
+.how strong { color: var(--chalk); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <p class="eyebrow">Probe mit den echten Teilen</p>
+    <h1>Klapperkiste Fahrprobe</h1>
+    <p class="lead">Motor und Schubkarrenräder aus deinen Bildern, eingepasst ins Raster. Der Rahmen ist noch ein Platzhalter.</p>
+  </header>
+
+  <section class="stage">
+    <h2>Draufsicht</h2>
+    <canvas id="top" aria-label="Draufsicht: Räder rollen, Vorderräder lenken"></canvas>
+  </section>
+  <section class="stage">
+    <h2>Seitenansicht</h2>
+    <canvas id="side" aria-label="Seitenansicht: Räder drehen sich"></canvas>
+  </section>
+
+  <section class="controls" aria-label="Regler">
+    <div class="row">
+      <label for="speed">Tempo</label>
+      <input id="speed" type="range" min="0" max="40" step="1" value="14">
+      <output id="speed-out" for="speed">14 km/h</output>
+    </div>
+    <div class="row">
+      <label for="steer">Lenkung</label>
+      <input id="steer" type="range" min="-30" max="30" step="1" value="0">
+      <output id="steer-out" for="steer">0°</output>
+    </div>
+    <label class="check"><input id="auto" type="checkbox" checked> Automatisch hin und her lenken</label>
+  </section>
+
+  <section class="how">
+    <h2>So funktioniert es</h2>
+    <ul>
+      <li><strong>Draufsicht:</strong> Die Reifenform bleibt fest, nur das Profil darin läuft durch. Das Profil wiederholt sich, deshalb gibt es keine sichtbare Naht.</li>
+      <li><strong>Lenken:</strong> Die Vorderräder drehen sich um ihre Mitte.</li>
+      <li><strong>Seitenansicht:</strong> Das Rad dreht sich um die Nabe, passend zur gefahrenen Strecke.</li>
+    </ul>
+  </section>
+</div>
+
+<script src="geliefert.js"></script>
+<script>
+(function () {
+  const G = window.GELIEFERT || {};
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const CELL = 128; // Rasterzelle in Pixeln, siehe assets/raster.json
+
+  // Plätze aus assets/raster.json (Draufsicht und Seite), in Zellen
+  const TOP = { car: [10, 4], frame: [1, 1, 8, 2], motor: [1, 1, 2, 2], wheels: [[1, 0, false], [1, 3, false], [7, 0, true], [7, 3, true]] };
+  const SIDE = { car: [10, 6], frame: [1, 4, 8, 1], motor: [1, 2, 2, 2], wheels: [[1, 4], [7, 4]] };
+
+  function load(key) {
+    return new Promise((ok, fail) => {
+      if (!G[key]) return fail(new Error("Fehlt: " + key));
+      const img = new Image();
+      img.onload = () => ok(img);
+      img.onerror = fail;
+      img.src = G[key].bild;
+    });
+  }
+
+  // Profil-Periode der Lauffläche: Spalten-Helligkeit vergleichen und die
+  // Verschiebung suchen, bei der sich das Muster am besten wiederholt.
+  function treadPeriod(img) {
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    const x = c.getContext("2d");
+    x.drawImage(img, 0, 0);
+    const { data, width, height } = x.getImageData(0, 0, c.width, c.height);
+    const y0 = Math.floor(height * 0.3), y1 = Math.ceil(height * 0.7);
+    const col = [];
+    for (let i = 0; i < width; i++) {
+      let sum = 0;
+      for (let j = y0; j < y1; j++) {
+        const k = (j * width + i) * 4;
+        sum += data[k] * 0.3 + data[k + 1] * 0.59 + data[k + 2] * 0.11;
+      }
+      col.push(sum / (y1 - y0));
+    }
+    const a = Math.floor(width * 0.2), b = Math.floor(width * 0.8);
+    let best = Math.floor(width * 0.1), bestErr = Infinity;
+    for (let p = 6; p < (b - a) / 2; p++) {
+      let err = 0;
+      for (let i = a; i < b - p; i++) err += Math.abs(col[i] - col[i + p]);
+      err /= (b - a - p);
+      if (err < bestErr * 0.97) { bestErr = err; best = p; }
+    }
+    return best;
+  }
+
+  // Rollendes Rad von oben: Profil-Streifen kacheln, verschieben, mit der
+  // Reifenform maskieren, Enden des Originals darüberlegen.
+  function makeRollingWheel(img) {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const period = treadPeriod(img);
+    const src = Math.floor(w * 0.4);
+    const end = Math.floor(w * 0.12);
+    const off = document.createElement("canvas");
+    off.width = w; off.height = h;
+    const o = off.getContext("2d");
+    return function frame(shift) {
+      const s = ((shift % period) + period) % period;
+      o.globalCompositeOperation = "source-over";
+      o.clearRect(0, 0, w, h);
+      for (let x = -period * 2; x < w + period; x += period) {
+        o.drawImage(img, src, 0, period, h, x + s, 0, period, h);
+      }
+      o.globalCompositeOperation = "destination-in";
+      o.drawImage(img, 0, 0);
+      o.globalCompositeOperation = "source-over";
+      o.drawImage(img, 0, 0, end, h, 0, 0, end, h);
+      o.drawImage(img, w - end, 0, end, h, w - end, 0, end, h);
+      return off;
+    };
+  }
+
+  function size(c) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = c.clientWidth, h = c.clientHeight;
+    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w, h };
+  }
+
+  function placeholderFrame(ctx, x, y, w, h, s) {
+    ctx.save();
+    ctx.fillStyle = "rgba(201,138,75,0.35)";
+    ctx.strokeStyle = "rgba(233,239,230,0.6)";
+    ctx.setLineDash([8, 6]);
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 6 * s); ctx.fill(); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(233,239,230,0.8)";
+    ctx.font = `800 ${Math.max(11, 26 * s)}px Nunito, sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("Rahmen kommt als Nächstes", x + w / 2, y + h / 2);
+    ctx.restore();
+  }
+
+  Promise.all(["schubkarre_oben", "schubkarre_seite", "maeher_oben", "maeher_seite"].map(load)).then(([wTop, wSide, mTop, mSide]) => {
+    const rolling = makeRollingWheel(wTop);
+    const speedIn = document.getElementById("speed"), steerIn = document.getElementById("steer"), autoIn = document.getElementById("auto");
+    let dist = 0, last = 0;
+
+    function drawTop(t, steer) {
+      const { ctx, w, h } = size(document.getElementById("top"));
+      const s = Math.min((w * 0.86) / (TOP.car[0] * CELL), (h * 0.8) / (TOP.car[1] * CELL));
+      const ox = (w - TOP.car[0] * CELL * s) / 2, oy = (h - TOP.car[1] * CELL * s) / 2;
+      // Boden: Feldweg mit Steinchen, läuft nach links
+      ctx.fillStyle = "#7a5c3e"; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#8a6a48"; ctx.fillRect(0, h * 0.12, w, h * 0.76);
+      const step = 90 * s * 4;
+      for (let i = -1; i < w / step + 2; i++) {
+        const gx = i * step - ((dist * s) % step);
+        ctx.fillStyle = "rgba(255,240,210,0.18)";
+        for (let k = 0; k < 5; k++) {
+          ctx.beginPath();
+          ctx.arc(gx + ((k * 97) % step), h * (0.18 + ((k * 37) % 64) / 100), 3 + (k % 3), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      const cell = CELL * s;
+      const [fx, fy, fw, fh] = TOP.frame;
+      placeholderFrame(ctx, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell, s);
+      const tex = rolling(dist / 1.0 * (wTop.naturalWidth / (2 * CELL)));
+      for (const [cx, cy, front] of TOP.wheels) {
+        const bw = 2 * cell, bh = cell;
+        const mx = ox + cx * cell + bw / 2, my = oy + cy * cell + bh / 2;
+        ctx.save();
+        ctx.translate(mx, my);
+        if (front) ctx.rotate(-steer);
+        ctx.drawImage(tex, -bw / 2, -bh / 2, bw, bh);
+        ctx.restore();
+      }
+      const [mx, my, mw, mh] = TOP.motor;
+      ctx.drawImage(mTop, ox + mx * cell, oy + my * cell, mw * cell, mh * cell);
+    }
+
+    function drawSide(t) {
+      const { ctx, w, h } = size(document.getElementById("side"));
+      const s = Math.min((w * 0.86) / (SIDE.car[0] * CELL), (h * 0.86) / (SIDE.car[1] * CELL));
+      const ox = (w - SIDE.car[0] * CELL * s) / 2, oy = h * 0.93 - SIDE.car[1] * CELL * s;
+      const cell = CELL * s;
+      const ground = oy + 6 * cell;
+      ctx.fillStyle = "#24414a"; ctx.fillRect(0, 0, w, ground);
+      ctx.fillStyle = "#8a6a48"; ctx.fillRect(0, ground, w, h - ground);
+      ctx.strokeStyle = "#1d2730"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(0, ground); ctx.lineTo(w, ground); ctx.stroke();
+      const step = 60;
+      ctx.fillStyle = "rgba(255,240,210,0.25)";
+      for (let x = -((dist * s) % step); x < w; x += step) ctx.fillRect(x, ground + 6, 18, 3);
+      const [fx, fy, fw, fh] = SIDE.frame;
+      placeholderFrame(ctx, ox + fx * cell, oy + fy * cell, fw * cell, fh * cell, s);
+      const [mx, my, mw, mh] = SIDE.motor;
+      const shake = reduce ? 0 : Math.sin(t * 50) * 0.8;
+      ctx.drawImage(mSide, ox + mx * cell, oy + my * cell + shake, mw * cell, mh * cell);
+      const angle = dist / CELL; // Radius = 1 Zelle (Rad ist 2x2 Zellen)
+      for (const [cx, cy] of SIDE.wheels) {
+        ctx.save();
+        ctx.translate(ox + (cx + 1) * cell, oy + (cy + 1) * cell);
+        ctx.rotate(angle);
+        ctx.drawImage(wSide, -cell, -cell, 2 * cell, 2 * cell);
+        ctx.restore();
+      }
+    }
+
+    function frame(now) {
+      const t = now / 1000;
+      const dt = Math.min(0.05, t - (last || t));
+      last = t;
+      const kmh = Number(speedIn.value);
+      // 1 Zelle = 0,5 m -> Pixel pro Sekunde im Raster
+      dist += reduce ? 0 : (kmh / 3.6) * (CELL / 0.5) * dt;
+      if (autoIn.checked) steerIn.value = Math.round(Math.sin(t * 0.9) * 25);
+      const deg = Number(steerIn.value);
+      document.getElementById("speed-out").textContent = kmh + " km/h";
+      document.getElementById("steer-out").textContent = deg + "°";
+      drawTop(t, (deg * Math.PI) / 180);
+      drawSide(t);
+      requestAnimationFrame(frame);
+    }
+    steerIn.addEventListener("input", () => { autoIn.checked = false; });
+    requestAnimationFrame(frame);
+  }).catch((e) => {
+    document.querySelector(".lead").textContent = "Die Teil-Bilder fehlen noch: " + e.message;
+  });
+})();
+</script>
+</body>
+</html>
