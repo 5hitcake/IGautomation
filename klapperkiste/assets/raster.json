@@ -6,11 +6,13 @@
 
   "kategorien": {
     "rahmen":    { "name": "Rahmen",    "seite": [8, 1], "oben": [8, 2],
-                   "anker_seite": ["mitte", "mitte"], "anker_oben": ["mitte", "mitte"], "strecken": true,
+                   "anker_seite": ["mitte", "mitte"], "anker_oben": ["mitte", "mitte"],
+                   "strecken": { "seite": "voll", "oben": "voll" },
                    "regel": "Wird exakt auf die Box gestreckt und füllt die ganze Breite. Vorne rechts, hinten links." },
     "rad":       { "name": "Rad",       "seite": [2, 2], "oben": [2, 1],
-                   "anker_seite": ["mitte", "mitte"], "anker_oben": ["mitte", "mitte"], "strecken": true,
-                   "regel": "Wird exakt auf die Box gestreckt. Seitenansicht: Kreis füllt die Box exakt, Nabe genau in der Mitte. Draufsicht: Reifen von oben, Lauffläche liegt waagerecht." },
+                   "anker_seite": ["mitte", "mitte"], "anker_oben": ["mitte", "mitte"],
+                   "strecken": { "seite": "voll", "oben": "breite" },
+                   "regel": "Seitenansicht: wird exakt auf die Box gestreckt, Kreis füllt die Box, Nabe genau in der Mitte. Draufsicht: Lauffläche liegt waagerecht und wird auf die volle Länge (Durchmesser) gebracht, die Reifenbreite bleibt wie gezeichnet." },
     "motor":     { "name": "Motor",     "seite": [2, 2], "oben": [2, 2],
                    "anker_seite": ["mitte", "unten"], "anker_oben": ["mitte", "mitte"],
                    "regel": "Steht mit der Unterkante auf dem Rahmen." },

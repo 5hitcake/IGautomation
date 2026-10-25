@@ -120,3 +120,23 @@ def test_drehen_legt_hochkant_teil_quer(raster):
     gedreht = teilwerk.drehen(roh, 90)
     assert gedreht.size == (600, 300)
     assert gedreht.getpixel((80, 150))[:3] == (200, 40, 40)  # jetzt links
+
+
+def test_rad_draufsicht_behaelt_reifenbreite(raster):
+    roh = Image.new("RGB", (800, 400), (255, 255, 255))
+    ImageDraw.Draw(roh).rectangle((100, 170, 700, 230), fill=(60, 60, 60))  # schmale Lauffläche 10:1
+    fertig, _ = teilwerk.einpassen(roh, raster, "rad", "oben")
+    links, oben, rechts, unten = fertig.getchannel("A").getbbox()
+    assert (links, rechts) == (0, fertig.width)
+    assert unten - oben < fertig.height // 2
+    assert abs((oben + unten) / 2 - fertig.height / 2) <= 1
+
+
+def test_rot_entsaettigen_faerbt_nur_rot(raster):
+    bild = Image.new("RGBA", (2, 1))
+    bild.putpixel((0, 0), (220, 40, 40, 255))
+    bild.putpixel((1, 0), (60, 60, 60, 255))
+    neu = teilwerk.rot_entsaettigen(bild)
+    r, g, b, a = neu.getpixel((0, 0))
+    assert r == g == b and a == 255
+    assert neu.getpixel((1, 0)) == (60, 60, 60, 255)

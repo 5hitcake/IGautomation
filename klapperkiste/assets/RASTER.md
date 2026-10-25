@@ -20,7 +20,7 @@ dieser Datei.
 | Kategorie | Seite (Zellen) | Seite (px) | Draufsicht (Zellen) | Draufsicht (px) | Kontaktkante |
 |---|---|---|---|---|---|
 | Rahmen | 8 × 1 | 1024 × 128 | 8 × 2 | 1024 × 256 | wird exakt auf die Box gestreckt |
-| Rad | 2 × 2 | 256 × 256 | 2 × 1 | 256 × 128 | wird exakt auf die Box gestreckt, Nabe in der Mitte |
+| Rad | 2 × 2 | 256 × 256 | 2 × 1 | 256 × 128 | Seite: exakt auf die Box gestreckt, Nabe in der Mitte. Draufsicht: volle Länge, Reifenbreite bleibt |
 | Motor | 2 × 2 | 256 × 256 | 2 × 2 | 256 × 256 | unten (steht auf dem Rahmen) |
 | Energie | 1 × 2 | 128 × 256 | 1 × 2 | 128 × 256 | unten |
 | Sitz | 2 × 2 | 256 × 256 | 2 × 2 | 256 × 256 | unten, **ohne Fahrer** |

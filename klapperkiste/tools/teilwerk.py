@@ -140,6 +140,17 @@ def drehen(bild: Image.Image, grad: int) -> Image.Image:
     return bild.transpose(schritte[grad]) if schritte[grad] is not None else bild
 
 
+def rot_entsaettigen(bild: Image.Image, abstand: int = 22) -> Image.Image:
+    """Färbt deutlich rote Stellen grau (gleiche Helligkeit), z. B. einen Felgenrest
+    in der Draufsicht eines Rads. Andere Farben bleiben unverändert."""
+    bild = bild.convert("RGBA")
+    r, g, b, a = bild.split()
+    rot = ImageChops.subtract(r, ImageChops.lighter(g, b)).point(lambda v: 255 if v > abstand else 0)
+    grau = bild.convert("L").convert("RGBA")
+    grau.putalpha(a)
+    return Image.composite(grau, bild, rot)
+
+
 def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
               toleranz: int = 40, inseln: bool = True) -> tuple[Image.Image, list[str]]:
     """Stellt frei, schneidet zu und setzt das Teil exakt in seine Rasterbox.
@@ -161,7 +172,14 @@ def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
     verh_teil = teil.width / teil.height
     verh_box = ziel_b / ziel_h
     abweichung = max(verh_teil, verh_box) / min(verh_teil, verh_box)
-    if kat.get("strecken"):
+    strecken = kat.get("strecken", {}).get(ansicht)
+    if strecken == "breite":
+        # Volle Länge ist Pflicht (z. B. Raddurchmesser), die Dicke bleibt wie gezeichnet
+        neu_h = min(ziel_h, max(1, round(teil.height * ziel_b / teil.width)))
+        fertig = Image.new("RGBA", (ziel_b, ziel_h), (0, 0, 0, 0))
+        fertig.alpha_composite(teil.resize((ziel_b, neu_h), Image.LANCZOS), (0, (ziel_h - neu_h) // 2))
+        return fertig, hinweise
+    if strecken == "voll":
         # Rahmen und Räder müssen ihre Box exakt füllen, sonst passen die Anschlüsse nicht
         if abweichung > 2.5:
             hinweise.append(
@@ -437,6 +455,8 @@ def main(argv: list[str] | None = None) -> int:
     bl.add_argument("kategorie")
     bl.add_argument("--toleranz", type=int, default=40)
     bl.add_argument("--keine-inseln", action="store_true")
+    bl.add_argument("--rot-grau", choices=["seite", "oben"],
+                    help="Rote Stellen in dieser Ansicht grau färben (z. B. Felgenrest in der Draufsicht)")
     bb = sub.add_parser("bauen", help="Teile zu einem Auto zusammensetzen")
     bb.add_argument("ansicht", choices=["seite", "oben"])
     bb.add_argument("ausgabe")
@@ -463,6 +483,8 @@ def main(argv: list[str] | None = None) -> int:
         ergebnis = blatt_einpassen(Image.open(args.eingabe), raster, args.kategorie, args.toleranz,
                                    not args.keine_inseln)
         for ansicht, (fertig, hinweise) in ergebnis.items():
+            if args.rot_grau == ansicht:
+                fertig = rot_entsaettigen(fertig)
             pfad = os.path.join(ziel, f"{ansicht}.png")
             fertig.save(pfad)
             print(f"{os.path.relpath(pfad)}: {fertig.width}×{fertig.height} px")
