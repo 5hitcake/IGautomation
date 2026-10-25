@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Schrottkarre Prompt-Liste</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Layout: eine Spalte Arbeitskarten (ein Bild = eine Karte), oben Fortschritt
+   und Tipps. Gleicher dunkler Werkstatt-Look wie Spiel und Gestaltungsbuch. */
+:root {
+  color-scheme: dark;
+  --wall: #1b3138;
+  --board: #12232a;
+  --card: #203a42;
+  --chalk: #e9efe6;
+  --chalk-dim: #a3b8b3;
+  --mustard: #f2b632;
+  --mint: #6fd3a3;
+  --line: #2c4a52;
+  --font-display: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--wall); color: var(--chalk); font-family: var(--font-body); font-weight: 600; font-size: 15px; line-height: 1.5; }
+.wrap {
+  max-width: 760px; margin: 0 auto; padding-block: 24px 64px; display: grid; gap: 22px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(32px, 7vw, 48px); line-height: 1; color: var(--mustard); }
+h2 { font-size: 22px; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mint); }
+.lead { color: var(--chalk-dim); max-width: 60ch; }
+header { display: grid; gap: 10px; }
+.progress { display: flex; align-items: center; gap: 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.bar { flex: 1; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--mint); transition: width 0.25s; }
+.tips { background: var(--board); border-radius: 14px; padding: 14px 18px; display: grid; gap: 8px; }
+.tips ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--chalk-dim); }
+.tips strong { color: var(--chalk); }
+.part { display: grid; gap: 10px; }
+.part > h2 { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.part > h2 small { font-family: var(--font-body); font-size: 13px; color: var(--chalk-dim); font-weight: 600; }
+.card { background: var(--card); border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; border-left: 5px solid var(--line); }
+.card.done { border-left-color: var(--mint); }
+.card.done .prompt { opacity: 0.55; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { font-size: 12px; font-weight: 800; background: var(--board); padding: 2px 9px; border-radius: 999px; }
+.chip.view { background: rgba(242,182,50,0.16); color: var(--mustard); }
+.chip.file { font-family: var(--font-mono); font-weight: 600; color: var(--mint); background: rgba(111,211,163,0.12); }
+.prompt {
+  font-family: var(--font-mono); font-size: 13px; line-height: 1.55; background: var(--board); border-radius: 10px;
+  padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; margin: 0;
+}
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+button {
+  font: inherit; font-weight: 800; border: 0; border-radius: 10px; padding: 9px 16px; cursor: pointer;
+  background: var(--mustard); color: var(--board);
+}
+button:focus-visible, input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+label.check { display: flex; gap: 8px; align-items: center; color: var(--chalk-dim); cursor: pointer; }
+label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
+.copied { color: var(--mint); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Schritt A2 · erste Serie</p>
+    <h1>Schrottkarre Prompt-Liste</h1>
+    <p class="lead">6 Teile, je Seitenansicht und Draufsicht. Prompt kopieren, Bild erzeugen, unter dem angegebenen Namen speichern und mir schicken. Ich passe es ins Raster ein.</p>
+    <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 erledigt</span></div>
+  </header>
+
+  <section class="tips" aria-label="Tipps">
+    <h2>So bleibt alles einheitlich</h2>
+    <ol>
+      <li><strong>Mit dem Rasenmäher-Motor anfangen</strong> und so lange erzeugen, bis dir der Stil gefällt. Dieses Bild dann bei allen weiteren Teilen als Stil-Referenz mitgeben, falls dein Programm das kann.</li>
+      <li><strong>Format einstellen</strong> wie angegeben. Gibt es das Format nicht, nimm das nächstliegende (statt 1:2 z. B. 2:3). Das Einpassen gleicht den Rest aus.</li>
+      <li><strong>Hintergrund weiß lassen.</strong> Freistellen ist nicht nötig, das macht das Werkzeug.</li>
+      <li><strong>Prüfen:</strong> Vorne zeigt nach rechts? Keine Schrift, kein Schatten, keine Person im Bild?</li>
+    </ol>
+  </section>
+
+  <div id="list" style="display:grid;gap:26px"></div>
+</div>
+
+<script>
+(function () {
+  const STYLE = "Children's picture-book illustration, hand-painted gouache look with clean dark ink outlines, warm slightly faded colours, gentle volume shading, light coming from the upper left. Single object, isolated and centred on a plain flat white background, filling most of the frame. No ground shadow, no text, no people, no other objects.";
+  const SIDE = "strict side view in profile, the front points to the right, camera at object height tilted down only very slightly so the top surface is barely visible.";
+  const TOP = "seen straight from directly above, orthographic top-down view without perspective, the front points to the right.";
+
+  // Reihenfolge = empfohlene Reihenfolge beim Erzeugen (Motor zuerst als Stil-Referenz)
+  const PARTS = [
+    { id: "maeher", name: "Rasenmäher-Motor", cat: "Motor",
+      side: ["A small old red lawnmower engine with cooling fins, a pull-start cord and bits of grass stuck to it", "1:1"],
+      top: ["A small old red lawnmower engine with a round recoil starter cover, cooling fins and a fuel cap", "1:1"] },
+    { id: "schubkarre", name: "Schubkarrenrad", cat: "Rad",
+      side: ["A single small wheelbarrow wheel with a worn grey rubber tyre and a dented red metal rim, perfectly round", "1:1"],
+      top: ["A single small wheelbarrow wheel lying in driving position, so from above only the worn grey tyre tread is visible as a long rounded strip with a bit of red rim at the sides", "2:1"] },
+    { id: "bettgestell", name: "Bettgestell-Rahmen", cat: "Rahmen",
+      side: ["A long flat car chassis made from a rusty old metal bed frame, a thin horizontal beam with rivets, chipped green paint", "21:9 (oder breitestes Format)"],
+      top: ["A long rectangular car chassis made from a rusty old metal bed frame with a mesh of bed springs inside, chipped green paint", "4:1 (oder breitestes Format)"] },
+    { id: "giesskanne", name: "Gießkanne als Tank", cat: "Energie",
+      side: ["A dented green metal watering can used as a fuel tank, tall and narrow, with a cork in the spout", "1:2 hochkant"],
+      top: ["A dented green metal watering can used as a fuel tank, with a round opening and a cork in the spout", "1:2 hochkant"] },
+    { id: "kuechenstuhl", name: "Küchenstuhl als Sitz", cat: "Sitz",
+      side: ["An empty old wooden kitchen chair seat with backrest but without legs, mounted on two short metal brackets, the backrest is on the left", "1:1"],
+      top: ["An empty old wooden kitchen chair seat with backrest but without legs, the backrest is on the left", "1:1"] },
+    { id: "fahrradlenker", name: "Fahrradlenker", cat: "Lenkung",
+      side: ["An old bicycle handlebar on a tall vertical steering column with a clamp at the bottom, black rubber grips pointing to the left", "1:2 hochkant"],
+      top: ["An old curved bicycle handlebar with black rubber grips at both ends and a small bell, the bar runs from top to bottom of the image", "1:2 hochkant"] },
+  ];
+
+  const KEY = "schrottkarre.prompts.done";
+  let done = {};
+  try { done = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { done = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch { /* nur Komfort */ } };
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function progress() {
+    const n = Object.values(done).filter(Boolean).length;
+    document.getElementById("count").textContent = `${n} / 12 erledigt`;
+    document.getElementById("bar").style.width = (n / 12) * 100 + "%";
+  }
+
+  const list = document.getElementById("list");
+  PARTS.forEach((part, i) => {
+    const sec = el("section", "part");
+    const h = el("h2", null, `${i + 1}. ${part.name}`);
+    h.append(el("small", null, part.cat));
+    sec.append(h);
+    for (const [view, label, viewText] of [["seite", "Seitenansicht", SIDE], ["oben", "Draufsicht", TOP]]) {
+      const [subject, format] = part[view === "seite" ? "side" : "top"];
+      const key = `${part.id}_${view}`;
+      const text = `${subject}, ${viewText} ${STYLE}`;
+      const card = el("article", "card" + (done[key] ? " done" : ""));
+      const meta = el("div", "meta");
+      meta.append(el("span", "chip view", label), el("span", "chip", "Format " + format), el("span", "chip file", key + ".png"));
+      const pre = el("p", "prompt", text);
+      pre.id = "prompt-" + key;
+      const actions = el("div", "actions");
+      const btn = el("button", null, "Prompt kopieren");
+      btn.type = "button";
+      const msg = el("span", "copied");
+      msg.setAttribute("aria-live", "polite");
+      btn.addEventListener("click", () => {
+        const select = () => {
+          const r = document.createRange(); r.selectNodeContents(pre);
+          const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+          msg.textContent = "Markiert. Jetzt kopieren.";
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => { msg.textContent = "Kopiert"; }, select);
+        } else select();
+      });
+      const lab = el("label", "check");
+      const cb = el("input");
+      cb.type = "checkbox";
+      cb.id = "done-" + key;
+      cb.checked = !!done[key];
+      cb.addEventListener("change", () => {
+        done[key] = cb.checked; save(); progress();
+        card.classList.toggle("done", cb.checked);
+      });
+      lab.append(cb, document.createTextNode("Erledigt"));
+      actions.append(btn, lab, msg);
+      card.append(meta, pre, actions);
+      sec.append(card);
+    }
+    list.append(sec);
+  });
+  progress();
+})();
+</script>
+</body>
+</html>

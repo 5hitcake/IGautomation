@@ -99,27 +99,21 @@ the front points to the right. + Stil-Block
 ## 5. Erste Serie: die Schrottkarre (Karrierestart)
 
 Mit diesem Auto beginnt die Karriere: Es fährt gerade so bis zum
-Schrottplatz. 6 Teile, je 2 Ansichten = 12 Bilder.
+Schrottplatz. 6 Teile, je 2 Ansichten = 12 Bilder. Alle 12 fertigen Prompts
+mit Kopier-Knopf, Format und Dateinamen stehen in
+[`design/prompts.html`](../design/prompts.html). Die Reihenfolge dort ist
+auch die empfohlene Reihenfolge: zuerst den Motor als Stil-Referenz.
 
-| ID | Kategorie | Teil (Deutsch) | `[TEIL]` für den Prompt | Format Seite / Oben |
+| Nr. | ID | Kategorie | Teil | Format Seite / Oben |
 |---|---|---|---|---|
-| `bettgestell` | Rahmen | Rahmen aus einem alten Metall-Bettgestell | a long flat car chassis made from a rusty old metal bed frame with springs, chipped green paint | 21:9 / 4:1 |
-| `schubkarre` | Rad | Schubkarrenrad | a single small wheelbarrow wheel with a worn grey rubber tyre and a dented red metal rim | 1:1 / 2:1 |
-| `maeher` | Motor | Rasenmäher-Motor | a small old red lawnmower engine with cooling fins, a pull-start cord and bits of grass stuck to it | 1:1 / 1:1 |
-| `giesskanne` | Energie | Gießkanne als Tank | a dented green metal watering can used as a fuel tank, with a cork in the spout | 1:2 / 1:2 |
-| `kuechenstuhl` | Sitz | Alter Küchenstuhl | an old wooden kitchen chair without legs, mounted on two metal brackets, empty | 1:1 / 1:1 |
-| `fahrradlenker` | Lenkung | Fahrradlenker | an old bicycle handlebar on a vertical steering column, rubber grips, the grips point to the left | 1:2 / 1:2 |
+| 1 | `maeher` | Motor | Rasenmäher-Motor | 1:1 / 1:1 |
+| 2 | `schubkarre` | Rad | Schubkarrenrad | 1:1 / 2:1 |
+| 3 | `bettgestell` | Rahmen | Rahmen aus einem alten Metall-Bettgestell | 21:9 / 4:1 |
+| 4 | `giesskanne` | Energie | Gießkanne als Tank | 1:2 / 1:2 |
+| 5 | `kuechenstuhl` | Sitz | Küchenstuhl (Lehne hinten = links) | 1:1 / 1:1 |
+| 6 | `fahrradlenker` | Lenkung | Fahrradlenker (Griffe zeigen nach hinten = links) | 1:2 / 1:2 |
 
-**Beispiel, komplett (Rasenmäher-Motor, Seite):**
-
-```
-A small old red lawnmower engine with cooling fins, a pull-start cord and bits of grass stuck to it,
-strict side view in profile, the front points to the right, camera at object height tilted down only
-very slightly so the top surface is barely visible. Children's picture-book illustration, hand-painted
-gouache look with clean dark ink outlines, warm slightly faded colours, gentle volume shading, light
-coming from the upper left. Single object, isolated and centred on a plain flat white background,
-filling most of the frame. No ground shadow, no text, no people, no other objects.
-```
+Dateinamen: `<id>_seite.png` und `<id>_oben.png`, z. B. `maeher_seite.png`.
 
 ## 6. Was später dazukommt
 
