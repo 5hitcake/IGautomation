@@ -66,9 +66,6 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 }
 .part.in .badge { background: var(--mint); color: var(--board); }
 .part.full { opacity: 0.55; }
-.part.satz { grid-column: span 2; }
-.satzbild { display: flex; align-items: flex-end; justify-content: center; height: 64px; pointer-events: none; }
-.satzbild img { width: auto; height: 100%; max-width: 33%; object-fit: contain; }
 .checks { display: flex; flex-wrap: wrap; gap: 6px; }
 .check { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--board); color: var(--chalk-dim); }
 .check.ok { background: rgba(111,211,163,0.18); color: var(--mint); }
@@ -110,7 +107,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     <button type="button" id="btn-all">Komplett zusammenbauen</button>
     <button type="button" id="btn-clear">Alles abbauen</button>
   </div>
-  <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten, dann ziehen). Ausbauen: Teil auf der Bühne antippen oder von der Bühne herunterziehen. Reihenfolge: Rahmen, dann Achsen, dann Räder, dann der Rest. Die Karosserie kommt ganz zum Schluss, immer als kompletter Satz eines Modells. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
+  <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten, dann ziehen). Ausbauen: Teil auf der Bühne antippen oder von der Bühne herunterziehen. Reihenfolge: Rahmen, dann Achsen, dann Räder, dann der Rest. Die Karosserie kommt ganz zum Schluss. In der Werkstatt darfst du Teile verschiedener Modelle ausprobieren, auf die Karte geht es aber nur ohne Karosserie oder mit einem kompletten Satz. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
 </div>
 
 <canvas id="ghost" hidden></canvas>
@@ -195,18 +192,6 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     motor: "Motor", energie: "Tank", sitz: "Sitz", lenkung: "Lenkung", licht: "Licht",
     karoH: "Karosserie hinten", karoM: "Karosserie Mitte", karoV: "Karosserie vorne" };
   const KARO = ["karoH", "karoM", "karoV"];
-  // Karosserie gibt es nur als kompletten Satz: ein Modell = hinten, Mitte, vorne
-  const KARO_TEIL = { karoH: "hinten", karoM: "mitte", karoV: "vorne" };
-  const modellVon = (id) => id.replace(/_(hinten|mitte|vorne)$/, "");
-  const MODELLE = [];
-  for (const p of PARTS) {
-    if (!p.kat.startsWith("karosserie_")) continue;
-    const id = modellVon(p.id);
-    if (!MODELLE.some((m) => m.id === id)) {
-      MODELLE.push({ id, name: p.name.replace(/ (hinten|Mitte|vorne)$/, "") });
-    }
-  }
-  const karoModell = () => (state.mounted.karoM ? modellVon(state.mounted.karoM) : null);
   // Das muss drin sein, bevor die Karosserie drauf darf (fahrbereit)
   const FAHRBEREIT = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung"];
   const kat = (slot) => R.slots[slot].kategorie;
@@ -256,24 +241,6 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     if (earlier) return earlier;
     if (need === "rahmen") return "Leg zuerst einen Rahmen auf die Hebebühne.";
     return `Für die ${LABEL[slot]} brauchst du zuerst die ${LABEL[need]}.`;
-  }
-
-  function mountSet(modell) {
-    const why = missing("karoM");
-    if (why) return say(why, "warn");
-    const alt = karoModell();
-    const now = performance.now();
-    for (const sl of KARO) { state.mounted[sl] = `${modell.id}_${KARO_TEIL[sl]}`; state.anim[sl] = now; }
-    say(alt ? `${MODELLE.find((m) => m.id === alt).name} gegen ${modell.name} getauscht.`
-      : `${modell.name} aufgesetzt: kompletter Satz, der Satz-Bonus gilt.`);
-    refresh();
-  }
-
-  function unmountSet() {
-    const alt = karoModell();
-    for (const sl of KARO) delete state.mounted[sl];
-    say(`${MODELLE.find((m) => m.id === alt).name} abgenommen.`);
-    refresh();
   }
 
   function mountPart(part) {
@@ -332,7 +299,6 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
   }
 
   function unmount(slot) {
-    if (KARO.includes(slot)) return unmountSet();
     const why = removeBlocked(slot);
     if (why) return say(why, "warn");
     const name = PARTS.find((p) => p.id === state.mounted[slot]).name;
@@ -492,8 +458,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     if (!slot) return;
     if (state.mounted[slot]) return unmount(slot);
     const why = missing(slot);
-    if (why) return say(why, "warn");
-    return KARO.includes(slot) ? mountSet(MODELLE[0]) : mountPart(PARTS.find((p) => p.kat === kat(slot)));
+    return why ? say(why, "warn") : mountPart(PARTS.find((p) => p.kat === kat(slot)));
   }
 
   // Nächster passender Platz zum Finger (innerhalb einer knappen Zelle)
@@ -503,7 +468,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     const L = layout(pt.w, pt.h);
     let best = null, bestD = L.cell * 0.9;
     for (const sl of SLOTS) {
-      if (d.set ? !KARO.includes(sl) : kat(sl) !== d.kat || (state.mounted[sl] && sl !== d.fromSlot)) continue;
+      if (kat(sl) !== d.kat || (state.mounted[sl] && sl !== d.fromSlot)) continue;
       if (state.view === "seite" && kat(sl) === "achse") continue;
       for (const r of rects(sl, L)) {
         const dx = Math.max(r.x - pt.x, 0, pt.x - (r.x + r.w)), dy = Math.max(r.y - pt.y, 0, pt.y - (r.y + r.h));
@@ -518,23 +483,14 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     const g = $("ghost"), img = IMG[`${drag.partId}_${state.view}`];
     const b = $("stage").getBoundingClientRect();
     const L = layout(b.width, b.height);
-    const [bw, bh] = drag.set ? [R[state.view].breite, R.kategorien.karosserie_mitte[state.view][1]]
-      : R.kategorien[drag.kat][state.view];
+    const [bw, bh] = R.kategorien[drag.kat][state.view];
     const w = bw * L.cell, h = bh * L.cell, dpr = Math.min(window.devicePixelRatio || 1, 2);
     g.width = Math.round(w * dpr); g.height = Math.round(h * dpr);
     g.style.width = w + "px"; g.style.height = h + "px";
     const ctx = g.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    if (drag.set) {
-      let x = 0;
-      for (const sl of KARO) {
-        const im = IMG[`${drag.set.id}_${KARO_TEIL[sl]}_${state.view}`];
-        const tw = R.kategorien[kat(sl)][state.view][0] * L.cell;
-        if (im && im.complete) ctx.drawImage(im, x, 0, tw, h);
-        x += tw;
-      }
-    } else if (img && img.complete) ctx.drawImage(img, 0, 0, w, h);
+    if (img && img.complete) ctx.drawImage(img, 0, 0, w, h);
     drag.gw = w; drag.gh = h;
     g.hidden = false;
   }
@@ -552,11 +508,8 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
       const why = removeBlocked(press.fromSlot);
       if (why) { say(why, "warn"); return false; }
     }
-    const set = part.kat.startsWith("karosserie_") ? MODELLE.find((m) => m.id === modellVon(part.id)) : null;
-    drag = { partId: part.id, kat: part.kat, set, fromSlot: press.fromSlot || null, touch: press.touch, x: press.x, y: press.y, target: null };
-    if (set) {
-      say(press.fromSlot ? `${set.name} abnehmen: von der Bühne ziehen.` : `${set.name}: auf das Auto ziehen.`);
-    } else if (part.kat === "achse" && state.view !== "oben") {
+    drag = { partId: part.id, kat: part.kat, fromSlot: press.fromSlot || null, touch: press.touch, x: press.x, y: press.y, target: null };
+    if (part.kat === "achse" && state.view !== "oben") {
       setView("oben");
       say("Achsen baust du von oben ein. Ich habe auf die Draufsicht umgeschaltet.");
     } else {
@@ -577,14 +530,8 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     suppressClick = true;
     setTimeout(() => { suppressClick = false; }, 0);
     if (cancelled || !d) return;
-    const name = d.set ? d.set.name : PARTS.find((p) => p.id === d.partId).name;
+    const name = PARTS.find((p) => p.id === d.partId).name;
     const res = findTarget(d);
-    if (d.set) {
-      if (res.slot && !d.fromSlot) return mountSet(d.set);
-      if (d.fromSlot && !res.slot) return unmountSet();
-      if (res.over && !res.slot && res.near) say(missing(res.near) || `${name} passt hier nicht hin.`, "warn");
-      return;
-    }
     if (res.slot) {
       if (d.fromSlot) delete state.mounted[d.fromSlot];
       return mountAt(res.slot, d.partId);
@@ -660,7 +607,6 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     tray.innerHTML = "";
     const tab = TABS.find((t) => t.id === state.tab);
     const angebot = PARTS.filter((p) => tab.kats.includes(p.kat));
-    if (tab.id === "karosserie") return fillKaro(tray);
     if (!angebot.length) {
       const e = document.createElement("p");
       e.className = "empty";
@@ -702,50 +648,6 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
       if (!full) b.addEventListener("pointerdown", (e) => beginPress(e, { partId: p.id }));
       tray.append(b);
     }
-    fillChecks();
-  }
-
-  function fillKaro(tray) {
-    const hint = document.createElement("p");
-    hint.className = "empty";
-    hint.textContent = "Karosserien gibt es nur als kompletten Satz: hinten, Mitte und vorne vom selben Modell. Ohne Karosserie fährt das Auto auch.";
-    tray.append(hint);
-    for (const m of MODELLE) {
-      const drin = karoModell() === m.id;
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "part satz" + (drin ? " in full" : "");
-      const bild = document.createElement("span");
-      bild.className = "satzbild";
-      for (const t of ["hinten", "mitte", "vorne"]) {
-        const key = `${m.id}_${t}_${state.view}`;
-        const img = document.createElement("img");
-        img.src = (G[key] && G[key].bild) || "";
-        img.alt = "";
-        bild.append(img);
-      }
-      const name = document.createElement("span");
-      name.textContent = m.name;
-      b.append(bild, name);
-      if (drin) {
-        const h = document.createElement("span");
-        h.className = "badge";
-        h.style.cssText = "position:static;margin-top:2px";
-        h.textContent = "Tippen zum Abnehmen";
-        b.append(h);
-        b.setAttribute("aria-label", `${m.name} abnehmen`);
-      }
-      b.addEventListener("click", () => {
-        if (suppressClick) return;
-        if (drin) unmountSet(); else mountSet(m);
-      });
-      if (!drin) b.addEventListener("pointerdown", (e) => beginPress(e, { partId: `${m.id}_mitte` }));
-      tray.append(b);
-    }
-    fillChecks();
-  }
-
-  function fillChecks() {
     const checks = $("checks");
     checks.innerHTML = "";
     const list = [["Rahmen", ["rahmen"]], ["Achsen", ["achseH", "achseV"]], ["Räder", ["radH", "radV"]],
@@ -759,10 +661,18 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
       chip.textContent = (ok ? "✓ " : "") + label;
       checks.append(chip);
     }
-    if (karoModell()) {
+    const karo = KARO.map((sl) => state.mounted[sl]);
+    if (karo.every(Boolean)) {
+      const modelle = new Set(karo.map((id) => id.split("_")[0]));
       const chip = document.createElement("span");
       chip.className = "check ok";
-      chip.textContent = `✓ Karosserie: ${MODELLE.find((m) => m.id === karoModell()).name}`;
+      chip.textContent = modelle.size === 1 ? "✓ Karosserie: kompletter Satz" : "✗ Karosserie gemischt: so nicht auf die Karte";
+      if (modelle.size !== 1) chip.className = "check";
+      checks.append(chip);
+    } else if (karo.some(Boolean)) {
+      const chip = document.createElement("span");
+      chip.className = "check";
+      chip.textContent = "✗ Karosserie unvollständig: so nicht auf die Karte";
       checks.append(chip);
     }
     if (all && !KARO.some((sl) => state.mounted[sl])) {

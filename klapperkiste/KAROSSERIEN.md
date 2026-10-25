@@ -1,13 +1,13 @@
 # Klapperkiste – Karosserie-Modelle (Entwurf)
 
 20 Modelle à 3 Teile (hinten, Mitte, vorne) = 60 Teile. Die Teile werden
-einzeln gefunden (Karte, Aufträge), aufgesetzt wird aber **nur ein kompletter
-Satz** eines Modells. Mischen gibt es nicht. Bis der erste Satz komplett ist,
-fährt man ohne Karosserie.
+einzeln gefunden (Karte, Aufträge) und einzeln eingebaut. In der Werkstatt darf
+man Teile verschiedener Modelle ausprobieren, **auf die Karte geht es aber nur
+ohne Karosserie oder mit einem kompletten Satz** eines Modells. Bis der erste
+Satz komplett ist, fährt man ohne Karosserie.
 
-Jeder Satz bringt seine Fähigkeit (Spalte „Satz-Bonus“) mit. Weil nie
-gemischt wird, muss die Kabine nicht mehr genau ins Mittelteil passen und jedes
-Modell darf seine eigene Form und Höhe haben.
+Jeder Satz bringt seine Fähigkeit (Spalte „Satz-Bonus“) mit. Weil gemischt
+nicht gefahren wird, muss die Kabine nicht mehr genau ins Mittelteil passen.
 
 | Nr. | Modell | hinten | Mitte | vorne | Satz-Bonus (Idee) | Fundort (Idee) |
 |---|---|---|---|---|---|---|

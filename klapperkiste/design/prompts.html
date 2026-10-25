@@ -364,7 +364,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 
   const karoFertig = KARO.filter((m) => karoDa(m) && !m.offen).length;
   const kopf = el("h2", "abschnitt", `Karosserien · ${karoFertig} / ${KARO.length} geliefert`);
-  list.append(kopf, el("p", "note", "Ein Bild pro Modell, Seite oben und Draufsicht unten. Ich schneide es in hinten, Mitte und vorne. Jedes Modell hat eine eigene Hauptfarbe. Im Spiel wird nur der komplette Satz aufgesetzt. Reihenfolge ist egal, nimm, worauf du Lust hast."));
+  list.append(kopf, el("p", "note", "Ein Bild pro Modell, Seite oben und Draufsicht unten. Ich schneide es in hinten, Mitte und vorne. Jedes Modell hat eine eigene Hauptfarbe. Auf der Karte fährt man nur mit einem kompletten Satz. Reihenfolge ist egal, nimm, worauf du Lust hast."));
   KARO.forEach((m) => {
     const sec = el("section", "part");
     const h = el("h2", null, `K${m.nr}. ${m.name}`);

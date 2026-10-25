@@ -109,10 +109,11 @@ Korrekturen beim Einpassen eines Doppelbilds:
 ## 3b. Karosserie: drei Teile, alle untereinander kompatibel
 
 Jedes Karosserie-Modell besteht aus **hinten, Mitte und vorne**. Die Teile
-werden einzeln gefunden (Karte, Aufträge). **Im Spiel wird nur ein kompletter
-Satz aufgesetzt, gemischt wird nicht** (Entscheidung nach den ersten Modellen).
-Die folgenden Regeln für Nähte und Gürtellinie sind deshalb nur noch
-Richtwerte, das Schneiden nutzt sie weiter. Geplant sind etwa 20 Modelle:
+werden einzeln gefunden (Karte, Aufträge) und einzeln eingebaut. Mischen geht
+in der Werkstatt, **auf der Karte fährt man aber nur ohne Karosserie oder mit
+einem kompletten Satz**. Die folgenden Regeln für Nähte und Gürtellinie sind
+deshalb nur noch Richtwerte, das Schneiden nutzt sie weiter. Geplant sind etwa
+20 Modelle:
 
 - Die Karosserie sitzt auf der Rahmenoberkante (y = 5) und braucht keine
   Radläufe. Die Räder liegen darunter.

@@ -102,9 +102,10 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
 - Jedes Modell besteht aus drei Teilen: **hinten, Mitte, vorne**. Die Teile
   sind auf der Karte und über Aufträge verteilt und werden einzeln gesammelt.
 - Ziel: etwa **20 Modelle, also 60 Teile**.
-- **Nur komplette Sätze:** Aufgesetzt wird eine Karosserie erst, wenn alle drei
-  Teile eines Modells gesammelt sind. Mischen gibt es nicht. Am Anfang fährt
-  man ohne Karosserie (die Schrottkarre ist nur Rahmen, Motor, Sitz).
+- **Auf der Karte nur komplette Sätze:** Die Teile werden einzeln eingebaut,
+  in der Werkstatt darf man auch mischen und ausprobieren. Losfahren geht aber
+  nur ohne Karosserie oder mit allen drei Teilen desselben Modells. Am Anfang
+  fährt man ohne Karosserie (die Schrottkarre ist nur Rahmen, Motor, Sitz).
 - Die Karosserie wird **als Letztes** eingebaut, wenn das Auto fahrbereit ist,
   und muss als Erstes wieder ab.
 - Jeder Satz bringt seine Fähigkeit mit (Liste in `KAROSSERIEN.md`).
