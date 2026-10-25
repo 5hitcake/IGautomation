@@ -176,6 +176,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     { nr: 2, id: "pickup", name: "Pick-up", bonus: "große Ladefläche",
       modell: "A pick-up truck body shell with an open cargo bed at the rear, a boxy cab in the middle and a long hood with a big grille at the front" },
     { nr: 3, id: "badewanne", name: "Badewanne", bonus: "schwimmt durch Furten",
+      form: "the bathtub forms the whole body with a straight closed lower edge and a straight top rim along its whole length, only the shower curtain rod with the shower head rises above the middle section, the rubber duck sits on the front end",
       modell: "A car body made from an old enamel bathtub, a shower curtain rod with a shower head above the middle, a rubber duck as hood ornament at the front" },
     { nr: 4, id: "telefonzelle", name: "Telefonzelle", bonus: "Regen- und Windschutz",
       modell: "A car body whose middle is a red telephone box with glass panes, a cable reel as the rear, a rotary dial as the front grille" },
@@ -212,7 +213,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     { nr: 20, id: "dampflok", name: "Dampflok", bonus: "Ziehen und Abschleppen",
       modell: "A small steam locomotive car body with a coal tender at the rear, a driver's cab with a whistle in the middle and a boiler with a short chimney at the front" },
   ];
-  const karoPrompt = (m) => `${m.modell}. Car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver. Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white gap between the two views. Top half: flat side elevation, the front points to the right, ${m.hoch ? KARO_HOCH : KARO_NORMAL}. Bottom half: ${TOP_VIEW}, same length, the body has the same width along its whole length. Both views at the same scale and aligned. ${LOOK} ${SHEET_BG}`;
+  const karoPrompt = (m) => `${m.modell}. Car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver. Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white gap between the two views. Top half: flat side elevation, the front points to the right, ${m.form || (m.hoch ? KARO_HOCH : KARO_NORMAL)}. Bottom half: ${TOP_VIEW}, same length, the body has the same width along its whole length. Both views at the same scale and aligned. ${LOOK} ${SHEET_BG}`;
 
   // Vom Werkzeug erzeugt (teilwerk.py geliefert): eingepasste Teile mit Vorschau
   const GELIEFERT = window.GELIEFERT || {};
