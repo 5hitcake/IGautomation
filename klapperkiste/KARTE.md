@@ -92,3 +92,14 @@ sind Teile, Karosserie-Teile oder neue Wege.
 | K4 | Startgebiet (5 × 5 Abschnitte): Opas Schuppen und der Weg zum Schrottplatz, als Fahrprobe mit dem gebauten Auto |
 | K5 | Erster Ort als Bild: der Schrottplatz, mit erstem Charakter |
 | K6 … | Region für Region anbauen, jeweils mit Hindernis und Auftrag |
+
+## 6. Stil und Muster
+
+- **Stil zwischen Comic und echt:** Boden (Gras, Erde, Wasser) gemalt und
+  etwas realistischer, ohne schwarze Konturen. Objekte, Häuser und Figuren im
+  Comic-Stil mit Konturen wie die Autoteile. So heben sich Auto und wichtige
+  Dinge vom Boden ab, und alles wirkt trotzdem wie aus einem Guss.
+- **Muster für einen Abschnitt:** [`design/vorlage_abschnitt.png`](design/vorlage_abschnitt.png)
+  (64 × 64 m, 8-m-Raster, orange Straßenanschlüsse, Auto zum Größenvergleich).
+  Erzeugt mit `python klapperkiste/tools/karte_skizze.py --vorlage`. Gebraucht
+  wird es für Orte; Boden-Texturen brauchen kein Muster.

@@ -5,6 +5,7 @@ Planung (Schritt K1), die echte Karte entsteht Abschnitt für Abschnitt.
 
 Aufruf:
   python klapperkiste/tools/karte_skizze.py [ausgabe.png]
+  python klapperkiste/tools/karte_skizze.py --vorlage [ausgabe.png]   Muster für einen Abschnitt
 """
 
 from __future__ import annotations
@@ -107,8 +108,38 @@ def zeichnen() -> Image.Image:
     return bild
 
 
+def vorlage(px: int = 1024) -> Image.Image:
+    """Muster für einen Abschnitt (64 × 64 m): 8-m-Raster, Straßenanschlüsse an
+    den Kanten (Viertel und Mitte), ein Auto (4 × 1,6 m) als Größenvergleich."""
+    m = px / 64
+    bild = Image.new("RGB", (px, px), (236, 240, 226))
+    d = ImageDraw.Draw(bild)
+    for i in range(0, 65, 8):
+        d.line((i * m, 0, i * m, px), fill=(190, 200, 180), width=2)
+        d.line((0, i * m, px, i * m), fill=(190, 200, 180), width=2)
+    for t in (16, 32, 48):  # Anschlüsse: 7 m breite Straße mittig auf der Marke
+        k = (t - 3.5) * m
+        for a, b in ((k, 0), (k, px - 12), (0, k), (px - 12, k)):
+            w, h = (7 * m, 12) if b in (0, px - 12) and a != 0 and a != px - 12 else (12, 7 * m)
+            d.rectangle((a, b, a + w, b + h), fill=(214, 120, 40))
+    cx, cy = px / 2, px / 2
+    d.rounded_rectangle((cx - 2 * m, cy - 0.8 * m, cx + 2 * m, cy + 0.8 * m), radius=6, fill=(60, 110, 170),
+                        outline=(20, 20, 20), width=3)
+    s = _schrift(max(12, px // 60))
+    d.text((cx - 2 * m, cy + 1.2 * m), "Auto 4 m", fill=(20, 20, 20), font=s)
+    legende = "Abschnitt 64 × 64 m · Raster 8 m · orange = Straßenanschluss"
+    d.text((10, px - px // 30), legende, fill=(60, 60, 60), font=s)
+    return bild
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "--vorlage":
+        ziel = argv[1] if len(argv) > 1 else os.path.join(os.path.dirname(__file__), "..", "design",
+                                                          "vorlage_abschnitt.png")
+        vorlage().save(ziel)
+        print(os.path.relpath(ziel))
+        return 0
     ziel = argv[0] if argv else os.path.join(os.path.dirname(__file__), "..", "design", "karte_skizze.png")
     zeichnen().save(ziel)
     print(os.path.relpath(ziel))
