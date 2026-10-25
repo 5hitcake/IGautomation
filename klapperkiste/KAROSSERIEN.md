@@ -27,7 +27,7 @@ nicht gefahren wird, muss die Kabine nicht mehr genau ins Mittelteil passen.
 | 14 | Schneeraupe | kleine Ladefläche mit Kanister und Schneeschaufel | beheizte Fahrerkabine mit Rundumleuchte | Haube mit großem Räumschild | Kälteschutz, fährt durch Schnee | Frostpass |
 | 15 | Gewächshaus | Blumenkasten mit Tulpen | Glashaus mit Tomatenpflanzen | Haube aus Gießkannen | Pflanzen liefern | Gärtnerei |
 | 16 | Zirkus | Menschenkanone | gestreifte Zirkuszelt-Kuppel | Clownsnase als Kühler | Zuschauer locken | Zirkus |
-| 17 | Ruderboot | Bootsheck mit Außenborder | Bootsmitte mit Ruderbank | spitzer Bug mit Anker | als kompletter Satz über die Seen zu den Inseln | Hafen, See |
+| 17 | Schlauchboot | Spiegelbrett (ohne Motor) | Schlauchwülste mit Ruderbänken und Paddeln | runder Bug mit Schleppöse | als kompletter Satz über die Seen zu den Inseln | Hafen, See |
 | 18 | Wohnzimmer | alte Kommode | Ohrensessel mit Stehlampe | Röhrenfernseher als Haube | Komfort, Fahrer ruht sich aus | Flohmarkt |
 | 19 | Bienenstock | Honigtopf | Bienenkorb-Kuppel | Wabenhaube | Honig, Schafe gehen aus dem Weg | Imkerei |
 | 20 | Dampflok | Kohlentender | Führerhaus mit Pfeife | Dampfkessel mit kurzem Schornstein | Ziehen und Abschleppen | Bahnhof, Bergwerk |
@@ -56,7 +56,7 @@ bleibt gleich.
 | 14 | A snowcat car body (siehe Prompt-Liste) |
 | 15 | A greenhouse car body with a flower box with tulips at the rear, a glass house with tomato plants in the middle and a hood made of watering cans at the front |
 | 16 | A circus car body with a human cannon at the rear, a striped circus tent dome in the middle and a red clown nose as the front grille |
-| 17 | A rowing boat car body with a boat stern and an outboard motor at the rear, a rowing bench in the middle and a pointed bow with an anchor at the front |
+| 17 | An inflatable rubber dinghy car body (siehe Prompt-Liste) |
 | 18 | A living room car body with an old chest of drawers at the rear, a wing armchair with a floor lamp in the middle and an old tube television as the front hood |
 | 19 | A beehive car body with a honey pot at the rear, a straw bee skep dome in the middle and a honeycomb hood at the front |
 | 20 | A small steam locomotive car body with a coal tender at the rear, a driver's cab with a whistle in the middle and a boiler with a short chimney at the front |
@@ -84,7 +84,7 @@ auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
 | 14 | Schneeraupe | leuchtendes Eisblau und Weiß, schwarzer Gummi |
 | 15 | Gewächshaus | grüne Fensterrahmen, Glas, Terrakotta |
 | 16 | Zirkus | Lila und Gold gestreift |
-| 17 | Ruderboot | helle lackierte Planken, marineblauer Rumpf, weißer Wasserpass |
+| 17 | Schlauchboot | leuchtendes Orangerot, graue Flicken |
 | 18 | Wohnzimmer | Senfgelb und Olivgrün, 70er-Jahre-Blumenmuster |
 | 19 | Bienenstock | Honiggelb mit schwarzen Streifen |
 | 20 | Dampflok | glänzend Schwarz, Messing, rote Zierlinien |
@@ -95,3 +95,9 @@ Die Ketten gehören nicht zur Karosserie, sonst passt sie nicht auf jedes
 Fahrgestell. Die Raupenkette wird ein eigenes Teil in der Kategorie Räder:
 sie ersetzt beide Räder einer Seite, fährt durch Schnee und Matsch, ist aber
 langsam. Zusammen mit der Schneeraupen-Karosserie gibt es den Satz-Bonus.
+
+## Bootsmotor
+
+Der Außenborder ist kein Teil der Schlauchboot-Karosserie, sondern ein eigenes
+Bauteil zum Sammeln (Kategorie Heck). Ohne Motor wird auf dem See gepaddelt
+(langsam), mit Bootsmotor geht es schneller und weiter hinaus.

@@ -59,7 +59,7 @@ Auto befahrbar:
 | Schnee | Schneeschild |
 | Schmale oder schwache Brücke | Wenig Gewicht |
 | Furt, flaches Wasser | Große Räder |
-| See (tiefes Wasser) zu den Inseln | Kompletter Satz Ruderboot-Karosserie (alle drei Teile) |
+| See (tiefes Wasser) zu den Inseln | Kompletter Satz Schlauchboot-Karosserie (alle drei Teile) |
 | Eingestürzte Brücke, Loch in der Straße | Betonmischer-Karosserie: Quest beim Kieswerk, Beton holen und die Stelle reparieren, danach dauerhaft offen |
 
 ### Achsen
@@ -121,8 +121,10 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
 ### Karten-Ideen
 
 - **Zwei Seen mit Inseln.** Die Inseln sind nur mit der
-  **Ruderboot-Karosserie** erreichbar. Die Badewanne reicht nur für Furten und
+  **Schlauchboot-Karosserie** erreichbar. Die Badewanne reicht nur für Furten und
   flaches Wasser.
+- **Bootsmotor** als eigenes Sammel-Teil (Kategorie Heck): ohne Motor wird
+  auf dem See gepaddelt, mit Motor geht es schneller und weiter hinaus.
 - Auf den Inseln liegen lohnende Funde (seltene Teile, Karosserie-Teile
   anderer Modelle, Aufträge).
 
