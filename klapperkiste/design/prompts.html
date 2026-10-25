@@ -86,7 +86,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   <header>
     <p class="eyebrow">Schritt A2 · erste Serie · Comic-Look</p>
     <h1>Schrottkarre Prompt-Liste</h1>
-    <p class="lead">6 Teile, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
+    <p class="lead">7 Teile, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
     <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 geliefert</span></div>
   </header>
 
@@ -118,8 +118,8 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   const TOP_VIEW = "plan view seen straight from directly above, orthographic, without perspective";
 
   const prompt = {
-    blatt: (p) => `${p.subject}. Orthographic model sheet showing this same object twice, stacked vertically with a wide empty white gap between the two views. Top half: ${SIDE_VIEW}, ${p.side}. Bottom half: ${TOP_VIEW}, ${p.top}. Both views at the same scale and aligned, the front points to the right in both views. ${LOOK} ${SHEET_BG}`,
-    seite: (p) => `${p.subject}, ${SIDE_VIEW}, ${p.side}, the front points to the right. ${LOOK} ${SINGLE_BG}`,
+    blatt: (p) => `${p.subject}. Orthographic model sheet showing this same object twice, stacked vertically with a wide empty white gap between the two views. Top half: ${p.sideView || SIDE_VIEW}, ${p.side}. Bottom half: ${TOP_VIEW}, ${p.top}. Both views at the same scale and aligned, the front points to the right in both views. ${LOOK} ${SHEET_BG}`,
+    seite: (p) => `${p.subject}, ${p.sideView || SIDE_VIEW}, ${p.side}, the front points to the right. ${LOOK} ${SINGLE_BG}`,
     oben: (p) => `${p.subject}, ${TOP_VIEW}, ${p.top}, the front points to the right, matching the design of the provided side view reference. ${LOOK} ${SINGLE_BG}`,
   };
 
@@ -155,6 +155,12 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
       side: "the column stands upright and the grips point to the left",
       top: "the handlebar runs from the top to the bottom of the image and the column is a small circle in the middle",
       format: { blatt: "9:16 hochkant", seite: "1:2 hochkant", oben: "1:2 hochkant" } },
+    { id: "rostachse", name: "Rostige Achse", cat: "Achse",
+      subject: "A simple rusty steel axle for a junk car: a straight rusty iron rod with a round hub flange with bolts at each end and a crude bent metal bracket bolted on near each end, grime and flaking paint",
+      sideView: "flat side view looking straight along the axle, so the rod is seen end-on: only the round hub flange with its bolts is visible, with the bent bracket rising above it, not rotated, without perspective",
+      side: "the hub is exactly in the centre",
+      top: "the rod runs straight from the top to the bottom of the image with a hub flange at both ends and the two brackets near the ends",
+      format: { blatt: "9:16 hochkant (oder schmalstes Format)", seite: "1:1", oben: "1:2 hochkant" } },
   ];
 
   // Vom Werkzeug erzeugt (teilwerk.py geliefert): eingepasste Teile mit Vorschau

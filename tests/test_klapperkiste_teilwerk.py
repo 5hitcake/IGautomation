@@ -153,3 +153,19 @@ def test_kappen_schneidet_rollen_unter_dem_rahmen_ab(raster):
     # Nach dem Abschneiden ist die ganze Box Balkenfarbe, keine schwarze Rolle mehr
     r, g, b, a = seite.getpixel((10, seite.height - 3))
     assert a == 255 and g > r
+
+
+def test_achse_draufsicht_reicht_von_rad_zu_rad(raster):
+    roh = Image.new("RGB", (300, 900), (255, 255, 255))
+    ImageDraw.Draw(roh).rectangle((130, 50, 170, 850), fill=(110, 70, 40))  # senkrechte Stange
+    fertig, _ = teilwerk.einpassen(roh, raster, "achse", "oben")
+    links, oben, rechts, unten = fertig.getchannel("A").getbbox()
+    assert (oben, unten) == (0, fertig.height)
+    assert rechts - links < fertig.width // 2
+
+
+def test_achse_liegt_unter_den_raedern(raster):
+    for ansicht in ("seite", "oben"):
+        folge = raster["reihenfolge_" + ansicht]
+        assert folge.index("achseH") < folge.index("radH")
+        assert folge.index("achseV") < folge.index("radV")

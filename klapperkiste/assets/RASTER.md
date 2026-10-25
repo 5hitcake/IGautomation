@@ -29,6 +29,11 @@ dieser Datei.
 | Vorne | 1 × 2 | 128 × 256 | 1 × 4 | 128 × 512 | links (hängt am Rahmenende) |
 | Heck | 1 × 2 | 128 × 256 | 1 × 2 | 128 × 256 | rechts (hängt am Rahmenende) |
 | Aufbau | 8 × 4 | 1024 × 512 | 8 × 4 | 1024 × 512 | unten, liegt hinter allem |
+| Achse | 2 × 2 | 256 × 256 | 2 × 4 | 256 × 512 | Seite: Achsende mit Nabe in der Mitte, hinter dem Rad. Draufsicht: volle Höhe, von Rad zu Rad |
+
+**Einbaureihenfolge:** Rahmen, dann Achsen, dann Räder. Die Räder sitzen auf
+der Achse und verdecken in der Seitenansicht ihr Ende. Ohne Rad sieht man die
+Nabe der Achse. Zum Achsentausch müssen die Räder ab.
 
 Die roten Linien in den Vorlagen (`vorlagen/vorlage_<kategorie>_<ansicht>.png`)
 zeigen, welche Kante das Teil berühren muss.

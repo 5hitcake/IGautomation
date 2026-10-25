@@ -45,7 +45,7 @@ FARBEN = {
     "rahmen": (201, 138, 75), "rad": (38, 43, 48), "motor": (224, 75, 58),
     "energie": (47, 111, 176), "sitz": (47, 143, 136), "lenkung": (111, 143, 166),
     "vorderbau": (242, 182, 50), "vorne": (159, 215, 232), "heck": (140, 153, 163),
-    "aufbau": (127, 207, 174),
+    "aufbau": (127, 207, 174), "achse": (93, 78, 66),
 }
 
 
@@ -179,6 +179,12 @@ def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
         neu_h = min(ziel_h, max(1, round(teil.height * ziel_b / teil.width)))
         fertig = Image.new("RGBA", (ziel_b, ziel_h), (0, 0, 0, 0))
         fertig.alpha_composite(teil.resize((ziel_b, neu_h), Image.LANCZOS), (0, (ziel_h - neu_h) // 2))
+        return fertig, hinweise
+    if strecken == "hoehe":
+        # Volle Höhe ist Pflicht (z. B. Achse von Rad zu Rad), die Dicke bleibt wie gezeichnet
+        neu_b = min(ziel_b, max(1, round(teil.width * ziel_h / teil.height)))
+        fertig = Image.new("RGBA", (ziel_b, ziel_h), (0, 0, 0, 0))
+        fertig.alpha_composite(teil.resize((neu_b, ziel_h), Image.LANCZOS), ((ziel_b - neu_b) // 2, 0))
         return fertig, hinweise
     if strecken == "voll":
         # Rahmen und Räder müssen ihre Box exakt füllen, sonst passen die Anschlüsse nicht
@@ -371,7 +377,7 @@ def gesamtplan(raster: dict, ansicht: str) -> Image.Image:
     d = ImageDraw.Draw(plan)
     schrift = _schrift(26)
     for slot, info in raster["slots"].items():
-        if slot == "aufbau" or (slot == "rahmen" and ansicht == "oben"):
+        if slot == "aufbau" or slot.startswith("achse") or (slot == "rahmen" and ansicht == "oben"):
             continue
         gb, gh = raster["kategorien"][info["kategorie"]][ansicht]
         positionen = [info["seite"]] if ansicht == "seite" else info["oben"][:1]
@@ -379,8 +385,8 @@ def gesamtplan(raster: dict, ansicht: str) -> Image.Image:
             cx, cy = (x + gb / 2) * z, (y + gh / 2) * z
             d.text((cx, cy), slot, font=schrift, fill=INK, anchor="mm", stroke_width=4,
                    stroke_fill=PAPIER)
-    text = ("aufbau (liegt hinter allem)" if ansicht == "seite"
-            else "rahmen liegt unter allem, aufbau (gestrichelt) als Dach oben")
+    text = ("aufbau hinter allem · achsen hinter den rädern" if ansicht == "seite"
+            else "unter allem: rahmen und achsen (quer) · aufbau gestrichelt als Dach")
     d.text((b // 2, 64 if ansicht == "seite" else int(3.5 * z)), text, font=schrift, fill=INK, anchor="mm",
            stroke_width=4, stroke_fill=PAPIER)
     if ansicht == "seite":

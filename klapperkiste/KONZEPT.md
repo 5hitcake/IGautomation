@@ -60,6 +60,20 @@ Auto befahrbar:
 | Schmale oder schwache Brücke | Wenig Gewicht |
 | Furt, flaches Wasser | Große Räder |
 
+### Achsen
+
+Achsen sind eigene Teile mit Wirkung. Eingebaut wird in fester Reihenfolge:
+Rahmen, dann Achsen, dann Räder. Wer die Achse tauscht, muss erst die Räder
+abnehmen. Die Details legen wir beim Werkstatt-System fest.
+
+| Achse | Wirkung | öffnet zum Beispiel |
+|---|---|---|
+| Rostige Achse (Start) | nichts Besonderes, klappert | – |
+| Blattfeder-Achse | federt, kein Schaden auf Schotter | Schotter- und Feldwege |
+| Hochgelegte Geländeachse | mehr Bodenfreiheit | Furt, Matsch |
+| Lenkachse | kleiner Wendekreis | enge Serpentinen |
+| Allrad-Achse | treibt auch vorne an, mehr Grip | Schnee, steile Hänge |
+
 ### Anleihen bei Dredge
 
 - **Ladefläche als Raster:** Fracht und Fundstücke haben Formen und müssen auf
@@ -79,7 +93,7 @@ Bilder da sind.
 | Schritt | Inhalt | Stand |
 |---|---|---|
 | **A1** | Teile-Raster festlegen: Boxen pro Kategorie, Seite + Draufsicht, Vorlagen, Werkzeug zum Einpassen und Probe-Zusammenbau, Prompt-Vorlagen | ✅ fertig |
-| A2 | Erste Serie erzeugen: die 6 Teile der Schrottkarre, je Seite + Draufsicht | als Nächstes |
+| A2 | Erste Serie erzeugen: die Teile der Schrottkarre, je Seite + Draufsicht | 6 von 7 Teilen fertig, Achse fehlt |
 | A3 | Werkstatt zeigt die echten Teil-Bilder auf dem neuen Raster statt der Code-Grafik | offen |
 | A4 | Fahrerfigur und Werkstatt-Hintergrund mit Raumtiefe | offen |
 | B1 | Fahren von oben: Steuerung und Physik auf einer kleinen Testkarte | offen |

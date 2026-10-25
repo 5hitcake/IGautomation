@@ -1,4 +1,5 @@
 {
+  "_einbau": "Reihenfolge beim Bauen: Rahmen, dann Achsen, dann Räder (Räder sitzen auf der Achse). Zum Achsentausch müssen die Räder ab.",
   "_info": "Raster-Standard für alle Teile. Eine Zelle = zelle_px Pixel im fertigen Bild. Positionen [x, y] und Größen [Breite, Höhe] in Zellen, Ursprung oben links. Vorne = rechts.",
   "zelle_px": 128,
   "seite": { "breite": 10, "hoehe": 6, "boden": 6 },
@@ -34,6 +35,10 @@
     "heck":      { "name": "Heck",      "seite": [1, 2], "oben": [1, 2],
                    "anker_seite": ["rechts", "unten"], "anker_oben": ["rechts", "mitte"],
                    "regel": "Hängt hinten am Rahmenende. Rechte Kante berührt den Rahmen." },
+    "achse":     { "name": "Achse",     "seite": [2, 2], "oben": [2, 4],
+                   "anker_seite": ["mitte", "mitte"], "anker_oben": ["mitte", "mitte"],
+                   "strecken": { "oben": "hoehe" },
+                   "regel": "Seitenansicht: Achsende mit Nabe genau in der Mitte, liegt hinter dem Rad und ist nur ohne Rad sichtbar. Draufsicht: reicht von Rad zu Rad über die ganze Autobreite, wird auf die volle Höhe gebracht." },
     "aufbau":    { "name": "Aufbau",    "seite": [8, 4], "oben": [8, 4],
                    "anker_seite": ["mitte", "unten"], "anker_oben": ["mitte", "mitte"],
                    "regel": "Karosserie, Dach, Kabine oder Ladefläche. Liegt hinter den anderen Teilen und darf durchbrochen sein, damit Motor und Sitz sichtbar bleiben." }
@@ -50,9 +55,11 @@
     "vorderbau": { "kategorie": "vorderbau", "seite": [7, 2], "oben": [[7, 1]] },
     "vorne":     { "kategorie": "vorne",     "seite": [9, 3], "oben": [[9, 0]] },
     "radH":      { "kategorie": "rad",       "seite": [1, 4], "oben": [[1, 0], [1, 3]] },
+    "achseH":    { "kategorie": "achse",     "seite": [1, 4], "oben": [[1, 0]] },
+    "achseV":    { "kategorie": "achse",     "seite": [7, 4], "oben": [[7, 0]] },
     "radV":      { "kategorie": "rad",       "seite": [7, 4], "oben": [[7, 0], [7, 3]] }
   },
 
-  "reihenfolge_seite": ["aufbau", "rahmen", "motor", "energie", "sitz", "lenkung", "vorderbau", "heck", "vorne", "radH", "radV"],
-  "reihenfolge_oben": ["radH", "radV", "rahmen", "heck", "vorne", "motor", "energie", "sitz", "lenkung", "vorderbau", "aufbau"]
+  "reihenfolge_seite": ["aufbau", "rahmen", "motor", "energie", "sitz", "lenkung", "vorderbau", "heck", "vorne", "achseH", "achseV", "radH", "radV"],
+  "reihenfolge_oben": ["achseH", "achseV", "radH", "radV", "rahmen", "heck", "vorne", "motor", "energie", "sitz", "lenkung", "vorderbau", "aufbau"]
 }
