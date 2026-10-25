@@ -5,5 +5,8 @@
   },
   "sand": {
     "gerichtet": true
+  },
+  "wasser": {
+    "gerichtet": true
   }
 }
