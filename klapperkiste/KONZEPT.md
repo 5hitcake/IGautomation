@@ -80,12 +80,16 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
   Achsen baut man in der Draufsicht ein, weil sie von der Seite hinter den
   Rädern liegen. Tippt man in der Seitenansicht auf eine Achse, schaltet die
   Werkstatt selbst um.
-- Einbauen: Teil im Regal antippen, es kommt auf den nächsten freien Platz.
-  Freie Plätze, die gerade möglich sind, leuchten gelb.
-- Ausbauen: Teil auf der Bühne antippen oder seine Karte im Regal.
+- Einbauen per **Tippen** (Teil im Regal antippen, es kommt auf den nächsten
+  freien Platz) oder per **Ziehen** (Teil auf einen gelben Platz ziehen; auf
+  dem Handy kurz halten, dann ziehen, damit Wischen weiter scrollt). Beim
+  Ziehen zeigt die Bühne nur die Plätze, auf die das Teil passt.
+- Ausbauen: Teil auf der Bühne antippen, von der Bühne herunterziehen oder
+  seine Karte im Regal antippen. Auf einen anderen passenden Platz ziehen
+  setzt es um.
 - Reihenfolge: Rahmen, dann Achsen, dann Räder. Ausbau in umgekehrter
   Reihenfolge. Fehlt ein Schritt, sagt die Werkstatt, welcher.
-- Offen: Ziehen statt Tippen, mehrere Teile pro Kategorie zur Auswahl,
+- Offen: mehrere Teile pro Kategorie zur Auswahl,
   Werkstatt-Raum mit Tiefe, Fahrerfigur.
 
 ### Anleihen bei Dredge

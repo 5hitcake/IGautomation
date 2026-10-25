@@ -66,6 +66,9 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 .check.ok { background: rgba(111,211,163,0.18); color: var(--mint); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; }
 .hint { color: var(--chalk-dim); font-size: 13px; max-width: 70ch; }
+#ghost { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 20; filter: drop-shadow(0 10px 8px rgba(0,0,0,0.5)); }
+.part { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; }
 </style>
 </head>
 <body>
@@ -98,9 +101,10 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
     <button type="button" id="btn-all">Komplett zusammenbauen</button>
     <button type="button" id="btn-clear">Alles abbauen</button>
   </div>
-  <p class="hint">Teil im Regal antippen: Es kommt auf den nächsten freien Platz. Zum Ausbauen das Teil auf der Bühne antippen oder seine Karte im Regal, wenn sie „Tippen zum Ausbauen“ zeigt. Reihenfolge: Rahmen, dann Achsen, dann Räder. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
+  <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten, dann ziehen). Ausbauen: Teil auf der Bühne antippen oder von der Bühne herunterziehen. Reihenfolge: Rahmen, dann Achsen, dann Räder. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
 </div>
 
+<canvas id="ghost" hidden></canvas>
 <script src="raster.js"></script>
 <script src="geliefert.js"></script>
 <script src="teile.js"></script>
@@ -131,6 +135,8 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
   const BLOCKS = { achseH: ["radH"], achseV: ["radV"] };
 
   const state = { view: "seite", mounted: {}, anim: {} };
+  let drag = null;          // laufendes Ziehen: { partId, kat, fromSlot, x, y, target, touch }
+  let suppressClick = false; // nach einem Ziehen den folgenden Klick verschlucken
 
   // Bilder laden
   const IMG = {};
@@ -164,20 +170,31 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
     if (part.kat === "achse" && state.view !== "oben") {
       setView("oben");
       say("Achsen baust du von oben ein, da sieht man sie. Ich habe auf die Draufsicht umgeschaltet.");
+      mountAt(slot, part.id, true);
     } else {
-      say(`${part.name} eingebaut: ${LABEL[slot]}.`);
+      mountAt(slot, part.id);
     }
-    state.mounted[slot] = part.id;
+  }
+
+  function mountAt(slot, partId, quiet) {
+    state.mounted[slot] = partId;
     state.anim[slot] = performance.now();
+    if (!quiet) say(`${PARTS.find((p) => p.id === partId).name} eingebaut: ${LABEL[slot]}.`);
     refresh();
   }
 
-  function unmount(slot) {
+  // Darf dieser Platz ausgebaut werden? Gibt den Grund zurück, falls nicht.
+  function removeBlocked(slot) {
     if (slot === "rahmen" && SLOTS.some((s) => s !== "rahmen" && state.mounted[s])) {
-      return say("Den Rahmen kannst du erst abnehmen, wenn alle anderen Teile ab sind.", "warn");
+      return "Den Rahmen kannst du erst abnehmen, wenn alle anderen Teile ab sind.";
     }
     const blocked = (BLOCKS[slot] || []).find((b) => state.mounted[b]);
-    if (blocked) return say(`Erst die ${LABEL[blocked]} abnehmen, dann kommst du an die ${LABEL[slot]}.`, "warn");
+    return blocked ? `Erst die ${LABEL[blocked]} abnehmen, dann kommst du an die ${LABEL[slot]}.` : null;
+  }
+
+  function unmount(slot) {
+    const why = removeBlocked(slot);
+    if (why) return say(why, "warn");
     const name = PARTS.find((p) => p.id === state.mounted[slot]).name;
     delete state.mounted[slot];
     say(`${name} ausgebaut.`);
@@ -233,7 +250,15 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 
   function drawSlotHint(ctx, slot, L, t) {
     if (state.view === "seite" && kat(slot) === "achse") return;
+    // Beim Ziehen nur die Plätze zeigen, auf die das gezogene Teil passt
+    if (drag && kat(slot) !== drag.kat) return;
     const ok = !missing(slot);
+    if (drag && drag.target === slot) {
+      for (const r of rects(slot, L)) {
+        ctx.fillStyle = "rgba(242,182,50,0.35)";
+        ctx.beginPath(); ctx.roundRect(r.x + 3, r.y + 3, r.w - 6, r.h - 6, 8); ctx.fill();
+      }
+    }
     const pulse = 0.5 + 0.5 * Math.sin(t * 4);
     for (const r of rects(slot, L)) {
       ctx.save();
@@ -282,27 +307,153 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
     drawWorkshop(ctx, w, h, L);
     const order = R["reihenfolge_" + state.view].filter((s) => SLOTS.includes(s));
     for (const slot of order) {
-      if (state.mounted[slot]) { if (visible(slot)) drawPart(ctx, slot, L, now); }
+      const inHand = drag && drag.fromSlot === slot;
+      if (state.mounted[slot] && !inHand) { if (visible(slot)) drawPart(ctx, slot, L, now); }
       else drawSlotHint(ctx, slot, L, now / 1000);
     }
     requestAnimationFrame(render);
   }
 
-  // --- Antippen auf der Bühne -------------------------------------------------
-  $("stage").addEventListener("click", (e) => {
-    const c = $("stage"), b = c.getBoundingClientRect();
-    const x = e.clientX - b.left, y = e.clientY - b.top;
-    const L = layout(b.width, b.height);
-    const order = R["reihenfolge_" + state.view].filter((s) => SLOTS.includes(s)).reverse();
-    for (const slot of order) {
-      if (!visible(slot)) continue;
-      if (rects(slot, L).some((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h)) {
-        if (state.mounted[slot]) return unmount(slot);
-        // Leeren Platz antippen: passendes Teil aus dem Regal einbauen
-        const why = missing(slot);
-        return why ? say(why, "warn") : mountPart(PARTS.find((p) => p.kat === kat(slot)));
+  // --- Antippen und Ziehen ------------------------------------------------------
+  function stagePoint(clientX, clientY) {
+    const b = $("stage").getBoundingClientRect();
+    return { x: clientX - b.left, y: clientY - b.top, inside: clientX >= b.left && clientX <= b.right && clientY >= b.top && clientY <= b.bottom, w: b.width, h: b.height };
+  }
+
+  // Oberstes sichtbares Teil (oder leerer Platz) unter einem Punkt der Bühne
+  function hitSlot(pt) {
+    const L = layout(pt.w, pt.h);
+    const order = R["reihenfolge_" + state.view].filter((sl) => SLOTS.includes(sl)).reverse();
+    return order.find((sl) => visible(sl) && !(state.view === "seite" && kat(sl) === "achse" && !state.mounted[sl]) &&
+      rects(sl, L).some((r) => pt.x >= r.x && pt.x <= r.x + r.w && pt.y >= r.y && pt.y <= r.y + r.h));
+  }
+
+  function tapStage(clientX, clientY) {
+    const slot = hitSlot(stagePoint(clientX, clientY));
+    if (!slot) return;
+    if (state.mounted[slot]) return unmount(slot);
+    const why = missing(slot);
+    return why ? say(why, "warn") : mountPart(PARTS.find((p) => p.kat === kat(slot)));
+  }
+
+  // Nächster passender Platz zum Finger (innerhalb einer knappen Zelle)
+  function findTarget(d) {
+    const pt = stagePoint(d.x, d.y - (d.touch ? 40 : 0));
+    if (!pt.inside) return { over: false, slot: null, near: null };
+    const L = layout(pt.w, pt.h);
+    let best = null, bestD = L.cell * 0.9;
+    for (const sl of SLOTS) {
+      if (kat(sl) !== d.kat || (state.mounted[sl] && sl !== d.fromSlot)) continue;
+      if (state.view === "seite" && kat(sl) === "achse") continue;
+      for (const r of rects(sl, L)) {
+        const dx = Math.max(r.x - pt.x, 0, pt.x - (r.x + r.w)), dy = Math.max(r.y - pt.y, 0, pt.y - (r.y + r.h));
+        const d = Math.hypot(dx, dy);
+        if (d < bestD) { bestD = d; best = sl; }
       }
     }
+    return { over: true, slot: best && !missing(best) ? best : null, near: best };
+  }
+
+  function drawGhost() {
+    const g = $("ghost"), img = IMG[`${drag.partId}_${state.view}`];
+    const b = $("stage").getBoundingClientRect();
+    const L = layout(b.width, b.height);
+    const [bw, bh] = R.kategorien[drag.kat][state.view];
+    const w = bw * L.cell, h = bh * L.cell, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    g.width = Math.round(w * dpr); g.height = Math.round(h * dpr);
+    g.style.width = w + "px"; g.style.height = h + "px";
+    const ctx = g.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    if (img && img.complete) ctx.drawImage(img, 0, 0, w, h);
+    drag.gw = w; drag.gh = h;
+    g.hidden = false;
+  }
+
+  function moveDrag(x, y) {
+    drag.x = x; drag.y = y;
+    const lift = drag.touch ? 40 : 0;
+    $("ghost").style.transform = `translate(${x - drag.gw / 2}px, ${y - lift - drag.gh / 2}px)`;
+    drag.target = findTarget(drag).slot;
+  }
+
+  function startDrag(press) {
+    const part = PARTS.find((p) => p.id === press.partId);
+    if (press.fromSlot) {
+      const why = removeBlocked(press.fromSlot);
+      if (why) { say(why, "warn"); return false; }
+    }
+    drag = { partId: part.id, kat: part.kat, fromSlot: press.fromSlot || null, touch: press.touch, x: press.x, y: press.y, target: null };
+    if (part.kat === "achse" && state.view !== "oben") {
+      setView("oben");
+      say("Achsen baust du von oben ein. Ich habe auf die Draufsicht umgeschaltet.");
+    } else {
+      say(press.fromSlot ? `${part.name} abnehmen: auf einen anderen Platz oder von der Bühne ziehen.` : `${part.name}: auf einen gelben Platz ziehen.`);
+    }
+    document.body.classList.add("dragging");
+    drawGhost();
+    moveDrag(press.x, press.y);
+    if (navigator.vibrate) { try { navigator.vibrate(15); } catch { /* egal */ } }
+    return true;
+  }
+
+  function endDrag(cancelled) {
+    const d = drag;
+    drag = null;
+    $("ghost").hidden = true;
+    document.body.classList.remove("dragging");
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 0);
+    if (cancelled || !d) return;
+    const name = PARTS.find((p) => p.id === d.partId).name;
+    const res = findTarget(d);
+    if (res.slot) {
+      if (d.fromSlot) delete state.mounted[d.fromSlot];
+      return mountAt(res.slot, d.partId);
+    }
+    if (d.fromSlot) {
+      // Von der Bühne gezogen und nicht auf einen passenden Platz: zurück ins Regal
+      delete state.mounted[d.fromSlot];
+      say(`${name} ausgebaut.`);
+      return refresh();
+    }
+    if (res.over) say(res.near ? missing(res.near) || `${name} passt hier nicht hin.` : `${name} passt hier nicht hin.`, "warn");
+  }
+
+  // Ein Druck auf Regal-Karte oder Bühne: wird Tipp oder (nach Bewegung bzw. Halten) Ziehen
+  let press = null;
+  function beginPress(e, info) {
+    if (e.button && e.button !== 0) return;
+    const touch = e.pointerType === "touch";
+    press = { ...info, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, touch, ready: !touch };
+    // Finger: erst nach kurzem Halten ziehen, damit Wischen weiter scrollt
+    if (touch) press.timer = setTimeout(() => { if (press) { press.ready = true; startDrag(press) || (press = null); } }, 220);
+  }
+  window.addEventListener("pointermove", (e) => {
+    if (drag) { moveDrag(e.clientX, e.clientY); return; }
+    if (!press || e.pointerId !== press.id) return;
+    press.x = e.clientX; press.y = e.clientY;
+    const moved = Math.hypot(e.clientX - press.sx, e.clientY - press.sy);
+    if (press.touch && !press.ready && moved > 10) { clearTimeout(press.timer); press = null; return; }
+    if (!press.touch && moved > 5) { if (!startDrag(press)) press = null; }
+  });
+  window.addEventListener("pointerup", (e) => {
+    if (press) clearTimeout(press.timer);
+    if (drag) { endDrag(false); press = null; return; }
+    press = null;
+  });
+  window.addEventListener("pointercancel", () => { if (press) clearTimeout(press.timer); press = null; if (drag) endDrag(true); });
+  // Während des Ziehens darf die Seite nicht scrollen
+  document.addEventListener("touchmove", (e) => { if (drag) e.preventDefault(); }, { passive: false });
+  document.addEventListener("contextmenu", (e) => { if (press || drag) e.preventDefault(); });
+
+  $("stage").addEventListener("pointerdown", (e) => {
+    const slot = hitSlot(stagePoint(e.clientX, e.clientY));
+    if (slot && state.mounted[slot]) beginPress(e, { partId: state.mounted[slot], fromSlot: slot });
+  });
+  $("stage").addEventListener("click", (e) => {
+    if (suppressClick) return;
+    tapStage(e.clientX, e.clientY);
   });
 
   // --- Regal, Checkliste ------------------------------------------------------
@@ -336,9 +487,11 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
       }
       // Voll eingebaut: Tipp baut aus (zuletzt eingebauten Platz zuerst), sonst ein
       b.addEventListener("click", () => {
+        if (suppressClick) return;
         if (n === slots.length) unmount([...slots].reverse()[0]);
         else mountPart(p);
       });
+      if (n < slots.length) b.addEventListener("pointerdown", (e) => beginPress(e, { partId: p.id }));
       tray.append(b);
     }
     const checks = $("checks");
@@ -377,7 +530,7 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
     refresh();
   };
 
-  say("Leg zuerst den Rahmen auf die Hebebühne: im Regal den Bettgestell-Rahmen antippen.");
+  say("Leg zuerst den Rahmen auf die Hebebühne: im Regal den Bettgestell-Rahmen antippen oder auf die Bühne ziehen.");
   refresh();
   requestAnimationFrame(render);
 })();
