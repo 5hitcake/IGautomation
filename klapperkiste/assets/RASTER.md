@@ -48,6 +48,9 @@ zeigen, welche Kante das Teil berühren muss.
    Motor 1:1, Tank 1:2 hochkant, Rad in der Draufsicht 2:1.
 7. **Gleicher Stil-Block** in jedem Prompt (siehe unten), damit alles
    zusammen aussieht.
+8. **Comic-Look:** gleich dicke schwarze Konturen, flache Farben mit einem
+   Schattenton. Keine Raster- oder Punktmuster, vor allem nicht im
+   Hintergrund, sonst klappt das Freistellen schlecht.
 
 ## 3. Ablauf für ein neues Teil
 
@@ -73,11 +76,12 @@ zeigen, welche Kante das Teil berühren muss.
 Bildgeneratoren verstehen Englisch zuverlässiger, deshalb sind die Prompts
 englisch. `[TEIL]` wird durch die Beschreibung des Teils ersetzt.
 
-**Stil-Block (immer gleich):**
+**Stil-Block Comic-Look (immer gleich):**
 
 ```
-Children's picture-book illustration, hand-painted gouache look with clean dark ink outlines,
-warm slightly faded colours, gentle volume shading, light coming from the upper left.
+Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear
+shadow tone and small white highlights, bright saturated but warm palette, slightly exaggerated
+chunky cartoon proportions, light coming from the upper left.
 Single object, isolated and centred on a plain flat white background, filling most of the frame.
 No ground shadow, no text, no people, no other objects.
 ```
