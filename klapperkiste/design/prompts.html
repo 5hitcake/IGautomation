@@ -72,7 +72,7 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
 <body>
 <div class="wrap">
   <header>
-    <p class="eyebrow">Schritt A2 · erste Serie</p>
+    <p class="eyebrow">Schritt A2 · erste Serie · Comic-Look</p>
     <h1>Schrottkarre Prompt-Liste</h1>
     <p class="lead">6 Teile, je Seitenansicht und Draufsicht. Prompt kopieren, Bild erzeugen, unter dem angegebenen Namen speichern und mir schicken. Ich passe es ins Raster ein.</p>
     <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 erledigt</span></div>
@@ -83,6 +83,7 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
     <ol>
       <li><strong>Mit dem Rasenmäher-Motor anfangen</strong> und so lange erzeugen, bis dir der Stil gefällt. Dieses Bild dann bei allen weiteren Teilen als Stil-Referenz mitgeben, falls dein Programm das kann.</li>
       <li><strong>Format einstellen</strong> wie angegeben. Gibt es das Format nicht, nimm das nächstliegende (statt 1:2 z. B. 2:3). Das Einpassen gleicht den Rest aus.</li>
+      <li><strong>Comic-Look sauber halten:</strong> gleich dicke schwarze Konturen, flache Farben mit einem Schattenton. Kein Raster- oder Punktmuster im Hintergrund, sonst lässt sich das Teil schlecht freistellen.</li>
       <li><strong>Hintergrund weiß lassen.</strong> Freistellen ist nicht nötig, das macht das Werkzeug.</li>
       <li><strong>Prüfen:</strong> Vorne zeigt nach rechts? Keine Schrift, kein Schatten, keine Person im Bild?</li>
     </ol>
@@ -93,7 +94,7 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
 
 <script>
 (function () {
-  const STYLE = "Children's picture-book illustration, hand-painted gouache look with clean dark ink outlines, warm slightly faded colours, gentle volume shading, light coming from the upper left. Single object, isolated and centred on a plain flat white background, filling most of the frame. No ground shadow, no text, no people, no other objects.";
+  const STYLE = "Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, bright saturated but warm palette, slightly exaggerated chunky cartoon proportions, light coming from the upper left. Single object, isolated and centred on a plain flat white background, filling most of the frame. No ground shadow, no text, no people, no other objects.";
   const SIDE = "strict side view in profile, the front points to the right, camera at object height tilted down only very slightly so the top surface is barely visible.";
   const TOP = "seen straight from directly above, orthographic top-down view without perspective, the front points to the right.";
 
