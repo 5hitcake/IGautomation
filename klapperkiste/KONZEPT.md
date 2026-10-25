@@ -19,31 +19,78 @@ Der Kern-Kreislauf ist einfach und trägt das ganze Spiel:
 Es gibt keine Zeitlimits und keinen Game-Over-Druck. Man experimentiert, und
 auch eine verrückte Konstruktion darf fahren.
 
-## 2. Was wir anders machen (eigener Stil)
+## 2. Unsere Version
 
 | Bereich | Original | Klapperkiste |
 |---|---|---|
-| Figuren | Willy Werkel, Hund Buffa | Eigene Mechanikerin mit Mütze und Schweißerbrille (Name offen) |
-| Grafik | Handgemalte 2D-Szenen | Kräftige Tusche-Kontur, flache Farben, Werkstatt in Dunkeltürkis mit Senfgelb |
-| Bedienung | Maus, Drag & Drop | Touch: Antippen setzt das Teil automatisch ein, Ziehen für Feinarbeit |
-| Werte | Versteckt / grob | Echte Einheiten: km/h, maximale Steigung in Grad, Reichweite in Metern, kg |
-| Physik | Geskriptet | Kleine echte Physik: Kraft gegen Gewicht, Grip gegen Hangneigung, Verbrauch |
+| Figuren | Willy Werkel, Hund Buffa | Eigene Figuren (noch offen) |
+| Grafik | Handgemalte Szenen | Eigene, selbst erzeugte Bilder (KI-Prompts / Bildprogramme) nach festem Raster, siehe [`assets/RASTER.md`](assets/RASTER.md) |
+| Werkstatt | Gemalter Raum | Gemalter Raum mit Tiefe (3D-Wirkung), Auto in Seitenansicht auf der Hebebühne |
+| Fahren | Große Karte von oben | Ebenfalls große Karte von oben, aus Abschnitten zusammengesetzt |
+| Bedienung | Maus | Touch |
+| Werte | Grob | Echte Einheiten: km/h, Steigung in Grad, Reichweite in Metern, kg |
 
 **Rechtliches:** Spielmechaniken sind nicht geschützt, Namen, Figuren, Grafiken,
-Musik und Texte des Originals aber schon. Deshalb übernehmen wir nichts davon,
-sondern nur die Idee „Auto aus Schrott bauen und damit Aufgaben lösen“.
+Musik und Texte des Originals aber schon. Die Bilder des Originals dienen nur
+als Stimmung, nichts davon wird übernommen oder als Vorlage für Bilder benutzt.
 
-## 3. Fahrplan
+### Karriere
+
+1. Man startet mit einer **absoluten Schrottkarre**: Bettgestell-Rahmen,
+   Schubkarrenräder, Rasenmäher-Motor, Gießkanne als Tank, Küchenstuhl.
+2. Erstes Ziel: **bis zum Schrottplatz kommen.** Er wird die eigene Werkstatt.
+3. Der **Schrottplatz hat ab und zu neue Teile**: wechselndes Angebot,
+   manches nur kurz verfügbar.
+4. **Nachbarn geben Aufträge** (liefern, abschleppen, Schnee räumen …). Belohnt
+   wird mit Teilen, Geld oder neuen Wegen.
+
+### Wege, die man sich erarbeitet
+
+Die Karte ist von Anfang an groß, aber viele Wege sind erst mit dem passenden
+Auto befahrbar:
+
+| Hindernis | Was man braucht |
+|---|---|
+| Schotter, Matsch | Grip (bessere Reifen) |
+| Steigungen | Kraft, wenig Gewicht oder Grip |
+| Dunkelheit (Wald, Tunnel, Nacht) | Licht |
+| Schafe auf der Straße | Hupe |
+| Weite Strecken ohne Tankstelle | Größerer Tank oder sparsamer Motor |
+| Schnee | Schneeschild |
+| Schmale oder schwache Brücke | Wenig Gewicht |
+| Furt, flaches Wasser | Große Räder |
+
+### Anleihen bei Dredge
+
+- **Ladefläche als Raster:** Fracht und Fundstücke haben Formen und müssen auf
+  die Ladefläche passen. Ein größerer Aufbau oder Anhänger bringt mehr Platz.
+- **Unterwegs sammeln:** Schrottteile, Fundstücke und Lieferware liegen auf
+  der Karte verteilt.
+- **Tag und Nacht:** Nachts wird es ohne Licht schwierig, manche Dinge gibt es
+  nur nachts.
+- **Aufrüsten als Fortschritt:** Jedes neue Teil öffnet sichtbar neue Wege.
+
+## 3. Fahrplan in kleinen Schritten
+
+Was bisher gebaut wurde (Werkstatt mit Code-Grafik, Teststrecke, erster
+Kartenentwurf) bleibt als spielbarer Prototyp und Platzhalter, bis die echten
+Bilder da sind.
 
 | Schritt | Inhalt | Stand |
 |---|---|---|
-| **1** | Werkstatt: Teile-Katalog, Drag & Drop auf Slots, Werte-Tafel, Prüfung „fahrbereit?“, Probefahrt auf einer Teststrecke | ✅ fertig |
-| **1b** | Gestaltung: alle 24 Teile mit Fundort und eigenem Aussehen, Karte vom Klappertal mit 9 Orten, Nachbarn, Aufträgen und Belohnungen (`design/gestaltungsbuch.html`) | ✅ Entwurf 1, wartet auf Feedback |
-| 2 | Spielgefühl: Sounds (Motor je Typ, Schrauben, Hupe), Partikel, Wackeln beim Einbauen, Tutorial durch die Mechanikerin | offen |
-| 3 | Welt spielbar machen: Karte als Bildschirm, zu den 9 Orten fahren, Aufträge prüfen und Teile freischalten | offen |
-| 4 | Fortschritt: Teile freischalten, Schrottplatz zum Stöbern, Speichern mehrerer Autos in der Garage | offen |
-| 5 | Mehr Teile & Lackierung: Farben, Aufkleber, Spezialteile (Schwimmkörper, Propeller) | offen |
-| 6 | App-Verpackung: Capacitor (Android/iOS), Icon, Splash, Offline-Schriften, Store-Einträge | offen |
+| **A1** | Teile-Raster festlegen: Boxen pro Kategorie, Seite + Draufsicht, Vorlagen, Werkzeug zum Einpassen und Probe-Zusammenbau, Prompt-Vorlagen | ✅ fertig |
+| A2 | Erste Serie erzeugen: die 6 Teile der Schrottkarre, je Seite + Draufsicht | als Nächstes |
+| A3 | Werkstatt zeigt die echten Teil-Bilder auf dem neuen Raster statt der Code-Grafik | offen |
+| A4 | Fahrerfigur und Werkstatt-Hintergrund mit Raumtiefe | offen |
+| B1 | Fahren von oben: Steuerung und Physik auf einer kleinen Testkarte | offen |
+| B2 | Karten-Raster: Abschnitte, Straßenanschlüsse, Maßstab Auto zu Karte | offen |
+| B3 | Erster Kartenabschnitt: Zuhause bis Schrottplatz | offen |
+| B4 | Hindernisse einzeln einbauen: Schotter, Steigung, Dunkelheit, Schafe, Distanz … | offen |
+| C1 | Karriere-Start: mit der Schrottkarre zum Schrottplatz | offen |
+| C2 | Schrottplatz mit wechselndem Teile-Angebot | offen |
+| C3 | Nachbarn und Aufträge | offen |
+| C4 | Ladefläche als Raster, Fundstücke, Tag und Nacht | offen |
+| D | App-Verpackung (Android/iOS) | offen |
 
 ## 4. Technik
 
@@ -60,6 +107,9 @@ sondern nur die Idee „Auto aus Schrott bauen und damit Aufgaben lösen“.
   - `garage.js` – Werkstatt-Bildschirm
   - `drive.js` – Probefahrt
   - `main.js` – Start, Speichern
+- Teile-Bilder: [`assets/RASTER.md`](assets/RASTER.md) (Regeln und Prompts),
+  `assets/raster.json` (Maße), `assets/vorlagen/` (Vorlagen),
+  `tools/teilwerk.py` (Vorlagen erzeugen, Bilder einpassen, Probe-Zusammenbau).
 - Tests: `node --test klapperkiste/tests/*.test.js`. Sie prüfen unter anderem,
   dass die Teststrecke verschiedene Bauweisen belohnt: Kinderwagenräder
   scheitern am 28°-Hang, Autoreifen am 42°-Hang, Traktorreifen schaffen alles.
@@ -79,7 +129,7 @@ cd klapperkiste && python3 -m http.server 8000
 `node klapperkiste/build-artifact.mjs ausgabe.html` erzeugt eine einzelne
 HTML-Datei mit allen Skripten, z. B. für eine schnelle Vorschau.
 
-## 6. Die Welt: Klappertal (Entwurf 1)
+## 6. Erster Kartenentwurf: Klappertal (wird durch die große Karte ersetzt)
 
 | Nr. | Ort | Nachbar | Das Auto braucht | Belohnung |
 |---|---|---|---|---|
