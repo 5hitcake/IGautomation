@@ -56,7 +56,10 @@ zeigen, welche Kante das Teil berühren muss.
 
 1. Prompt aus Abschnitt 4 nehmen, Teil einsetzen, Bild erzeugen.
 2. Optional: Hintergrund im Bildprogramm entfernen. Das Werkzeug kann
-   einfarbige Hintergründe aber auch selbst entfernen.
+   einfarbige Hintergründe aber auch selbst entfernen, auch eingeschlossene
+   Löcher (z. B. innerhalb einer Seilschlaufe). Reinweiße Flächen am Teil
+   selbst würden dabei als Loch gelten. Im Comic-Look sind sie meist leicht
+   getönt und bleiben deshalb stehen. Sonst mit `--keine-inseln` einpassen.
 3. Einpassen. Das Werkzeug stellt frei, schneidet zu, skaliert und setzt das
    Teil exakt an die Kontaktkante:
    ```bash

@@ -63,10 +63,20 @@ button {
   font: inherit; font-weight: 800; border: 0; border-radius: 10px; padding: 9px 16px; cursor: pointer;
   background: var(--mustard); color: var(--board);
 }
-button:focus-visible, input:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
-label.check { display: flex; gap: 8px; align-items: center; color: var(--chalk-dim); cursor: pointer; }
-label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
+button:focus-visible, summary:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 .copied { color: var(--mint); font-size: 13px; }
+.next { display: grid; gap: 10px; }
+.next > h2 { color: var(--mustard); }
+.next .card { border-left-color: var(--mustard); }
+.chip.ok { background: rgba(111,211,163,0.18); color: var(--mint); }
+.preview { display: flex; gap: 14px; align-items: center; }
+.preview img {
+  width: 120px; height: auto; max-width: 100%; border-radius: 10px; padding: 8px;
+  background: repeating-conic-gradient(#1a2e35 0% 25%, #22404a 0% 50%) 50% / 20px 20px;
+}
+.preview p { color: var(--chalk-dim); font-size: 13px; }
+details.prompt-box summary { cursor: pointer; color: var(--chalk-dim); font-size: 13px; }
+details.prompt-box[open] summary { margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -74,14 +84,16 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
   <header>
     <p class="eyebrow">Schritt A2 · erste Serie · Comic-Look</p>
     <h1>Schrottkarre Prompt-Liste</h1>
-    <p class="lead">6 Teile, je Seitenansicht und Draufsicht. Prompt kopieren, Bild erzeugen, unter dem angegebenen Namen speichern und mir schicken. Ich passe es ins Raster ein.</p>
-    <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 erledigt</span></div>
+    <p class="lead">6 Teile, je Seitenansicht und Draufsicht. Prompt kopieren, Bild erzeugen und mir schicken. Ich passe es ins Raster ein und aktualisiere diese Liste.</p>
+    <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 geliefert</span></div>
   </header>
+
+  <section class="next" id="next" aria-label="Als Nächstes"></section>
 
   <section class="tips" aria-label="Tipps">
     <h2>So bleibt alles einheitlich</h2>
     <ol>
-      <li><strong>Mit dem Rasenmäher-Motor anfangen</strong> und so lange erzeugen, bis dir der Stil gefällt. Dieses Bild dann bei allen weiteren Teilen als Stil-Referenz mitgeben, falls dein Programm das kann.</li>
+      <li><strong>Stil-Referenz:</strong> Der Rasenmäher-Motor (Seite) legt den Stil fest. Gib dieses Bild bei allen weiteren Teilen als Stil-Referenz mit, falls dein Programm das kann.</li>
       <li><strong>Format einstellen</strong> wie angegeben. Gibt es das Format nicht, nimm das nächstliegende (statt 1:2 z. B. 2:3). Das Einpassen gleicht den Rest aus.</li>
       <li><strong>Comic-Look sauber halten:</strong> gleich dicke schwarze Konturen, flache Farben mit einem Schattenton. Kein Raster- oder Punktmuster im Hintergrund, sonst lässt sich das Teil schlecht freistellen.</li>
       <li><strong>Hintergrund weiß lassen.</strong> Freistellen ist nicht nötig, das macht das Werkzeug.</li>
@@ -92,6 +104,7 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
   <div id="list" style="display:grid;gap:26px"></div>
 </div>
 
+<script src="geliefert.js"></script>
 <script>
 (function () {
   const STYLE = "Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, bright saturated but warm palette, slightly exaggerated chunky cartoon proportions, light coming from the upper left. Single object, isolated and centred on a plain flat white background, filling most of the frame. No ground shadow, no text, no people, no other objects.";
@@ -120,10 +133,8 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
       top: ["An old curved bicycle handlebar with black rubber grips at both ends and a small bell, the bar runs from top to bottom of the image", "1:2 hochkant"] },
   ];
 
-  const KEY = "schrottkarre.prompts.done";
-  let done = {};
-  try { done = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { done = {}; }
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch { /* nur Komfort */ } };
+  // Vom Werkzeug erzeugt (teilwerk.py geliefert): eingepasste Teile mit Vorschau
+  const GELIEFERT = window.GELIEFERT || {};
 
   function el(tag, cls, text) {
     const e = document.createElement(tag);
@@ -132,10 +143,68 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
     return e;
   }
 
-  function progress() {
-    const n = Object.values(done).filter(Boolean).length;
-    document.getElementById("count").textContent = `${n} / 12 erledigt`;
-    document.getElementById("bar").style.width = (n / 12) * 100 + "%";
+  function copyButton(text, pre) {
+    const wrap = el("div", "actions");
+    const btn = el("button", null, "Prompt kopieren");
+    btn.type = "button";
+    const msg = el("span", "copied");
+    msg.setAttribute("aria-live", "polite");
+    btn.addEventListener("click", () => {
+      const select = () => {
+        const r = document.createRange(); r.selectNodeContents(pre);
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        msg.textContent = "Markiert. Jetzt kopieren.";
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => { msg.textContent = "Kopiert"; }, select);
+      } else select();
+    });
+    wrap.append(btn, msg);
+    return wrap;
+  }
+
+  const ITEMS = [];
+  PARTS.forEach((part, i) => {
+    for (const [view, label, viewText] of [["seite", "Seitenansicht", SIDE], ["oben", "Draufsicht", TOP]]) {
+      const [subject, format] = part[view === "seite" ? "side" : "top"];
+      ITEMS.push({ part, i, view, label, format, key: `${part.id}_${view}`, text: `${subject}, ${viewText} ${STYLE}` });
+    }
+  });
+
+  function card(item, idSuffix) {
+    const got = GELIEFERT[item.key];
+    const c = el("article", "card" + (got ? " done" : ""));
+    const meta = el("div", "meta");
+    if (got) meta.append(el("span", "chip ok", "✓ geliefert"));
+    meta.append(el("span", "chip view", item.label), el("span", "chip", "Format " + item.format), el("span", "chip file", item.key + ".png"));
+    c.append(meta);
+    const pre = el("p", "prompt", item.text);
+    pre.id = "prompt-" + item.key + idSuffix;
+    if (got) {
+      const pv = el("div", "preview");
+      const img = el("img");
+      img.src = got.bild;
+      img.alt = `${item.part.name}, ${item.label}, eingepasst`;
+      pv.append(img, el("p", null, got.notiz));
+      const det = el("details", "prompt-box");
+      det.append(el("summary", null, "Prompt anzeigen"), pre, copyButton(item.text, pre));
+      c.append(pv, det);
+    } else {
+      c.append(pre, copyButton(item.text, pre));
+    }
+    return c;
+  }
+
+  const delivered = ITEMS.filter((it) => GELIEFERT[it.key]).length;
+  document.getElementById("count").textContent = `${delivered} / ${ITEMS.length} geliefert`;
+  document.getElementById("bar").style.width = (delivered / ITEMS.length) * 100 + "%";
+
+  const next = ITEMS.find((it) => !GELIEFERT[it.key]);
+  const nextBox = document.getElementById("next");
+  if (next) {
+    nextBox.append(el("h2", null, `Als Nächstes: ${next.part.name}, ${next.label}`), card(next, "-next"));
+  } else {
+    nextBox.append(el("h2", null, "Alle 12 Bilder sind da. Die Schrottkarre ist komplett."));
   }
 
   const list = document.getElementById("list");
@@ -144,47 +213,9 @@ label.check input { width: 20px; height: 20px; accent-color: var(--mint); }
     const h = el("h2", null, `${i + 1}. ${part.name}`);
     h.append(el("small", null, part.cat));
     sec.append(h);
-    for (const [view, label, viewText] of [["seite", "Seitenansicht", SIDE], ["oben", "Draufsicht", TOP]]) {
-      const [subject, format] = part[view === "seite" ? "side" : "top"];
-      const key = `${part.id}_${view}`;
-      const text = `${subject}, ${viewText} ${STYLE}`;
-      const card = el("article", "card" + (done[key] ? " done" : ""));
-      const meta = el("div", "meta");
-      meta.append(el("span", "chip view", label), el("span", "chip", "Format " + format), el("span", "chip file", key + ".png"));
-      const pre = el("p", "prompt", text);
-      pre.id = "prompt-" + key;
-      const actions = el("div", "actions");
-      const btn = el("button", null, "Prompt kopieren");
-      btn.type = "button";
-      const msg = el("span", "copied");
-      msg.setAttribute("aria-live", "polite");
-      btn.addEventListener("click", () => {
-        const select = () => {
-          const r = document.createRange(); r.selectNodeContents(pre);
-          const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
-          msg.textContent = "Markiert. Jetzt kopieren.";
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(() => { msg.textContent = "Kopiert"; }, select);
-        } else select();
-      });
-      const lab = el("label", "check");
-      const cb = el("input");
-      cb.type = "checkbox";
-      cb.id = "done-" + key;
-      cb.checked = !!done[key];
-      cb.addEventListener("change", () => {
-        done[key] = cb.checked; save(); progress();
-        card.classList.toggle("done", cb.checked);
-      });
-      lab.append(cb, document.createTextNode("Erledigt"));
-      actions.append(btn, lab, msg);
-      card.append(meta, pre, actions);
-      sec.append(card);
-    }
+    ITEMS.filter((it) => it.part === part).forEach((it) => sec.append(card(it, "")));
     list.append(sec);
   });
-  progress();
 })();
 </script>
 </body>

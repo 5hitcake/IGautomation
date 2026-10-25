@@ -8,6 +8,8 @@ Drei Befehle:
              exakt auf die Rastergröße seiner Kategorie bringen.
   bauen      Fertige Teile probeweise zu einem Auto zusammensetzen, um zu
              prüfen, ob alles zusammenpasst.
+  geliefert  Lieferstand (alle Teile unter assets/teile/) für die
+             Prompt-Liste in design/geliefert.js schreiben.
 
 Beispiele:
   python klapperkiste/tools/teilwerk.py vorlagen
@@ -18,6 +20,8 @@ Beispiele:
 from __future__ import annotations
 
 import argparse
+import base64
+import io
 import json
 import os
 import sys
@@ -71,13 +75,29 @@ def _schrift(groesse: int) -> ImageFont.ImageFont:
 
 # --- Freistellen und Einpassen ------------------------------------------------
 
-def freistellen(bild: Image.Image, toleranz: int = 40) -> Image.Image:
+def _farbmaske(rgb: Image.Image, farbe: tuple[int, int, int]) -> Image.Image:
+    """L-Maske: 255, wo das Bild exakt diese Farbe hat."""
+    kanaele = [k.point(lambda v, m=m: 255 if v == m else 0) for k, m in zip(rgb.split(), farbe)]
+    return ImageChops.multiply(ImageChops.multiply(kanaele[0], kanaele[1]), kanaele[2])
+
+
+def _erstes_pixel(maske: Image.Image) -> tuple[int, int] | None:
+    rahmen = maske.getbbox()
+    if not rahmen:
+        return None
+    x0, y0, x1, _ = rahmen
+    zeile = maske.crop((x0, y0, x1, y0 + 1)).tobytes()
+    return x0 + next(i for i, v in enumerate(zeile) if v), y0
+
+
+def freistellen(bild: Image.Image, toleranz: int = 40, inseln: bool = True) -> Image.Image:
     """Macht den Hintergrund transparent.
 
     Hat das Bild schon Transparenz, bleibt es unverändert. Sonst wird von den
-    vier Ecken aus die Hintergrundfarbe weggefüllt. Flächen in derselben Farbe
-    innerhalb des Teils bleiben erhalten, weil nur zusammenhängend vom Rand aus
-    gefüllt wird.
+    vier Ecken aus die Hintergrundfarbe weggefüllt. Mit inseln=True werden
+    zusätzlich eingeschlossene Hintergrund-Flächen mittlerer Größe entfernt
+    (z. B. das Innere einer Seilschlaufe). Winzige Flächen (Glanzlichter) und
+    sehr große (weiße Bauteile) bleiben erhalten.
     """
     bild = bild.convert("RGBA")
     if bild.getchannel("A").getextrema()[0] < 250:
@@ -85,18 +105,33 @@ def freistellen(bild: Image.Image, toleranz: int = 40) -> Image.Image:
     rgb = bild.convert("RGB")
     markierung = (1, 254, 3)
     b, h = rgb.size
+    grundfarbe = rgb.getpixel((0, 0))
     for ecke in [(0, 0), (b - 1, 0), (0, h - 1), (b - 1, h - 1)]:
         if rgb.getpixel(ecke) != markierung:
             ImageDraw.floodfill(rgb, ecke, markierung, thresh=toleranz)
-    # Hintergrund = Pixel, die exakt die Markierungsfarbe tragen
-    kanaele = [k.point(lambda v, m=m: 255 if v == m else 0) for k, m in zip(rgb.split(), markierung)]
-    hintergrund = ImageChops.multiply(ImageChops.multiply(kanaele[0], kanaele[1]), kanaele[2])
-    bild.putalpha(ImageChops.invert(hintergrund))
+
+    if inseln:
+        pruefen, behalten = (254, 1, 252), (2, 3, 251)
+        nah = ImageChops.difference(bild.convert("RGB"), Image.new("RGB", (b, h), grundfarbe))
+        nah = nah.convert("L").point(lambda v: 255 if v <= toleranz // 2 else 0)
+        kandidat = ImageChops.subtract(nah, _farbmaske(rgb, markierung))
+        flaeche_min, flaeche_max = max(150, b * h // 2000), b * h // 25
+        for _ in range(3000):
+            start = _erstes_pixel(kandidat)
+            if not start:
+                break
+            ImageDraw.floodfill(rgb, start, pruefen, thresh=toleranz)
+            gebiet = _farbmaske(rgb, pruefen)
+            kandidat = ImageChops.subtract(kandidat, gebiet)
+            weg = flaeche_min <= gebiet.histogram()[255] <= flaeche_max
+            ImageDraw.floodfill(rgb, start, markierung if weg else behalten, thresh=0)
+
+    bild.putalpha(ImageChops.invert(_farbmaske(rgb, markierung)))
     return bild
 
 
 def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
-              toleranz: int = 40) -> tuple[Image.Image, list[str]]:
+              toleranz: int = 40, inseln: bool = True) -> tuple[Image.Image, list[str]]:
     """Stellt frei, schneidet zu und setzt das Teil exakt in seine Rasterbox.
 
     Gibt das fertige Bild und eine Liste von Hinweisen zurück (z. B. wenn das
@@ -106,7 +141,7 @@ def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
     ziel_b, ziel_h = box_px(raster, kategorie, ansicht)
     anker_x, anker_y = kat["anker_seite" if ansicht == "seite" else "anker_oben"]
 
-    teil = freistellen(bild, toleranz)
+    teil = freistellen(bild, toleranz, inseln)
     rahmen = teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox()
     if not rahmen:
         raise ValueError("Im Bild wurde kein Teil gefunden (alles transparent).")
@@ -282,18 +317,66 @@ def alle_vorlagen(raster: dict, ziel: str = VORLAGEN_DIR) -> list[str]:
     return pfade
 
 
+# --- Lieferstand für die Prompt-Liste -------------------------------------------
+
+TEILE_DIR = os.path.join(ROOT, "assets", "teile")
+GELIEFERT_JS = os.path.join(ROOT, "design", "geliefert.js")
+
+
+def lieferstand(raster: dict, teile_dir: str = TEILE_DIR) -> dict:
+    """Alle eingepassten Teile: Schlüssel <id>_<ansicht> -> Vorschau und Notiz.
+
+    Die Kategorie wird aus der Bildgröße erkannt; das Teil liegt unter
+    assets/teile/<id>/<ansicht>.png.
+    """
+    stand = {}
+    if not os.path.isdir(teile_dir):
+        return stand
+    for teil_id in sorted(os.listdir(teile_dir)):
+        for ansicht in ("seite", "oben"):
+            pfad = os.path.join(teile_dir, teil_id, f"{ansicht}.png")
+            if not os.path.exists(pfad):
+                continue
+            bild = Image.open(pfad).convert("RGBA")
+            li, ob, re, un = bild.getchannel("A").getbbox() or (0, 0, 0, 0)
+            breite = round((re - li) / bild.width * 100)
+            hoehe = round((un - ob) / bild.height * 100)
+            gb, gh = bild.width // raster["zelle_px"], bild.height // raster["zelle_px"]
+            notiz = f"Eingepasst in die {gb}×{gh}-Box: füllt {breite} % der Breite und {hoehe} % der Höhe."
+            vorschau = bild.copy()
+            vorschau.thumbnail((240, 240))
+            puffer = io.BytesIO()
+            vorschau.save(puffer, "PNG", optimize=True)
+            stand[f"{teil_id}_{ansicht}"] = {
+                "bild": "data:image/png;base64," + base64.b64encode(puffer.getvalue()).decode("ascii"),
+                "notiz": notiz,
+            }
+    return stand
+
+
+def schreibe_lieferstand(raster: dict, ziel: str = GELIEFERT_JS) -> int:
+    stand = lieferstand(raster)
+    with open(ziel, "w", encoding="utf-8") as f:
+        f.write("// Automatisch erzeugt von tools/teilwerk.py geliefert. Nicht von Hand ändern.\n")
+        f.write("window.GELIEFERT = " + json.dumps(stand, ensure_ascii=False, indent=1) + ";\n")
+    return len(stand)
+
+
 # --- Kommandozeile ------------------------------------------------------------
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="befehl", required=True)
     sub.add_parser("vorlagen", help="Vorlagen und Gesamtplan erzeugen")
+    sub.add_parser("geliefert", help="Lieferstand für die Prompt-Liste schreiben (design/geliefert.js)")
     e = sub.add_parser("einpassen", help="Bild freistellen und auf Rastergröße bringen")
     e.add_argument("eingabe")
     e.add_argument("kategorie")
     e.add_argument("ansicht", choices=["seite", "oben"])
     e.add_argument("ausgabe")
     e.add_argument("--toleranz", type=int, default=40, help="Farbabstand für den Hintergrund (Standard 40)")
+    e.add_argument("--keine-inseln", action="store_true",
+                   help="Eingeschlossene weiße Flächen nicht entfernen (für Teile mit reinweißen Flächen)")
     bb = sub.add_parser("bauen", help="Teile zu einem Auto zusammensetzen")
     bb.add_argument("ansicht", choices=["seite", "oben"])
     bb.add_argument("ausgabe")
@@ -301,12 +384,14 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     raster = lade_raster()
 
-    if args.befehl == "vorlagen":
+    if args.befehl == "geliefert":
+        print(f"{schreibe_lieferstand(raster)} Bilder eingetragen in {os.path.relpath(GELIEFERT_JS)}")
+    elif args.befehl == "vorlagen":
         for pfad in alle_vorlagen(raster):
             print(os.path.relpath(pfad))
     elif args.befehl == "einpassen":
         fertig, hinweise = einpassen(Image.open(args.eingabe), raster, args.kategorie, args.ansicht,
-                                     args.toleranz)
+                                     args.toleranz, not args.keine_inseln)
         fertig.save(args.ausgabe)
         print(f"{args.ausgabe}: {fertig.width}×{fertig.height} px")
         for h in hinweise:

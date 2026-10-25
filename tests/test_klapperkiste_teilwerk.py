@@ -63,13 +63,22 @@ def test_einpassen_motor_steht_unten(raster):
     assert hinweise  # 2:1-Block in 1:1-Box -> Hinweis auf Seitenverhältnis
 
 
-def test_einpassen_behaelt_innere_flaechen_in_hintergrundfarbe(raster):
+def test_einpassen_behaelt_getoente_flaechen_und_entfernt_loecher(raster):
     roh = Image.new("RGB", (600, 600), (255, 255, 255))
     d = ImageDraw.Draw(roh)
     d.ellipse((50, 50, 550, 550), fill=(20, 20, 20))
-    d.ellipse((250, 250, 350, 350), fill=(255, 255, 255))  # weiße Nabe
+    d.ellipse((250, 250, 350, 350), fill=(222, 226, 228))  # hellgraue Nabe = Teil des Rads
+    d.ellipse((120, 270, 180, 330), fill=(255, 255, 255))  # reines Weiß = Loch
     fertig, _ = teilwerk.einpassen(roh, raster, "rad", "seite")
-    assert fertig.getpixel((fertig.width // 2, fertig.height // 2))[3] == 255
+
+    def punkt(x, y):  # Originalkoordinate -> Koordinate im eingepassten Rad (Kreis 50..551)
+        k = fertig.width / 501
+        return int((x - 50) * k), int((y - 50) * k)
+
+    assert fertig.getpixel(punkt(300, 300))[3] == 255
+    assert fertig.getpixel(punkt(150, 300))[3] == 0
+    ohne, _ = teilwerk.einpassen(roh, raster, "rad", "seite", inseln=False)
+    assert ohne.getpixel(punkt(150, 300))[3] == 255
 
 
 def test_bauen_prueft_groesse(raster):
