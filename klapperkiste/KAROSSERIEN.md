@@ -3,8 +3,8 @@
 20 Modelle à 3 Teile (hinten, Mitte, vorne) = 60 Teile. Alle Teile passen an
 alle anderen (Regeln in [`assets/RASTER.md`](assets/RASTER.md), Abschnitt 3b).
 Für das Bild: unten durchgehend mindestens bis zur Gürtellinie geschlossen,
-darüber ist alles erlaubt. Meist ist nur die Mitte hoch (Kabine), Kastenwagen
-dürfen aber auch überall hoch sein. Gemischt gibt es dann Stufen, nie Lücken.
+darüber ist alles erlaubt. Jedes Modell darf seine eigene Höhe haben, gemischt
+gibt es dann Stufen, nie Lücken. Das ist gewollt.
 
 Ein kompletter Satz eines Modells gibt einen kleinen **Bonus**. Gemischt geht
 immer, dann gibt es keinen Bonus, aber jedes Teil behält seine eigene Wirkung.
@@ -15,7 +15,7 @@ immer, dann gibt es keinen Bonus, aber jedes Teil behält seine eigene Wirkung.
 | 2 | Pick-up | offene Ladefläche mit Bordwand | eckige Fahrerkabine | lange Motorhaube mit Kühlergrill | große Ladefläche | Bauernhof |
 | 3 | Badewanne | Wannenende mit Stöpselkette | Wanne mit Duschvorhang-Stange und Brause | Wannenende mit Gummiente als Kühlerfigur | schwimmt durch Furten | Strand, Hotel, Sperrmüll |
 | 4 | Telefonzelle | Kabeltrommel als Kofferraum | rote Telefonzelle mit Glasfenstern | Wählscheibe als Kühlergrill | Regen- und Windschutz | Bahnhof |
-| 5 | Kühlschrank | Gemüsefach-Schublade | alter Kühlschrank mit Türgriff | Gefriertruhe als Haube | Kühlware bleibt frisch | Eisdiele, Hafen |
+| 5 | Eiswagen | Eistruhe mit Eiskugeln | Verkaufsbude mit gestreifter Markise | Haube mit Waffelhörnchen-Figur | Kühlware bleibt frisch, Eis verkaufen | Eisdiele, Strand |
 | 6 | Heuscheune | Heuballen mit Mistgabel | kleine Holzscheune mit Dach | Bretterhaube mit Kuhglocke | Tiere transportieren | Bauernhof, Mühle |
 | 7 | Rakete | Düsen mit Heckflossen | Cockpit-Kuppel mit Nieten | spitze Raketennase | Tempo höher | Kirmes, Museum |
 | 8 | Kutsche | Gepäckablage mit Koffern | Kutschenkabine mit Gardinen | Kutschbock mit Laterne | Komfort, Hochzeitsauftrag | Schloss |
@@ -44,7 +44,7 @@ bleibt gleich.
 | 2 | A pick-up truck body shell with an open cargo bed at the rear, a boxy cab in the middle and a long hood with a big grille at the front |
 | 3 | A car body made from an old enamel bathtub, a shower curtain rod with a shower head above the middle, a rubber duck as hood ornament at the front |
 | 4 | A car body whose middle is a red telephone box with glass panes, a cable reel as the rear, a rotary dial as the front grille |
-| 5 | A car body made from an old fridge in the middle with a door handle, a vegetable drawer as the rear and a chest freezer as the hood |
+| 5 | An ice cream van body with an ice cream chest full of scoops at the rear, a sales booth with a striped awning in the middle and a waffle cone figure on the front hood |
 | 6 | A car body with a small wooden barn with a roof in the middle, hay bales with a pitchfork at the rear and a plank hood with a cow bell at the front |
 | 7 | A retro rocket car body with rocket nozzles and tail fins at the rear, a riveted cockpit dome in the middle and a pointed rocket nose at the front |
 | 8 | A horse carriage car body with a luggage rack with suitcases at the rear, a carriage cabin with curtains in the middle and a coachman's box with a lantern at the front |
