@@ -683,14 +683,19 @@ def lieferstand(raster: dict, teile_dir: str = TEILE_DIR) -> dict:
     return stand
 
 
-def _data_uri(pfad: str) -> str:
+def _data_uri(pfad: str, webp: bool = False) -> str:
+    """Bild als data-URI. webp=True spart viel Platz (die Seiten dürfen höchstens 16 MB groß sein)."""
+    if webp:
+        puffer = io.BytesIO()
+        Image.open(pfad).save(puffer, "WEBP", quality=90, method=4)
+        return "data:image/webp;base64," + base64.b64encode(puffer.getvalue()).decode("ascii")
     with open(pfad, "rb") as f:
         return "data:image/png;base64," + base64.b64encode(f.read()).decode("ascii")
 
 
 def schreibe_lieferstand(raster: dict, ziel: str = GELIEFERT_JS, teile_ziel: str = TEILE_JS) -> int:
     """Schreibt geliefert.js (Vorschau + Notiz für die Prompt-Liste),
-    teile.js (alle Teile in voller Auflösung für Fahrprobe und Spiel) und
+    teile.js (alle Teile in voller Auflösung als WebP für Fahrprobe und Spiel) und
     raster.js (raster.json für den Browser)."""
     stand = lieferstand(raster)
     kopf = "// Automatisch erzeugt von tools/teilwerk.py geliefert. Nicht von Hand ändern.\n"
@@ -699,7 +704,7 @@ def schreibe_lieferstand(raster: dict, ziel: str = GELIEFERT_JS, teile_ziel: str
     voll = {}
     for schluessel in stand:
         teil_id, ansicht = schluessel.rsplit("_", 1)
-        voll[schluessel] = _data_uri(os.path.join(TEILE_DIR, teil_id, f"{ansicht}.png"))
+        voll[schluessel] = _data_uri(os.path.join(TEILE_DIR, teil_id, f"{ansicht}.png"), webp=True)
     with open(teile_ziel, "w", encoding="utf-8") as f:
         f.write(kopf + "window.TEILE = " + json.dumps(voll, indent=1) + ";\n")
     # Raster für die Seiten im Browser (Werkstatt-Probe), gleiche Quelle wie das Werkzeug
