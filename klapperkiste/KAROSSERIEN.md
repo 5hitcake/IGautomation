@@ -75,7 +75,7 @@ auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
 | 5 | Eiswagen | creme mit Pastellrosa und Mint |
 | 6 | Heuscheune | verwittertes Braunholz, scheunenrotes Dach |
 | 7 | Rakete | Silber-Chrom, türkise Flossen (neu, war rot wie die Telefonzelle) |
-| 8 | Kutsche | Königsblau mit Gold und dunklem Holz |
+| 8 | Kutsche | warmes Orange und Ocker mit dunklem Holz |
 | 9 | Hot-Dog-Kastenwagen | Senfgelb und Ketchuprot |
 | 10 | Feuerwehr | Signalrot mit weißen Streifen und Chrom |
 | 11 | Weinfass | honigfarbene Eiche, dunkle Eisenreifen, Weinflecken |
@@ -84,7 +84,7 @@ auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
 | 14 | Iglu | blasses Eisblau, hellgraue Eisblöcke |
 | 15 | Gewächshaus | grüne Fensterrahmen, Glas, Terrakotta |
 | 16 | Zirkus | Lila und Gold gestreift |
-| 17 | Ruderboot | orange lackierte Planken, türkiser Wasserpass |
+| 17 | Ruderboot | helle lackierte Planken, marineblauer Rumpf, weißer Wasserpass |
 | 18 | Wohnzimmer | Senfgelb und Olivgrün, 70er-Jahre-Blumenmuster |
 | 19 | Bienenstock | Honiggelb mit schwarzen Streifen |
 | 20 | Dampflok | glänzend Schwarz, Messing, rote Zierlinien |
