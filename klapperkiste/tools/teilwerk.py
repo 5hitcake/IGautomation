@@ -481,8 +481,9 @@ def _data_uri(pfad: str) -> str:
 
 
 def schreibe_lieferstand(raster: dict, ziel: str = GELIEFERT_JS, teile_ziel: str = TEILE_JS) -> int:
-    """Schreibt geliefert.js (Vorschau + Notiz für die Prompt-Liste) und
-    teile.js (alle Teile in voller Auflösung für Fahrprobe und Spiel)."""
+    """Schreibt geliefert.js (Vorschau + Notiz für die Prompt-Liste),
+    teile.js (alle Teile in voller Auflösung für Fahrprobe und Spiel) und
+    raster.js (raster.json für den Browser)."""
     stand = lieferstand(raster)
     kopf = "// Automatisch erzeugt von tools/teilwerk.py geliefert. Nicht von Hand ändern.\n"
     with open(ziel, "w", encoding="utf-8") as f:
@@ -493,6 +494,9 @@ def schreibe_lieferstand(raster: dict, ziel: str = GELIEFERT_JS, teile_ziel: str
         voll[schluessel] = _data_uri(os.path.join(TEILE_DIR, teil_id, f"{ansicht}.png"))
     with open(teile_ziel, "w", encoding="utf-8") as f:
         f.write(kopf + "window.TEILE = " + json.dumps(voll, indent=1) + ";\n")
+    # Raster für die Seiten im Browser (Werkstatt-Probe), gleiche Quelle wie das Werkzeug
+    with open(os.path.join(os.path.dirname(ziel), "raster.js"), "w", encoding="utf-8") as f:
+        f.write(kopf + "window.RASTER = " + json.dumps(raster, ensure_ascii=False) + ";\n")
     return len(stand)
 
 

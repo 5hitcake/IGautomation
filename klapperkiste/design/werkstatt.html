@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Klapperkiste Werkstatt-Probe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Layout: Hebebühne oben (umschaltbar Seite/Draufsicht), darunter Statuszeile,
+   Teile-Regal und Checkliste. Gleicher dunkler Werkstatt-Look wie die anderen Seiten. */
+:root {
+  color-scheme: dark;
+  --wall: #1b3138;
+  --board: #12232a;
+  --card: #203a42;
+  --chalk: #e9efe6;
+  --chalk-dim: #a3b8b3;
+  --mustard: #f2b632;
+  --mint: #6fd3a3;
+  --rust: #e8735f;
+  --line: #2c4a52;
+  --font-display: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+}
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--wall); color: var(--chalk); font-family: var(--font-body); font-weight: 600; font-size: 15px; line-height: 1.5; }
+.wrap {
+  max-width: 980px; margin: 0 auto; padding-block: 20px 40px; display: grid; gap: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 6vw, 40px); line-height: 1; color: var(--mustard); }
+h2 { font-size: 16px; color: var(--chalk-dim); letter-spacing: 0.05em; text-transform: uppercase; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mint); }
+.top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; justify-content: space-between; }
+.views { display: inline-flex; background: var(--board); border-radius: 12px; padding: 4px; gap: 4px; }
+.views button { background: transparent; color: var(--chalk-dim); }
+.views button[aria-pressed="true"] { background: var(--mustard); color: var(--board); }
+button {
+  font: inherit; font-weight: 800; border: 0; border-radius: 9px; padding: 8px 14px; cursor: pointer;
+  background: var(--line); color: var(--chalk);
+}
+button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+#stage { display: block; width: 100%; height: min(56.25vw, 560px, calc(100svh - 140px)); min-height: 220px; max-width: 100%; border-radius: 16px; background: var(--board); touch-action: manipulation; cursor: pointer; }
+#status { min-height: 1.5em; color: var(--chalk-dim); }
+#status.ok { color: var(--mint); }
+#status.warn { color: var(--rust); }
+.tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.part {
+  display: grid; justify-items: center; gap: 4px; padding: 8px 6px 10px; background: var(--card);
+  border-radius: 12px; position: relative; text-align: center; font-weight: 700; font-size: 13px; line-height: 1.2;
+}
+.part img { width: 92px; height: 64px; object-fit: contain; pointer-events: none; }
+.part .badge {
+  position: absolute; top: 6px; right: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
+  background: var(--board); color: var(--chalk-dim); padding: 1px 6px; border-radius: 6px;
+}
+.part.in .badge { background: var(--mint); color: var(--board); }
+.part.full { opacity: 0.55; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px; }
+.check { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--board); color: var(--chalk-dim); }
+.check.ok { background: rgba(111,211,163,0.18); color: var(--mint); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.hint { color: var(--chalk-dim); font-size: 13px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div style="display:grid;gap:6px">
+      <p class="eyebrow">Schritt A3 · erster Entwurf</p>
+      <h1>Werkstatt-Probe</h1>
+    </div>
+    <div class="views" role="group" aria-label="Ansicht">
+      <button type="button" id="view-seite" aria-pressed="true">Seite</button>
+      <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
+    </div>
+  </header>
+
+  <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszubauen."></canvas>
+  <p id="status" aria-live="polite"></p>
+
+  <section style="display:grid;gap:8px" aria-label="Teile-Regal">
+    <h2>Teile-Regal</h2>
+    <div class="tray" id="tray"></div>
+  </section>
+
+  <section style="display:grid;gap:8px" aria-label="Fahrbereit">
+    <h2>Fahrbereit?</h2>
+    <div class="checks" id="checks"></div>
+  </section>
+
+  <div class="row">
+    <button type="button" id="btn-all">Komplett zusammenbauen</button>
+    <button type="button" id="btn-clear">Alles abbauen</button>
+  </div>
+  <p class="hint">Teil im Regal antippen: Es kommt auf den nächsten freien Platz. Zum Ausbauen das Teil auf der Bühne antippen oder seine Karte im Regal, wenn sie „Tippen zum Ausbauen“ zeigt. Reihenfolge: Rahmen, dann Achsen, dann Räder. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
+</div>
+
+<script src="raster.js"></script>
+<script src="geliefert.js"></script>
+<script src="teile.js"></script>
+<script>
+(function () {
+  const R = window.RASTER, G = window.GELIEFERT || {}, FULL = window.TEILE || {};
+  const CELL = R.zelle_px;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const PARTS = [
+    { id: "bettgestell", kat: "rahmen", name: "Bettgestell-Rahmen" },
+    { id: "rostachse", kat: "achse", name: "Rostige Achse" },
+    { id: "schubkarre", kat: "rad", name: "Schubkarrenrad" },
+    { id: "maeher", kat: "motor", name: "Rasenmäher-Motor" },
+    { id: "giesskanne", kat: "energie", name: "Gießkanne" },
+    { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
+    { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
+  ];
+  const SLOTS = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung"];
+  const LABEL = { rahmen: "Rahmen", achseH: "Hinterachse", achseV: "Vorderachse", radH: "Hinterräder", radV: "Vorderräder",
+    motor: "Motor", energie: "Tank", sitz: "Sitz", lenkung: "Lenkung" };
+  const kat = (slot) => R.slots[slot].kategorie;
+
+  // Einbaureihenfolge: was muss schon drin sein?
+  const NEEDS = { rahmen: null, achseH: "rahmen", achseV: "rahmen", radH: "achseH", radV: "achseV",
+    motor: "rahmen", energie: "rahmen", sitz: "rahmen", lenkung: "rahmen" };
+  // Was blockiert das Ausbauen?
+  const BLOCKS = { achseH: ["radH"], achseV: ["radV"] };
+
+  const state = { view: "seite", mounted: {}, anim: {} };
+
+  // Bilder laden
+  const IMG = {};
+  for (const p of PARTS) for (const v of ["seite", "oben"]) {
+    const src = FULL[`${p.id}_${v}`] || (G[`${p.id}_${v}`] && G[`${p.id}_${v}`].bild);
+    if (!src) continue;
+    const im = new Image(); im.src = src; IMG[`${p.id}_${v}`] = im;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  function say(text, kind) {
+    const s = $("status"); s.textContent = text; s.className = kind || "";
+  }
+
+  // --- Regeln ---------------------------------------------------------------
+  function missing(slot) {
+    const need = NEEDS[slot];
+    if (!need || state.mounted[need]) return null;
+    // Bis zum ersten fehlenden Schritt zurückgehen (Rad -> Achse -> Rahmen)
+    const earlier = missing(need);
+    if (earlier) return earlier;
+    if (need === "rahmen") return "Leg zuerst einen Rahmen auf die Hebebühne.";
+    return `Für die ${LABEL[slot]} brauchst du zuerst die ${LABEL[need]}.`;
+  }
+
+  function mountPart(part) {
+    const free = SLOTS.filter((s) => kat(s) === part.kat && !state.mounted[s]);
+    if (!free.length) return say(`${part.name}: Alle passenden Plätze sind schon belegt.`, "warn");
+    const slot = free.find((s) => !missing(s));
+    if (!slot) return say(missing(free[0]), "warn");
+    if (part.kat === "achse" && state.view !== "oben") {
+      setView("oben");
+      say("Achsen baust du von oben ein, da sieht man sie. Ich habe auf die Draufsicht umgeschaltet.");
+    } else {
+      say(`${part.name} eingebaut: ${LABEL[slot]}.`);
+    }
+    state.mounted[slot] = part.id;
+    state.anim[slot] = performance.now();
+    refresh();
+  }
+
+  function unmount(slot) {
+    if (slot === "rahmen" && SLOTS.some((s) => s !== "rahmen" && state.mounted[s])) {
+      return say("Den Rahmen kannst du erst abnehmen, wenn alle anderen Teile ab sind.", "warn");
+    }
+    const blocked = (BLOCKS[slot] || []).find((b) => state.mounted[b]);
+    if (blocked) return say(`Erst die ${LABEL[blocked]} abnehmen, dann kommst du an die ${LABEL[slot]}.`, "warn");
+    const name = PARTS.find((p) => p.id === state.mounted[slot]).name;
+    delete state.mounted[slot];
+    say(`${name} ausgebaut.`);
+    refresh();
+  }
+
+  // --- Geometrie ------------------------------------------------------------
+  function layout(w, h) {
+    const g = R[state.view];
+    const s = Math.min((w * 0.86) / (g.breite * CELL), (h * (state.view === "seite" ? 0.78 : 0.82)) / (g.hoehe * CELL));
+    const cw = g.breite * CELL * s, ch = g.hoehe * CELL * s;
+    const ox = (w - cw) / 2;
+    const oy = state.view === "seite" ? h * 0.9 - ch : (h - ch) / 2;
+    return { s, ox, oy, cell: CELL * s };
+  }
+
+  // Rechtecke eines Platzes in der aktuellen Ansicht (Räder oben: zwei)
+  function rects(slot, L) {
+    const [b, hh] = R.kategorien[kat(slot)][state.view];
+    const pos = state.view === "seite" ? [R.slots[slot].seite] : R.slots[slot].oben;
+    return pos.map(([x, y], i) => ({ x: L.ox + x * L.cell, y: L.oy + y * L.cell, w: b * L.cell, h: hh * L.cell, flip: i === 1 }));
+  }
+
+  // In der Seitenansicht ist die Achse hinter dem Rad unsichtbar
+  function visible(slot) {
+    if (state.view === "seite" && kat(slot) === "achse") return !state.mounted[slot === "achseH" ? "radH" : "radV"];
+    return true;
+  }
+
+  // --- Zeichnen -------------------------------------------------------------
+  function drawWorkshop(ctx, w, h, L) {
+    ctx.fillStyle = "#1b3138"; ctx.fillRect(0, 0, w, h);
+    if (state.view === "seite") {
+      ctx.fillStyle = "#24414a";
+      for (let y = 14; y < h * 0.9; y += 22) for (let x = 14 + ((y / 22) % 2) * 11; x < w; x += 22) {
+        ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+      }
+      const floor = L.oy + 6 * L.cell;
+      ctx.fillStyle = "#14252b"; ctx.fillRect(0, floor, w, h - floor);
+      ctx.fillStyle = "#f2b632";
+      for (let x = 0; x < w; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, floor); ctx.lineTo(x + 20, floor); ctx.lineTo(x + 14, floor + 6); ctx.lineTo(x - 6, floor + 6); ctx.fill();
+      }
+    } else {
+      // Boden von oben: Betonplatten und die zwei Fahrschienen der Hebebühne
+      ctx.strokeStyle = "rgba(233,239,230,0.06)"; ctx.lineWidth = 2;
+      for (let x = 0; x < w; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (let y = 0; y < h; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      ctx.fillStyle = "#2c4a52";
+      for (const row of [0, 3]) ctx.fillRect(L.ox - L.cell * 0.4, L.oy + row * L.cell + L.cell * 0.15, 10.8 * L.cell, L.cell * 0.7);
+    }
+  }
+
+  function drawSlotHint(ctx, slot, L, t) {
+    if (state.view === "seite" && kat(slot) === "achse") return;
+    const ok = !missing(slot);
+    const pulse = 0.5 + 0.5 * Math.sin(t * 4);
+    for (const r of rects(slot, L)) {
+      ctx.save();
+      ctx.setLineDash([7, 6]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = ok ? `rgba(242,182,50,${0.55 + pulse * 0.45})` : "rgba(233,239,230,0.18)";
+      ctx.fillStyle = ok ? "rgba(242,182,50,0.06)" : "rgba(0,0,0,0)";
+      ctx.beginPath(); ctx.roundRect(r.x + 3, r.y + 3, r.w - 6, r.h - 6, 8); ctx.fill(); ctx.stroke();
+      ctx.restore();
+      if (r.flip) continue;
+      ctx.fillStyle = ok ? "#f2b632" : "rgba(233,239,230,0.35)";
+      ctx.font = `800 ${Math.max(10, Math.min(14, L.cell * 0.16))}px Nunito, sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(LABEL[slot], r.x + r.w / 2, r.y + r.h / 2);
+    }
+  }
+
+  function drawPart(ctx, slot, L, now) {
+    const img = IMG[`${state.mounted[slot]}_${state.view}`];
+    if (!img || !img.complete) return;
+    const t0 = state.anim[slot];
+    let k = 1;
+    if (t0 && !reduce) k = Math.max(0, Math.min(1, (now - t0) / 380));
+    const ease = 1 - Math.pow(1 - k, 3);
+    const drop = (1 - ease) * L.cell * 1.2;
+    for (const r of rects(slot, L)) {
+      ctx.save();
+      ctx.globalAlpha = 0.3 + 0.7 * ease;
+      if (r.flip && kat(slot) === "rad") {
+        ctx.translate(r.x, r.y + r.h - drop); ctx.scale(1, -1); ctx.drawImage(img, 0, 0, r.w, r.h);
+      } else {
+        ctx.drawImage(img, r.x, r.y - drop, r.w, r.h);
+      }
+      ctx.restore();
+    }
+  }
+
+  function render(now) {
+    const c = $("stage");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = c.clientWidth, h = c.clientHeight;
+    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const L = layout(w, h);
+    drawWorkshop(ctx, w, h, L);
+    const order = R["reihenfolge_" + state.view].filter((s) => SLOTS.includes(s));
+    for (const slot of order) {
+      if (state.mounted[slot]) { if (visible(slot)) drawPart(ctx, slot, L, now); }
+      else drawSlotHint(ctx, slot, L, now / 1000);
+    }
+    requestAnimationFrame(render);
+  }
+
+  // --- Antippen auf der Bühne -------------------------------------------------
+  $("stage").addEventListener("click", (e) => {
+    const c = $("stage"), b = c.getBoundingClientRect();
+    const x = e.clientX - b.left, y = e.clientY - b.top;
+    const L = layout(b.width, b.height);
+    const order = R["reihenfolge_" + state.view].filter((s) => SLOTS.includes(s)).reverse();
+    for (const slot of order) {
+      if (!visible(slot)) continue;
+      if (rects(slot, L).some((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h)) {
+        if (state.mounted[slot]) return unmount(slot);
+        // Leeren Platz antippen: passendes Teil aus dem Regal einbauen
+        const why = missing(slot);
+        return why ? say(why, "warn") : mountPart(PARTS.find((p) => p.kat === kat(slot)));
+      }
+    }
+  });
+
+  // --- Regal, Checkliste ------------------------------------------------------
+  function refresh() {
+    const tray = $("tray");
+    tray.innerHTML = "";
+    for (const p of PARTS) {
+      const slots = SLOTS.filter((s) => kat(s) === p.kat);
+      const n = slots.filter((s) => state.mounted[s]).length;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "part" + (n ? " in" : "") + (n === slots.length ? " full" : "");
+      const img = document.createElement("img");
+      const key = `${p.id}_${state.view}`;
+      img.src = (G[key] && G[key].bild) || "";
+      img.alt = "";
+      const badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = slots.length > 1 ? `${n}/${slots.length}` : n ? "drin" : "";
+      if (!badge.textContent) badge.hidden = true;
+      const name = document.createElement("span");
+      name.textContent = p.name;
+      b.append(badge, img, name);
+      if (n === slots.length) {
+        const hint = document.createElement("span");
+        hint.className = "badge";
+        hint.style.cssText = "position:static;margin-top:2px";
+        hint.textContent = "Tippen zum Ausbauen";
+        b.append(hint);
+        b.setAttribute("aria-label", `${p.name} ausbauen`);
+      }
+      // Voll eingebaut: Tipp baut aus (zuletzt eingebauten Platz zuerst), sonst ein
+      b.addEventListener("click", () => {
+        if (n === slots.length) unmount([...slots].reverse()[0]);
+        else mountPart(p);
+      });
+      tray.append(b);
+    }
+    const checks = $("checks");
+    checks.innerHTML = "";
+    const list = [["Rahmen", ["rahmen"]], ["Achsen", ["achseH", "achseV"]], ["Räder", ["radH", "radV"]],
+      ["Motor", ["motor"]], ["Tank", ["energie"]], ["Sitz", ["sitz"]], ["Lenkung", ["lenkung"]]];
+    let all = true;
+    for (const [label, slots] of list) {
+      const ok = slots.every((s) => state.mounted[s]);
+      all = all && ok;
+      const chip = document.createElement("span");
+      chip.className = "check" + (ok ? " ok" : "");
+      chip.textContent = (ok ? "✓ " : "") + label;
+      checks.append(chip);
+    }
+    if (all) say("Fahrbereit! Die Schrottkarre ist komplett.", "ok");
+  }
+
+  function setView(v) {
+    state.view = v;
+    $("view-seite").setAttribute("aria-pressed", String(v === "seite"));
+    $("view-oben").setAttribute("aria-pressed", String(v === "oben"));
+    refresh();
+  }
+  $("view-seite").onclick = () => setView("seite");
+  $("view-oben").onclick = () => setView("oben");
+  $("btn-clear").onclick = () => { state.mounted = {}; say("Alles abgebaut. Leg zuerst den Rahmen auf die Hebebühne."); refresh(); };
+  $("btn-all").onclick = () => {
+    const order = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung"];
+    const now = performance.now();
+    order.forEach((slot, i) => {
+      if (state.mounted[slot]) return;
+      state.mounted[slot] = PARTS.find((p) => p.kat === kat(slot)).id;
+      state.anim[slot] = now + i * 140;
+    });
+    refresh();
+  };
+
+  say("Leg zuerst den Rahmen auf die Hebebühne: im Regal den Bettgestell-Rahmen antippen.");
+  refresh();
+  requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>

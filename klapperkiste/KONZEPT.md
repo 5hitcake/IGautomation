@@ -74,6 +74,20 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
 | Lenkachse | kleiner Wendekreis | enge Serpentinen |
 | Allrad-Achse | treibt auch vorne an, mehr Grip | Schnee, steile Hänge |
 
+### Werkstatt (Entwurf, `design/werkstatt.html`)
+
+- Hebebühne mit zwei Ansichten zum Umschalten: **Seite** und **Draufsicht**.
+  Achsen baut man in der Draufsicht ein, weil sie von der Seite hinter den
+  Rädern liegen. Tippt man in der Seitenansicht auf eine Achse, schaltet die
+  Werkstatt selbst um.
+- Einbauen: Teil im Regal antippen, es kommt auf den nächsten freien Platz.
+  Freie Plätze, die gerade möglich sind, leuchten gelb.
+- Ausbauen: Teil auf der Bühne antippen oder seine Karte im Regal.
+- Reihenfolge: Rahmen, dann Achsen, dann Räder. Ausbau in umgekehrter
+  Reihenfolge. Fehlt ein Schritt, sagt die Werkstatt, welcher.
+- Offen: Ziehen statt Tippen, mehrere Teile pro Kategorie zur Auswahl,
+  Werkstatt-Raum mit Tiefe, Fahrerfigur.
+
 ### Anleihen bei Dredge
 
 - **Ladefläche als Raster:** Fracht und Fundstücke haben Formen und müssen auf
