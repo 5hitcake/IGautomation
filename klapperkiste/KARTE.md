@@ -104,3 +104,13 @@ sind Teile, Karosserie-Teile oder neue Wege.
   (64 × 64 m, 8-m-Raster, orange Straßenanschlüsse, Auto zum Größenvergleich).
   Erzeugt mit `python klapperkiste/tools/karte_skizze.py --vorlage`. Gebraucht
   wird es für Orte; Boden-Texturen brauchen kein Muster.
+
+## 7. Dunkler Wald
+
+Der dunkle Wald ist eine eigene Fläche. Von außen sieht man nur das geschlossene
+Walddach (eigene Textur, dunkle Baumkronen), Weg und Auto verschwinden darunter.
+Fährt man hinein, wird alles bis auf das Licht dunkel: Man sieht nur, was die
+Scheinwerfer im Lichtkegel treffen, dazu einen schwachen Schein ums Auto. Ohne
+Licht-Teil ist der Wald praktisch nicht befahrbar. Bessere Lampen geben einen
+längeren und breiteren Lichtkegel. Probe: Lichtkegel auf einem Feldweg
+(`design/probe_dunkel.png`).
