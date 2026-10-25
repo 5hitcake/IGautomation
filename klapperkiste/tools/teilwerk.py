@@ -151,6 +151,31 @@ def rot_entsaettigen(bild: Image.Image, abstand: int = 22) -> Image.Image:
     return Image.composite(grau, bild, rot)
 
 
+def _nabe_mittig(teil: Image.Image, ziel_b: int, ziel_h: int, anteil: float) -> Image.Image:
+    """Setzt die Nabe (breiteste Stelle des Teils) genau in die Box-Mitte.
+
+    Die Nabe wird auf `anteil` der Box-Breite skaliert, damit sie zur Radnabe
+    passt. Was über die Box hinausragt, wird abgeschnitten.
+    """
+    alpha = teil.getchannel("A").point(lambda a: 255 if a > 16 else 0)
+    breiten = []
+    for y in range(teil.height):
+        zeile = alpha.crop((0, y, teil.width, y + 1)).getbbox()
+        breiten.append((zeile[2] - zeile[0]) if zeile else 0)
+    breiteste = max(breiten)
+    nabe = [y for y, b in enumerate(breiten) if b >= breiteste * 0.85]
+    oben, unten = nabe[0], nabe[-1] + 1
+    band = alpha.crop((0, oben, teil.width, unten)).getbbox()
+    mitte_x, mitte_y = (band[0] + band[2]) / 2, (oben + unten) / 2
+    massstab = ziel_b * anteil / breiteste
+    groesse = (max(1, round(teil.width * massstab)), max(1, round(teil.height * massstab)))
+    neu = teil.resize(groesse, Image.LANCZOS)
+    fertig = Image.new("RGBA", (ziel_b, ziel_h), (0, 0, 0, 0))
+    # paste statt alpha_composite: erlaubt negative Positionen (Überstand wird abgeschnitten)
+    fertig.paste(neu, (round(ziel_b / 2 - mitte_x * massstab), round(ziel_h / 2 - mitte_y * massstab)), neu)
+    return fertig
+
+
 def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
               toleranz: int = 40, inseln: bool = True,
               freigestellt: bool = False) -> tuple[Image.Image, list[str]]:
@@ -173,6 +198,8 @@ def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
     verh_teil = teil.width / teil.height
     verh_box = ziel_b / ziel_h
     abweichung = max(verh_teil, verh_box) / min(verh_teil, verh_box)
+    if kat.get("nabe_mittig", {}).get(ansicht):
+        return _nabe_mittig(teil, ziel_b, ziel_h, kat["nabe_mittig"][ansicht]), hinweise
     strecken = kat.get("strecken", {}).get(ansicht)
     if strecken == "breite":
         # Volle Länge ist Pflicht (z. B. Raddurchmesser), die Dicke bleibt wie gezeichnet

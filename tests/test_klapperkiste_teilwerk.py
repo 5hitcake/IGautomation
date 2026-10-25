@@ -169,3 +169,16 @@ def test_achse_liegt_unter_den_raedern(raster):
         folge = raster["reihenfolge_" + ansicht]
         assert folge.index("achseH") < folge.index("radH")
         assert folge.index("achseV") < folge.index("radV")
+
+
+def test_achse_seite_setzt_nabe_in_die_mitte(raster):
+    roh = Image.new("RGB", (400, 600), (255, 255, 255))
+    d = ImageDraw.Draw(roh)
+    d.rectangle((180, 60, 220, 300), fill=(90, 90, 90))  # Halterung oben, schmal
+    d.ellipse((100, 300, 300, 500), fill=(160, 80, 40))  # Nabe, breiteste Stelle
+    fertig, _ = teilwerk.einpassen(roh, raster, "achse", "seite")
+    mitte = fertig.getpixel((fertig.width // 2, fertig.height // 2))
+    assert mitte[3] == 255 and mitte[0] > 120
+    links, _, rechts, unten = fertig.getchannel("A").getbbox()
+    assert abs((rechts - links) - fertig.width * 0.45) <= 3
+    assert abs(unten - (fertig.height / 2 + fertig.width * 0.45 / 2)) <= 3

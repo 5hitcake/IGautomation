@@ -93,8 +93,8 @@ Bilder da sind.
 | Schritt | Inhalt | Stand |
 |---|---|---|
 | **A1** | Teile-Raster festlegen: Boxen pro Kategorie, Seite + Draufsicht, Vorlagen, Werkzeug zum Einpassen und Probe-Zusammenbau, Prompt-Vorlagen | ✅ fertig |
-| A2 | Erste Serie erzeugen: die Teile der Schrottkarre, je Seite + Draufsicht | 6 von 7 Teilen fertig, Achse fehlt |
-| A3 | Werkstatt zeigt die echten Teil-Bilder auf dem neuen Raster statt der Code-Grafik | offen |
+| **A2** | Erste Serie erzeugen: die 7 Teile der Schrottkarre (inkl. Achse), je Seite + Draufsicht | ✅ fertig |
+| A3 | Werkstatt-System genauer festlegen (Einbaureihenfolge, Bedienung) und echte Teil-Bilder auf dem Raster zeigen | als Nächstes |
 | A4 | Fahrerfigur und Werkstatt-Hintergrund mit Raumtiefe | offen |
 | B1 | Fahren von oben: Steuerung und Physik auf einer kleinen Testkarte | offen |
 | B2 | Karten-Raster: Abschnitte, Straßenanschlüsse, Maßstab Auto zu Karte | offen |

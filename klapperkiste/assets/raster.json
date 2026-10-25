@@ -37,7 +37,7 @@
                    "regel": "Hängt hinten am Rahmenende. Rechte Kante berührt den Rahmen." },
     "achse":     { "name": "Achse",     "seite": [2, 2], "oben": [2, 4],
                    "anker_seite": ["mitte", "mitte"], "anker_oben": ["mitte", "mitte"],
-                   "strecken": { "oben": "hoehe" },
+                   "strecken": { "oben": "hoehe" }, "nabe_mittig": { "seite": 0.45 },
                    "regel": "Seitenansicht: Achsende mit Nabe genau in der Mitte, liegt hinter dem Rad und ist nur ohne Rad sichtbar. Draufsicht: reicht von Rad zu Rad über die ganze Autobreite, wird auf die volle Höhe gebracht." },
     "aufbau":    { "name": "Aufbau",    "seite": [8, 4], "oben": [8, 4],
                    "anker_seite": ["mitte", "unten"], "anker_oben": ["mitte", "mitte"],
