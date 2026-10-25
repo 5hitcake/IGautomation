@@ -91,3 +91,24 @@ def test_einpassen_rahmen_wird_auf_volle_breite_gestreckt(raster):
     ImageDraw.Draw(roh).rectangle((100, 350, 2000, 550), fill=(120, 80, 40))
     fertig, _ = teilwerk.einpassen(roh, raster, "rahmen", "seite")
     assert fertig.getchannel("A").getbbox() == (0, 0, fertig.width, fertig.height)
+
+
+def test_blatt_wird_in_seite_und_draufsicht_geteilt(raster):
+    roh = Image.new("RGB", (600, 1100), (255, 255, 255))
+    d = ImageDraw.Draw(roh)
+    d.rectangle((100, 150, 500, 450), fill=(200, 40, 40))  # Seitenansicht
+    d.ellipse((100, 650, 500, 950), fill=(40, 40, 200))  # Draufsicht
+    ergebnis = teilwerk.blatt_einpassen(roh, raster, "motor")
+    seite, _ = ergebnis["seite"]
+    oben, _ = ergebnis["oben"]
+    assert seite.size == teilwerk.box_px(raster, "motor", "seite")
+    assert oben.size == teilwerk.box_px(raster, "motor", "oben")
+    assert seite.getpixel((seite.width // 2, seite.height - 5))[:3] == (200, 40, 40)
+    assert oben.getpixel((oben.width // 2, oben.height // 2))[:3] == (40, 40, 200)
+
+
+def test_blatt_ohne_luecke_gibt_verstaendlichen_fehler(raster):
+    roh = Image.new("RGB", (400, 800), (255, 255, 255))
+    ImageDraw.Draw(roh).rectangle((50, 50, 350, 750), fill=(0, 0, 0))
+    with pytest.raises(ValueError, match="Lücke"):
+        teilwerk.blatt_teilen(roh)

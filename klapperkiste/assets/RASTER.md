@@ -54,6 +54,18 @@ zeigen, welche Kante das Teil berühren muss.
 
 ## 3. Ablauf für ein neues Teil
 
+**Empfohlen: ein Doppelbild pro Teil.** Ein Prompt erzeugt beide Ansichten in
+einem Bild: oben die Seitenansicht, unten die Draufsicht, mit weißem Abstand
+dazwischen. So hat das Teil in beiden Ansichten dieselben Farben, Details und
+dieselbe Länge. Das Werkzeug trennt das Bild und passt beide Ansichten ein:
+
+```bash
+python klapperkiste/tools/teilwerk.py blatt roh_blatt.png maeher motor
+# -> assets/teile/maeher/seite.png und assets/teile/maeher/oben.png
+```
+
+Einzelbilder gehen weiterhin:
+
 1. Prompt aus Abschnitt 4 nehmen, Teil einsetzen, Bild erzeugen.
 2. Optional: Hintergrund im Bildprogramm entfernen. Das Werkzeug kann
    einfarbige Hintergründe aber auch selbst entfernen, auch eingeschlossene
@@ -89,12 +101,28 @@ Single object, isolated and centred on a plain flat white background, filling mo
 No ground shadow, no text, no people, no other objects.
 ```
 
+**Doppelbild (Seite oben, Draufsicht unten):**
+
+```
+[TEIL]. Orthographic model sheet showing this same object twice, stacked vertically with a wide
+empty white gap between the two views. Top half: flat side elevation like a technical side view
+drawing, the long side faces the viewer straight on, not rotated, camera at object height looking
+only very slightly down so the top surface is barely visible. Bottom half: plan view seen straight
+from directly above, orthographic, without perspective. Both views at the same scale and aligned,
+the front points to the right in both views. + Stil-Block
+```
+
 **Seitenansicht:**
 
 ```
-[TEIL], strict side view in profile, the front points to the right, camera at object height
-tilted down only very slightly so the top surface is barely visible. + Stil-Block
+[TEIL], flat side elevation like a technical side view drawing, the long side faces the viewer
+straight on, not rotated, camera at object height looking only very slightly down so the top
+surface is barely visible, the front points to the right. + Stil-Block
 ```
+
+Bildgeneratoren rutschen gern in eine schräge Dreiviertel-Ansicht. Ist das
+Teil sichtbar gedreht, lieber neu erzeugen: Räder wären sonst oval und die
+Anschlüsse im Raster stimmen nicht mehr.
 
 **Draufsicht:**
 

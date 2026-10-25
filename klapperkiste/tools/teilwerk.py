@@ -8,12 +8,15 @@ Drei Befehle:
              exakt auf die Rastergröße seiner Kategorie bringen.
   bauen      Fertige Teile probeweise zu einem Auto zusammensetzen, um zu
              prüfen, ob alles zusammenpasst.
+  blatt      Doppelbild mit Seitenansicht (oben) und Draufsicht (unten)
+             trennen und beide Ansichten einpassen.
   geliefert  Lieferstand (alle Teile unter assets/teile/) für die
              Prompt-Liste in design/geliefert.js schreiben.
 
 Beispiele:
   python klapperkiste/tools/teilwerk.py vorlagen
   python klapperkiste/tools/teilwerk.py einpassen roh.png motor seite motor_seite.png
+  python klapperkiste/tools/teilwerk.py blatt roh_blatt.png maeher motor
   python klapperkiste/tools/teilwerk.py bauen seite auto.png rahmen=a.png motor=b.png radH=c.png
 """
 
@@ -174,6 +177,48 @@ def einpassen(bild: Image.Image, raster: dict, kategorie: str, ansicht: str,
     fertig = Image.new("RGBA", (ziel_b, ziel_h), (0, 0, 0, 0))
     fertig.alpha_composite(teil, (x, y))
     return fertig, hinweise
+
+
+def blatt_teilen(bild: Image.Image, toleranz: int = 40,
+                 inseln: bool = True) -> tuple[Image.Image, Image.Image]:
+    """Trennt ein Doppelbild: Seitenansicht oben, Draufsicht unten.
+
+    Gesucht wird die breiteste leere Zeilenlücke zwischen den beiden Ansichten.
+    Gibt (seite, oben) als freigestellte Bilder zurück.
+    """
+    teil = freistellen(bild, toleranz, inseln)
+    alpha = teil.getchannel("A").point(lambda a: 255 if a > 16 else 0)
+    zeilen = alpha.resize((1, alpha.height), Image.BOX).tobytes()
+    belegt = [v > 0 for v in zeilen]
+    if not any(belegt):
+        raise ValueError("Im Bild wurde kein Teil gefunden (alles transparent).")
+    erste = belegt.index(True)
+    letzte = len(belegt) - 1 - belegt[::-1].index(True)
+    beste, start = (0, 0), None
+    for y in range(erste, letzte + 1):
+        if not belegt[y] and start is None:
+            start = y
+        elif belegt[y] and start is not None:
+            if y - start > beste[1] - beste[0]:
+                beste = (start, y)
+            start = None
+    if beste[1] - beste[0] < 4:
+        raise ValueError(
+            "Keine Lücke zwischen den beiden Ansichten gefunden. Die Ansichten müssen "
+            "übereinander stehen, mit etwas Weiß dazwischen."
+        )
+    mitte = (beste[0] + beste[1]) // 2
+    return teil.crop((0, 0, teil.width, mitte)), teil.crop((0, mitte, teil.width, teil.height))
+
+
+def blatt_einpassen(bild: Image.Image, raster: dict, kategorie: str, toleranz: int = 40,
+                    inseln: bool = True) -> dict[str, tuple[Image.Image, list[str]]]:
+    """Doppelbild teilen und beide Ansichten auf ihre Rastergröße bringen."""
+    seite, oben = blatt_teilen(bild, toleranz, inseln)
+    return {
+        "seite": einpassen(seite, raster, kategorie, "seite", toleranz, inseln),
+        "oben": einpassen(oben, raster, kategorie, "oben", toleranz, inseln),
+    }
 
 
 # --- Vorlagen -----------------------------------------------------------------
@@ -377,6 +422,12 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--toleranz", type=int, default=40, help="Farbabstand für den Hintergrund (Standard 40)")
     e.add_argument("--keine-inseln", action="store_true",
                    help="Eingeschlossene weiße Flächen nicht entfernen (für Teile mit reinweißen Flächen)")
+    bl = sub.add_parser("blatt", help="Doppelbild (Seite oben, Draufsicht unten) teilen und einpassen")
+    bl.add_argument("eingabe")
+    bl.add_argument("teil_id", help="z. B. maeher; Ausgabe nach assets/teile/<teil_id>/")
+    bl.add_argument("kategorie")
+    bl.add_argument("--toleranz", type=int, default=40)
+    bl.add_argument("--keine-inseln", action="store_true")
     bb = sub.add_parser("bauen", help="Teile zu einem Auto zusammensetzen")
     bb.add_argument("ansicht", choices=["seite", "oben"])
     bb.add_argument("ausgabe")
@@ -396,6 +447,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{args.ausgabe}: {fertig.width}×{fertig.height} px")
         for h in hinweise:
             print("Hinweis:", h)
+    elif args.befehl == "blatt":
+        ziel = os.path.join(TEILE_DIR, args.teil_id)
+        os.makedirs(ziel, exist_ok=True)
+        ergebnis = blatt_einpassen(Image.open(args.eingabe), raster, args.kategorie, args.toleranz,
+                                   not args.keine_inseln)
+        for ansicht, (fertig, hinweise) in ergebnis.items():
+            pfad = os.path.join(ziel, f"{ansicht}.png")
+            fertig.save(pfad)
+            print(f"{os.path.relpath(pfad)}: {fertig.width}×{fertig.height} px")
+            for h in hinweise:
+                print(f"Hinweis ({ansicht}):", h)
     elif args.befehl == "bauen":
         teile = {}
         for eintrag in args.teile:

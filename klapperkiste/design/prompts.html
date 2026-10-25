@@ -84,7 +84,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   <header>
     <p class="eyebrow">Schritt A2 · erste Serie · Comic-Look</p>
     <h1>Schrottkarre Prompt-Liste</h1>
-    <p class="lead">6 Teile, je Seitenansicht und Draufsicht. Prompt kopieren, Bild erzeugen und mir schicken. Ich passe es ins Raster ein und aktualisiere diese Liste.</p>
+    <p class="lead">6 Teile, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
     <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 geliefert</span></div>
   </header>
 
@@ -94,7 +94,9 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     <h2>So bleibt alles einheitlich</h2>
     <ol>
       <li><strong>Stil-Referenz:</strong> Der Rasenmäher-Motor (Seite) legt den Stil fest. Gib dieses Bild bei allen weiteren Teilen als Stil-Referenz mit, falls dein Programm das kann.</li>
-      <li><strong>Format einstellen</strong> wie angegeben. Gibt es das Format nicht, nimm das nächstliegende (statt 1:2 z. B. 2:3). Das Einpassen gleicht den Rest aus.</li>
+      <li><strong>Doppelbild prüfen:</strong> Seitenansicht oben, Draufsicht unten, mit weißem Abstand dazwischen. Die beiden Ansichten dürfen sich nicht berühren.</li>
+      <li><strong>Seitenansicht wirklich im Profil:</strong> nicht schräg gedreht. Bildgeneratoren rutschen gern in eine Dreiviertel-Ansicht, dann lieber neu erzeugen.</li>
+      <li><strong>Format einstellen</strong> wie angegeben. Gibt es das Format nicht, nimm das nächstliegende. Das Einpassen gleicht den Rest aus.</li>
       <li><strong>Comic-Look sauber halten:</strong> gleich dicke schwarze Konturen, flache Farben mit einem Schattenton. Kein Raster- oder Punktmuster im Hintergrund, sonst lässt sich das Teil schlecht freistellen.</li>
       <li><strong>Hintergrund weiß lassen.</strong> Freistellen ist nicht nötig, das macht das Werkzeug.</li>
       <li><strong>Prüfen:</strong> Vorne zeigt nach rechts? Keine Schrift, kein Schatten, keine Person im Bild?</li>
@@ -107,30 +109,50 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
 <script src="geliefert.js"></script>
 <script>
 (function () {
-  const STYLE = "Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, bright saturated but warm palette, slightly exaggerated chunky cartoon proportions, light coming from the upper left. Single object, isolated and centred on a plain flat white background, filling most of the frame. No ground shadow, no text, no people, no other objects.";
-  const SIDE = "strict side view in profile, the front points to the right, camera at object height tilted down only very slightly so the top surface is barely visible.";
-  const TOP = "seen straight from directly above, orthographic top-down view without perspective, the front points to the right.";
+  const LOOK = "Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, bright saturated but warm palette, slightly exaggerated chunky cartoon proportions, light coming from the upper left.";
+  const SINGLE_BG = "Single object, isolated and centred on a plain flat white background, filling most of the frame. No ground shadow, no text, no people, no other objects.";
+  const SHEET_BG = "Isolated on a plain flat white background. No ground shadow, no text, no labels, no people, no other objects.";
+  const SIDE_VIEW = "flat side elevation like a technical side view drawing, the long side faces the viewer straight on, not rotated, camera at object height looking only very slightly down so the top surface is barely visible";
+  const TOP_VIEW = "plan view seen straight from directly above, orthographic, without perspective";
 
-  // Reihenfolge = empfohlene Reihenfolge beim Erzeugen (Motor zuerst als Stil-Referenz)
+  const prompt = {
+    blatt: (p) => `${p.subject}. Orthographic model sheet showing this same object twice, stacked vertically with a wide empty white gap between the two views. Top half: ${SIDE_VIEW}, ${p.side}. Bottom half: ${TOP_VIEW}, ${p.top}. Both views at the same scale and aligned, the front points to the right in both views. ${LOOK} ${SHEET_BG}`,
+    seite: (p) => `${p.subject}, ${SIDE_VIEW}, ${p.side}, the front points to the right. ${LOOK} ${SINGLE_BG}`,
+    oben: (p) => `${p.subject}, ${TOP_VIEW}, ${p.top}, the front points to the right, matching the design of the provided side view reference. ${LOOK} ${SINGLE_BG}`,
+  };
+
+  // Reihenfolge = empfohlene Reihenfolge beim Erzeugen. Format je Bildart.
   const PARTS = [
     { id: "maeher", name: "Rasenmäher-Motor", cat: "Motor",
-      side: ["A small old red lawnmower engine with cooling fins, a pull-start cord and bits of grass stuck to it", "1:1"],
-      top: ["A small old red lawnmower engine with a round recoil starter cover, cooling fins and a fuel cap", "1:1"] },
+      subject: "A small old red lawnmower engine with cooling fins, a round pull-start cover with cord, a fuel cap and bits of grass stuck to it, on a dark metal mounting base",
+      side: "the round pull-start cover is on the left end and seen edge-on",
+      top: "the round pull-start cover, the fuel cap and the cooling fins are seen from above",
+      format: { blatt: "9:16 hochkant", seite: "1:1", oben: "1:1" } },
     { id: "schubkarre", name: "Schubkarrenrad", cat: "Rad",
-      side: ["A single small wheelbarrow wheel with a worn grey rubber tyre and a dented red metal rim, perfectly round", "1:1"],
-      top: ["A single small wheelbarrow wheel lying in driving position, so from above only the worn grey tyre tread is visible as a long rounded strip with a bit of red rim at the sides", "2:1"] },
+      subject: "A single small wheelbarrow wheel with a worn grey rubber tyre and a dented red metal rim",
+      side: "the wheel is a perfect circle seen face-on with the hub exactly in the centre",
+      top: "the wheel stands upright in driving direction, so from above only the tyre tread is visible as a long narrow rounded strip",
+      format: { blatt: "9:16 hochkant", seite: "1:1", oben: "2:1" } },
     { id: "bettgestell", name: "Bettgestell-Rahmen", cat: "Rahmen",
-      side: ["A long flat car chassis made from a rusty old metal bed frame, a thin horizontal beam with rivets, chipped green paint", "21:9 (oder breitestes Format)"],
-      top: ["A long rectangular car chassis made from a rusty old metal bed frame with a mesh of bed springs inside, chipped green paint", "4:1 (oder breitestes Format)"] },
+      subject: "A long flat car chassis made from a rusty old metal bed frame with chipped green paint and rivets",
+      side: "seen as a long thin horizontal beam",
+      top: "a long rectangle with a mesh of bed springs inside",
+      format: { blatt: "21:9 quer (oder breitestes Format)", seite: "21:9", oben: "4:1" } },
     { id: "giesskanne", name: "Gießkanne als Tank", cat: "Energie",
-      side: ["A dented green metal watering can used as a fuel tank, tall and narrow, with a cork in the spout", "1:2 hochkant"],
-      top: ["A dented green metal watering can used as a fuel tank, with a round opening and a cork in the spout", "1:2 hochkant"] },
+      subject: "A dented green metal watering can used as a fuel tank, with a cork in the spout",
+      side: "tall and narrow, the spout points to the right",
+      top: "the round filler opening and the spout pointing to the right",
+      format: { blatt: "9:16 hochkant (oder schmalstes Format)", seite: "1:2 hochkant", oben: "1:2 hochkant" } },
     { id: "kuechenstuhl", name: "Küchenstuhl als Sitz", cat: "Sitz",
-      side: ["An empty old wooden kitchen chair seat with backrest but without legs, mounted on two short metal brackets, the backrest is on the left", "1:1"],
-      top: ["An empty old wooden kitchen chair seat with backrest but without legs, the backrest is on the left", "1:1"] },
+      subject: "An empty old wooden kitchen chair seat with backrest but without legs, mounted on two short metal brackets",
+      side: "the backrest is on the left",
+      top: "the backrest is along the left edge",
+      format: { blatt: "9:16 hochkant", seite: "1:1", oben: "1:1" } },
     { id: "fahrradlenker", name: "Fahrradlenker", cat: "Lenkung",
-      side: ["An old bicycle handlebar on a tall vertical steering column with a clamp at the bottom, black rubber grips pointing to the left", "1:2 hochkant"],
-      top: ["An old curved bicycle handlebar with black rubber grips at both ends and a small bell, the bar runs from top to bottom of the image", "1:2 hochkant"] },
+      subject: "An old bicycle handlebar with black rubber grips and a small bell on a vertical steering column with a clamp at the bottom",
+      side: "the column stands upright and the grips point to the left",
+      top: "the handlebar runs from the top to the bottom of the image and the column is a small circle in the middle",
+      format: { blatt: "9:16 hochkant", seite: "1:2 hochkant", oben: "1:2 hochkant" } },
   ];
 
   // Vom Werkzeug erzeugt (teilwerk.py geliefert): eingepasste Teile mit Vorschau
@@ -163,48 +185,53 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     return wrap;
   }
 
-  const ITEMS = [];
-  PARTS.forEach((part, i) => {
-    for (const [view, label, viewText] of [["seite", "Seitenansicht", SIDE], ["oben", "Draufsicht", TOP]]) {
-      const [subject, format] = part[view === "seite" ? "side" : "top"];
-      ITEMS.push({ part, i, view, label, format, key: `${part.id}_${view}`, text: `${subject}, ${viewText} ${STYLE}` });
-    }
-  });
+  const VIEWS = { seite: "Seitenansicht", oben: "Draufsicht", blatt: "Seite + Draufsicht" };
 
-  function card(item, idSuffix) {
-    const got = GELIEFERT[item.key];
-    const c = el("article", "card" + (got ? " done" : ""));
+  // Pro Teil: fehlen beide Ansichten -> ein Doppelbild-Prompt, fehlt eine -> Einzel-Prompt
+  function openTasks(part) {
+    const missing = ["seite", "oben"].filter((v) => !GELIEFERT[`${part.id}_${v}`]);
+    if (missing.length === 2) return [{ part, kind: "blatt" }];
+    return missing.map((v) => ({ part, kind: v }));
+  }
+
+  function taskCard(task, idSuffix) {
+    const { part, kind } = task;
+    const text = prompt[kind](part);
+    const c = el("article", "card");
     const meta = el("div", "meta");
-    if (got) meta.append(el("span", "chip ok", "✓ geliefert"));
-    meta.append(el("span", "chip view", item.label), el("span", "chip", "Format " + item.format), el("span", "chip file", item.key + ".png"));
-    c.append(meta);
-    const pre = el("p", "prompt", item.text);
-    pre.id = "prompt-" + item.key + idSuffix;
-    if (got) {
-      const pv = el("div", "preview");
-      const img = el("img");
-      img.src = got.bild;
-      img.alt = `${item.part.name}, ${item.label}, eingepasst`;
-      pv.append(img, el("p", null, got.notiz));
-      const det = el("details", "prompt-box");
-      det.append(el("summary", null, "Prompt anzeigen"), pre, copyButton(item.text, pre));
-      c.append(pv, det);
-    } else {
-      c.append(pre, copyButton(item.text, pre));
-    }
+    meta.append(el("span", "chip view", VIEWS[kind]), el("span", "chip", "Format " + part.format[kind]),
+      el("span", "chip file", `${part.id}_${kind}.png`));
+    const pre = el("p", "prompt", text);
+    pre.id = `prompt-${part.id}_${kind}${idSuffix}`;
+    c.append(meta, pre, copyButton(text, pre));
     return c;
   }
 
-  const delivered = ITEMS.filter((it) => GELIEFERT[it.key]).length;
-  document.getElementById("count").textContent = `${delivered} / ${ITEMS.length} geliefert`;
-  document.getElementById("bar").style.width = (delivered / ITEMS.length) * 100 + "%";
+  function doneCard(part, view) {
+    const got = GELIEFERT[`${part.id}_${view}`];
+    const c = el("article", "card done");
+    const meta = el("div", "meta");
+    meta.append(el("span", "chip ok", "✓ geliefert"), el("span", "chip view", VIEWS[view]));
+    const pv = el("div", "preview");
+    const img = el("img");
+    img.src = got.bild;
+    img.alt = `${part.name}, ${VIEWS[view]}, eingepasst`;
+    pv.append(img, el("p", null, got.notiz));
+    c.append(meta, pv);
+    return c;
+  }
 
-  const next = ITEMS.find((it) => !GELIEFERT[it.key]);
+  const total = PARTS.length * 2;
+  const delivered = PARTS.reduce((n, p) => n + ["seite", "oben"].filter((v) => GELIEFERT[`${p.id}_${v}`]).length, 0);
+  document.getElementById("count").textContent = `${delivered} / ${total} Ansichten geliefert`;
+  document.getElementById("bar").style.width = (delivered / total) * 100 + "%";
+
+  const nextTask = PARTS.flatMap(openTasks)[0];
   const nextBox = document.getElementById("next");
-  if (next) {
-    nextBox.append(el("h2", null, `Als Nächstes: ${next.part.name}, ${next.label}`), card(next, "-next"));
+  if (nextTask) {
+    nextBox.append(el("h2", null, `Als Nächstes: ${nextTask.part.name}, ${VIEWS[nextTask.kind]}`), taskCard(nextTask, "-next"));
   } else {
-    nextBox.append(el("h2", null, "Alle 12 Bilder sind da. Die Schrottkarre ist komplett."));
+    nextBox.append(el("h2", null, "Alle Ansichten sind da. Die Schrottkarre ist komplett."));
   }
 
   const list = document.getElementById("list");
@@ -213,7 +240,8 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     const h = el("h2", null, `${i + 1}. ${part.name}`);
     h.append(el("small", null, part.cat));
     sec.append(h);
-    ITEMS.filter((it) => it.part === part).forEach((it) => sec.append(card(it, "")));
+    for (const v of ["seite", "oben"]) if (GELIEFERT[`${part.id}_${v}`]) sec.append(doneCard(part, v));
+    openTasks(part).forEach((t) => sec.append(taskCard(t, "")));
     list.append(sec);
   });
 })();
