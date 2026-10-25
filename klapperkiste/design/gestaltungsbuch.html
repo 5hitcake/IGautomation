@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Klapperkiste Gestaltungsbuch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Layout: Werkstatt-Mappe. Karte als großes Blatt oben, darunter Ortskarten
+   und Teile-Steckbriefe in Rastern. Ein bewusster Look (dunkle Werkstatt wie im Spiel). */
+:root {
+  color-scheme: dark;
+  --wall: #1b3138;
+  --board: #12232a;
+  --card: #203a42;
+  --chalk: #e9efe6;
+  --chalk-dim: #a3b8b3;
+  --mustard: #f2b632;
+  --mint: #6fd3a3;
+  --line: #2c4a52;
+  --font-display: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+}
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--wall); color: var(--chalk);
+  font-family: var(--font-body); font-weight: 600; font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1160px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 48px;
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
+h1 { font-size: clamp(40px, 7vw, 72px); line-height: 0.95; color: var(--mustard); }
+h2 { font-size: 30px; }
+h3 { font-size: 20px; line-height: 1.15; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mint); }
+.lead { max-width: 62ch; color: var(--chalk-dim); font-size: 17px; }
+header { display: grid; gap: 12px; }
+nav.toc { display: flex; flex-wrap: wrap; gap: 8px; }
+nav.toc a {
+  color: var(--chalk); text-decoration: none; background: var(--line); padding: 6px 14px; border-radius: 999px; font-size: 14px;
+}
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--mustard); color: var(--board); outline: none; }
+
+section { display: grid; gap: 18px; scroll-margin-top: 16px; }
+.sec-head { display: grid; gap: 6px; }
+.sec-head p { color: var(--chalk-dim); max-width: 62ch; }
+
+.map-sheet { background: var(--board); border-radius: 18px; padding: 10px; }
+#map { display: block; width: 100%; aspect-ratio: 10 / 7; max-width: 100%; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
+.map-note { font-size: 13px; color: var(--chalk-dim); padding: 8px 6px 2px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.place {
+  background: var(--card); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px;
+  align-content: start; border: 2px solid transparent; transition: border-color 0.2s;
+}
+.place.active { border-color: var(--mustard); }
+.place .top { display: flex; gap: 10px; align-items: center; }
+.num {
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--board); color: var(--mustard); font-family: var(--font-display); font-size: 18px;
+}
+.place.home .num { background: var(--mustard); color: var(--board); }
+.who { font-size: 13px; color: var(--chalk-dim); }
+.task { font-style: italic; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font-size: 12px; font-weight: 800; background: var(--board); color: var(--chalk); padding: 2px 9px; border-radius: 999px; }
+.chip.need { background: rgba(242,182,50,0.16); color: var(--mustard); }
+.chip.from { background: rgba(111,211,163,0.14); color: var(--mint); }
+.label { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--chalk-dim); }
+.rewards { display: flex; flex-wrap: wrap; gap: 6px; }
+.reward { display: grid; justify-items: center; gap: 2px; width: 76px; font-size: 11px; text-align: center; line-height: 1.2; }
+.reward canvas { width: 64px; height: 44px; background: var(--board); border-radius: 8px; }
+.reward.end { width: auto; font-size: 13px; color: var(--mustard); }
+
+.cat { display: grid; gap: 12px; }
+.cat > h3 { color: var(--chalk-dim); font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; }
+.part { background: var(--card); border-radius: 14px; overflow: hidden; display: grid; align-content: start; }
+.grid.frames { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.part canvas { display: block; width: 100%; height: 150px; background: var(--board); }
+.part .body { padding: 12px 14px 14px; display: grid; gap: 7px; }
+.part .look { color: var(--chalk-dim); font-size: 14px; }
+.part .nums { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--chalk); }
+
+.open { background: var(--board); border-radius: 16px; padding: 18px 20px; display: grid; gap: 10px; max-width: 760px; }
+.open ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--chalk-dim); }
+.open strong { color: var(--chalk); }
+
+@media (max-width: 400px) {
+  .grid.frames { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Entwurf 1 · zum Ändern und Kommentieren</p>
+    <h1>Klapperkiste<br>Gestaltungsbuch</h1>
+    <p class="lead">Die Welt Klappertal, neun Nachbarn mit Aufträgen und alle 24 Teile. Jedes Teil hat einen Fundort, ein eigenes Aussehen und eine Rolle im Spiel. Die Zeichnungen hier stammen direkt aus dem Spielcode.</p>
+    <nav class="toc" aria-label="Inhalt">
+      <a href="#karte">Karte</a><a href="#orte">Orte &amp; Aufträge</a><a href="#teile">Teile</a><a href="#offen">Offene Fragen</a>
+    </nav>
+  </header>
+
+  <section id="karte">
+    <div class="sec-head">
+      <h2>Das Klappertal</h2>
+      <p>Ein Tal zwischen Bergen und Meer. Rita startet am Schrottplatz unten links. Die Nummern zeigen die geplante Reihenfolge der Aufträge. Alle Orte sind von Anfang an sichtbar, aber erst mit dem passenden Auto lösbar.</p>
+    </div>
+    <div class="map-sheet">
+      <canvas id="map" aria-label="Karte vom Klappertal mit zehn Orten"></canvas>
+      <p class="map-note">Tippe einen Ort an, um seinen Auftrag zu sehen.</p>
+    </div>
+  </section>
+
+  <section id="orte">
+    <div class="sec-head">
+      <h2>Orte &amp; Aufträge</h2>
+      <p>Jeder Auftrag prüft Werte oder Ausstattung des Autos. Die Belohnung sind neue Teile, die den nächsten Auftrag möglich machen. Ein Test im Code stellt sicher, dass sich alles der Reihe nach lösen lässt.</p>
+    </div>
+    <div class="grid" id="places"></div>
+  </section>
+
+  <section id="teile">
+    <div class="sec-head">
+      <h2>Die Teile</h2>
+      <p>24 Teile in sechs Gruppen. Die grüne Marke zeigt, wo man das Teil bekommt.</p>
+    </div>
+    <div id="parts" style="display:grid;gap:28px"></div>
+  </section>
+
+  <section id="offen">
+    <div class="open">
+      <h2>Offene Fragen an dich</h2>
+      <ol>
+        <li><strong>Hauptfigur:</strong> Passt „Rita, Mechanikerin“, oder soll es ein anderer Name, ein Junge oder ein Tier sein?</li>
+        <li><strong>Nachbarn:</strong> Bruno, Hilde, Lotte, Ulla, Sepp, Frost, Frieda, Rocko und Funke sind Platzhalter. Möchtest du eigene Figuren?</li>
+        <li><strong>Teile:</strong> Welche Teile fehlen dir? Im Original gab es viele schräge Teile, z. B. Karosserien, Badewannen oder Propeller.</li>
+        <li><strong>Karte:</strong> Lieber ein Tal am Meer wie hier, eine Insel oder eine Kleinstadt?</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script src="../src/parts.js"></script>
+<script src="../src/car.js"></script>
+<script src="../src/world.js"></script>
+<script src="../src/art.js"></script>
+<script src="../src/map.js"></script>
+<script>
+(function () {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let active = null;
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function placeLabel(id) {
+    if (id === "start") return "Von Anfang an";
+    const i = KK.PLACES.findIndex((p) => p.id === id);
+    return `${i + 1} · ${KK.PLACES[i].name}`;
+  }
+
+  // Zeichenbereich eines Teils, Aufbauten mit ihren Pfosten
+  function bounds(part) {
+    const len = part.len || 0;
+    const b = KK.partBox(part, len).slice();
+    if (part.cat === "dach") b[3] = 72;
+    if (part.cat === "lenkung") b[3] = 26;
+    return b;
+  }
+
+  const animated = [];
+  function partCanvas(canvas, part, maxScale) {
+    animated.push({ canvas, part, maxScale });
+  }
+  function paintPart({ canvas, part, maxScale }, t) {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const b = bounds(part);
+    const bw = b[2] - b[0], bh = b[3] - b[1];
+    const pad = Math.min(28, w * 0.1);
+    const s = Math.min((w - pad * 2) / bw, (h - pad * 2) / bh, maxScale);
+    ctx.translate(w / 2 - ((b[0] + b[2]) / 2) * s, h / 2 - ((b[1] + b[3]) / 2) * s);
+    ctx.scale(s, s);
+    KK.drawPart(ctx, part.id, { len: part.len || 0, turn: reduce ? 0.4 : t * 2, running: !reduce, t });
+  }
+
+  // --- Orte ---
+  const placesBox = document.getElementById("places");
+  const startParts = KK.PARTS.filter((p) => p.from === "start").map((p) => p.id);
+  const all = [{ ...KK.HOME, home: true, task: "Hier steht die Werkstatt. Aus diesen Teilen baut Rita ihr erstes Auto.", req: {}, reward: startParts },
+    ...KK.PLACES];
+  all.forEach((place, i) => {
+    const card = el("article", "place" + (place.home ? " home" : ""));
+    card.id = "ort-" + place.id;
+    const top = el("div", "top");
+    top.append(el("span", "num", place.home ? "★" : String(i)));
+    const name = el("div");
+    name.append(el("h3", null, place.name), el("p", "who", `${place.who}, ${place.role}`));
+    top.append(name);
+    card.append(top, el("p", "task", place.task));
+    const labels = KK.reqLabels(place.req);
+    if (labels.length) {
+      card.append(el("p", "label", "Das Auto braucht"));
+      const chips = el("div", "chips");
+      labels.forEach((l) => chips.append(el("span", "chip need", l)));
+      card.append(chips);
+    }
+    card.append(el("p", "label", place.home ? "Startteile" : "Belohnung"));
+    const rw = el("div", "rewards");
+    if (!place.reward.length) rw.append(el("p", "reward end", "Goldener Schraubenschlüssel und Ende der ersten Geschichte"));
+    place.reward.forEach((pid) => {
+      const part = KK.PART[pid];
+      const r = el("div", "reward");
+      const cv = el("canvas");
+      r.append(cv, el("span", null, part.name));
+      rw.append(r);
+      partCanvas(cv, part, 1.3);
+    });
+    card.append(rw);
+    placesBox.append(card);
+  });
+
+  // --- Teile ---
+  const partsBox = document.getElementById("parts");
+  function nums(p) {
+    const out = [p.weight + " kg"];
+    if (p.power) out.push("Kraft +" + p.power);
+    if (p.fuel && p.cat === "motor") out.push(p.fuel === "strom" ? "Strom" : "Benzin");
+    if (p.use) out.push("Verbrauch " + p.use);
+    if (p.cap) out.push("Vorrat " + p.cap);
+    if (p.grip) out.push("Grip " + p.grip);
+    if (p.strength) out.push("Robust +" + p.strength);
+    if (p.drag) out.push(p.drag < 0 ? "Rückenwind" : "Luftwiderstand +");
+    if (p.slots) out.push(p.slots.includes("dach") ? "mit Aufbau-Platz" : "ohne Aufbau-Platz");
+    return out.join(" · ");
+  }
+  for (const cat of KK.CATEGORIES) {
+    const group = el("div", "cat");
+    group.append(el("h3", null, cat.label));
+    const grid = el("div", "grid" + (cat.id === "rahmen" ? " frames" : ""));
+    const cats = cat.includes || [cat.id];
+    for (const part of KK.PARTS.filter((p) => cats.includes(p.cat))) {
+      const card = el("article", "part");
+      card.id = "teil-" + part.id;
+      const cv = el("canvas");
+      cv.setAttribute("aria-label", "Zeichnung: " + part.name);
+      const body = el("div", "body");
+      const chips = el("div", "chips");
+      chips.append(el("span", "chip from", placeLabel(part.from)));
+      (part.tags || []).forEach((t) => chips.append(el("span", "chip", t)));
+      body.append(el("h3", null, part.name), chips, el("p", "look", part.look), el("p", "nums", nums(part)));
+      card.append(cv, body);
+      grid.append(card);
+      partCanvas(cv, part, part.cat === "rad" ? 3 : 2.2);
+    }
+    group.append(grid);
+    partsBox.append(group);
+  }
+
+  // --- Karte ---
+  const map = document.getElementById("map");
+  function paintMap(t) {
+    const w = map.clientWidth, h = map.clientHeight;
+    if (map.width !== Math.round(w * dpr)) { map.width = Math.round(w * dpr); map.height = Math.round(h * dpr); }
+    const ctx = map.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    KK.drawMap(ctx, w, h, { t, active });
+  }
+  map.addEventListener("click", (e) => {
+    const r = map.getBoundingClientRect();
+    const id = KK.mapHit(r.width, r.height, e.clientX - r.left, e.clientY - r.top);
+    if (!id) return;
+    active = id;
+    document.querySelectorAll(".place").forEach((c) => c.classList.toggle("active", c.id === "ort-" + id));
+    document.getElementById("ort-" + id).scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  });
+
+  function frame(now) {
+    const t = now / 1000;
+    paintMap(t);
+    for (const a of animated) paintPart(a, t);
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  const start = () => requestAnimationFrame(frame);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+  window.addEventListener("resize", () => { if (reduce) requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
