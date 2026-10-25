@@ -49,6 +49,11 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 #status { min-height: 1.5em; color: var(--chalk-dim); }
 #status.ok { color: var(--mint); }
 #status.warn { color: var(--rust); }
+.tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.tabs button { flex: 0 0 auto; background: var(--board); color: var(--chalk-dim); font-size: 13px; padding: 6px 12px; border-radius: 999px; }
+.tabs button[aria-selected="true"] { background: var(--mustard); color: var(--board); }
+.tabs button .n { font-size: 11px; opacity: 0.8; margin-left: 4px; }
+.empty { color: var(--chalk-dim); font-size: 14px; padding: 10px 2px; grid-column: 1 / -1; }
 .tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
 .part {
   display: grid; justify-items: center; gap: 4px; padding: 8px 6px 10px; background: var(--card);
@@ -89,6 +94,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 
   <section style="display:grid;gap:8px" aria-label="Teile-Regal">
     <h2>Teile-Regal</h2>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Kategorie"></div>
     <div class="tray" id="tray"></div>
   </section>
 
@@ -101,7 +107,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     <button type="button" id="btn-all">Komplett zusammenbauen</button>
     <button type="button" id="btn-clear">Alles abbauen</button>
   </div>
-  <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten, dann ziehen). Ausbauen: Teil auf der Bühne antippen oder von der Bühne herunterziehen. Reihenfolge: Rahmen, dann Achsen, dann Räder. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
+  <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten, dann ziehen). Ausbauen: Teil auf der Bühne antippen oder von der Bühne herunterziehen. Reihenfolge: Rahmen, dann Achsen, dann Räder, dann der Rest. Die Karosserie kommt ganz zum Schluss und darf aus verschiedenen Modellen gemischt werden. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
 </div>
 
 <canvas id="ghost" hidden></canvas>
@@ -122,19 +128,43 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     { id: "giesskanne", kat: "energie", name: "Gießkanne" },
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
+    { id: "platzhalter-a_hinten", kat: "karosserie_hinten", name: "Pick-up hinten (Platzhalter)" },
+    { id: "platzhalter-a_mitte", kat: "karosserie_mitte", name: "Pick-up Mitte (Platzhalter)" },
+    { id: "platzhalter-a_vorne", kat: "karosserie_vorne", name: "Pick-up vorne (Platzhalter)" },
+    { id: "platzhalter-b_hinten", kat: "karosserie_hinten", name: "Kugel hinten (Platzhalter)" },
+    { id: "platzhalter-b_mitte", kat: "karosserie_mitte", name: "Kugel Mitte (Platzhalter)" },
+    { id: "platzhalter-b_vorne", kat: "karosserie_vorne", name: "Kugel vorne (Platzhalter)" },
   ];
-  const SLOTS = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung"];
+  // Kategorien im Regal (Vorauswahl)
+  const TABS = [
+    { id: "rahmen", label: "Grundgestell", kats: ["rahmen"] },
+    { id: "achse", label: "Achsen", kats: ["achse"] },
+    { id: "rad", label: "Räder", kats: ["rad"] },
+    { id: "motor", label: "Motor", kats: ["motor"] },
+    { id: "energie", label: "Energie", kats: ["energie"] },
+    { id: "sitz", label: "Sitz", kats: ["sitz"] },
+    { id: "lenkung", label: "Lenkung", kats: ["lenkung"] },
+    { id: "licht", label: "Licht", kats: ["licht"] },
+    { id: "karosserie", label: "Karosserie", kats: ["karosserie_hinten", "karosserie_mitte", "karosserie_vorne"] },
+  ];
+  const SLOTS = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung", "licht",
+    "karoH", "karoM", "karoV"];
   const LABEL = { rahmen: "Rahmen", achseH: "Hinterachse", achseV: "Vorderachse", radH: "Hinterräder", radV: "Vorderräder",
-    motor: "Motor", energie: "Tank", sitz: "Sitz", lenkung: "Lenkung" };
+    motor: "Motor", energie: "Tank", sitz: "Sitz", lenkung: "Lenkung", licht: "Licht",
+    karoH: "Karosserie hinten", karoM: "Karosserie Mitte", karoV: "Karosserie vorne" };
+  const KARO = ["karoH", "karoM", "karoV"];
+  // Das muss drin sein, bevor die Karosserie drauf darf (fahrbereit)
+  const FAHRBEREIT = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung"];
   const kat = (slot) => R.slots[slot].kategorie;
 
   // Einbaureihenfolge: was muss schon drin sein?
   const NEEDS = { rahmen: null, achseH: "rahmen", achseV: "rahmen", radH: "achseH", radV: "achseV",
-    motor: "rahmen", energie: "rahmen", sitz: "rahmen", lenkung: "rahmen" };
+    motor: "rahmen", energie: "rahmen", sitz: "rahmen", lenkung: "rahmen", licht: "rahmen",
+    karoH: "fahrbereit", karoM: "fahrbereit", karoV: "fahrbereit" };
   // Was blockiert das Ausbauen?
   const BLOCKS = { achseH: ["radH"], achseV: ["radV"] };
 
-  const state = { view: "seite", mounted: {}, anim: {} };
+  const state = { view: "seite", mounted: {}, anim: {}, tab: "rahmen" };
   let drag = null;          // laufendes Ziehen: { partId, kat, fromSlot, x, y, target, touch }
   let suppressClick = false; // nach einem Ziehen den folgenden Klick verschlucken
 
@@ -154,6 +184,12 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
   // --- Regeln ---------------------------------------------------------------
   function missing(slot) {
     const need = NEEDS[slot];
+    if (need === "fahrbereit") {
+      const fehlt = FAHRBEREIT.filter((s) => !state.mounted[s]);
+      if (!fehlt.length) return null;
+      if (!state.mounted.rahmen) return "Die Karosserie kommt ganz zum Schluss. Leg zuerst einen Rahmen auf die Hebebühne.";
+      return `Die Karosserie kommt ganz zum Schluss. Es fehlt noch: ${fehlt.map((s) => LABEL[s]).join(", ")}.`;
+    }
     if (!need || state.mounted[need]) return null;
     // Bis zum ersten fehlenden Schritt zurückgehen (Rad -> Achse -> Rahmen)
     const earlier = missing(need);
@@ -164,7 +200,18 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 
   function mountPart(part) {
     const free = SLOTS.filter((s) => kat(s) === part.kat && !state.mounted[s]);
-    if (!free.length) return say(`${part.name}: Alle passenden Plätze sind schon belegt.`, "warn");
+    if (!free.length) {
+      // Belegt mit einem anderen Teil derselben Kategorie: tauschen
+      const other = SLOTS.find((s) => kat(s) === part.kat && state.mounted[s] !== part.id);
+      if (!other) return say(`${part.name}: Alle passenden Plätze sind schon belegt.`, "warn");
+      const why = removeBlocked(other);
+      if (why) return say(why, "warn");
+      const alt = PARTS.find((p) => p.id === state.mounted[other]).name;
+      state.mounted[other] = part.id;
+      state.anim[other] = performance.now();
+      say(`${alt} gegen ${part.name} getauscht.`);
+      return refresh();
+    }
     const slot = free.find((s) => !missing(s));
     if (!slot) return say(missing(free[0]), "warn");
     if (part.kat === "achse" && state.view !== "oben") {
@@ -180,11 +227,25 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     state.mounted[slot] = partId;
     state.anim[slot] = performance.now();
     if (!quiet) say(`${PARTS.find((p) => p.id === partId).name} eingebaut: ${LABEL[slot]}.`);
+    nextTab();
     refresh();
+  }
+
+  // Ist die aktuelle Kategorie fertig, zur nächsten springen, in der jetzt etwas geht
+  function nextTab() {
+    const cur = TABS.find((t) => t.id === state.tab);
+    const offen = (t) => SLOTS.some((sl) => t.kats.includes(kat(sl)) && !state.mounted[sl] && !missing(sl)) &&
+      PARTS.some((p) => t.kats.includes(p.kat));
+    if (offen(cur)) return;
+    const next = TABS.find(offen);
+    if (next) state.tab = next.id;
   }
 
   // Darf dieser Platz ausgebaut werden? Gibt den Grund zurück, falls nicht.
   function removeBlocked(slot) {
+    if (!KARO.includes(slot) && slot !== "licht" && KARO.some((s) => state.mounted[s])) {
+      return "Erst die Karosserie abnehmen, dann kommst du an die Teile darunter.";
+    }
     if (slot === "rahmen" && SLOTS.some((s) => s !== "rahmen" && state.mounted[s])) {
       return "Den Rahmen kannst du erst abnehmen, wenn alle anderen Teile ab sind.";
     }
@@ -248,8 +309,16 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
     }
   }
 
+  // Leere Plätze nur zeigen, wenn sie sinnvoll sind
+  function hintShown(slot) {
+    if (state.view === "seite" && kat(slot) === "achse") return false;
+    if (drag) return kat(slot) === drag.kat;
+    if (KARO.includes(slot)) return !missing(slot);
+    return true;
+  }
+
   function drawSlotHint(ctx, slot, L, t) {
-    if (state.view === "seite" && kat(slot) === "achse") return;
+    if (!hintShown(slot)) return;
     // Beim Ziehen nur die Plätze zeigen, auf die das gezogene Teil passt
     if (drag && kat(slot) !== drag.kat) return;
     const ok = !missing(slot);
@@ -324,8 +393,10 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
   function hitSlot(pt) {
     const L = layout(pt.w, pt.h);
     const order = R["reihenfolge_" + state.view].filter((sl) => SLOTS.includes(sl)).reverse();
-    return order.find((sl) => visible(sl) && !(state.view === "seite" && kat(sl) === "achse" && !state.mounted[sl]) &&
-      rects(sl, L).some((r) => pt.x >= r.x && pt.x <= r.x + r.w && pt.y >= r.y && pt.y <= r.y + r.h));
+    const inside = (sl) => rects(sl, L).some((r) => pt.x >= r.x && pt.x <= r.x + r.w && pt.y >= r.y && pt.y <= r.y + r.h);
+    // Eingebaute Teile haben Vorrang vor leeren Plätzen
+    return order.find((sl) => state.mounted[sl] && visible(sl) && inside(sl)) ||
+      order.find((sl) => !state.mounted[sl] && hintShown(sl) && inside(sl));
   }
 
   function tapStage(clientX, clientY) {
@@ -458,26 +529,55 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 
   // --- Regal, Checkliste ------------------------------------------------------
   function refresh() {
+    const tabs = $("tabs");
+    tabs.innerHTML = "";
+    for (const t of TABS) {
+      const tb = document.createElement("button");
+      tb.type = "button";
+      tb.role = "tab";
+      tb.id = "tab-" + t.id;
+      tb.setAttribute("aria-selected", String(t.id === state.tab));
+      const slotsT = SLOTS.filter((sl) => t.kats.includes(kat(sl)));
+      const n = slotsT.filter((sl) => state.mounted[sl]).length;
+      tb.textContent = t.label;
+      if (slotsT.length) {
+        const c = document.createElement("span");
+        c.className = "n";
+        c.textContent = `${n}/${slotsT.length}`;
+        tb.append(c);
+      }
+      tb.onclick = () => { state.tab = t.id; refresh(); };
+      tabs.append(tb);
+    }
     const tray = $("tray");
     tray.innerHTML = "";
-    for (const p of PARTS) {
-      const slots = SLOTS.filter((s) => kat(s) === p.kat);
-      const n = slots.filter((s) => state.mounted[s]).length;
+    const tab = TABS.find((t) => t.id === state.tab);
+    const angebot = PARTS.filter((p) => tab.kats.includes(p.kat));
+    if (!angebot.length) {
+      const e = document.createElement("p");
+      e.className = "empty";
+      e.textContent = "Noch keine Teile in dieser Kategorie. Sie kommen später über die Karte und Aufträge.";
+      tray.append(e);
+    }
+    for (const p of angebot) {
+      const slots = SLOTS.filter((sl) => kat(sl) === p.kat);
+      const mine = slots.filter((sl) => state.mounted[sl] === p.id).length;
+      const full = mine === slots.length;
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "part" + (n ? " in" : "") + (n === slots.length ? " full" : "");
+      b.className = "part" + (mine ? " in" : "") + (full ? " full" : "");
       const img = document.createElement("img");
       const key = `${p.id}_${state.view}`;
       img.src = (G[key] && G[key].bild) || "";
       img.alt = "";
       const badge = document.createElement("span");
       badge.className = "badge";
-      badge.textContent = slots.length > 1 ? `${n}/${slots.length}` : n ? "drin" : "";
+      badge.textContent = slots.length > 1 ? `${mine}/${slots.length}` : mine ? "drin" : "";
       if (!badge.textContent) badge.hidden = true;
       const name = document.createElement("span");
       name.textContent = p.name;
       b.append(badge, img, name);
-      if (n === slots.length) {
+      if (full) {
         const hint = document.createElement("span");
         hint.className = "badge";
         hint.style.cssText = "position:static;margin-top:2px";
@@ -485,13 +585,13 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
         b.append(hint);
         b.setAttribute("aria-label", `${p.name} ausbauen`);
       }
-      // Voll eingebaut: Tipp baut aus (zuletzt eingebauten Platz zuerst), sonst ein
+      // Voll eingebaut: Tipp baut aus (zuletzt eingebauten Platz zuerst), sonst ein bzw. tauschen
       b.addEventListener("click", () => {
         if (suppressClick) return;
-        if (n === slots.length) unmount([...slots].reverse()[0]);
+        if (full) unmount([...slots].reverse()[0]);
         else mountPart(p);
       });
-      if (n < slots.length) b.addEventListener("pointerdown", (e) => beginPress(e, { partId: p.id }));
+      if (!full) b.addEventListener("pointerdown", (e) => beginPress(e, { partId: p.id }));
       tray.append(b);
     }
     const checks = $("checks");
@@ -507,7 +607,17 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
       chip.textContent = (ok ? "✓ " : "") + label;
       checks.append(chip);
     }
-    if (all) say("Fahrbereit! Die Schrottkarre ist komplett.", "ok");
+    const karo = KARO.map((sl) => state.mounted[sl]);
+    if (karo.every(Boolean)) {
+      const modelle = new Set(karo.map((id) => id.split("_")[0]));
+      const chip = document.createElement("span");
+      chip.className = "check ok";
+      chip.textContent = modelle.size === 1 ? "✓ Karosserie: kompletter Satz" : "✓ Karosserie: gemischt";
+      checks.append(chip);
+    }
+    if (all && !KARO.some((sl) => state.mounted[sl])) {
+      say("Fahrbereit! Jetzt kann die Karosserie drauf: im Regal unter „Karosserie“.", "ok");
+    }
   }
 
   function setView(v) {
@@ -518,10 +628,14 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
   }
   $("view-seite").onclick = () => setView("seite");
   $("view-oben").onclick = () => setView("oben");
-  $("btn-clear").onclick = () => { state.mounted = {}; say("Alles abgebaut. Leg zuerst den Rahmen auf die Hebebühne."); refresh(); };
+  $("btn-clear").onclick = () => {
+    state.mounted = {}; state.tab = "rahmen";
+    say("Alles abgebaut. Leg zuerst den Rahmen auf die Hebebühne."); refresh();
+  };
   $("btn-all").onclick = () => {
-    const order = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung"];
+    const order = FAHRBEREIT;
     const now = performance.now();
+    state.tab = "karosserie";
     order.forEach((slot, i) => {
       if (state.mounted[slot]) return;
       state.mounted[slot] = PARTS.find((p) => p.kat === kat(slot)).id;

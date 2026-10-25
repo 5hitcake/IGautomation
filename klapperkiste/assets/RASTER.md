@@ -28,10 +28,15 @@ dieser Datei.
 | Vorderbau | 2 × 2 | 256 × 256 | 2 × 2 | 256 × 256 | unten (Lampen, Hupe, Kühler …) |
 | Vorne | 1 × 2 | 128 × 256 | 1 × 4 | 128 × 512 | links (hängt am Rahmenende) |
 | Heck | 1 × 2 | 128 × 256 | 1 × 2 | 128 × 256 | rechts (hängt am Rahmenende) |
-| Aufbau | 8 × 4 | 1024 × 512 | 8 × 4 | 1024 × 512 | unten, liegt hinter allem |
 | Achse | 2 × 2 | 256 × 256 | 2 × 4 | 256 × 512 | Seite: Achsende mit Nabe in der Mitte, hinter dem Rad. Draufsicht: volle Höhe, von Rad zu Rad |
+| Licht | 1 × 1 | 128 × 128 | 1 × 1 | 128 × 128 | links (vorne vor der Karosserie), oben links und rechts je eine Lampe |
+| Karosserie hinten | 3 × 4 | 384 × 512 | 3 × 4 | 384 × 512 | wird aus einer ganzen Karosserie geschnitten |
+| Karosserie Mitte | 3 × 4 | 384 × 512 | 3 × 4 | 384 × 512 | wird aus einer ganzen Karosserie geschnitten |
+| Karosserie vorne | 4 × 4 | 512 × 512 | 4 × 4 | 512 × 512 | wird aus einer ganzen Karosserie geschnitten |
 
-**Einbaureihenfolge:** Rahmen, dann Achsen, dann Räder. Die Räder sitzen auf
+**Einbaureihenfolge:** Rahmen, dann Achsen, dann Räder, dann der Rest. Die
+Karosserie kommt ganz zum Schluss, wenn das Auto fahrbereit ist, und muss als
+Erstes wieder ab. Davor: Rahmen, dann Achsen, dann Räder. Die Räder sitzen auf
 der Achse und verdecken in der Seitenansicht ihr Ende. Ohne Rad sieht man die
 Nabe der Achse. Zum Achsentausch müssen die Räder ab.
 
@@ -101,6 +106,34 @@ Korrekturen beim Einpassen eines Doppelbilds:
 - `--rot-grau oben`: rote Reste grau färben (z. B. Felge in der Rad-Draufsicht).
 - `einpassen ... --drehen 90`: Einzelbild drehen, wenn vorne nicht rechts ist.
 
+## 3b. Karosserie: drei Teile, alle untereinander kompatibel
+
+Jedes Karosserie-Modell besteht aus **hinten, Mitte und vorne**. Die Teile
+werden einzeln gefunden (Karte, Aufträge) und lassen sich **modellübergreifend
+mischen**. Geplant sind etwa 20 Modelle, also 60 Teile. Damit das passt, gilt:
+
+- Die Karosserie sitzt auf der Rahmenoberkante (y = 4) und braucht keine
+  Radläufe. Die Räder liegen darunter.
+- **Nähte** bei x = 3 und x = 6 Zellen. Hinten ist 3 Zellen lang, die Mitte 3,
+  vorne 4.
+- **Gürtellinie:** An beiden Nähten ist die Karosserie genau 2 Zellen hoch
+  (y = 2 bis 4). Nur die Mitte darf höher hinaus (Kabine, Dach, Kuppel). Hinten
+  und vorne bleiben unter y = 1.
+- **Draufsicht:** An den Nähten reicht die Karosserie von y = 0,5 bis 3,5.
+
+Erzeugt wird **jedes Modell als ganze Karosserie** (Doppelbild: Seite oben,
+Draufsicht unten). Das Werkzeug bringt sie auf Autolänge, zieht die Höhe an
+den Nähten genau auf die Gürtellinie und schneidet sie in drei Teile:
+
+```bash
+python klapperkiste/tools/teilwerk.py karosserie roh_karosserie.png kaefer
+# -> assets/teile/kaefer_hinten, kaefer_mitte, kaefer_vorne (je seite.png + oben.png)
+```
+
+Weicht ein Modell an einer Naht deutlich ab, meldet das Werkzeug das. Zwei
+gezeichnete Platzhalter (`karosserie-platzhalter`) zeigen, wie das Mischen
+aussieht.
+
 ## 4. Prompt-Vorlagen
 
 Bildgeneratoren verstehen Englisch zuverlässiger, deshalb sind die Prompts
@@ -133,6 +166,18 @@ the front points to the right in both views. + Stil-Block
 [TEIL], flat side elevation like a technical side view drawing, the long side faces the viewer
 straight on, not rotated, camera at object height looking only very slightly down so the top
 surface is barely visible, the front points to the right. + Stil-Block
+```
+
+**Karosserie (ganzes Modell als Doppelbild):**
+
+```
+[MODELL] car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver.
+Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white
+gap between the two views. Top half: flat side elevation, the front points to the right, the body is
+long and low, the lower body has the same height along its whole length with a straight waistline,
+only the middle section (cabin) rises higher with roof and windows, the rear and front sections stay
+low. Bottom half: plan view seen straight from directly above, same length, the body has the same
+width along its whole length. Both views at the same scale and aligned. + Stil-Block
 ```
 
 Bildgeneratoren rutschen gern in eine schräge Dreiviertel-Ansicht. Ist das

@@ -10,6 +10,8 @@ Drei Befehle:
              prüfen, ob alles zusammenpasst.
   blatt      Doppelbild mit Seitenansicht (oben) und Draufsicht (unten)
              trennen und beide Ansichten einpassen.
+  karosserie Ganze Karosserie (Doppelbild) auf Norm bringen und an den
+             Nähten in hinten, Mitte und vorne schneiden.
   geliefert  Lieferstand (alle Teile unter assets/teile/) für die
              Prompt-Liste in design/geliefert.js schreiben.
 
@@ -45,7 +47,9 @@ FARBEN = {
     "rahmen": (201, 138, 75), "rad": (38, 43, 48), "motor": (224, 75, 58),
     "energie": (47, 111, 176), "sitz": (47, 143, 136), "lenkung": (111, 143, 166),
     "vorderbau": (242, 182, 50), "vorne": (159, 215, 232), "heck": (140, 153, 163),
-    "aufbau": (127, 207, 174), "achse": (93, 78, 66),
+    "achse": (93, 78, 66), "licht": (255, 236, 150),
+    "karosserie_hinten": (127, 207, 174), "karosserie_mitte": (127, 207, 174),
+    "karosserie_vorne": (127, 207, 174),
 }
 
 
@@ -296,6 +300,133 @@ def blatt_einpassen(bild: Image.Image, raster: dict, kategorie: str, toleranz: i
     return {a: einpassen(t, raster, kategorie, a, freigestellt=True) for a, t in ansichten.items()}
 
 
+# --- Karosserie ----------------------------------------------------------------
+
+KAROSSERIE_TEILE = ("hinten", "mitte", "vorne")
+
+
+def _ausdehnung(alpha: Image.Image, x: int, halb: int = 4) -> tuple[int, int] | None:
+    """Oberste und unterste deckende Zeile in einem schmalen Spaltenstreifen um x."""
+    streifen = alpha.crop((max(0, x - halb), 0, min(alpha.width, x + halb + 1), alpha.height))
+    rahmen = streifen.getbbox()
+    return (rahmen[1], rahmen[3]) if rahmen else None
+
+
+def _normieren(teil: Image.Image, laenge: int, ziel_hoehe: int, nahtstellen: list[int],
+               soll: float) -> tuple[Image.Image, list[float]]:
+    """Skaliert auf volle Länge und dann senkrecht so, dass die mittlere
+    Ausdehnung an den Nähten `soll` Pixel beträgt. Gibt das Bild und die
+    gemessenen Ausdehnungen an den Nähten (nach dem Skalieren) zurück."""
+    alpha = teil.getchannel("A").point(lambda a: 255 if a > 16 else 0)
+    teil = teil.crop(alpha.getbbox())
+    erst = teil.resize((laenge, max(1, round(teil.height * laenge / teil.width))), Image.LANCZOS)
+    a1 = erst.getchannel("A").point(lambda a: 255 if a > 16 else 0)
+    masse = [e[1] - e[0] for e in (_ausdehnung(a1, x) for x in nahtstellen) if e]
+    faktor = soll / (sum(masse) / len(masse)) if masse else 1.0
+    neu = erst.resize((laenge, max(1, round(erst.height * faktor))), Image.LANCZOS)
+    a2 = neu.getchannel("A").point(lambda a: 255 if a > 16 else 0)
+    gemessen = [(e[1] - e[0]) if e else 0 for e in (_ausdehnung(a2, x) for x in nahtstellen)]
+    return neu, gemessen
+
+
+def karosserie_schneiden(bild: Image.Image, raster: dict, toleranz: int = 40,
+                         inseln: bool = True) -> tuple[dict, list[str]]:
+    """Ganze Karosserie (Doppelbild: Seite oben, Draufsicht unten) normieren
+    und an den Nähten in hinten, Mitte und vorne schneiden.
+
+    Gibt {teil: {"seite": bild, "oben": bild}} und Hinweise zurück.
+    """
+    k, z = raster["karosserie"], raster["zelle_px"]
+    laenge = raster["seite"]["breite"] * z
+    hoehe = k["unterkante_y"] * z
+    naehte = [x * z for x in k["naehte_x"]]
+    grenzen = [0, *naehte, laenge]
+    seite, oben = blatt_teilen(bild, toleranz, inseln)
+    hinweise = []
+
+    # Seite: Gürtellinie auf Norm, Unterkante auf die Rahmenoberkante
+    soll_seite = (k["unterkante_y"] - k["guertel_y"]) * z
+    s_bild, s_mass = _normieren(seite, laenge, hoehe, naehte, soll_seite)
+    if s_bild.height > hoehe:
+        hinweise.append("Seitenansicht ist höher als 4 Zellen und wurde oben abgeschnitten.")
+        s_bild = s_bild.crop((0, s_bild.height - hoehe, laenge, s_bild.height))
+    s_fertig = Image.new("RGBA", (laenge, hoehe), (0, 0, 0, 0))
+    s_fertig.alpha_composite(s_bild, (0, hoehe - s_bild.height))
+
+    # Draufsicht: Breite an den Nähten auf Norm, mittig
+    soll_oben = (k["breite_oben"][1] - k["breite_oben"][0]) * z
+    o_bild, o_mass = _normieren(oben, laenge, hoehe, naehte, soll_oben)
+    if o_bild.height > hoehe:
+        rand = (o_bild.height - hoehe) // 2
+        o_bild = o_bild.crop((0, rand, laenge, rand + hoehe))
+        hinweise.append("Draufsicht ist breiter als das Auto und wurde oben und unten gekürzt.")
+    o_fertig = Image.new("RGBA", (laenge, hoehe), (0, 0, 0, 0))
+    o_fertig.alpha_composite(o_bild, (0, (hoehe - o_bild.height) // 2))
+
+    for name, mass, soll in (("Seite", s_mass, soll_seite), ("Draufsicht", o_mass, soll_oben)):
+        for x, m in zip(k["naehte_x"], mass):
+            if abs(m - soll) > soll * 0.08:
+                hinweise.append(
+                    f"{name}: an der Naht bei x={x} ist die Karosserie {m / z:.2f} statt "
+                    f"{soll / z:.2f} Zellen. Die Teile passen dort nicht ganz bündig zu anderen Modellen."
+                )
+    # Hinten und vorne sollen nicht höher als y=1 werden (nur die Mitte darf hoch hinaus)
+    a = s_fertig.getchannel("A").point(lambda v: 255 if v > 16 else 0)
+    for teil, (x0, x1) in zip(("hinten", "vorne"), ((grenzen[0], grenzen[1]), (grenzen[2], grenzen[3]))):
+        oben_px = (a.crop((x0, 0, x1, hoehe)).getbbox() or (0, hoehe, 0, 0))[1]
+        if oben_px < z:
+            hinweise.append(f"Karosserie {teil} ragt über y=1 hinaus. Nur die Mitte darf so hoch sein.")
+
+    teile = {}
+    for teil, x0, x1 in zip(KAROSSERIE_TEILE, grenzen[:-1], grenzen[1:]):
+        teile[teil] = {"seite": s_fertig.crop((x0, 0, x1, hoehe)), "oben": o_fertig.crop((x0, 0, x1, hoehe))}
+    return teile, hinweise
+
+
+def karosserie_platzhalter(raster: dict, modell: str) -> Image.Image:
+    """Gezeichnete Platzhalter-Karosserie als Doppelbild (wie von einer KI),
+    absichtlich in anderer Größe als die Norm, damit der Schneider arbeiten muss.
+    modell: "A" (Pick-up, rot) oder "B" (Kugel, blau)."""
+    u = 70  # Pixel pro Zelle im "Rohbild"
+    b, h = 10 * u + 120, 4 * u * 2 + 260
+    bild = Image.new("RGB", (b, h), PAPIER[:3])
+    d = ImageDraw.Draw(bild)
+    farbe, dunkel = ((214, 69, 52), (150, 45, 35)) if modell == "A" else ((58, 123, 213), (35, 80, 150))
+    glas = (159, 215, 232)
+    ox, oy = 60, 60  # Seite: Zelle (x, y) -> Pixel
+    P = lambda x, y, o=(ox, oy): (o[0] + x * u, o[1] + y * u)  # noqa: E731
+    lw = 5
+    rand = {"outline": INK[:3], "width": lw}
+    if modell == "A":
+        d.polygon([P(0.1, 2), P(3, 2), P(3, 4), P(0.1, 4)], fill=farbe, outline=PAPIER[:3])
+        d.polygon([P(3, 2), P(3.4, 0.6), P(5.6, 0.6), P(6, 2), P(6, 4), P(3, 4)], fill=farbe)
+        d.polygon([P(6, 2), P(9.2, 2.2), P(9.9, 2.8), P(9.9, 4), P(6, 4)], fill=farbe)
+        d.line([P(0.1, 4), P(0.1, 2), P(3, 2), P(3.4, 0.6), P(5.6, 0.6), P(6, 2), P(9.2, 2.2), P(9.9, 2.8),
+                P(9.9, 4), P(0.1, 4)], fill=INK[:3], width=lw)
+        d.polygon([P(3.6, 0.9), P(5.4, 0.9), P(5.7, 1.9), P(3.4, 1.9)], fill=glas, outline=INK[:3], width=3)
+        d.line([P(0.4, 2.3), P(2.8, 2.3)], fill=dunkel, width=6)
+    else:
+        d.rounded_rectangle([P(0.2, 2), P(9.6, 4)], radius=int(0.8 * u), fill=farbe, **rand)
+        d.chord([P(3, 0.3), P(6, 3.7)], 180, 360, fill=glas, outline=INK[:3], width=lw)
+        d.line([P(3.2, 2), P(5.8, 2)], fill=INK[:3], width=lw)
+        d.ellipse([P(8.6, 2.5), P(9.2, 3.1)], fill=(255, 244, 207), outline=INK[:3], width=3)
+    # Draufsicht darunter (Länge gleich, Breite 3 Zellen an den Nähten)
+    o2 = (ox, oy + 4 * u + 140)
+    Q = lambda x, y: P(x, y, o2)  # noqa: E731
+    if modell == "A":
+        d.rounded_rectangle([Q(0.1, 0.5), Q(9.9, 3.5)], radius=int(0.4 * u), fill=farbe, **rand)
+        d.rectangle([Q(0.4, 0.8), Q(2.8, 3.2)], fill=dunkel, outline=INK[:3], width=3)
+        d.rectangle([Q(3.3, 0.7), Q(5.7, 3.3)], fill=dunkel, outline=INK[:3], width=3)
+        d.line([Q(7, 1.2), Q(9.4, 1.2)], fill=dunkel, width=5)
+        d.line([Q(7, 2.8), Q(9.4, 2.8)], fill=dunkel, width=5)
+    else:
+        d.rounded_rectangle([Q(0.2, 0.5), Q(9.6, 3.5)], radius=int(1.2 * u), fill=farbe, **rand)
+        d.ellipse([Q(3.1, 0.8), Q(5.9, 3.2)], fill=glas, outline=INK[:3], width=lw)
+    for x in (1.5, 4.5, 8):
+        d.text(P(x, 3.2), modell, font=_schrift(int(0.5 * u)), fill=PAPIER[:3], anchor="mm")
+    return bild
+
+
 # --- Vorlagen -----------------------------------------------------------------
 
 def _raster_linien(zeichnen: ImageDraw.ImageDraw, b: int, h: int, z: int) -> None:
@@ -303,6 +434,34 @@ def _raster_linien(zeichnen: ImageDraw.ImageDraw, b: int, h: int, z: int) -> Non
         zeichnen.line([(x, 0), (x, h)], fill=GRID, width=2)
     for y in range(0, h + 1, z):
         zeichnen.line([(0, y), (b, y)], fill=GRID, width=2)
+
+
+def _gestrichelt(d: ImageDraw.ImageDraw, a: tuple[float, float], b: tuple[float, float],
+                 farbe, breite: int) -> None:
+    laenge = max(abs(b[0] - a[0]), abs(b[1] - a[1]))
+    schritte = max(1, int(laenge // 20))
+    for i in range(0, schritte, 2):
+        t0, t1 = i / schritte, min(1, (i + 1) / schritte)
+        d.line([(a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0),
+                (a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1)], fill=farbe, width=breite)
+
+
+def _karosserie_marken(d: ImageDraw.ImageDraw, raster: dict, teil: str, ansicht: str,
+                       ox: int, oy: int, b: int, h: int) -> None:
+    """Zeichnet Gürtellinie (gestrichelt) und Nähte (rot) eines Karosserieteils.
+
+    ox/oy: obere linke Ecke der Box in Pixeln (für Vorlage 0/0, im Gesamtplan die Platzposition).
+    """
+    k, z = raster["karosserie"], raster["zelle_px"]
+    kanten = {"hinten": ["rechts"], "mitte": ["links", "rechts"], "vorne": ["links"]}[teil]
+    if ansicht == "seite":
+        y0, y1 = oy + k["guertel_y"] * z, oy + k["unterkante_y"] * z
+        _gestrichelt(d, (ox, y0), (ox + b, y0), KANTE, 3)
+    else:
+        y0, y1 = oy + k["breite_oben"][0] * z, oy + k["breite_oben"][1] * z
+    for kante in kanten:
+        x = ox + 5 if kante == "links" else ox + b - 5
+        d.line([(x, y0), (x, y1)], fill=KANTE, width=10)
 
 
 def vorlage(raster: dict, kategorie: str, ansicht: str, platzhalter: bool = False) -> Image.Image:
@@ -336,6 +495,8 @@ def vorlage(raster: dict, kategorie: str, ansicht: str, platzhalter: bool = Fals
             d.line([(w // 2, 0), (w // 2, h)], fill=KANTE, width=w)
         if anker_x == "rechts":
             d.line([(b - w // 2, 0), (b - w // 2, h)], fill=KANTE, width=w)
+    if kat.get("karosserie"):
+        _karosserie_marken(d, raster, kat["karosserie"], ansicht, 0, 0, b, h)
     d.rectangle([0, 0, b - 1, h - 1], outline=INK, width=4)
     if platzhalter:
         return bild
@@ -389,22 +550,28 @@ def gesamtplan(raster: dict, ansicht: str) -> Image.Image:
     b, h = ges["breite"] * z, ges["hoehe"] * z
     plan = Image.new("RGBA", (b, h), PAPIER)
     _raster_linien(ImageDraw.Draw(plan), b, h, z)
+    # Karosserie würde alles verdecken: nur als Umriss mit Gürtellinie und Nähten
+    karo = [sl for sl, info in raster["slots"].items()
+            if raster["kategorien"][info["kategorie"]].get("karosserie")]
     teile = {slot: vorlage(raster, info["kategorie"], ansicht, platzhalter=True)
-             for slot, info in raster["slots"].items()}
-    d = ImageDraw.Draw(plan)
-    if ansicht == "oben":
-        # Das Dach würde von oben alles verdecken: nur als gestrichelten Umriss zeigen
-        del teile["aufbau"]
-        x, y = raster["slots"]["aufbau"]["oben"][0]
-        gb, gh = raster["kategorien"]["aufbau"]["oben"]
-        for i in range(x * z, (x + gb) * z, 24):
-            d.line([(i, y * z + 3), (i + 12, y * z + 3)], fill=INK, width=4)
-            d.line([(i, (y + gh) * z - 3), (i + 12, (y + gh) * z - 3)], fill=INK, width=4)
+             for slot, info in raster["slots"].items() if slot not in karo}
     plan.alpha_composite(bauen(raster, ansicht, teile))
     d = ImageDraw.Draw(plan)
     schrift = _schrift(26)
+    for slot in karo:
+        kat = raster["kategorien"][raster["slots"][slot]["kategorie"]]
+        x, y = raster["slots"][slot]["seite"] if ansicht == "seite" else raster["slots"][slot]["oben"][0]
+        gb, gh = kat[ansicht]
+        ox, oy, bb, hh = x * z, y * z, gb * z, gh * z
+        for a, e in [((ox, oy), (ox + bb, oy)), ((ox, oy + hh), (ox + bb, oy + hh)),
+                     ((ox, oy), (ox, oy + hh)), ((ox + bb, oy), (ox + bb, oy + hh))]:
+            _gestrichelt(d, a, e, INK, 4)
+        _karosserie_marken(d, raster, kat["karosserie"], ansicht, ox, oy, bb, hh)
+        if ansicht == "seite":
+            d.text((ox + bb / 2, oy + 40), "karosserie " + kat["karosserie"], font=schrift, fill=INK,
+                   anchor="mm", stroke_width=4, stroke_fill=PAPIER)
     for slot, info in raster["slots"].items():
-        if slot == "aufbau" or slot.startswith("achse") or (slot == "rahmen" and ansicht == "oben"):
+        if slot in karo or slot.startswith("achse") or (slot == "rahmen" and ansicht == "oben"):
             continue
         gb, gh = raster["kategorien"][info["kategorie"]][ansicht]
         positionen = [info["seite"]] if ansicht == "seite" else info["oben"][:1]
@@ -412,9 +579,12 @@ def gesamtplan(raster: dict, ansicht: str) -> Image.Image:
             cx, cy = (x + gb / 2) * z, (y + gh / 2) * z
             d.text((cx, cy), slot, font=schrift, fill=INK, anchor="mm", stroke_width=4,
                    stroke_fill=PAPIER)
-    text = ("aufbau hinter allem · achsen hinter den rädern" if ansicht == "seite"
-            else "unter allem: rahmen und achsen (quer) · aufbau gestrichelt als Dach")
-    d.text((b // 2, 64 if ansicht == "seite" else int(3.5 * z)), text, font=schrift, fill=INK, anchor="mm",
+    if ansicht == "seite":
+        text = "rot: Karosserie-Nähte · gestrichelt rot: Gürtellinie · achsen hinter den rädern"
+    else:
+        text = "unter allem: rahmen und achsen · karosserie gestrichelt, liegt oben drauf"
+    hoehe_text = int(1.55 * z) if ansicht == "seite" else int(3.5 * z)
+    d.text((b // 2, hoehe_text), text, font=schrift, fill=INK, anchor="mm",
            stroke_width=4, stroke_fill=PAPIER)
     if ansicht == "seite":
         d.line([(0, ges["boden"] * z - 3), (b, ges["boden"] * z - 3)], fill=INK, width=6)
@@ -527,6 +697,13 @@ def main(argv: list[str] | None = None) -> int:
                     help="Rand abschneiden, z. B. --kappen seite unten 27 (wiederholbar)")
     bl.add_argument("--rot-grau", choices=["seite", "oben"],
                     help="Rote Stellen in dieser Ansicht grau färben (z. B. Felgenrest in der Draufsicht)")
+    ka = sub.add_parser("karosserie", help="Ganze Karosserie (Doppelbild) normieren und in 3 Teile schneiden")
+    ka.add_argument("eingabe")
+    ka.add_argument("modell", help="z. B. kaefer; Ausgabe nach assets/teile/<modell>_hinten|_mitte|_vorne/")
+    ka.add_argument("--keine-inseln", action="store_true")
+    kp = sub.add_parser("karosserie-platzhalter",
+                        help="Zwei gezeichnete Platzhalter-Karosserien (A, B) erzeugen")
+    kp.add_argument("--roh", help="Ordner für die Rohbilder (Standard: assets/teile/platzhalter-roh)")
     bb = sub.add_parser("bauen", help="Teile zu einem Auto zusammensetzen")
     bb.add_argument("ansicht", choices=["seite", "oben"])
     bb.add_argument("ausgabe")
@@ -561,6 +738,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{os.path.relpath(pfad)}: {fertig.width}×{fertig.height} px")
             for h in hinweise:
                 print(f"Hinweis ({ansicht}):", h)
+    elif args.befehl in ("karosserie", "karosserie-platzhalter"):
+        if args.befehl == "karosserie":
+            auftraege = [(args.modell, Image.open(args.eingabe), not args.keine_inseln)]
+        else:
+            roh_dir = args.roh or os.path.join(TEILE_DIR, "platzhalter-roh")
+            os.makedirs(roh_dir, exist_ok=True)
+            auftraege = []
+            for m in ("A", "B"):
+                roh = karosserie_platzhalter(raster, m)
+                roh.save(os.path.join(roh_dir, f"platzhalter-{m.lower()}_blatt.png"))
+                auftraege.append((f"platzhalter-{m.lower()}", roh, True))
+        for modell, roh, inseln in auftraege:
+            teile, hinweise = karosserie_schneiden(roh, raster, inseln=inseln)
+            for teil, ansichten in teile.items():
+                ziel = os.path.join(TEILE_DIR, f"{modell}_{teil}")
+                os.makedirs(ziel, exist_ok=True)
+                for ansicht, fertig in ansichten.items():
+                    fertig.save(os.path.join(ziel, f"{ansicht}.png"))
+                print(f"{os.path.relpath(ziel)}: seite + oben")
+            for h in hinweise:
+                print("Hinweis:", h)
     elif args.befehl == "bauen":
         teile = {}
         for eintrag in args.teile:

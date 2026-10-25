@@ -76,6 +76,9 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
 
 ### Werkstatt (Entwurf, `design/werkstatt.html`)
 
+- Regal mit **Kategorien** als Vorauswahl: Grundgestell, Achsen, Räder, Motor,
+  Energie, Sitz, Lenkung, Licht, Karosserie. Ist eine Kategorie fertig,
+  springt das Regal zur nächsten, in der gerade etwas geht.
 - Hebebühne mit zwei Ansichten zum Umschalten: **Seite** und **Draufsicht**.
   Achsen baut man in der Draufsicht ein, weil sie von der Seite hinter den
   Rädern liegen. Tippt man in der Seitenansicht auf eine Achse, schaltet die
@@ -91,6 +94,19 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
   Reihenfolge. Fehlt ein Schritt, sagt die Werkstatt, welcher.
 - Offen: mehrere Teile pro Kategorie zur Auswahl,
   Werkstatt-Raum mit Tiefe, Fahrerfigur.
+
+### Karosserie
+
+- Jedes Modell besteht aus drei Teilen: **hinten, Mitte, vorne**. Die Teile
+  sind auf der Karte und über Aufträge verteilt und werden einzeln gesammelt.
+- Ziel: etwa **20 Modelle, also 60 Teile**. Alle Teile passen an alle anderen
+  (feste Nähte und Gürtellinie, siehe `assets/RASTER.md`).
+- Die Karosserie wird **als Letztes** eingebaut, wenn das Auto fahrbereit ist,
+  und muss als Erstes wieder ab.
+- Idee: Ein **kompletter Satz** eines Modells (alle drei Teile gleich) gibt
+  einen kleinen Bonus. Gemischte Karossen sind erlaubt und gewollt.
+- Idee für Dredge: Das Mittelteil bestimmt die **Ladefläche** (Pick-up viel,
+  Kugel wenig), hinten und vorne beeinflussen Luftwiderstand und Robustheit.
 
 ### Anleihen bei Dredge
 

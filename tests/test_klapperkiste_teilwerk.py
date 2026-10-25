@@ -182,3 +182,46 @@ def test_achse_seite_setzt_nabe_in_die_mitte(raster):
     links, _, rechts, unten = fertig.getchannel("A").getbbox()
     assert abs((rechts - links) - fertig.width * 0.45) <= 3
     assert abs(unten - (fertig.height / 2 + fertig.width * 0.45 / 2)) <= 3
+
+
+def test_karosserie_naehte_schliessen_lueckenlos_an(raster):
+    k, slots, kats = raster["karosserie"], raster["slots"], raster["kategorien"]
+    folge = [("karoH", "karoM"), ("karoM", "karoV")]
+    for links, rechts in folge:
+        x_links = slots[links]["seite"][0] + kats[slots[links]["kategorie"]]["seite"][0]
+        assert x_links == slots[rechts]["seite"][0]
+    assert [slots[s]["seite"][0] for s in ("karoM", "karoV")] == k["naehte_x"]
+    ende = slots["karoV"]["seite"][0] + kats["karosserie_vorne"]["seite"][0]
+    assert ende == raster["seite"]["breite"]
+    for s in ("karoH", "karoM", "karoV"):
+        assert slots[s]["seite"][1] + kats[slots[s]["kategorie"]]["seite"][1] == k["unterkante_y"]
+
+
+def _naht_hoehe(bild, x):
+    alpha = bild.getchannel("A").point(lambda a: 255 if a > 16 else 0)
+    oben, unten = teilwerk._ausdehnung(alpha, x)
+    return unten - oben
+
+
+def test_karosserie_modelle_lassen_sich_mischen(raster):
+    z = raster["zelle_px"]
+    soll = (raster["karosserie"]["unterkante_y"] - raster["karosserie"]["guertel_y"]) * z
+    teile = {}
+    for m in ("A", "B"):
+        teile[m], hinweise = teilwerk.karosserie_schneiden(teilwerk.karosserie_platzhalter(raster, m), raster)
+        assert hinweise == [], hinweise
+        assert teile[m]["vorne"]["seite"].size == teilwerk.box_px(raster, "karosserie_vorne", "seite")
+    # Naht hinten|Mitte: rechter Rand von A-hinten gleich hoch wie linker Rand von B-mitte
+    a_hinten = _naht_hoehe(teile["A"]["hinten"]["seite"], 3 * z - 3)
+    b_mitte = _naht_hoehe(teile["B"]["mitte"]["seite"], 2)
+    assert abs(a_hinten - soll) <= soll * 0.08
+    assert abs(b_mitte - soll) <= soll * 0.08 or b_mitte > soll  # Mitte darf nach oben (Kuppel)
+
+
+def test_karosserie_warnt_bei_falscher_guertellinie(raster):
+    roh = Image.new("RGB", (1000, 900), (255, 255, 255))
+    d = ImageDraw.Draw(roh)
+    d.polygon([(50, 300), (500, 100), (950, 300), (950, 380), (50, 380)], fill=(200, 60, 60))  # Seite: Keil
+    d.rectangle((50, 550, 950, 800), fill=(200, 60, 60))  # Draufsicht
+    _, hinweise = teilwerk.karosserie_schneiden(roh, raster)
+    assert any("Naht" in h for h in hinweise)
