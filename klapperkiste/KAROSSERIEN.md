@@ -1,6 +1,7 @@
 # Klapperkiste – Karosserie-Modelle (Entwurf)
 
-20 Modelle à 3 Teile (hinten, Mitte, vorne) = 60 Teile. Die Teile werden
+Vorerst 17 Modelle à 3 Teile (hinten, Mitte, vorne) = 51 Teile. Weitere
+kommen später, wenn neue Ideen da sind. Die Teile werden
 einzeln gefunden (Karte, Aufträge) und einzeln eingebaut. In der Werkstatt darf
 man Teile verschiedener Modelle ausprobieren, **auf die Karte geht es aber nur
 ohne Karosserie oder mit einem kompletten Satz** eines Modells. Bis der erste
@@ -28,9 +29,6 @@ nicht gefahren wird, muss die Kabine nicht mehr genau ins Mittelteil passen.
 | 15 | Gewächshaus | Blumenkasten mit Tulpen | Glashaus mit Tomatenpflanzen | Haube aus Gießkannen | Pflanzen liefern | Gärtnerei |
 | 16 | Zirkus | Menschenkanone | gestreifte Zirkuszelt-Kuppel | Clownsnase als Kühler | Zuschauer locken | Zirkus |
 | 17 | Schlauchboot | Spiegelbrett (ohne Motor) | Schlauchwülste mit Ruderbänken und Paddeln | runder Bug mit Schleppöse | als kompletter Satz über die Seen zu den Inseln | Hafen, See |
-| 18 | Wohnzimmer | alte Kommode | Ohrensessel mit Stehlampe | Röhrenfernseher als Haube | Komfort, Fahrer ruht sich aus | Flohmarkt |
-| 19 | Bienenstock | Honigtopf | Bienenkorb-Kuppel | Wabenhaube | Honig, Schafe gehen aus dem Weg | Imkerei |
-| 20 | Dampflok | Kohlentender | Führerhaus mit Pfeife | Dampfkessel mit kurzem Schornstein | Ziehen und Abschleppen | Bahnhof, Bergwerk |
 
 ## Prompt-Anfänge
 
@@ -57,9 +55,6 @@ bleibt gleich.
 | 15 | A greenhouse car body with a flower box with tulips at the rear, a glass house with tomato plants in the middle and a hood made of watering cans at the front |
 | 16 | A circus car body with a human cannon at the rear, a striped circus tent dome in the middle and a red clown nose as the front grille |
 | 17 | An inflatable rubber dinghy car body (siehe Prompt-Liste) |
-| 18 | A living room car body with an old chest of drawers at the rear, a wing armchair with a floor lamp in the middle and an old tube television as the front hood |
-| 19 | A beehive car body with a honey pot at the rear, a straw bee skep dome in the middle and a honeycomb hood at the front |
-| 20 | A small steam locomotive car body with a coal tender at the rear, a driver's cab with a whistle in the middle and a boiler with a short chimney at the front |
 
 ## Hauptfarben
 
@@ -85,9 +80,6 @@ auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
 | 15 | Gewächshaus | grüne Fensterrahmen, Glas, Terrakotta |
 | 16 | Zirkus | Lila und Gold gestreift |
 | 17 | Schlauchboot | leuchtendes Orangerot, graue Flicken |
-| 18 | Wohnzimmer | Senfgelb und Olivgrün, 70er-Jahre-Blumenmuster |
-| 19 | Bienenstock | Honiggelb mit schwarzen Streifen |
-| 20 | Dampflok | glänzend Schwarz, Messing, rote Zierlinien |
 
 ## Schneeraupe und Raupenketten
 
@@ -101,3 +93,9 @@ langsam. Zusammen mit der Schneeraupen-Karosserie gibt es den Satz-Bonus.
 Der Außenborder ist kein Teil der Schlauchboot-Karosserie, sondern ein eigenes
 Bauteil zum Sammeln (Kategorie Heck). Ohne Motor wird auf dem See gepaddelt
 (langsam), mit Bootsmotor geht es schneller und weiter hinaus.
+
+## Gestrichen
+
+Wohnzimmer, Bienenstock und Dampflok (Nr. 18–20) sind raus. Schafe vertreibt
+eine **Spezialhupe** (eigenes Sammel-Teil), Ausruhen gibt es nicht, und
+Abschleppen wird bei Bedarf später neu überlegt.

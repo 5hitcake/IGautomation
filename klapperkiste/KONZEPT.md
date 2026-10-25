@@ -101,7 +101,7 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
 
 - Jedes Modell besteht aus drei Teilen: **hinten, Mitte, vorne**. Die Teile
   sind auf der Karte und über Aufträge verteilt und werden einzeln gesammelt.
-- Ziel: etwa **20 Modelle, also 60 Teile**.
+- Vorerst **17 Modelle, also 51 Teile** (Liste in `KAROSSERIEN.md`).
 - **Auf der Karte nur komplette Sätze:** Die Teile werden einzeln eingebaut,
   in der Werkstatt darf man auch mischen und ausprobieren. Losfahren geht aber
   nur ohne Karosserie oder mit allen drei Teilen desselben Modells. Am Anfang
@@ -119,6 +119,9 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
   „anbauten“).
 
 ### Karten-Ideen
+
+Das ausführliche Konzept mit Maßstab und Raster steht in [`KARTE.md`](KARTE.md).
+
 
 - **Zwei Seen mit Inseln.** Die Inseln sind nur mit der
   **Schlauchboot-Karosserie** erreichbar. Die Badewanne reicht nur für Furten und

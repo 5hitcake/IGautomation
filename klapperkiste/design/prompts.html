@@ -90,7 +90,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   <header>
     <p class="eyebrow">Schritt A2 · Teile und Karosserien · Comic-Look</p>
     <h1>Klapperkiste Prompt-Liste</h1>
-    <p class="lead">7 Teile und 20 Karosserien, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
+    <p class="lead">7 Teile und 17 Karosserien, je Seitenansicht und Draufsicht. Ein Prompt erzeugt beide Ansichten in einem Bild: oben die Seite, unten die Draufsicht. Bild schicken, ich trenne und passe beide ins Raster ein.</p>
     <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 12 geliefert</span></div>
   </header>
 
@@ -214,13 +214,6 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
     { nr: 17, id: "schlauchboot", farbe: "bright orange-red rubber tubes with grey rubber patches and a light grey floor", name: "Schlauchboot", bonus: "als kompletter Satz über die Seen zu den Inseln",
       form: "the whole body is one big inflatable rubber dinghy like an amphibious boat on wheels: thick round inflated tubes run along both sides with a straight lower edge along its whole length, rope handles and glued patches on the tubes, at the rear a flat wooden transom board without a motor, in the middle third two wooden rowing benches across the boat with two paddles lying inside the boat along its length, at the front the tubes curve up into a rounded bow with a small towing ring, no outboard motor, nothing sticks out beyond the front and rear ends, no logos or emblems",
       modell: "An inflatable rubber dinghy car body" },
-    { nr: 18, id: "wohnzimmer", farbe: "mustard yellow and olive green 1970s style with floral patterns", name: "Wohnzimmer", bonus: "Komfort, Fahrer ruht sich aus",
-      form: "the lower body is a long low wooden floor platform with a patterned carpet and a straight closed lower edge along its whole length, at the rear an old chest of drawers standing on the platform, in the middle third a big wing armchair with a tall floor lamp beside it and a small framed picture on a stand, at the front an old wooden tube television set lying as the hood with its screen facing forward, no roof and no windows, nothing sticks out beyond the front and rear ends, no logos or emblems",
-      modell: "A living room car body with an old chest of drawers at the rear, a wing armchair with a floor lamp in the middle and an old tube television as the front hood" },
-    { nr: 19, id: "bienenstock", farbe: "honey yellow with black stripes", name: "Bienenstock", bonus: "Honig, Schafe gehen aus dem Weg",
-      modell: "A beehive car body with a honey pot at the rear, a straw bee skep dome in the middle and a honeycomb hood at the front" },
-    { nr: 20, id: "dampflok", farbe: "glossy black with brass fittings and red trim", name: "Dampflok", bonus: "Ziehen und Abschleppen",
-      modell: "A small steam locomotive car body with a coal tender at the rear, a driver's cab with a whistle in the middle and a boiler with a short chimney at the front" },
   ];
   const karoPrompt = (m) => `${m.modell}. Main colours: ${m.farbe}. Car body shell for a junk car, only the body: no wheels, no chassis, no engine, no driver. Orthographic model sheet showing this same car body twice, stacked vertically with a wide empty white gap between the two views. Top half: flat side elevation, the front points to the right, ${m.form || (m.hoch ? KARO_HOCH : KARO_NORMAL)}. Bottom half: ${TOP_VIEW}, same length, the body has the same width along its whole length. Both views at the same scale and aligned. ${LOOK} ${SHEET_BG}`;
 
@@ -350,7 +343,7 @@ details.prompt-box[open] summary { margin-bottom: 8px; }
   } else if (nextKaro) {
     nextBox.append(el("h2", null, `Als Nächstes: Karosserie ${nextKaro.nr}, ${nextKaro.name}`), karoCard(nextKaro, "-next"));
   } else {
-    nextBox.append(el("h2", null, "Alles da: Schrottkarre und alle 20 Karosserien."));
+    nextBox.append(el("h2", null, "Alles da: Schrottkarre und alle Karosserien."));
   }
 
   const list = document.getElementById("list");
