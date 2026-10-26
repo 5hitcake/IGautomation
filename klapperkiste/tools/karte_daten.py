@@ -65,9 +65,32 @@ def auto(raster: dict, modell: str | None) -> Image.Image:
     return bild.resize((round(bild.width * faktor), round(bild.height * faktor)), Image.LANCZOS)
 
 
+def figuren() -> dict:
+    """Figuren (vier Gesten, Höhe 640 px) und Gesprächshintergründe (Breite 1280 px)."""
+    ch = os.path.join(ROOT, "assets", "charaktere")
+    daten = {"figuren": {}, "hintergruende": {}}
+    for name in sorted(os.listdir(ch)):
+        ordner = os.path.join(ch, name)
+        if name in ("roh", "hintergrund") or not os.path.isdir(ordner):
+            continue
+        gesten = {}
+        for datei in sorted(os.listdir(ordner)):
+            if datei.endswith(".png"):
+                b = Image.open(os.path.join(ordner, datei)).convert("RGBA")
+                b = b.resize((round(b.width * 640 / b.height), 640), Image.LANCZOS)
+                gesten[datei[:-4]] = _uri(b)
+        daten["figuren"][name] = gesten
+    hg = os.path.join(ch, "hintergrund")
+    for datei in sorted(os.listdir(hg)) if os.path.isdir(hg) else []:
+        b = Image.open(os.path.join(hg, datei)).convert("RGB")
+        b = b.resize((1280, round(b.height * 1280 / b.width)), Image.LANCZOS)
+        daten["hintergruende"][datei.rsplit(".", 1)[0]] = _uri(b)
+    return daten
+
+
 def main() -> int:
     raster = teilwerk.lade_raster()
-    daten = {"boden": {}, "objekte": {}, "autos": []}
+    daten = {"boden": {}, "objekte": {}, "autos": [], **figuren()}
     for name in BODEN:
         k = Image.open(os.path.join(ROOT, "assets", "karte", "boden", f"{name}.png")).convert("RGB")
         daten["boden"][name] = {"bild": _uri(k), "meter": k.width / 32}

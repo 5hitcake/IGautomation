@@ -39,6 +39,24 @@ p { margin: 0; }
 .hud span { background: rgba(18,35,42,0.82); padding: 3px 9px; border-radius: 8px; font-size: 13px; font-variant-numeric: tabular-nums; width: max-content; }
 #ziel { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 #ziel div { background: rgba(18,35,42,0.92); border: 3px solid var(--mustard); border-radius: 16px; padding: 16px 22px; text-align: center; pointer-events: auto; max-width: 80%; }
+/* Gespräch wie bei Pokémon: Hintergrund des Orts, Figur, Textfeld unten */
+#gespraech { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; background: #e8dcc2 center / cover no-repeat; cursor: pointer; }
+#gFigur { position: absolute; left: 6%; bottom: 22%; height: 72%; width: auto; max-width: 60%; object-fit: contain; transform-origin: 50% 100%; }
+#gFigur.neu { animation: wackel 0.35s ease-out; }
+#gespraech.auf #gFigur { animation: rein 0.45s ease-out; }
+@keyframes wackel { 0% { transform: scale(0.96, 1.04); } 60% { transform: scale(1.03, 0.97); } 100% { transform: none; } }
+@keyframes rein { from { transform: translateX(-60%); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #gFigur.neu, #gespraech.auf #gFigur { animation: none; } }
+.g-box {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; min-height: 22%; box-sizing: border-box;
+  background: #fffaf0; color: #1d1a16; border: 4px solid #1d1a16; border-radius: 14px; padding: 22px 16px 14px;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.35);
+}
+.g-box strong { position: absolute; top: -16px; left: 14px; background: #c8642a; color: #fffaf0; font-family: var(--font-display); font-weight: 400; font-size: 18px; padding: 2px 12px; border-radius: 8px; border: 3px solid #1d1a16; }
+.g-box p { font-size: clamp(15px, 3.6vw, 18px); line-height: 1.4; font-weight: 700; margin-top: 6px; min-height: 2.8em; }
+.g-weiter { position: absolute; right: 14px; bottom: 6px; font-size: 14px; animation: blink 0.9s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.hud span.auftrag { background: rgba(200,100,42,0.92); }
 #ziel strong { font-family: var(--font-display); font-weight: 400; font-size: 28px; color: var(--mustard); display: block; }
 .steuer { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
 .steuer button, .leiste button, select {
@@ -61,7 +79,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   <header style="display:grid;gap:6px">
     <p class="eyebrow">Schritt K4 · Startgebiet · 320 × 320 m</p>
     <h1>Klapperkiste Kartenprobe</h1>
-    <p class="lead">Fahr mit deinem Auto von Opas Schuppen zum Schrottplatz. Auf dem Feldweg geht es am schnellsten, über die Wiese holpert es langsam, Bäume und Felsen halten dich auf.</p>
+    <p class="lead">Fahr mit deinem Auto von Opas Schuppen zum Schrottplatz, dort wartet Knut Kurbel. Auf dem Feldweg geht es am schnellsten, über die Wiese holpert es langsam, Bäume und Felsen halten dich auf.</p>
   </header>
 
   <div class="leiste">
@@ -77,8 +95,13 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       <span id="tempo">0 km/h</span>
       <span id="boden">Feldweg</span>
       <span id="weg">Schrottplatz: 0 m</span>
+      <span id="auftrag" class="auftrag" hidden></span>
     </div>
     <div id="ziel" hidden><div><strong>Geschafft!</strong><p id="zielText"></p></div></div>
+    <div id="gespraech" hidden role="dialog" aria-label="Gespräch" tabindex="-1">
+      <img id="gFigur" alt="">
+      <div class="g-box"><strong id="gName"></strong><p id="gText" aria-live="polite"></p><span class="g-weiter" aria-hidden="true">▼</span></div>
+    </div>
   </div>
 
   <div class="steuer">
@@ -236,11 +259,11 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   const auto = { ...START, v: 0, wackel: 0 };
   let autoWahl = AUTOS[0];
   const taste = { gas: false, bremse: false, links: false, rechts: false };
-  let start = null, fertig = false, rumms = 0;
+  let start = null, fertig = false, rumms = 0, besucht = false;
 
   function neu() {
     Object.assign(auto, { ...START, v: 0 });
-    start = null; fertig = false; $("ziel").hidden = true;
+    start = null; fertig = false; besucht = false; $("auftrag").hidden = true; $("ziel").hidden = true; $("gespraech").hidden = true;
   }
 
   // --- Physik ----------------------------------------------------------------
@@ -277,7 +300,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     auto.x = Math.max(2, Math.min(W - 2, auto.x));
     auto.y = Math.max(2, Math.min(W - 2, auto.y));
     if (Math.abs(auto.v) > 0.3 && start === null) start = performance.now();
-    if (!fertig && imSchrottplatz(auto.x, auto.y) && auto.y < SCHROTT.tor[1] - 5) ankunft();
+    if (!fertig && !besucht && imSchrottplatz(auto.x, auto.y) && auto.y < SCHROTT.tor[1] - 5) ankunft();
   }
 
   // Auto als zwei Kreise (vorne, hinten) gegen Bäume, Felsen, Schuppen und Zäune
@@ -312,11 +335,63 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   }
 
   function ankunft() {
-    fertig = true;
+    fertig = true; besucht = true;
     const s = start ? (performance.now() - start) / 1000 : 0;
-    $("zielText").textContent = `Du bist in ${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")} Minuten auf dem Schrottplatz angekommen. Hier gibt es später die ersten Teile.`;
-    $("ziel").hidden = false;
+    const zeit = `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+    gespraech("knut", "Knut Kurbel", "schrottplatz", [
+      ["hallo", `Na sieh mal einer an! Mit der Klapperkiste bis hierher, in ${zeit} Minuten? Respekt. Ich bin Knut Kurbel, mir gehört der ganze Schrott hier.`],
+      ["nachdenken", "Hm … ohne Karosserie fährst du ja praktisch im Unterhemd durch die Gegend. Und die Reifen sind auch nicht mehr die jüngsten."],
+      ["auftrag", "Pass auf: Draußen am Feldrand liegen drei alte Reifen herum. Bring sie mir, dann suche ich dir was Ordentliches aus dem Schrott raus."],
+      ["juhu", "Abgemacht? Prima! Dann ab mit dir, der Schrott wartet nicht!"],
+    ], () => {
+      const a = $("auftrag");
+      a.textContent = "Auftrag: 3 alte Reifen für Knut (kommt bald)";
+      a.hidden = false;
+      fertig = false;
+    });
   }
+
+  // --- Gespräch -------------------------------------------------------------
+  let gZeilen = [], gNr = 0, gTipp = null, gEnde = null;
+  function gespraech(figur, name, ort, zeilen, ende) {
+    const box = $("gespraech");
+    box.style.backgroundImage = D.hintergruende && D.hintergruende[ort] ? `url(${D.hintergruende[ort]})` : "";
+    box.dataset.figur = figur;
+    box.setAttribute("aria-label", `Gespräch mit ${name}`);
+    $("gName").textContent = name;
+    gZeilen = zeilen; gNr = 0; gEnde = ende;
+    box.hidden = false;
+    box.classList.add("auf");
+    setTimeout(() => box.classList.remove("auf"), 500);
+    box.focus();
+    zeile();
+  }
+  function zeile() {
+    const [geste, text] = gZeilen[gNr];
+    const fig = $("gFigur"), figuren = (D.figuren || {})[$("gespraech").dataset.figur] || {};
+    if (figuren[geste]) {
+      if (fig.src !== figuren[geste]) { fig.src = figuren[geste]; fig.classList.remove("neu"); void fig.offsetWidth; fig.classList.add("neu"); }
+    }
+    const p = $("gText");
+    clearInterval(gTipp);
+    if (reduce) { p.textContent = text; gTipp = null; return; }
+    let i = 0;
+    p.textContent = "";
+    gTipp = setInterval(() => {
+      i += 2;
+      p.textContent = text.slice(0, i);
+      if (i >= text.length) { clearInterval(gTipp); gTipp = null; }
+    }, 30);
+  }
+  function weiter() {
+    if (gTipp) { clearInterval(gTipp); gTipp = null; $("gText").textContent = gZeilen[gNr][1]; return; }
+    gNr++;
+    if (gNr < gZeilen.length) return zeile();
+    $("gespraech").hidden = true;
+    if (gEnde) gEnde();
+  }
+  $("gespraech").addEventListener("click", weiter);
+  $("gespraech").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); weiter(); } });
 
   // --- Zeichnen --------------------------------------------------------------
   const cv = $("karte"), ctx = cv.getContext("2d");
@@ -435,7 +510,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     const u = untergrund(auto.x, auto.y);
     $("tempo").textContent = `${Math.round(Math.abs(auto.v) * 3.6)} km/h${auto.v < -0.2 ? " rückwärts" : ""}`;
     $("boden").textContent = u.name;
-    $("weg").textContent = fertig ? "Schrottplatz erreicht" : `Schrottplatz: ${Math.round(Math.hypot(auto.x - SCHROTT.tor[0], auto.y - SCHROTT.tor[1]))} m Luftlinie`;
+    $("weg").textContent = besucht ? "Schrottplatz besucht" : `Schrottplatz: ${Math.round(Math.hypot(auto.x - SCHROTT.tor[0], auto.y - SCHROTT.tor[1]))} m Luftlinie`;
     miniZeichnen();
   }
 
