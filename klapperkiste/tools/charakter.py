@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 import sys
 
-from PIL import Image, ImageStat
+from PIL import Image, ImageDraw, ImageStat
 
 sys.path.insert(0, os.path.dirname(__file__))
 import teilwerk  # noqa: E402
@@ -37,6 +37,40 @@ def _trenner(bild: Image.Image, achse: str) -> int:
         hell = ImageStat.Stat(streifen).mean[0]
         beste = max(beste, (hell, i))
     return beste[1]
+
+
+def beine_frei(teil: Image.Image, ab: float = 0.5) -> Image.Image:
+    """Eingeschlossenes Papierweiß zwischen den Beinen entfernen.
+
+    Gesucht wird nur in der unteren Hälfte, und entfernt werden nur weiße Flächen,
+    die hoch und schmal sind und bis zu den Füßen reichen (Lücke zwischen den Beinen). Augen, Brillengläser
+    und breite weiße Flächen wie eine Schürze bleiben erhalten."""
+    px = teil.load()
+    y0 = round(teil.height * ab)
+    kand = Image.new("L", teil.size, 0)
+    kp = kand.load()
+    for y in range(y0, teil.height):
+        for x in range(teil.width):
+            r, g, b, a = px[x, y]
+            if a > 200 and min(r, g, b) > 215 and max(r, g, b) - min(r, g, b) < 25:
+                kp[x, y] = 255
+    alpha = teil.getchannel("A")
+    while True:
+        box = kand.getbbox()
+        if not box:
+            break
+        # erstes Pixel des Kandidaten suchen und seine Fläche füllen
+        x0, yy = next((x, box[1]) for x in range(box[0], box[2]) if kp[x, box[1]] == 255)
+        ImageDraw.floodfill(kand, (x0, yy), 128)
+        flaeche = kand.point(lambda v: 255 if v == 128 else 0)
+        fx0, fy0, fx1, fy1 = flaeche.getbbox()
+        b, h = fx1 - fx0, fy1 - fy0
+        schmal_hoch = h >= 1.2 * b and b < teil.width * 0.3
+        if flaeche.histogram()[255] >= 120 and schmal_hoch and fy1 > teil.height * 0.75:
+            alpha.paste(0, (0, 0), flaeche)
+        kand.paste(0, (0, 0), flaeche)
+    teil.putalpha(alpha)
+    return teil
 
 
 def schneiden(eingabe: str, name: str) -> list[str]:
@@ -61,6 +95,7 @@ def schneiden(eingabe: str, name: str) -> list[str]:
                     if nachbar_leer:
                         px[x, y] = (r, g, b, 0)
         teil = teil.crop(teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox())
+        teil = beine_frei(teil)
         pfad = os.path.join(ziel, f"{geste}.png")
         teil.save(pfad)
         pfade.append(pfad)

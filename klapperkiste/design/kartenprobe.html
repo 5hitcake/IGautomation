@@ -57,8 +57,20 @@ p { margin: 0; }
 .g-weiter { position: absolute; right: 14px; bottom: 6px; font-size: 14px; animation: blink 0.9s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: rgba(18,35,42,0.94); border: 2px solid var(--mustard); color: var(--chalk); padding: 8px 14px; border-radius: 12px; font-weight: 800; text-align: center; max-width: 86%; pointer-events: none; }
-#karte { cursor: crosshair; }
+#grosskarte { position: absolute; inset: 0; border-radius: 14px; background: rgba(18,35,42,0.96); display: grid; grid-template-rows: auto 1fr; padding: 10px; gap: 8px; box-sizing: border-box; }
+#grosskarte header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#grosskarte h2 { font-family: var(--font-display); font-weight: 400; color: var(--mustard); margin: 0; font-size: 22px; }
+#grosskarte canvas { width: 100%; height: 100%; min-height: 0; object-fit: contain; touch-action: manipulation; }
+#meldung { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.35); border-radius: 14px; }
+#meldung > div { background: #fffaf0; color: #1d1a16; border: 4px solid #1d1a16; border-radius: 16px; padding: 16px 18px; max-width: 84%; display: grid; gap: 10px; box-shadow: 0 4px 0 rgba(0,0,0,0.35); }
+#meldung strong { font-family: var(--font-display); font-weight: 400; font-size: 24px; color: #a23b1c; }
+#meldung .fehlt { background: #f3e2b8; border-radius: 10px; padding: 8px 10px; font-weight: 800; }
+#meldung .knoepfe, #grosskarte header .knoepfe { display: flex; gap: 8px; flex-wrap: wrap; }
+.knopf { font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 10px 14px; cursor: pointer; background: var(--mustard); color: var(--board); }
+.knopf.zweit { background: #d9cfbb; color: #1d1a16; }
 #mini { cursor: pointer; }
+.fahrleiste { display: flex; gap: 10px; flex-wrap: wrap; }
+.fahrleiste .knopf { flex: 1 1 140px; padding: 14px; font-size: 17px; }
 .hud span.auftrag { background: rgba(200,100,42,0.92); }
 #ziel strong { font-family: var(--font-display); font-weight: 400; font-size: 28px; color: var(--mustard); display: block; }
 .steuer { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
@@ -82,13 +94,13 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   <header style="display:grid;gap:6px">
     <p class="eyebrow">Schritt K4 · Startgebiet · 320 × 320 m</p>
     <h1>Klapperkiste Kartenprobe</h1>
-    <p class="lead">Tippe ein Ziel an, und die Klapperkiste fährt selbst hin. Am Anfang kennst du nur die Gegend um Opas Schuppen. Finde Kartenstücke, um weitere Gebiete aufzudecken, und fahr zum Schrottplatz, dort wartet Knut Kurbel.</p>
+    <p class="lead">Wähle auf der Karte ein Ziel, und die Klapperkiste fährt auf dem Weg selbst hin. Am Anfang kennst du nur die Gegend um Opas Schuppen. Finde Kartenstücke, um weitere Gebiete aufzudecken, und fahr zum Schrottplatz, dort wartet Knut Kurbel.</p>
   </header>
 
   <div class="leiste">
     <label for="auto" style="color:var(--chalk-dim)">Auto</label>
     <select id="auto"></select>
-    <button type="button" id="neu">Zurück zum Schuppen</button>
+    <button type="button" id="neu">Neu starten</button>
   </div>
 
   <div class="buehne">
@@ -101,6 +113,14 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       <span id="auftrag" class="auftrag" hidden></span>
     </div>
     <div id="toast" class="toast" hidden role="status"></div>
+    <div id="grosskarte" hidden role="dialog" aria-label="Karte: Ziel auswählen">
+      <header><h2>Wohin fahren?</h2><div class="knoepfe"><button type="button" class="knopf zweit" id="karteZu">Schließen</button></div></header>
+      <canvas id="gross" aria-label="Karte mit Zielen. Tippe auf ein markiertes Ziel."></canvas>
+    </div>
+    <div id="meldung" hidden role="alertdialog" aria-labelledby="mTitel">
+      <div><strong id="mTitel">Hier geht es nicht weiter</strong><p id="mText"></p><p class="fehlt" id="mFehlt"></p>
+        <div class="knoepfe"><button type="button" class="knopf" id="zurWerkstatt">Zur Werkstatt</button><button type="button" class="knopf zweit" id="mZu">Stehen bleiben</button></div></div>
+    </div>
     <div id="ziel" hidden><div><strong>Geschafft!</strong><p id="zielText"></p></div></div>
     <div id="gespraech" hidden role="dialog" aria-label="Gespräch" tabindex="-1">
       <img id="gFigur" alt="">
@@ -108,7 +128,11 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     </div>
   </div>
 
-  <p class="how"><strong>Fahren:</strong> Tippe auf die Karte oder auf die Übersichtskarte oben rechts, wohin die Klapperkiste fahren soll. Sie sucht sich den Weg selbst. Der Nebel lichtet sich erst, wenn du ein <strong>Kartenstück</strong> findest. Pfeiltasten bzw. W A S D gehen zum Testen weiterhin. Am Schrottplatz endet die Probe; Teile und Charaktere kommen als Nächstes.</p>
+  <div class="fahrleiste">
+    <button type="button" class="knopf" id="karteAuf">🗺 Karte · Ziel wählen</button>
+    <button type="button" class="knopf zweit" id="schnellreise">Zur Werkstatt</button>
+  </div>
+  <p class="how"><strong>Fahren:</strong> Öffne die Karte und tippe auf ein markiertes Ziel. Die Klapperkiste fährt auf dem Weg selbst dorthin. Kommt ein Hindernis, das sie mit den eingebauten Teilen nicht schafft, bleibt sie stehen und sagt dir, was fehlt. Ziele im Nebel werden erst mit einem <strong>Kartenstück</strong> sichtbar. Pfeiltasten bzw. W A S D gehen zum Testen weiterhin.</p>
 </div>
 
 <script src="karte_daten.js"></script>
@@ -265,7 +289,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     for (const g of GEBIETE) g.offen = g.id === "start" || location.hash === "#schrottplatz";
     for (const st of STUECKE) st.genommen = false;
     nebelNeu();
-    start = null; fertig = false; besucht = false; $("auftrag").hidden = true; $("ziel").hidden = true; $("gespraech").hidden = true;
+    start = null; fertig = false; besucht = false; $("auftrag").hidden = true; $("ziel").hidden = true; $("gespraech").hidden = true; $("meldung").hidden = true; karteZu();
   }
 
   // --- Physik ----------------------------------------------------------------
@@ -404,8 +428,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     { id: "wald", name: "Waldrand im Westen", x: 70, y: 196, r: 82, offen: false },
   ];
   const STUECKE = [
-    { gebiet: "nord", x: 184, y: 189 },
-    { gebiet: "wald", x: 238, y: 152 },
+    { gebiet: "nord", x: 184, y: 213 },
+    { gebiet: "wald", x: 213, y: 124 },
   ];
   const offen = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r - 2);
   const nebel = document.createElement("canvas");
@@ -442,83 +466,87 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     if (navigator.vibrate) { try { navigator.vibrate([30, 40, 30]); } catch { /* egal */ } }
   }
 
-  // --- Wegsuche auf einem 1-m-Raster ------------------------------------------
-  const sperre = new Uint8Array(W * W), kosten = new Float32Array(W * W);
-  function rasterBauen() {
-    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
-      const u = untergrund(x + 0.5, y + 0.5).name;
-      kosten[y * W + x] = u === "Feldweg" ? 1 : u === "Wiese" ? 2.6 : 1.3;
-    }
-    const mark = (x, y, r) => {
-      for (let yy = Math.floor(y - r); yy <= Math.ceil(y + r); yy++) for (let xx = Math.floor(x - r); xx <= Math.ceil(x + r); xx++) {
-        if (xx >= 0 && yy >= 0 && xx < W && yy < W && Math.hypot(xx + 0.5 - x, yy + 0.5 - y) <= r) sperre[yy * W + xx] = 1;
+  // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
+  // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
+  // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
+  const NETZ_LINIEN = [[[150, 243], ...WEG, [230, 36]], ABZWEIG];
+  const KNOTEN = [], NACHBARN = [];
+  let HAUPT = 0; // Anzahl Punkte der Hauptlinie
+  function netzBauen() {
+    for (const [nr, linie] of NETZ_LINIEN.entries()) {
+      const anfang = KNOTEN.length;
+      let vorher = -1;
+      for (let i = 1; i < linie.length; i++) {
+        const [ax, ay] = linie[i - 1], [bx, by] = linie[i];
+        const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 2));
+        for (let k = i === 1 ? 0 : 1; k <= n; k++) {
+          const id = KNOTEN.push([ax + (bx - ax) * k / n, ay + (by - ay) * k / n]) - 1;
+          NACHBARN.push([]);
+          if (vorher >= 0) { NACHBARN[id].push(vorher); NACHBARN[vorher].push(id); }
+          vorher = id;
+        }
       }
-    };
-    for (const o of OBJEKTE) if (o.r) mark(o.x, o.y, o.r + 1);
-    for (const [a, b] of ZAEUNE) {
-      const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      for (let t = 0; t <= l; t += 0.4) mark(a[0] + (b[0] - a[0]) * t / l, a[1] + (b[1] - a[1]) * t / l, 1.1);
-    }
-    const [hx0, hy0, hx1, hy1] = SCHUPPEN.haus;
-    for (let y = Math.floor(hy0 - 1); y <= hy1 + 1; y++) for (let x = Math.floor(hx0 - 1); x <= hx1 + 1; x++) sperre[y * W + x] = 1;
-    // Abstand halten: Felder nahe an Hindernissen kosten mehr, so fährt das Auto mittig durch Tore
-    let rand = sperre.slice();
-    for (const zuschlag of [2.5, 1.2, 0.5]) {
-      const neu = rand.slice();
-      for (let y = 1; y < W - 1; y++) for (let x = 1; x < W - 1; x++) {
-        const i = y * W + x;
-        if (rand[i]) continue;
-        if (rand[i - 1] || rand[i + 1] || rand[i - W] || rand[i + W]) { kosten[i] += zuschlag; neu[i] = 1; }
-      }
-      rand = neu;
+      if (nr === 0) { HAUPT = KNOTEN.length; continue; }
+      // Abzweigung: Anfang der Linie mit dem nächsten Punkt der Hauptlinie verbinden
+      const j = naechsterKnoten(KNOTEN[anfang][0], KNOTEN[anfang][1], (k) => k < HAUPT);
+      NACHBARN[anfang].push(j); NACHBARN[j].push(anfang);
     }
   }
-  const frei1 = (x, y) => x >= 1 && y >= 1 && x < W - 1 && y < W - 1 && !sperre[y * W + x] && offen(x + 0.5, y + 0.5);
-  function suche(sx, sy, zx, zy) {
-    const start = sy * W + sx, ziel = zy * W + zx;
-    const g = new Float32Array(W * W).fill(Infinity), von = new Int32Array(W * W).fill(-1), zu = new Uint8Array(W * W);
-    const heap = [];
-    const push = (i, f) => { heap.push([f, i]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
-    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top[1]; };
-    g[start] = 0; push(start, 0);
-    const h = (i) => Math.hypot(i % W - zx, ((i / W) | 0) - zy);
-    while (heap.length) {
-      const i = pop();
-      if (i === ziel) break;
-      if (zu[i]) continue;
-      zu[i] = 1;
-      const x = i % W, y = (i / W) | 0;
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-        if (!dx && !dy) continue;
-        const nx = x + dx, ny = y + dy;
-        if (!frei1(nx, ny) && (ny * W + nx) !== ziel) continue;
-        if (dx && dy && (!frei1(x + dx, y) || !frei1(x, y + dy))) continue;
-        const j = ny * W + nx, ng = g[i] + kosten[j] * (dx && dy ? 1.414 : 1);
-        if (ng < g[j]) { g[j] = ng; von[j] = i; push(j, ng + h(j)); }
-      }
-    }
-    if (von[ziel] < 0) return null;
-    const weg = [];
-    for (let i = ziel; i !== start && i >= 0; i = von[i]) weg.push([i % W + 0.5, ((i / W) | 0) + 0.5]);
-    return weg.reverse().filter((_, k, a) => k % 2 === 0 || k === a.length - 1);
+  function naechsterKnoten(x, y, nur) {
+    let best = -1, bd = Infinity;
+    KNOTEN.forEach(([kx, ky], i) => { if (nur && !nur(i)) return; const d = Math.hypot(kx - x, ky - y); if (d < bd) { bd = d; best = i; } });
+    return best;
   }
-  function naechsterFreier(x, y) {
-    for (let r = 0; r < 8; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
-      if (Math.max(Math.abs(dx), Math.abs(dy)) === r && frei1(x + dx, y + dy)) return [x + dx, y + dy];
-    }
-    return null;
-  }
+  const ZIELE = [
+    { id: "schuppen", name: "Opas Schuppen", x: 150, y: 243, gebiet: "start" },
+    { id: "wegweiser", name: "Wegweiser", x: 181, y: 204, gebiet: "start" },
+    { id: "schrottplatz", name: "Schrottplatz", x: 230, y: 36, gebiet: "nord" },
+    { id: "waldweg", name: "Waldweg", x: 60, y: 214, gebiet: "wald" },
+  ];
+  const zielOffen = (z) => GEBIETE.find((g) => g.id === z.gebiet).offen;
+  // Hindernisse auf dem Weg: hier hält das Auto, wenn ihm ein Teil fehlt
+  const HINDERNISSE = [
+    { x: 102, y: 208.5, r: 3, braucht: "licht", titel: "Zu dunkel!",
+      text: "Hier beginnt der dunkle Wald. Ohne Licht sieht die Klapperkiste die Hand vor Augen nicht.",
+      fehlt: "Es fehlt: Scheinwerfer (Kategorie Licht). Bau in der Werkstatt ein Licht ein." },
+  ];
+  const hatTeil = (teil) => teil === "licht" && false; // die Schrottkarre hat noch kein Licht
 
-  // --- Selbst fahren zum angetippten Ziel ------------------------------------
-  let route = null, routeI = 0, zielPunkt = null, haengt = 0, rueck = 0;
-  function planen(x, y) {
-    if (!offen(x, y)) { toast("Dieses Gebiet liegt noch im Nebel. Finde ein Kartenstück!"); return; }
-    const z = naechsterFreier(Math.floor(x), Math.floor(y));
-    let s0 = [Math.floor(auto.x), Math.floor(auto.y)];
-    if (!frei1(...s0)) s0 = naechsterFreier(...s0) || s0;
-    const weg = z && suche(s0[0], s0[1], z[0], z[1]);
-    if (!weg || !weg.length) { toast("Da kommt die Klapperkiste nicht hin."); return; }
-    route = weg; routeI = 0; zielPunkt = [x, y]; haengt = 0;
+  // --- Selbst zum gewählten Ziel fahren ----------------------------------------
+  let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0;
+  function planen(ziel) {
+    const start = naechsterKnoten(auto.x, auto.y), ende = naechsterKnoten(ziel.x, ziel.y);
+    const dist = new Float64Array(KNOTEN.length).fill(Infinity), von = new Int32Array(KNOTEN.length).fill(-1);
+    const offenListe = [start];
+    dist[start] = 0;
+    while (offenListe.length) {
+      offenListe.sort((a, b) => dist[a] - dist[b]);
+      const i = offenListe.shift();
+      if (i === ende) break;
+      for (const j of NACHBARN[i]) {
+        const d = dist[i] + Math.hypot(KNOTEN[j][0] - KNOTEN[i][0], KNOTEN[j][1] - KNOTEN[i][1]);
+        if (d < dist[j]) { if (dist[j] === Infinity) offenListe.push(j); dist[j] = d; von[j] = i; }
+      }
+    }
+    if (ende !== start && von[ende] < 0) { toast("Dorthin führt kein Weg."); return; }
+    const weg = [];
+    for (let i = ende; i >= 0; i = von[i]) { weg.push(KNOTEN[i]); if (i === start) break; }
+    route = weg.reverse(); routeI = 0; zielWahl = ziel; haengt = 0; fertig = false;
+    $("meldung").hidden = true;
+    toast(`Unterwegs zu: ${ziel.name}`);
+  }
+  function hindernisPruefen() {
+    for (const h of HINDERNISSE) {
+      if (hatTeil(h.braucht) || Math.hypot(h.x - auto.x, h.y - auto.y) > h.r + 2) continue;
+      // nur anhalten, wenn die Route noch hinter das Hindernis führt
+      if (!route.slice(routeI).some(([x, y]) => Math.hypot(x - h.x, y - h.y) < 1.5)) continue;
+      route = null;
+      $("mTitel").textContent = h.titel; $("mText").textContent = h.text; $("mFehlt").textContent = h.fehlt;
+      $("meldung").hidden = false;
+      $("zurWerkstatt").focus();
+      return true;
+    }
+    return false;
   }
   function steuerAuto(dt) {
     if (!route) return null;
@@ -526,14 +554,15 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     while (routeI < route.length - 1 && Math.hypot(route[routeI][0] - auto.x, route[routeI][1] - auto.y) < voraus) routeI++;
     const [tx, ty] = route[routeI], ende = route[route.length - 1];
     const rest = Math.hypot(ende[0] - auto.x, ende[1] - auto.y);
-    if (rest < 1.5) { route = null; return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 }; }
+    if (rest < 1.5) { route = null; toast(`Angekommen: ${zielWahl.name}`); return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 }; }
+    if (hindernisPruefen()) return { gas: false, bremse: true, lenk: 0 };
     if (rueck > 0) { rueck -= dt; return { gas: false, bremse: true, lenk: 0 }; }
     let diff = Math.atan2(ty - auto.y, tx - auto.x) - auto.a;
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
     const soll = Math.min(6.2, Math.max(1.4, rest * 0.9)) * (Math.abs(diff) > 0.9 ? 0.45 : 1);
     if (Math.abs(auto.v) < 0.25) {
       haengt += dt;
-      if (haengt > 1.2) { haengt = 0; rueck = 1.4; const z = zielPunkt; planen(z[0], z[1]); }
+      if (haengt > 1.2) { haengt = 0; rueck = 1.4; planen(zielWahl); }
     } else haengt = 0;
     return { gas: auto.v < soll, bremse: auto.v > soll + 1.5, lenk: Math.max(-1, Math.min(1, diff * 2.2)) };
   }
@@ -609,7 +638,6 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     const kx = auto.x + Math.cos(auto.a) * vor, ky = auto.y + Math.sin(auto.a) * vor;
     ctx.setTransform(dpr * m, 0, 0, dpr * m, dpr * (w / 2 - kx * m), dpr * (h / 2 - ky * m));
     const sicht = { x0: kx - w / 2 / m, x1: kx + w / 2 / m, y0: ky - h / 2 / m, y1: ky + h / 2 / m };
-    kamera = { m, kx, ky, w, h };
 
     // Boden: ruhiges Gras, Blumenflecken, Wege
     const gras = musterVon("gras_ruhig");
@@ -680,6 +708,10 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       ctx.restore();
     }
     for (const o of OBJEKTE) zeichneObjekt(o, sicht);
+    // Dunkler Wald hinter dem Hindernis
+    const wg = ctx.createRadialGradient(62, 212, 8, 62, 212, 46);
+    wg.addColorStop(0, "rgba(4,10,8,0.92)"); wg.addColorStop(0.75, "rgba(4,10,8,0.8)"); wg.addColorStop(1, "rgba(4,10,8,0)");
+    ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(62, 212, 46, 0, Math.PI * 2); ctx.fill();
     // Nebel über unerforschten Gebieten
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(nebel, 0, 0, W, W);
@@ -694,7 +726,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     const u = untergrund(auto.x, auto.y);
     $("tempo").textContent = `${Math.round(Math.abs(auto.v) * 3.6)} km/h${auto.v < -0.2 ? " rückwärts" : ""}`;
     $("boden").textContent = u.name;
-    $("weg").textContent = besucht ? "Schrottplatz besucht" : `Schrottplatz: ${Math.round(Math.hypot(auto.x - SCHROTT.tor[0], auto.y - SCHROTT.tor[1]))} m Luftlinie`;
+    $("weg").textContent = route ? `Ziel: ${zielWahl.name} · ${Math.round((route.length - routeI) * 2)} m` : besucht ? "Schrottplatz besucht" : `Schrottplatz: ${Math.round(Math.hypot(auto.x - SCHROTT.tor[0], auto.y - SCHROTT.tor[1]))} m Luftlinie`;
     miniZeichnen();
   }
 
@@ -742,18 +774,70 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     requestAnimationFrame(bild);
   }
 
-  // --- Ziel antippen ----------------------------------------------------------
-  let kamera = null;
-  cv.addEventListener("click", (e) => {
-    if (!kamera || fertig) return;
-    const b = cv.getBoundingClientRect();
-    planen(kamera.kx + (e.clientX - b.left - kamera.w / 2) / kamera.m, kamera.ky + (e.clientY - b.top - kamera.h / 2) / kamera.m);
+  // --- Große Karte: Ziel wählen -------------------------------------------------
+  const gross = $("gross"), gctx = gross.getContext("2d");
+  let grossMass = null;
+  function grossZeichnen() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const b = gross.getBoundingClientRect(), seite = Math.min(b.width, b.height);
+    gross.width = Math.round(b.width * dpr); gross.height = Math.round(b.height * dpr);
+    const k = seite / W, ox = (b.width - seite) / 2, oy = (b.height - seite) / 2;
+    grossMass = { k, ox, oy };
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    gctx.clearRect(0, 0, b.width, b.height);
+    gctx.save(); gctx.translate(ox, oy);
+    gctx.fillStyle = "#5d8a3e"; gctx.fillRect(0, 0, seite, seite);
+    gctx.fillStyle = "#2c4d2a";
+    for (const o of OBJEKTE) if (o.art === "nadelbaum" || o.art === "laubbaum") { gctx.beginPath(); gctx.arc(o.x * k, o.y * k, 2.2 * k, 0, 7); gctx.fill(); }
+    gctx.strokeStyle = "#c9a26b"; gctx.lineWidth = Math.max(3, 4.5 * k); gctx.lineCap = "round"; gctx.lineJoin = "round";
+    for (const w of WEGE) { gctx.beginPath(); gctx.moveTo(w[0][0] * k, w[0][1] * k); for (const [x, y] of w.slice(1)) gctx.lineTo(x * k, y * k); gctx.stroke(); }
+    gctx.fillStyle = "#9a9a90"; gctx.beginPath(); for (const [x, y] of SCHROTT.zaun) gctx.lineTo(x * k, y * k); gctx.fill();
+    gctx.drawImage(nebel, 0, 0, seite, seite);
+    for (const h of HINDERNISSE) if (offen(h.x, h.y)) {
+      gctx.fillStyle = "#1d1a16"; gctx.font = `800 ${Math.max(14, 16)}px Nunito, sans-serif`; gctx.textAlign = "center"; gctx.textBaseline = "middle";
+      gctx.fillText("⚠", h.x * k, h.y * k);
+    }
+    for (const z of ZIELE) {
+      const x = z.x * k, y = z.y * k, frei = zielOffen(z);
+      gctx.beginPath(); gctx.arc(x, y, 13, 0, 7);
+      gctx.fillStyle = frei ? "#f2b632" : "rgba(120,100,70,0.6)"; gctx.fill();
+      gctx.lineWidth = 3; gctx.strokeStyle = "#12232a"; gctx.stroke();
+      gctx.fillStyle = "#12232a"; gctx.font = "800 15px Nunito, sans-serif"; gctx.textAlign = "center"; gctx.textBaseline = "middle";
+      gctx.fillText(frei ? "★" : "?", x, y + 1);
+      if (frei) {
+        gctx.font = "800 14px Nunito, sans-serif"; gctx.lineWidth = 4; gctx.strokeStyle = "rgba(255,250,240,0.95)";
+        gctx.strokeText(z.name, x, y - 22); gctx.fillText(z.name, x, y - 22);
+      }
+    }
+    gctx.save(); gctx.translate(auto.x * k, auto.y * k); gctx.rotate(auto.a);
+    gctx.fillStyle = "#e9efe6"; gctx.strokeStyle = "#12232a"; gctx.lineWidth = 2;
+    gctx.beginPath(); gctx.moveTo(9, 0); gctx.lineTo(-6, -6); gctx.lineTo(-6, 6); gctx.closePath(); gctx.fill(); gctx.stroke();
+    gctx.restore(); gctx.restore();
+  }
+  function karteAuf() { if (!$("gespraech").hidden) return; $("grosskarte").hidden = false; grossZeichnen(); $("karteZu").focus(); }
+  function karteZu() { $("grosskarte").hidden = true; }
+  gross.addEventListener("click", (e) => {
+    const b = gross.getBoundingClientRect(), { k, ox, oy } = grossMass;
+    const x = e.clientX - b.left - ox, y = e.clientY - b.top - oy;
+    const z = ZIELE.find((q) => Math.hypot(q.x * k - x, q.y * k - y) < 22);
+    if (!z) return;
+    if (!zielOffen(z)) { toast("Dieses Ziel liegt noch im Nebel. Finde ein Kartenstück!"); return; }
+    karteZu();
+    planen(z);
   });
-  mini.addEventListener("click", (e) => {
-    if (fertig) return;
-    const b = mini.getBoundingClientRect();
-    planen((e.clientX - b.left) / b.width * W, (e.clientY - b.top) / b.height * W);
-  });
+  $("karteAuf").addEventListener("click", karteAuf);
+  mini.addEventListener("click", karteAuf);
+  $("karteZu").addEventListener("click", karteZu);
+  function schnellreise() {
+    Object.assign(auto, { x: 150, y: 242.6, a: Math.PI / 2, v: 0 });
+    route = null; fertig = false;
+    $("meldung").hidden = true;
+    toast("Zurück in Opas Werkstatt. Hier baust du später die fehlenden Teile ein.");
+  }
+  $("zurWerkstatt").addEventListener("click", schnellreise);
+  $("schnellreise").addEventListener("click", schnellreise);
+  $("mZu").addEventListener("click", () => { $("meldung").hidden = true; });
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") { karteZu(); $("meldung").hidden = true; } });
 
   // --- Tastatur (nur zum Testen) ---------------------------------------------
   const KEYS = { ArrowUp: "gas", KeyW: "gas", ArrowDown: "bremse", KeyS: "bremse", ArrowLeft: "links", KeyA: "links", ArrowRight: "rechts", KeyD: "rechts" };
@@ -768,11 +852,11 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   $("ziel").addEventListener("click", neu);
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { auto, planen, get route() { return route; } }; // für automatische Tests
+  window.__kp = { auto, planen, ZIELE, get route() { return route; } }; // für automatische Tests
   karteBauen();
   // Platz um die Kartenstücke freiräumen
   for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && STUECKE.some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
-  rasterBauen();
+  netzBauen();
   if (location.hash === "#schrottplatz") for (const g of GEBIETE) g.offen = true;
   nebelNeu();
   requestAnimationFrame(bild);

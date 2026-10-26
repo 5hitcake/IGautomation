@@ -117,12 +117,16 @@ längeren und breiteren Lichtkegel. Probe: Lichtkegel auf einem Feldweg
 
 ## 8. Fahrsteuerung (entschieden)
 
-- **Ziel antippen:** Man tippt auf der Karte ein Ziel an, das Auto sucht sich
-  den Weg dorthin und fährt selbst. Ob es durchkommt (Schotter, Steigung,
-  Dunkelheit …), entscheiden die eingebauten Teile.
-- **Schnellreise zur Werkstatt:** Von überall zurück in Opas Werkstatt, ohne
-  den ganzen Weg zu fahren.
-- Die Gas-und-Lenken-Steuerung der Kartenprobe bleibt nur zum Testen.
+- **Ziel auf der großen Karte wählen:** Über den Knopf „Karte“ (oder die
+  Übersichtskarte) öffnet sich die ganze Karte. Wählbar sind **nur markierte
+  Ziele** (Orte, Wegweiser), keine beliebigen Stellen. Ziele im Nebel sind
+  grau mit „?“ und erst nach dem passenden Kartenstück wählbar.
+- **Das Auto fährt selbst, nur auf den offiziellen Wegen** (Wegenetz, nie
+  übers Feld), bis es am Ziel ist.
+- **Hindernisse:** Kann das Auto ein Hindernis mit den eingebauten Teilen nicht
+  überwinden (z. B. dunkler Wald ohne Licht), bleibt es davor stehen. Eine
+  Meldung sagt, was fehlt, mit dem Knopf **„Zur Werkstatt“** (Schnellreise).
+- Pfeiltasten bleiben nur zum Testen.
 
 ## 9. Kartenstücke und Nebel
 
