@@ -87,7 +87,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     <button type="button" id="gas" aria-label="Gas geben">Gas</button>
     <button type="button" id="rechts" aria-label="Rechts lenken">Rechts ▶</button>
   </div>
-  <p class="how"><strong>Steuerung:</strong> Knöpfe gedrückt halten, oder auf der Tastatur Pfeiltasten bzw. W A S D. Bremse im Stand fährt rückwärts. Der Schrottplatz ist noch ein Platzhalter, bis sein Bild da ist.</p>
+  <p class="how"><strong>Steuerung:</strong> Knöpfe gedrückt halten, oder auf der Tastatur Pfeiltasten bzw. W A S D. Bremse im Stand fährt rückwärts. Am Schrottplatz endet die Probe; Teile und Charaktere kommen als Nächstes.</p>
 </div>
 
 <script src="karte_daten.js"></script>
@@ -128,9 +128,28 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   // --- Karte -----------------------------------------------------------------
   // Opas Schuppen: Bild 14 m breit, linke obere Ecke bei (X, Y). Maße aus dem Bild vermessen.
   const SCHUPPEN = { X: 143.2, Y: 230, haus: [144.9, 231.1, 155.5, 238.9], bereich: [143, 230, 158, 252] };
-  const SCHROTT = { x: 232, y: 44, r: 16 };
+  // Schrottplatz: Bild 26 m breit, Tor unten mittig bei (230, 50). Zaun und Hindernisse in Bildpixeln
+  // des Ausschnitts (776 px breit) vermessen und hier in Meter umgerechnet.
+  const SCHROTT = (() => {
+    const k = 26 / 776, X = 230 - 388 * k, Y = 50 - 907 * k;
+    const p = ([x, y]) => [X + (x - 7) * k, Y + (y - 53) * k];
+    const zaun = [[335, 950], [215, 930], [110, 880], [35, 760], [25, 560], [45, 330], [110, 160], [220, 85],
+      [390, 70], [560, 85], [680, 160], [740, 330], [765, 560], [755, 760], [690, 880], [580, 930], [455, 955]].map(p);
+    const kreise = [[310, 250, 80], [415, 375, 30], [600, 240, 110], [515, 680, 85], [575, 745, 25], [165, 265, 55],
+      [140, 355, 60], [125, 445, 65], [105, 545, 50], [120, 625, 55], [115, 715, 55], [160, 790, 55], [655, 420, 65],
+      [665, 525, 65], [690, 740, 40], [560, 830, 30]].map(([x, y, r]) => [...p([x, y]), r * k]);
+    return { X, Y, k, zaun, kreise, mitte: p([395, 520]), tor: [230, 50], b: 26, h: 1115 * k };
+  })();
+  function imSchrottplatz(x, y) {
+    const z = SCHROTT.zaun;
+    let drin = false;
+    for (let i = 0, j = z.length - 1; i < z.length; j = i++) {
+      if ((z[i][1] > y) !== (z[j][1] > y) && x < (z[j][0] - z[i][0]) * (y - z[i][1]) / (z[j][1] - z[i][1]) + z[i][0]) drin = !drin;
+    }
+    return drin;
+  }
   const WEG = [[150, 251], [150, 292], [168, 304], [192, 298], [203, 272], [198, 244], [186, 220], [180, 196],
-    [188, 170], [212, 140], [214, 108], [222, 78], [230, 56]];
+    [188, 170], [212, 140], [214, 108], [222, 78], [230, 60], [230, 50]];
   const ABZWEIG = [[181, 204], [130, 202], [96, 210], [60, 214]]; // in den Wald, endet vorerst am Zaun
   const WEGE = [WEG, ABZWEIG];
   const WEG_BREITE = 4.5;
@@ -149,7 +168,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
     const [bx0, by0, bx1, by1] = SCHUPPEN.bereich;
     if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
-    if (Math.hypot(x - SCHROTT.x, y - SCHROTT.y) < SCHROTT.r + r + 2) return false;
+    if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
     return !OBJEKTE.some((o) => o.r && Math.hypot(o.x - x, o.y - y) < o.r + r + 0.6);
   }
 
@@ -183,6 +202,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     zaun([[56, 204], [56, 224]]);
     setze("schild", 176, 210, { fest: true, rot: 0.1, s: 1, spiegel: false, r: 0.5 });
     // Hofzaun des Schuppens nur als Kollision, das Bild zeigt ihn schon
+    for (let i = 1; i < SCHROTT.zaun.length; i++) ZAEUNE.push([SCHROTT.zaun[i - 1], SCHROTT.zaun[i]]);
+    for (const [x, y, r] of SCHROTT.kreise) OBJEKTE.push({ art: null, x, y, r });
     ZAEUNE.push([[144.1, 234], [144.1, 246.4]], [[156.4, 234], [156.4, 246.4]],
       [[144.1, 246.4], [148.3, 246.4]], [[151.6, 246.4], [156.4, 246.4]]);
     // Wald im Westen, lichter Mischwald im Norden, Einzelbäume
@@ -210,7 +231,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   for (let i = 0; i < 40; i++) FLECKEN.push([rnd() * W, rnd() * W, 6 + rnd() * 14]);
 
   // --- Zustand ---------------------------------------------------------------
-  const START = { x: 150, y: 242.6, a: Math.PI / 2 };
+  // #schrottplatz in der Adresse: direkt vor dem Tor starten (zum Testen)
+  const START = location.hash === "#schrottplatz" ? { x: 230, y: 66, a: -Math.PI / 2 } : { x: 150, y: 242.6, a: Math.PI / 2 };
   const auto = { ...START, v: 0, wackel: 0 };
   let autoWahl = AUTOS[0];
   const taste = { gas: false, bremse: false, links: false, rechts: false };
@@ -227,7 +249,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   let lenk = 0;
 
   function untergrund(x, y) {
-    if (Math.hypot(x - SCHROTT.x, y - SCHROTT.y) < SCHROTT.r) return { name: "Schotter", f: 0.85 };
+    if (imSchrottplatz(x, y)) return { name: "Schrottplatz", f: 0.85 };
     const [hx0, hy0, hx1, hy1] = SCHUPPEN.bereich;
     if (x > hx0 && x < hx1 && y > hy0 && y < hy1) return { name: "Opas Hof", f: 0.7 };
     if (abstandWeg(x, y) < WEG_BREITE / 2 + 0.2) return { name: "Feldweg", f: 1 };
@@ -255,7 +277,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     auto.x = Math.max(2, Math.min(W - 2, auto.x));
     auto.y = Math.max(2, Math.min(W - 2, auto.y));
     if (Math.abs(auto.v) > 0.3 && start === null) start = performance.now();
-    if (!fertig && Math.hypot(auto.x - SCHROTT.x, auto.y - SCHROTT.y) < SCHROTT.r - 4) ankunft();
+    if (!fertig && imSchrottplatz(auto.x, auto.y) && auto.y < SCHROTT.tor[1] - 5) ankunft();
   }
 
   // Auto als zwei Kreise (vorne, hinten) gegen Bäume, Felsen, Schuppen und Zäune
@@ -292,7 +314,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   function ankunft() {
     fertig = true;
     const s = start ? (performance.now() - start) / 1000 : 0;
-    $("zielText").textContent = `Du hast den Schrottplatz in ${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")} Minuten erreicht. Hier gibt es später die ersten Teile.`;
+    $("zielText").textContent = `Du bist in ${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")} Minuten auf dem Schrottplatz angekommen. Hier gibt es später die ersten Teile.`;
     $("ziel").hidden = false;
   }
 
@@ -324,6 +346,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   }
 
   function zeichneObjekt(o, sicht) {
+    if (!o.art) return;
     const t = OBJ[o.art];
     const b = t.b * o.s, h = t.h * o.s;
     if (o.x + b < sicht.x0 || o.x - b > sicht.x1 || o.y + b < sicht.y0 || o.y - b > sicht.y1) return;
@@ -382,19 +405,14 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       }
       ctx.globalAlpha = 1;
     }
-    const schotter = musterVon("schotter");
-    if (schotter) {
-      ctx.fillStyle = schotter;
-      for (const [k, al] of [[1.15, 0.35], [1, 1]]) { ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(SCHROTT.x, SCHROTT.y, SCHROTT.r * k, 0, Math.PI * 2); ctx.fill(); }
-      ctx.globalAlpha = 1;
-    }
     zeichneWege("erde", WEG_BREITE + 1.4, 0.35);
     zeichneWege("erde", WEG_BREITE, 1);
     // Rand der Karte
     ctx.fillStyle = "rgba(10,20,15,0.85)";
     ctx.fillRect(-60, -60, W + 120, 60); ctx.fillRect(-60, W, W + 120, 60); ctx.fillRect(-60, 0, 60, W); ctx.fillRect(W, 0, 60, W);
 
-    platzhalter("Schrottplatz (Bild folgt)", SCHROTT.x, SCHROTT.y, SCHROTT.r, 0, true);
+    const sp = OBJ.schrottplatz;
+    if (sp.img.complete && sp.img.naturalWidth) ctx.drawImage(sp.img, SCHROTT.X, SCHROTT.Y, sp.b, sp.h);
     const sch = OBJ.schuppen;
     if (sch.img.complete && sch.img.naturalWidth) ctx.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
 
@@ -417,7 +435,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     const u = untergrund(auto.x, auto.y);
     $("tempo").textContent = `${Math.round(Math.abs(auto.v) * 3.6)} km/h${auto.v < -0.2 ? " rückwärts" : ""}`;
     $("boden").textContent = u.name;
-    $("weg").textContent = fertig ? "Schrottplatz erreicht" : `Schrottplatz: ${Math.max(0, Math.round(Math.hypot(auto.x - SCHROTT.x, auto.y - SCHROTT.y) - SCHROTT.r))} m Luftlinie`;
+    $("weg").textContent = fertig ? "Schrottplatz erreicht" : `Schrottplatz: ${Math.round(Math.hypot(auto.x - SCHROTT.tor[0], auto.y - SCHROTT.tor[1]))} m Luftlinie`;
     miniZeichnen();
   }
 
@@ -438,7 +456,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       for (const w of WEGE) { g.beginPath(); g.moveTo(w[0][0] * k, w[0][1] * k); for (const [x, y] of w.slice(1)) g.lineTo(x * k, y * k); g.stroke(); }
       g.strokeStyle = "#8a6a48"; g.lineWidth = Math.max(1, 0.8 * k);
       for (const [a, b] of ZAEUNE) { g.beginPath(); g.moveTo(a[0] * k, a[1] * k); g.lineTo(b[0] * k, b[1] * k); g.stroke(); }
-      g.fillStyle = "#9a9a90"; g.beginPath(); g.arc(SCHROTT.x * k, SCHROTT.y * k, SCHROTT.r * k, 0, 7); g.fill();
+      g.fillStyle = "#9a9a90"; g.beginPath();
+      for (const [x, y] of SCHROTT.zaun) g.lineTo(x * k, y * k);
+      g.fill();
       const [mx0, my0, mx1, my1] = SCHUPPEN.haus;
       g.fillStyle = "#5a3d26"; g.fillRect(mx0 * k, my0 * k, (mx1 - mx0) * k, (my1 - my0) * k);
     }
