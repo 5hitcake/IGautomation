@@ -149,8 +149,8 @@ def main() -> int:
         if not os.path.isdir(os.path.join(teilwerk.TEILE_DIR, f"{mid}_hinten")):
             continue
         a, achse, dreh = auto(raster, mid)
-        daten["autos"].append({"id": mid, "name": name, "bild": _uri(a), "achse": _uri(achse), "drehpunkt": dreh,
-                               "laenge": a.width / AUTO_PX * 4})
+        daten["autos"].append({"id": mid, "name": name, "bild": _uri(a), "achse": _uri(achse),
+                               "drehpunkt": dreh, "laenge": a.width / AUTO_PX * 4})
     with open(ZIEL, "w", encoding="utf-8") as f:
         f.write("// Automatisch erzeugt von tools/karte_daten.py. Nicht von Hand ändern.\n")
         f.write("window.KARTE_DATEN = " + json.dumps(daten) + ";\n")
