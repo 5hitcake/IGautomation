@@ -38,11 +38,45 @@ als Stimmung, nichts davon wird übernommen oder als Vorlage für Bilder benutzt
 
 1. Man startet mit einer **absoluten Schrottkarre**: Bettgestell-Rahmen,
    Schubkarrenräder, Rasenmäher-Motor, Gießkanne als Tank, Küchenstuhl.
-2. Erstes Ziel: **bis zum Schrottplatz kommen.** Er wird die eigene Werkstatt.
-3. Der **Schrottplatz hat ab und zu neue Teile**: wechselndes Angebot,
-   manches nur kurz verfügbar.
+2. **Start in der Werkstatt** (Opas Schuppen) mit einem kleinen Tutorial,
+   siehe unten. Danach ist der **Schrottplatz die erste und einzige Option**
+   auf der Karte.
+3. Der **Schrottplatz bekommt im Laufe des Spiels immer wieder neue,
+   meist minderwertige Teile** (Lieferungen). Muss noch ausgearbeitet werden,
+   siehe unten.
 4. **Nachbarn geben Aufträge** (liefern, abschleppen, Schnee räumen …). Belohnt
    wird mit Teilen, Geld oder neuen Wegen.
+
+### Spielstart und Tutorial (Entwurf)
+
+Kurz, nicht verlierbar und überspringbar. Opa führt durch, im Gesprächsstil
+wie bei Knut (Figur plus Hintergrund, Text tippt sich ein). Höchstens ein,
+zwei Sätze pro Schritt; was gerade dran ist, leuchtet.
+
+| Schritt | Wo | Was passiert | Was man lernt |
+|---|---|---|---|
+| 1 | Werkstatt | Opa begrüßt: Die alte Klapperkiste steht in Einzelteilen im Schuppen. | Gespräche weitertippen |
+| 2 | Werkstatt | Der Rahmen steht schon, ein Rad leuchtet im Regal: in den leuchtenden Platz ziehen. | Teile ziehen und einbauen |
+| 3 | Werkstatt | Die übrigen Startteile selbst einbauen (Achsen, Räder, Motor, Tank, Sitz, Lenkung). Fehlt etwas, zeigt der Platz es an. | Plätze und Kategorien |
+| 4 | Werkstatt | Auto ist fahrbereit, Opa: „Fahr zu Knut auf den Schrottplatz, der hat Teile.“ Knopf „Losfahren“. | Fahrbereit-Prüfung |
+| 5 | Karte | Knopf „Karte“ leuchtet. Auf der großen Karte ist nur der Schrottplatz wählbar. Antippen, das Auto fährt selbst, die Route ist blau auf der Minikarte. | Ziel wählen, Minikarte |
+| 6 | Schrottplatz | Knut begrüßt und gibt den ersten Auftrag. Tutorial endet. | Aufträge |
+
+Karosserie spielt im Tutorial noch keine Rolle: Die Schrottkarre fährt ohne.
+
+### Schrottplatz-Lieferungen (noch auszuarbeiten)
+
+Knut bekommt im Laufe des Spiels immer wieder neue Teile, meist minderwertig
+(rostig, wackelig, schwach). Offene Fragen:
+
+- **Wann** kommt eine Lieferung: nach Aufträgen, nach einer Anzahl Fahrten,
+  oder zu festen Zeiten im Spiel?
+- **Was** kommt: Zufall aus einer Liste je Spielfortschritt, oder feste
+  Lieferungen, die zum nächsten Hindernis passen?
+- **Wie kommt man dran:** tauschen, mit Geld kaufen, oder als Belohnung?
+- **Wie lange** liegt ein Teil da (manches nur kurz)?
+- **Woran merkt man es:** Knut meldet sich, Symbol auf der Karte.
+- Gute Teile gibt es dagegen eher bei Aufträgen und an besonderen Orten.
 
 ### Wege, die man sich erarbeitet
 
@@ -157,8 +191,8 @@ Bilder da sind.
 | B2 | Karten-Raster: Abschnitte, Straßenanschlüsse, Maßstab Auto zu Karte | offen |
 | B3 | Erster Kartenabschnitt: Zuhause bis Schrottplatz | offen |
 | B4 | Hindernisse einzeln einbauen: Schotter, Steigung, Dunkelheit, Schafe, Distanz … | offen |
-| C1 | Karriere-Start: mit der Schrottkarre zum Schrottplatz | offen |
-| C2 | Schrottplatz mit wechselndem Teile-Angebot | offen |
+| C1 | Karriere-Start: Werkstatt mit Tutorial, dann mit der Schrottkarre zum Schrottplatz | offen |
+| C2 | Schrottplatz mit Lieferungen (meist minderwertige Teile) | offen, noch auszuarbeiten |
 | C3 | Nachbarn und Aufträge | offen |
 | C4 | Ladefläche als Raster, Fundstücke, Tag und Nacht | offen |
 | D | App-Verpackung (Android/iOS) | offen |
