@@ -48,6 +48,8 @@ window.Karte = function (opt = {}) {
   // --- Karte -----------------------------------------------------------------
   // Opas Schuppen: Bild 14 m breit, linke obere Ecke bei (X, Y). Maße aus dem Bild vermessen.
   const SCHUPPEN = { X: 143.2, Y: 230, haus: [144.9, 231.1, 155.5, 238.9], bereich: [143, 230, 158, 252] };
+  // Hütte am Feldrand: Bild 11 m breit, Mitte bei (x, y), Tür nach Süden zum Weg. Haus = Dach und Veranda.
+  const HUETTE = { x: 244, y: 168, haus: [241.4, 164.1, 246.7, 170.9], bereich: [238.5, 163.4, 249.5, 172.6] };
   // Schrottplatz: Bild 26 m breit, Tor unten mittig bei (230, 50). Zaun und Hindernisse in Bildpixeln
   // des Ausschnitts (776 px breit) vermessen und hier in Meter umgerechnet.
   const SCHROTT = (() => {
@@ -89,8 +91,9 @@ window.Karte = function (opt = {}) {
   }
   function frei(x, y, r) {
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
-    const [bx0, by0, bx1, by1] = SCHUPPEN.bereich;
-    if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
+    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich]) {
+      if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
+    }
     if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
     return !OBJEKTE.some((o) => o.r && Math.hypot(o.x - x, o.y - y) < o.r + r + 0.6);
   }
@@ -233,10 +236,11 @@ window.Karte = function (opt = {}) {
         if ((cx - a[0]) * nx + (cy - a[1]) * ny < 0) { nx = -nx; ny = -ny; }
         schieb(nx, ny, tief);
       }
-      const [sx0, sy0, sx1, sy1] = SCHUPPEN.haus;
-      const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
-      const d = Math.hypot(cx - hx, cy - hy);
-      if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
+      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus]) {
+        const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
+        const d = Math.hypot(cx - hx, cy - hy);
+        if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
+      }
     }
     if (getroffen) {
       if (Math.abs(auto.v) > 1.5 && performance.now() - rumms > 600) { rumms = performance.now(); if (navigator.vibrate) { try { navigator.vibrate(40); } catch { /* egal */ } } }
@@ -732,6 +736,8 @@ window.Karte = function (opt = {}) {
     if (sp.img.complete && sp.img.naturalWidth) ctx.drawImage(sp.img, SCHROTT.X, SCHROTT.Y, sp.b, sp.h);
     const sch = OBJ.schuppen;
     if (sch.img.complete && sch.img.naturalWidth) ctx.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
+    const hu = OBJ.huette;
+    if (hu && hu.img.complete && hu.img.naturalWidth) ctx.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
 
     // Route und Ziel
     const t = performance.now() / 1000;
@@ -833,6 +839,8 @@ window.Karte = function (opt = {}) {
       g.fill();
       const [mx0, my0, mx1, my1] = SCHUPPEN.haus;
       g.fillStyle = "#5a3d26"; g.fillRect(mx0 * k, my0 * k, (mx1 - mx0) * k, (my1 - my0) * k);
+      const [hx0, hy0, hx1, hy1] = HUETTE.haus;
+      g.fillRect(hx0 * k, hy0 * k, (hx1 - hx0) * k, (hy1 - hy0) * k);
     }
     if (!miniGrund.mitNebel) { miniGrund.getContext("2d").drawImage(nebel, 0, 0, s, s); miniGrund.mitNebel = true; }
     mctx.drawImage(miniGrund, 0, 0);

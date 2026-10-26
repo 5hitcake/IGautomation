@@ -193,3 +193,12 @@ Hase 1,3 m, Schaf 2 m.
 - **Schafe** grasen auf der Weide (Kopf unten) und laufen langsam zum
   nächsten Grasplatz.
 - **Kühe** (Bild mit einer Pose, `--eine`) grasen zusammen mit den Schafen, etwas langsamer.
+
+## 14. Häuser
+
+- **Hütte am Feldrand** (`objekte/huette.png`, 11 m): steht am Ende des
+  Stichwegs zum Feldrand, Tür zum Weg. Bäume halten Abstand, das Auto stößt
+  an Dach und Veranda.
+- **Bauernhof** an der Weide: erstes Bild war schräg von der Seite gezeichnet
+  (`objekte/roh/bauernhof_v1_schraeg.jpg`), passt nicht zur Draufsicht. Neu
+  erzeugen, streng von oben.
