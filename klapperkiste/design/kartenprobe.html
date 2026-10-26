@@ -328,7 +328,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     auto.y = Math.max(2, Math.min(W - 2, auto.y));
     if (Math.abs(auto.v) > 0.3 && start === null) start = performance.now();
     for (const st of STUECKE) if (!st.genommen && Math.hypot(st.x - auto.x, st.y - auto.y) < 2.4) stueckFinden(st);
-    if (!fertig && !besucht && imSchrottplatz(auto.x, auto.y) && auto.y < SCHROTT.tor[1] - 5) ankunft();
+    if (!fertig && !besucht && imSchrottplatz(auto.x, auto.y) && auto.y < SCHROTT.tor[1] - 5) ankunft(); // nur beim Testen per Tastatur
   }
 
   // Auto als zwei Kreise (vorne, hinten) gegen Bäume, Felsen, Schuppen und Zäune
@@ -469,7 +469,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG, [230, 36]], ABZWEIG];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -500,7 +500,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   const ZIELE = [
     { id: "schuppen", name: "Opas Schuppen", x: 150, y: 243, gebiet: "start" },
     { id: "wegweiser", name: "Wegweiser", x: 181, y: 204, gebiet: "start" },
-    { id: "schrottplatz", name: "Schrottplatz", x: 230, y: 36, gebiet: "nord" },
+    { id: "schrottplatz", name: "Schrottplatz", x: 230, y: 60, gebiet: "nord" }, // parkt vor dem Tor
     { id: "waldweg", name: "Waldweg", x: 60, y: 214, gebiet: "wald" },
   ];
   const zielOffen = (z) => GEBIETE.find((g) => g.id === z.gebiet).offen;
@@ -554,11 +554,20 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     while (routeI < route.length - 1 && Math.hypot(route[routeI][0] - auto.x, route[routeI][1] - auto.y) < voraus) routeI++;
     const [tx, ty] = route[routeI], ende = route[route.length - 1];
     const rest = Math.hypot(ende[0] - auto.x, ende[1] - auto.y);
-    if (rest < 1.5) { route = null; toast(`Angekommen: ${zielWahl.name}`); return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 }; }
+    if (rest < 1.5) {
+      route = null;
+      if (zielWahl.id === "schrottplatz" && !besucht) ankunft(); else toast(`Angekommen: ${zielWahl.name}`);
+      return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
+    }
     if (hindernisPruefen()) return { gas: false, bremse: true, lenk: 0 };
     if (rueck > 0) { rueck -= dt; return { gas: false, bremse: true, lenk: 0 }; }
     let diff = Math.atan2(ty - auto.y, tx - auto.x) - auto.a;
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    if (Math.abs(diff) > 1.3) {
+      // Wenden: Ziel liegt hinter dem Auto. Langsam rollen und zügig herumdrehen statt langer Rangierfahrt.
+      auto.a += Math.sign(diff) * Math.min(Math.abs(diff), 1.9 * dt);
+      return { gas: auto.v < 1.2, bremse: auto.v > 1.8, lenk: Math.sign(diff) };
+    }
     const soll = Math.min(6.2, Math.max(1.4, rest * 0.9)) * (Math.abs(diff) > 0.9 ? 0.45 : 1);
     if (Math.abs(auto.v) < 0.25) {
       haengt += dt;
