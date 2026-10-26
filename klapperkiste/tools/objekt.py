@@ -39,9 +39,15 @@ def loch_frei(teil: Image.Image, toleranz: int = 40) -> Image.Image:
     return teil
 
 
-def weicher_rand(teil: Image.Image, breite_px: int, seed: int = 3) -> Image.Image:
+def weicher_rand(teil: Image.Image, breite_px: int, seed: int = 3,
+                 schutz: list[tuple[float, ...]] | None = None) -> Image.Image:
     """Außenkante über etwa breite_px ausblenden, leicht unregelmäßig (z. B. Schlamm
-    um die Hütte, der ins Gras übergeht). Die Mitte bleibt deckend."""
+    um die Hütte, der ins Gras übergeht). Die Mitte bleibt deckend.
+
+    schutz: Rechtecke (Anteile der Bildgröße x0, y0, x1, y1), in denen graue und
+    schwarze Dinge (z. B. ein Kamin, der über den Rand ragt) nicht ausgeblendet
+    werden; der bunte Boden darin schon."""
+    alt = teil.getchannel("A")
     a = teil.getchannel("A").point(lambda v: 255 if v > 128 else 0)
     k = max(3, breite_px) | 1  # so weit nach innen, dass auch die Umrisslinie verschwindet
     innen = a.filter(ImageFilter.MinFilter(k))
@@ -53,12 +59,17 @@ def weicher_rand(teil: Image.Image, breite_px: int, seed: int = 3) -> Image.Imag
     # Rauschen um 128 verschiebt die Rampe ein wenig nach innen oder außen
     rampe = ImageChops.add(rampe, rauschen.point(lambda v: max(0, v - 128) // 2))
     rampe = ImageChops.subtract(rampe, rauschen.point(lambda v: max(0, 128 - v) // 2))
-    teil.putalpha(ImageChops.darker(teil.getchannel("A"), rampe))
+    neu = ImageChops.darker(alt, rampe)
+    for x0, y0, x1, y1 in schutz or []:
+        box = (round(x0 * teil.width), round(y0 * teil.height), round(x1 * teil.width), round(y1 * teil.height))
+        grau = teil.crop(box).convert("RGB").convert("HSV").getchannel("S").point(lambda v: 255 if v < 60 else 0)
+        neu.paste(alt.crop(box), box[:2], grau)
+    teil.putalpha(neu)
     return teil
 
 
 def einpassen(eingabe: str, name: str, meter: float, dicker: float = 1.0, loch: bool = False,
-              rand: float = 0.0) -> str:
+              rand: float = 0.0, schutz: list[tuple[float, ...]] | None = None) -> str:
     teil = teilwerk.freistellen(Image.open(eingabe), inseln=False)
     if loch:
         teil = loch_frei(teil)
@@ -66,7 +77,7 @@ def einpassen(eingabe: str, name: str, meter: float, dicker: float = 1.0, loch: 
     breite = round(meter * PX)
     teil = teil.resize((breite, round(teil.height * breite / teil.width * dicker)), Image.LANCZOS)
     if rand:
-        teil = weicher_rand(teil, round(rand * PX))
+        teil = weicher_rand(teil, round(rand * PX), schutz=schutz)
     os.makedirs(OBJEKT_DIR, exist_ok=True)
     pfad = os.path.join(OBJEKT_DIR, f"{name}.png")
     teil.save(pfad)
@@ -131,6 +142,8 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--loch", action="store_true", help="Weiße Fläche in der Mitte freistellen (Reifen)")
     e.add_argument("--weicher-rand", type=float, default=0.0, metavar="METER",
                    help="Außenkante über so viele Meter ins Gelände ausblenden (Schlamm, Erde)")
+    e.add_argument("--rand-schutz", action="append", default=[], metavar="X0,Y0,X1,Y1",
+                   help="Bereich (Anteile 0–1), in dem Graues/Schwarzes nicht ausgeblendet wird, z. B. ein Kamin")
     pr = sub.add_parser("probe")
     pr.add_argument("ausgabe")
     pr.add_argument("objekte", nargs="+", help="NAME oder NAME@x,y (Meter), NAME! = unverändert")
@@ -139,7 +152,8 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--auto")
     args = p.parse_args(argv)
     if args.befehl == "einpassen":
-        einpassen(args.eingabe, args.name, args.meter, args.dicker, args.loch, args.weicher_rand)
+        schutz = [tuple(float(v) for v in b.split(",")) for b in args.rand_schutz]
+        einpassen(args.eingabe, args.name, args.meter, args.dicker, args.loch, args.weicher_rand, schutz)
     else:
         probe(args.ausgabe, args.boden, args.objekte, args.meter, args.auto)
     return 0

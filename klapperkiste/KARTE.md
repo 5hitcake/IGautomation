@@ -199,7 +199,8 @@ Hase 1,3 m, Schaf 2 m.
 - **Hütte am Feldrand** (`objekte/huette.png`, 11 m): steht am Ende des
   Stichwegs zum Feldrand, Tür zum Weg. Bäume halten Abstand, das Auto stößt
   an Dach und Veranda. Der Schlamm drumherum läuft weich ins Gras aus
-  (`objekt.py einpassen … --weicher-rand 0.9`).
+  (`objekt.py einpassen … --weicher-rand 0.9 --rand-schutz 0.58,0,0.70,0.22`,
+  der Schutzbereich hält den Kamin, der über den Rand ragt, klar sichtbar).
 - **Bauernhof** (`objekte/bauernhof.png`, 32 m, freigestellt mit
   `tools/einmalig/bauernhof_einpassen.py`): nordöstlich der Weide, mit einer
   Zufahrt vom Weideweg bis zum Hoftor und eigenem Ziel „Bauernhof“. Wohnhaus
