@@ -150,3 +150,16 @@ Aufträge gleichzeitig. Man muss selbst planen, wo man welche Teile bekommt
 und was man zuerst schaffen kann (z. B. erst Licht für den Wald oder erst die
 Spezialhupe für die Schafe). Aufträge sollen sich daher, wo es geht, auf
 mehr als eine Art lösen lassen.
+
+## 11. Gegenstände aufsammeln (entschieden)
+
+Gegenstände wie die alten Reifen liegen etwas abseits der Wege. Man **tippt
+sie an**, um sie aufzusammeln; sie kommen in den Beutel. Das klappt, wenn das
+Auto nah genug ist (etwa 8 m) und langsam fährt (bis etwa 12 km/h), also auch
+beim langsamen Vorbeifahren. Ist es zu schnell, hält der Knopf **„Stopp“**
+(unten links, nur beim Selbstfahren sichtbar) das Auto an, „Weiter“ fährt
+weiter. Beim ersten Gegenstand erklärt ein Hinweis, wie es geht.
+
+Neu im Startgebiet: der **Weideweg** als Rundweg um die Weide (Kurve bei
+Opa bis Feldrand) mit eigenem Gebiet und Kartenstück am Feldrand. Das Auto
+plant nur noch durch aufgedeckte Gebiete.

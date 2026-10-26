@@ -115,8 +115,8 @@ vorne bei einem anderen Händler).
 | Weitere Orte | Lieferung: stärkerer Motor | mehrere parallel | … |
 
 Erste Probe in `design/spielstart.html` (und Kartenprobe): Knuts Auftrag
-„3 alte Reifen“ (liegen am Weg zum Feldrand, am Waldweg und an der Kurve bei
-Opa, das Auto sammelt sie im Vorbeifahren in den Beutel), Belohnung 40 Münzen,
+„3 alte Reifen“ (liegen etwas abseits: am Feldrand, am Waldweg und am
+Weideweg), Belohnung 40 Münzen,
 danach Knuts Laden mit Rundling hinten, Mitte und vorne (25, 35, 30 Münzen).
 Gekaufte Teile liegen in Opas Werkstatt im Regal.
 

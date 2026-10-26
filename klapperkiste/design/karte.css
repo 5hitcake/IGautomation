@@ -88,4 +88,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 #laden .knopf:disabled { opacity: 0.45; cursor: not-allowed; }
 #laden .klein { font-size: 13px; color: #5a4a36; }
 #laden .knoepfe { display: flex; gap: 8px; }
-#toast { z-index: 6; } /* Meldungen bleiben über dem Laden sichtbar */
+#toast { z-index: 6; bottom: 66px; } /* über dem Laden und dem Stopp-Knopf */
+/* Stopp-Knopf beim Selbstfahren, unten links auf der Karte */
+#stopp { position: absolute; left: 10px; bottom: 10px; z-index: 5; padding: 12px 16px; font-size: 16px; background: #c8642a; color: #fffaf0; box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
+#stopp.tipp { animation: stoppTipp 0.9s ease-in-out infinite; }
+@keyframes stoppTipp { 50% { box-shadow: 0 0 0 7px rgba(242,182,50,0.45); } }
+@media (prefers-reduced-motion: reduce) { #stopp.tipp { animation: none; } }

@@ -69,7 +69,9 @@ window.Karte = function (opt = {}) {
     [188, 170], [212, 140], [214, 108], [222, 78], [230, 60], [230, 50]];
   const ABZWEIG = [[181, 204], [130, 202], [96, 210], [60, 214]]; // in den Wald, endet vorerst am Zaun
   const FELDRAND = [[188, 170], [214, 173], [240, 177]]; // Stichweg nach Osten, endet am Feld
-  const WEGE = [WEG, ABZWEIG, FELDRAND];
+  // Weideweg: von der Kurve südlich der Weide um die Weide herum bis zum Feldrand (Rundweg)
+  const WEIDEWEG = [[203, 272], [230, 292], [270, 296], [296, 270], [300, 230], [292, 200], [262, 190], [240, 177]];
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG];
   const WEG_BREITE = 4.5;
 
   function abstandStrecke(px, py, a, b) {
@@ -161,6 +163,7 @@ window.Karte = function (opt = {}) {
     route = null;
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set() });
+    hinweisGezeigt = false; angehalten = false;
     for (const r of REIFEN) r.weg = false;
     hudNeu(); $("laden").hidden = true;
     nebelNeu();
@@ -256,9 +259,13 @@ window.Karte = function (opt = {}) {
   }
 
   // --- Auftrag, Beutel, Geld und Knuts Laden ----------------------------------
-  // Die alten Reifen liegen erst da, wenn Knut den Auftrag gegeben hat. Das Auto
-  // sammelt sie im Vorbeifahren ein; sie kommen in den Beutel, nicht ins Auto.
-  const REIFEN = [{ x: 158, y: 299.5 }, { x: 120, y: 202.6 }, { x: 239, y: 179.5 }];
+  // Die alten Reifen liegen erst da, wenn Knut den Auftrag gegeben hat, etwas
+  // abseits der Wege. Man tippt sie an, wenn das Auto nah und langsam genug ist;
+  // sie kommen in den Beutel, nicht ins Auto.
+  const REIFEN = [{ x: 228, y: 180.5 }, { x: 117, y: 200 }, { x: 304, y: 250 }];
+  const REICH = 8;      // so nah muss das Auto sein (Meter)
+  const LANGSAM = 3.5;  // höchstens so schnell (m/s, etwa 12 km/h)
+  let hinweisGezeigt = false;
   const LADEN = [
     { id: "rundling_hinten", name: "Rundling hinten", preis: 25 },
     { id: "rundling_mitte", name: "Rundling Mitte", preis: 35 },
@@ -272,22 +279,38 @@ window.Karte = function (opt = {}) {
     $("geld").textContent = `🪙 ${spiel.geld} Münzen`;
     $("geld").hidden = spiel.auftrag === null;
   }
+  // Beim ersten Reifen in Sichtweite erklären, wie das Aufsammeln geht
   function reifenPruefen() {
-    if (spiel.auftrag !== "reifen") return;
-    for (const r of REIFEN) {
-      if (r.weg || Math.hypot(r.x - auto.x, r.y - auto.y) > 3.2) continue;
-      r.weg = true; spiel.beutel++;
-      toast(spiel.beutel < 3 ? `Alter Reifen eingesammelt (${spiel.beutel}/3). Ab in den Beutel!` : "Alle 3 Reifen im Beutel! Zurück zu Knut.");
-      if (navigator.vibrate) { try { navigator.vibrate(30); } catch { /* egal */ } }
-      hudNeu();
+    if (spiel.auftrag !== "reifen" || hinweisGezeigt) return;
+    if (REIFEN.some((r) => !r.weg && Math.hypot(r.x - auto.x, r.y - auto.y) < 16)) {
+      hinweisGezeigt = true;
+      toast("👆 Gegenstand berühren, um ihn aufzusammeln. Fährst du zu schnell, erst „Stopp“ drücken.", 6000);
     }
+  }
+  function aufsammeln(r) {
+    if (Math.hypot(r.x - auto.x, r.y - auto.y) > REICH) return toast("Zu weit weg. Fahr näher heran.");
+    if (Math.abs(auto.v) > LANGSAM) { $("stopp").classList.add("tipp"); return toast("Zu schnell! Drück „Stopp“ oder fahr langsam vorbei."); }
+    r.weg = true; spiel.beutel++;
+    $("stopp").classList.remove("tipp");
+    toast(spiel.beutel < 3 ? `Alter Reifen eingesammelt (${spiel.beutel}/3). Ab in den Beutel!` : "Alle 3 Reifen im Beutel! Zurück zu Knut.");
+    if (navigator.vibrate) { try { navigator.vibrate(30); } catch { /* egal */ } }
+    hudNeu();
+  }
+  // Antippen auf der Karte: Bildschirm- in Kartenpunkt umrechnen, Reifen in der Nähe suchen
+  function tippKarte(e) {
+    if (!kamera || spiel.auftrag !== "reifen") return;
+    const b = cv.getBoundingClientRect();
+    const x = kamera.kx + (e.clientX - b.left - b.width / 2) / kamera.m;
+    const y = kamera.ky + (e.clientY - b.top - b.height / 2) / kamera.m;
+    const r = REIFEN.find((q) => !q.weg && Math.hypot(q.x - x, q.y - y) < 2);
+    if (r) aufsammeln(r);
   }
   // Wieder am Schrottplatz: Reifen abgeben oder im Laden stöbern
   function beiKnut() {
     if (spiel.auftrag === "reifen" && spiel.beutel < 3) {
       const n = 3 - spiel.beutel;
       return gespraech("knut", "Knut Kurbel", "schrottplatz", [
-        ["nachdenken", `Hm, da fehl${n === 1 ? "t noch ein Reifen" : `en noch ${n} Reifen`}. Schau mal am Feldrand, am Weg in den Wald und unten an der Kurve bei Opa.`],
+        ["nachdenken", `Hm, da fehl${n === 1 ? "t noch ein Reifen" : `en noch ${n} Reifen`}. Schau mal am Feldrand, am Weg in den Wald und drüben am Weideweg.`],
       ]);
     }
     if (spiel.auftrag === "reifen") {
@@ -376,16 +399,19 @@ window.Karte = function (opt = {}) {
     { id: "start", name: "Rund um Opas Schuppen", x: 166, y: 262, r: 92, offen: true },
     { id: "nord", name: "Nordweg und Schrottplatz", x: 214, y: 112, r: 112, offen: false },
     { id: "wald", name: "Waldrand im Westen", x: 70, y: 196, r: 82, offen: false },
+    { id: "weide", name: "Weideweg im Osten", x: 282, y: 248, r: 62, offen: false },
   ];
   const STUECKE = [
     { gebiet: "nord", x: 184, y: 213 },
     { gebiet: "wald", x: 213, y: 124 },
+    { gebiet: "weide", x: 233, y: 176 },
   ];
   // Kartenstücke für Gebiete, die schon offen sind, liegen gar nicht erst herum
   function gebieteStart() {
     for (const g of GEBIETE) g.offen = (opt.offen || ["start"]).includes(g.id) || location.hash === "#schrottplatz";
     for (const st of STUECKE) st.genommen = GEBIETE.find((g) => g.id === st.gebiet).offen;
   }
+  const bekannt = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r);
   const offen = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r - 2);
   const nebel = document.createElement("canvas");
   nebel.width = W; nebel.height = W;
@@ -406,11 +432,11 @@ window.Karte = function (opt = {}) {
     miniGrund = null;
   }
   let toastZeit = null;
-  function toast(text) {
+  function toast(text, ms = 3200) {
     const t = $("toast");
     t.textContent = text; t.hidden = false;
     clearTimeout(toastZeit);
-    toastZeit = setTimeout(() => { t.hidden = true; }, 3200);
+    toastZeit = setTimeout(() => { t.hidden = true; }, ms);
   }
   function stueckFinden(st) {
     st.genommen = true;
@@ -424,7 +450,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -442,9 +468,13 @@ window.Karte = function (opt = {}) {
         }
       }
       if (nr === 0) { HAUPT = KNOTEN.length; continue; }
-      // Abzweigung: Anfang der Linie mit dem nächsten Punkt der Hauptlinie verbinden
-      const j = naechsterKnoten(KNOTEN[anfang][0], KNOTEN[anfang][1], (k) => k < HAUPT);
+      // Abzweigung: Anfang der Linie mit dem nächsten Punkt der früheren Linien verbinden,
+      // das Ende auch, wenn es auf eine frühere Linie trifft (Rundweg)
+      const fruehere = (k) => k < anfang;
+      const j = naechsterKnoten(KNOTEN[anfang][0], KNOTEN[anfang][1], fruehere);
       NACHBARN[anfang].push(j); NACHBARN[j].push(anfang);
+      const e = KNOTEN.length - 1, j2 = naechsterKnoten(KNOTEN[e][0], KNOTEN[e][1], fruehere);
+      if (Math.hypot(KNOTEN[j2][0] - KNOTEN[e][0], KNOTEN[j2][1] - KNOTEN[e][1]) < 3) { NACHBARN[e].push(j2); NACHBARN[j2].push(e); }
     }
   }
   function naechsterKnoten(x, y, nur) {
@@ -458,6 +488,7 @@ window.Karte = function (opt = {}) {
     { id: "schrottplatz", name: "Schrottplatz", x: 230, y: 60, gebiet: "nord" }, // parkt vor dem Tor
     { id: "waldweg", name: "Waldweg", x: 60, y: 214, gebiet: "wald" },
     { id: "feldrand", name: "Feldrand", x: 240, y: 177, gebiet: "nord" },
+    { id: "weide", name: "Weide", x: 298, y: 250, gebiet: "weide" },
   ];
   const zielOffen = (z) => GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
@@ -470,7 +501,7 @@ window.Karte = function (opt = {}) {
   const hatTeil = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : false); // die Schrottkarre hat noch kein Licht
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
-  let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0;
+  let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0, angehalten = false;
   function planen(ziel) {
     const start = naechsterKnoten(auto.x, auto.y), ende = naechsterKnoten(ziel.x, ziel.y);
     const dist = new Float64Array(KNOTEN.length).fill(Infinity), von = new Int32Array(KNOTEN.length).fill(-1);
@@ -481,11 +512,13 @@ window.Karte = function (opt = {}) {
       const i = offenListe.shift();
       if (i === ende) break;
       for (const j of NACHBARN[i]) {
+        if (!bekannt(KNOTEN[j][0], KNOTEN[j][1])) continue; // nie durch den Nebel planen
         const d = dist[i] + Math.hypot(KNOTEN[j][0] - KNOTEN[i][0], KNOTEN[j][1] - KNOTEN[i][1]);
         if (d < dist[j]) { if (dist[j] === Infinity) offenListe.push(j); dist[j] = d; von[j] = i; }
       }
     }
     if (ende !== start && von[ende] < 0) { toast("Dorthin führt kein Weg."); return; }
+    angehalten = false;
     const weg = [];
     for (let i = ende; i >= 0; i = von[i]) { weg.push(KNOTEN[i]); if (i === start) break; }
     route = weg.reverse(); routeI = 0; zielWahl = ziel; haengt = 0; fertig = false;
@@ -520,6 +553,7 @@ window.Karte = function (opt = {}) {
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
     if (hindernisPruefen()) return { gas: false, bremse: true, lenk: 0 };
+    if (angehalten) { haengt = 0; return { gas: false, bremse: auto.v > 0.2, lenk: 0 }; } // nur bremsen, nicht rückwärts
     if (rueck > 0) { rueck -= dt; return { gas: false, bremse: true, lenk: 0 }; }
     let diff = Math.atan2(ty - auto.y, tx - auto.x) - auto.a;
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
@@ -538,6 +572,7 @@ window.Karte = function (opt = {}) {
 
   // --- Zeichnen --------------------------------------------------------------
   const cv = $("karte"), ctx = cv.getContext("2d");
+  let kamera = null; // Maßstab und Mittelpunkt des letzten Bilds (für das Antippen)
   const muster = {};
   function musterVon(name) {
     if (muster[name]) return muster[name];
@@ -606,6 +641,7 @@ window.Karte = function (opt = {}) {
     const vor = Math.max(0, auto.v) * 1.2;
     const kx = auto.x + Math.cos(auto.a) * vor, ky = auto.y + Math.sin(auto.a) * vor;
     ctx.setTransform(dpr * m, 0, 0, dpr * m, dpr * (w / 2 - kx * m), dpr * (h / 2 - ky * m));
+    kamera = { m, kx, ky };
     const sicht = { x0: kx - w / 2 / m, x1: kx + w / 2 / m, y0: ky - h / 2 / m, y1: ky + h / 2 / m };
 
     // Boden: ruhiges Gras, Blumenflecken, Wege
@@ -663,8 +699,9 @@ window.Karte = function (opt = {}) {
     const rf = OBJ.reifen;
     if (spiel.auftrag === "reifen" && rf && rf.img.complete) for (const r of REIFEN) {
       if (r.weg) continue;
-      ctx.fillStyle = "rgba(255,230,140,0.3)";
-      ctx.beginPath(); ctx.arc(r.x, r.y, 1.3 + (reduce ? 0 : Math.sin(t * 4 + r.x) * 0.2), 0, Math.PI * 2); ctx.fill();
+      const nah = Math.hypot(r.x - auto.x, r.y - auto.y) <= REICH;
+      ctx.fillStyle = nah ? "rgba(255,220,90,0.55)" : "rgba(255,230,140,0.3)";
+      ctx.beginPath(); ctx.arc(r.x, r.y, (nah ? 1.6 : 1.3) + (reduce ? 0 : Math.sin(t * 4 + r.x) * 0.2), 0, Math.PI * 2); ctx.fill();
       ctx.drawImage(rf.img, r.x - 0.7, r.y - 0.7, 1.4, 1.4);
     }
 
@@ -700,6 +737,9 @@ window.Karte = function (opt = {}) {
     const u = untergrund(auto.x, auto.y);
     $("tempo").textContent = `${Math.round(Math.abs(auto.v) * 3.6)} km/h${auto.v < -0.2 ? " rückwärts" : ""}`;
     $("boden").textContent = u.name;
+    const sk = $("stopp");
+    sk.hidden = !route;
+    sk.textContent = angehalten ? "▶ Weiter" : "✋ Stopp";
     $("weg").textContent = route ? `Ziel: ${zielWahl.name} · ${Math.round((route.length - routeI) * 2)} m` : besucht ? "Schrottplatz besucht" : `Schrottplatz: ${Math.round(Math.hypot(auto.x - SCHROTT.tor[0], auto.y - SCHROTT.tor[1]))} m Luftlinie`;
     miniZeichnen();
   }
@@ -857,11 +897,16 @@ window.Karte = function (opt = {}) {
     '<p class="klein">Neue Ware kommt nach Aufträgen. Karosserie-Teile gibt es Stück für Stück.</p>' +
     '<div class="knoepfe"><button type="button" class="knopf zweit">Tschüss, Knut!</button></div></div>';
   laden.querySelector(".zweit").addEventListener("click", () => { laden.hidden = true; });
+  const stopp = document.createElement("button");
+  stopp.type = "button"; stopp.id = "stopp"; stopp.className = "knopf"; stopp.hidden = true;
+  stopp.addEventListener("click", () => { angehalten = !angehalten; stopp.classList.remove("tipp"); });
+  $("karte").parentElement.append(stopp);
+  cv.addEventListener("click", tippKarte);
   $("karte").parentElement.append(laden);
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, get route() { return route; } }; // für automatische Tests
+  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, GEBIETE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   // Platz um die Kartenstücke und Reifen freiräumen
   for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && [...STUECKE, ...REIFEN].some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
