@@ -32,7 +32,8 @@ def _trenner(bild: Image.Image, achse: str) -> int:
     n = grau.width if achse == "x" else grau.height
     beste = (-1.0, n // 2)
     for i in range(n // 3, 2 * n // 3):
-        streifen = grau.crop((i, 0, i + 1, grau.height)) if achse == "x" else grau.crop((0, i, grau.width, i + 1))
+        box = (i, 0, i + 1, grau.height) if achse == "x" else (0, i, grau.width, i + 1)
+        streifen = grau.crop(box)
         hell = ImageStat.Stat(streifen).mean[0]
         beste = max(beste, (hell, i))
     return beste[1]
@@ -41,7 +42,8 @@ def _trenner(bild: Image.Image, achse: str) -> int:
 def schneiden(eingabe: str, name: str) -> list[str]:
     bild = Image.open(eingabe).convert("RGB")
     tx, ty = _trenner(bild, "x"), _trenner(bild, "y")
-    felder = [(0, 0, tx, ty), (tx, 0, bild.width, ty), (0, ty, tx, bild.height), (tx, ty, bild.width, bild.height)]
+    b, h = bild.size
+    felder = [(0, 0, tx, ty), (tx, 0, b, ty), (0, ty, tx, h), (tx, ty, b, h)]
     ziel = os.path.join(ZIEL_DIR, name)
     os.makedirs(ziel, exist_ok=True)
     pfade = []
@@ -54,7 +56,8 @@ def schneiden(eingabe: str, name: str) -> list[str]:
                 r, g, b, a = px[x, y]
                 if a and min(r, g, b) > 205 and max(r, g, b) - min(r, g, b) < 18:
                     nachbar_leer = any(0 <= x + dx < teil.width and 0 <= y + dy < teil.height
-                                       and px[x + dx, y + dy][3] == 0 for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)))
+                                       and px[x + dx, y + dy][3] == 0
+                                       for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)))
                     if nachbar_leer:
                         px[x, y] = (r, g, b, 0)
         teil = teil.crop(teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox())
