@@ -125,6 +125,7 @@
 
   const K = Karte({
     offen: ["start", "nord"], // Opas Gegend und der Weg zum Schrottplatz sind bekannt
+    wetter: "sonne", // im Tutorial scheint die Sonne, danach wechselt das Wetter
     zielErlaubt: (z) => !imTutorial() || z.id === "schrottplatz",
     hatTeil: (kat) => Boolean(W.state.mounted[kat]),
     zurWerkstatt: () => zeige("werkstatt"),
@@ -136,7 +137,7 @@
     },
     nachKnut: () => {
       if (schritt !== 5) return;
-      schritt = 6;
+      schritt = 6; K.wetterFrei();
       tipp("<strong>Geschafft!</strong> Ab jetzt entscheidest du selbst, wohin es geht. Mit „Zur Werkstatt“ kommst du jederzeit zurück zu mir.");
       setTimeout(() => { if (schritt === 6) tipp(null); }, 9000);
     },
@@ -191,7 +192,7 @@
   });
 
   $("ueberspringen").addEventListener("click", () => {
-    schritt = 6;
+    schritt = 6; K.wetterFrei();
     W.tipp(null); W.zusammenbauen();
     for (const id of ["losfahren", "karteAuf"]) leuchte(id, false);
     tipp(null);

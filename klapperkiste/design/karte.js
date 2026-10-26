@@ -9,6 +9,8 @@
 //   unterwegs:    (ziel) => …, nach dem Wählen eines Ziels
 //   nachKnut:     nach dem ersten Gespräch mit Knut
 //   gekauft:      (teilId) => …, wenn bei Knut ein Teil gekauft wurde
+//   wetter:       festes Wetter am Anfang (z. B. "sonne" im Tutorial), sonst wechselt es
+//   wetterWahl:   Auswahlfeld fürs Wetter zeigen (zum Ausprobieren)
 window.Karte = function (opt = {}) {
   const D = window.KARTE_DATEN;
   const $ = (id) => document.getElementById(id);
@@ -723,6 +725,7 @@ window.Karte = function (opt = {}) {
     const wg = ctx.createRadialGradient(62, 212, 8, 62, 212, 46);
     wg.addColorStop(0, "rgba(4,10,8,0.92)"); wg.addColorStop(0.75, "rgba(4,10,8,0.8)"); wg.addColorStop(1, "rgba(4,10,8,0)");
     ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(62, 212, 46, 0, Math.PI * 2); ctx.fill();
+    wolkenZeichnen(sicht);
     // Nebel über unerforschten Gebieten
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(nebel, 0, 0, W, W);
@@ -732,6 +735,7 @@ window.Karte = function (opt = {}) {
       ctx.fillText("? Unerforscht ?", g.x, g.y); ctx.fillText("Kartenstück fehlt", g.x, g.y + 3);
     }
     ctx.restore();
+    wetterBildschirm(w, h, dpr);
 
     // Anzeige
     const u = untergrund(auto.x, auto.y);
@@ -793,6 +797,112 @@ window.Karte = function (opt = {}) {
     mctx.restore();
   }
 
+  // --- Wetter ----------------------------------------------------------------
+  // Jedes Wetter ist eine Mischung aus vier Stärken (0 bis 1). Beim Wechsel gleiten
+  // die Stärken langsam zum neuen Wetter, so gibt es keine harten Sprünge.
+  const WETTER = {
+    sonne: { name: "☀️ Sonnig", wolken: 0.3, regen: 0, nebel: 0, wind: 0.15 },
+    wolkig: { name: "⛅ Wolkig", wolken: 1, regen: 0, nebel: 0, wind: 0.35 },
+    regen: { name: "🌧️ Regen", wolken: 1, regen: 1, nebel: 0.15, wind: 0.45 },
+    nebel: { name: "🌫️ Nebel", wolken: 0.15, regen: 0, nebel: 1, wind: 0.05 },
+    wind: { name: "🍃 Windig", wolken: 0.6, regen: 0, nebel: 0, wind: 1 },
+  };
+  const FOLGE = { sonne: ["wolkig", "wind", "nebel"], wolkig: ["sonne", "regen", "wind"], regen: ["wolkig"],
+    nebel: ["sonne", "wolkig"], wind: ["wolkig", "sonne"] };
+  const wetter = { art: opt.wetter || "sonne", fest: Boolean(opt.wetter), dauer: 80, ist: { ...WETTER[opt.wetter || "sonne"] } };
+  function wetterSetzen(art, fest) {
+    wetter.art = art; wetter.fest = fest; wetter.dauer = 70 + Math.random() * 60;
+    if ($("wetter")) $("wetter").textContent = WETTER[art].name;
+  }
+  function wetterSchritt(dt) {
+    if (!wetter.fest && (wetter.dauer -= dt) <= 0) {
+      const moeglich = FOLGE[wetter.art];
+      wetterSetzen(moeglich[Math.floor(Math.random() * moeglich.length)], false);
+    }
+    const soll = WETTER[wetter.art], k = Math.min(1, dt * 0.25);
+    for (const t of ["wolken", "regen", "nebel", "wind"]) wetter.ist[t] += (soll[t] - wetter.ist[t]) * k;
+    // Wolken (und Nebelschwaden) ziehen mit dem Wind über die Karte
+    const vx = 1 + wetter.ist.wind * 5, vy = 0.3 + wetter.ist.wind;
+    for (const c of WOLKEN) {
+      c.x += vx * dt * c.s; c.y += vy * dt * c.s;
+      if (c.x - c.r > W + 40) c.x = -40 - c.r;
+      if (c.y - c.r > W + 40) c.y = -40 - c.r;
+    }
+  }
+  // Ein weicher Klecks aus mehreren Kreisen, einmal gemalt und dann nur noch kopiert
+  function klecks(farbe) {
+    const c = document.createElement("canvas"); c.width = c.height = 256;
+    const g = c.getContext("2d");
+    for (const [x, y, r] of [[128, 128, 90], [80, 110, 60], [175, 120, 65], [120, 165, 55], [150, 85, 55]]) {
+      const gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, farbe); gr.addColorStop(1, farbe.replace(/[\d.]+\)$/, "0)"));
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    return c;
+  }
+  const WOLKE = klecks("rgba(10,25,35,0.9)"), SCHWADE = klecks("rgba(235,240,238,0.9)");
+  const WOLKEN = Array.from({ length: 60 }, () => ({ x: Math.random() * (W + 80) - 40, y: Math.random() * (W + 80) - 40,
+    r: 8 + Math.random() * 10, s: 0.7 + Math.random() * 0.6 }));
+  function wolkenZeichnen(sicht) {
+    const { wolken, nebel: dunst } = wetter.ist;
+    for (const c of WOLKEN) {
+      if (c.x + c.r < sicht.x0 || c.x - c.r > sicht.x1 || c.y + c.r < sicht.y0 || c.y - c.r > sicht.y1) continue;
+      if (wolken > 0.02) { ctx.globalAlpha = wolken * 0.4; ctx.drawImage(WOLKE, c.x - c.r, c.y - c.r, 2 * c.r, 2 * c.r); }
+      if (dunst > 0.02) { ctx.globalAlpha = dunst * 0.55; ctx.drawImage(SCHWADE, c.x - c.r * 1.3, c.y - c.r, 2.6 * c.r, 2 * c.r); }
+    }
+    ctx.globalAlpha = 1;
+  }
+  // Regen, Pfützenringe, Blätter und Dunst liegen über dem Bild (Bildschirm-Koordinaten)
+  const TROPFEN = Array.from({ length: 160 }, () => ({ x: Math.random(), y: Math.random(), l: 0.6 + Math.random() * 0.6 }));
+  const RINGE = Array.from({ length: 24 }, () => ({ x: Math.random(), y: Math.random(), t: Math.random() * 0.7 }));
+  const BLAETTER = Array.from({ length: 22 }, () => ({ x: Math.random(), y: Math.random(), a: Math.random() * 6,
+    f: ["#7a9a3a", "#a8782e", "#c4a03a", "#5d7d2e"][Math.floor(Math.random() * 4)] }));
+  let wetterZeit = 0;
+  function wetterBildschirm(w, h, dpr) {
+    const { regen, nebel: dunst, wind, wolken } = wetter.ist;
+    const jetzt = performance.now() / 1000, dt = Math.min(0.05, jetzt - (wetterZeit || jetzt));
+    wetterZeit = jetzt;
+    const bewegt = reduce ? 0 : dt;
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Licht: bei Wolken und Regen etwas trüber, bei Nebel heller und blasser
+    const trueb = wolken * 0.06 + regen * 0.16;
+    if (trueb > 0.01) { ctx.fillStyle = `rgba(20,35,50,${trueb})`; ctx.fillRect(0, 0, w, h); }
+    if (dunst > 0.01) { ctx.fillStyle = `rgba(228,234,232,${dunst * 0.32})`; ctx.fillRect(0, 0, w, h); }
+    if (regen > 0.02) {
+      const schraeg = 0.12 + wind * 0.25;
+      ctx.strokeStyle = `rgba(205,222,235,${0.55 * regen})`; ctx.lineWidth = 1.2; ctx.lineCap = "round";
+      ctx.beginPath();
+      for (const d of TROPFEN.slice(0, Math.round(TROPFEN.length * regen))) {
+        d.y += bewegt * 1.5 * d.l; d.x += bewegt * schraeg * 1.5 * d.l;
+        if (d.y > 1) { d.y -= 1; d.x = Math.random(); }
+        if (d.x > 1) d.x -= 1;
+        const x = d.x * w, y = d.y * h, len = 16 * d.l;
+        ctx.moveTo(x, y); ctx.lineTo(x - schraeg * len, y - len);
+      }
+      ctx.stroke();
+      ctx.lineWidth = 1;
+      for (const g of RINGE.slice(0, Math.round(RINGE.length * regen))) {
+        g.t += bewegt;
+        if (g.t > 0.7) { g.t = 0; g.x = Math.random(); g.y = Math.random(); }
+        ctx.strokeStyle = `rgba(220,235,245,${(1 - g.t / 0.7) * 0.5 * regen})`;
+        ctx.beginPath(); ctx.ellipse(g.x * w, g.y * h, 2 + g.t * 12, 1 + g.t * 6, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+    const blatt = Math.max(0, (wind - 0.4) / 0.6);
+    if (blatt > 0.02) {
+      for (const b of BLAETTER.slice(0, Math.round(BLAETTER.length * blatt))) {
+        b.x += bewegt * (0.22 + wind * 0.25); b.y += bewegt * Math.sin(jetzt * 2 + b.a) * 0.06; b.a += bewegt * 4;
+        if (b.x > 1.05) { b.x = -0.05; b.y = Math.random(); }
+        ctx.save(); ctx.translate(b.x * w, b.y * h); ctx.rotate(b.a);
+        ctx.fillStyle = b.f; ctx.strokeStyle = "rgba(30,25,10,0.7)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.ellipse(0, 0, 7, 3.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+
   // --- Schleife --------------------------------------------------------------
   let zuletzt = 0;
   function bild(t) {
@@ -800,6 +910,7 @@ window.Karte = function (opt = {}) {
     zuletzt = t;
     if (cv.clientWidth) {
       if (!fertig) schritt(dt); else auto.v *= 0.9;
+      wetterSchritt(dt);
       zeichne();
     }
     requestAnimationFrame(bild);
@@ -887,6 +998,18 @@ window.Karte = function (opt = {}) {
   $("ziel").addEventListener("click", neu);
 
   // Geld-Anzeige und Laden-Fenster gehören zur Karte, damit beide Seiten sie haben
+  const wetterSpan = document.createElement("span");
+  wetterSpan.id = "wetter";
+  document.querySelector(".hud").append(wetterSpan);
+  wetterSetzen(wetter.art, wetter.fest);
+  if (opt.wetterWahl) {
+    const sel = document.createElement("select");
+    sel.id = "wetterWahl"; sel.setAttribute("aria-label", "Wetter");
+    sel.innerHTML = '<option value="">Wetter: wechselt</option>' +
+      Object.entries(WETTER).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+    sel.addEventListener("change", () => { if (sel.value) wetterSetzen(sel.value, true); else wetter.fest = false; sel.blur(); });
+    ($("neu") ? $("neu").parentElement : document.body).append(sel);
+  }
   const geldSpan = document.createElement("span");
   geldSpan.id = "geld"; geldSpan.hidden = true;
   document.querySelector(".hud").append(geldSpan);
@@ -906,7 +1029,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, GEBIETE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, GEBIETE, wetter, wetterSetzen, WOLKEN, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   // Platz um die Kartenstücke und Reifen freiräumen
   for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && [...STUECKE, ...REIFEN].some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
@@ -922,5 +1045,6 @@ window.Karte = function (opt = {}) {
     // Vor Opas Schuppen abstellen (Start und Schnellreise)
     zuHause() { Object.assign(auto, { x: 150, y: 242.6, a: Math.PI / 2, v: 0 }); route = null; fertig = false; },
     karteNeu() { if ($("grosskarte").hidden === false) grossZeichnen(); },
+    wetterFrei() { wetter.fest = false; wetter.dauer = 40; }, // ab jetzt wechselt das Wetter
   };
 };
