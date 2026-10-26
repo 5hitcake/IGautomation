@@ -117,9 +117,24 @@ der Mitte bleibt Platz für die Figur. Ablage:
 |---|---|---|
 | Schrottplatz (Knut) | `schrottplatz.png` | ✅ |
 | Opas Werkstatt (Tutorial) | `werkstatt.png` | ✅ |
+| Bauernhof (Hilde) | `bauernhof.png` | Prompt unten |
+| Försterhütte (Moos) | `foersterhuette.png` | Prompt unten |
 
 ### Opas Werkstatt
 
 ```
 Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals. Inside a small, cosy old wooden workshop shed in the afternoon: walls of weathered wooden planks, warm sunlight falling in through a dusty window on the left, a large pegboard on the back wall full of hanging tools (wrenches, hammers, saws, pliers), a long cluttered workbench on the right with a vice, tin cans with screws and an oil can, shelves with jars, coils of wire and an old radio, a hanging lamp with a metal shade, a rolled-up garden hose and a stack of old tyres in the corner. The left half and the centre of the image are calm and open: an empty wooden plank floor with a few oil stains and wood shavings, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
 ```
+
+### Bauernhof
+
+```
+Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals except a few tiny chickens far in the back. A sunny farmyard in the late morning: on the right a farmhouse with a red clay tile roof, white plastered walls with dark timber beams and flower boxes under the windows, in the back a big weathered grey wooden barn with its large door open and hay inside, a wooden fence and green rolling fields with a few sheep far away under a blue sky with soft clouds, a hay cart and a round stone well on the right side. The left half and the centre of the image are calm and open: an empty sandy courtyard with a few scattered straws, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```
+
+### Försterhütte
+
+```
+Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals except a small bird on a branch. A small clearing deep in a dark pine forest in the evening: on the right a cosy log cabin with a mossy roof, a warm glowing window and a lantern hanging by the door, a stack of firewood, an axe in a chopping block and antlers above the door, tall dark fir trees all around, a few rays of golden evening light falling through the branches, ferns and mushrooms on the ground. The left half and the centre of the image are calm and open: a soft forest floor with pine needles and a narrow dirt path, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```
+
