@@ -28,11 +28,11 @@ OBJEKT_DIR = os.path.join(boden.ROOT, "assets", "karte", "objekte")
 PX = boden.PX_PRO_M
 
 
-def einpassen(eingabe: str, name: str, meter: float) -> str:
+def einpassen(eingabe: str, name: str, meter: float, dicker: float = 1.0) -> str:
     teil = teilwerk.freistellen(Image.open(eingabe), inseln=False)
     teil = teil.crop(teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox())
     breite = round(meter * PX)
-    teil = teil.resize((breite, round(teil.height * breite / teil.width)), Image.LANCZOS)
+    teil = teil.resize((breite, round(teil.height * breite / teil.width * dicker)), Image.LANCZOS)
     os.makedirs(OBJEKT_DIR, exist_ok=True)
     pfad = os.path.join(OBJEKT_DIR, f"{name}.png")
     teil.save(pfad)
@@ -62,12 +62,15 @@ def probe(ausgabe: str, bodenname: str, objekte: list[str], meter: int = 32, aut
 
     for eintrag in sorted(objekte, key=y_von):  # von oben nach unten, untere überdecken obere
         name, _, pos = eintrag.partition("@")
+        fest = name.endswith("!")  # z. B. zaun!@x,y: nicht drehen oder verändern (Zäune aneinanderreihen)
+        name = name.rstrip("!")
         obj = Image.open(os.path.join(OBJEKT_DIR, f"{name}.png")).convert("RGBA")
         # Abwechslung: an der Diagonale spiegeln (Licht bleibt oben links), Größe leicht ändern
-        if rnd.random() < 0.5:
+        if not fest and rnd.random() < 0.5:
             obj = obj.transpose(Image.TRANSPOSE)
-        obj = obj.rotate(rnd.uniform(-20, 20), Image.BICUBIC, expand=True)  # Licht bleibt fast gleich
-        f = rnd.uniform(0.85, 1.15)
+        if not fest:
+            obj = obj.rotate(rnd.uniform(-20, 20), Image.BICUBIC, expand=True)  # Licht bleibt fast gleich
+        f = 1.0 if fest else rnd.uniform(0.85, 1.15)
         obj = obj.resize((round(obj.width * f), round(obj.height * f)), Image.LANCZOS)
         x, y = (float(v) * PX for v in pos.split(",")) if pos else (bild.width / 2, bild.height / 2)
         lx, ly = round(x - obj.width / 2), round(y - obj.height / 2)
@@ -89,15 +92,17 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("eingabe")
     e.add_argument("name")
     e.add_argument("--meter", type=float, required=True, help="Breite des Objekts in Metern")
+    e.add_argument("--dicker", type=float, default=1.0,
+                   help="Höhe im Bild strecken, damit dünne Dinge (Zaun) auf dem Handy sichtbar bleiben")
     pr = sub.add_parser("probe")
     pr.add_argument("ausgabe")
-    pr.add_argument("objekte", nargs="+", help="NAME oder NAME@x,y (Meter)")
+    pr.add_argument("objekte", nargs="+", help="NAME oder NAME@x,y (Meter), NAME! = unverändert")
     pr.add_argument("--boden", default="gras_ruhig")
     pr.add_argument("--meter", type=int, default=32)
     pr.add_argument("--auto")
     args = p.parse_args(argv)
     if args.befehl == "einpassen":
-        einpassen(args.eingabe, args.name, args.meter)
+        einpassen(args.eingabe, args.name, args.meter, args.dicker)
     else:
         probe(args.ausgabe, args.boden, args.objekte, args.meter, args.auto)
     return 0
