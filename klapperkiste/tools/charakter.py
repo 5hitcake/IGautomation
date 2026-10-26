@@ -7,7 +7,8 @@ Reihenfolge der Gesten: 1 hallo (oben links), 2 nachdenken (oben rechts),
 3 auftrag (unten links), 4 juhu (unten rechts).
 
 Aufruf:
-  python klapperkiste/tools/charakter.py EINGABE NAME
+  python klapperkiste/tools/charakter.py EINGABE NAME [--arme]
+  --arme: auch weiße Lücken zwischen Arm und Körper entfernen (nicht bei weißer Kleidung)
 Ergebnis: assets/charaktere/NAME/hallo.png, nachdenken.png, auftrag.png, juhu.png
 """
 
@@ -39,12 +40,20 @@ def _trenner(bild: Image.Image, achse: str) -> int:
     return beste[1]
 
 
-def beine_frei(teil: Image.Image, ab: float = 0.5) -> Image.Image:
+def beine_frei(teil: Image.Image, ab: float = 0.5, arme: bool = False) -> Image.Image:
     """Eingeschlossenes Papierweiß zwischen den Beinen entfernen.
 
     Gesucht wird nur in der unteren Hälfte, und entfernt werden nur weiße Flächen,
-    die hoch und schmal sind und bis zu den Füßen reichen (Lücke zwischen den Beinen). Augen, Brillengläser
-    und breite weiße Flächen wie eine Schürze bleiben erhalten."""
+    die hoch und schmal sind und bis zu den Füßen reichen (Lücke zwischen den
+    Beinen). Augen, Brillengläser und breite weiße Flächen wie eine Schürze
+    bleiben erhalten.
+
+    Mit arme=True werden auch Lücken zwischen Arm und Körper entfernt: ab einem
+    Viertel der Höhe jede eingeschlossene weiße Fläche, darüber nur seitlich
+    neben dem Kopf. Nur bei Figuren mit kleinem Kopf oben und ohne weiße
+    Kleidung verwenden (z. B. Brösel), sonst gehen Augen oder Zähne verloren."""
+    if arme:
+        ab = 0.1
     px = teil.load()
     y0 = round(teil.height * ab)
     kand = Image.new("L", teil.size, 0)
@@ -52,7 +61,8 @@ def beine_frei(teil: Image.Image, ab: float = 0.5) -> Image.Image:
     for y in range(y0, teil.height):
         for x in range(teil.width):
             r, g, b, a = px[x, y]
-            if a > 200 and min(r, g, b) > 215 and max(r, g, b) - min(r, g, b) < 25:
+            hell, grau = (198, 32) if arme else (215, 25)
+            if a > 200 and min(r, g, b) > hell and max(r, g, b) - min(r, g, b) < grau:
                 kp[x, y] = 255
     alpha = teil.getchannel("A")
     while True:
@@ -66,14 +76,17 @@ def beine_frei(teil: Image.Image, ab: float = 0.5) -> Image.Image:
         fx0, fy0, fx1, fy1 = flaeche.getbbox()
         b, h = fx1 - fx0, fy1 - fy0
         schmal_hoch = h >= 1.2 * b and b < teil.width * 0.3
-        if flaeche.histogram()[255] >= 120 and schmal_hoch and fy1 > teil.height * 0.75:
+        mitte_x = (fx0 + fx1) / 2 / teil.width
+        seitlich = mitte_x < 0.33 or mitte_x > 0.66  # neben dem Kopf, nicht Augen oder Zähne
+        arm_luecke = arme and (fy0 >= teil.height * 0.25 or seitlich)
+        if flaeche.histogram()[255] >= 60 and (arm_luecke or schmal_hoch and fy1 > teil.height * 0.75):
             alpha.paste(0, (0, 0), flaeche)
         kand.paste(0, (0, 0), flaeche)
     teil.putalpha(alpha)
     return teil
 
 
-def schneiden(eingabe: str, name: str) -> list[str]:
+def schneiden(eingabe: str, name: str, arme: bool = False) -> list[str]:
     bild = Image.open(eingabe).convert("RGB")
     tx, ty = _trenner(bild, "x"), _trenner(bild, "y")
     b, h = bild.size
@@ -95,7 +108,7 @@ def schneiden(eingabe: str, name: str) -> list[str]:
                     if nachbar_leer:
                         px[x, y] = (r, g, b, 0)
         teil = teil.crop(teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox())
-        teil = beine_frei(teil)
+        teil = beine_frei(teil, arme=arme)
         pfad = os.path.join(ziel, f"{geste}.png")
         teil.save(pfad)
         pfade.append(pfad)
@@ -104,7 +117,8 @@ def schneiden(eingabe: str, name: str) -> list[str]:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    argumente = [a for a in sys.argv[1:] if a != "--arme"]
+    if len(argumente) != 2:
         print(__doc__)
         sys.exit(1)
-    schneiden(sys.argv[1], sys.argv[2])
+    schneiden(argumente[0], argumente[1], arme="--arme" in sys.argv)
