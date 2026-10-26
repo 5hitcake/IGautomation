@@ -39,6 +39,7 @@ MODELLE = {"rundling": "Rundling", "pickup": "Pick-up", "badewanne": "Badewanne"
            "hotdog": "Hot-Dog-Wagen", "feuerwehr": "Feuerwehr", "betonmischer": "Betonmischer",
            "wohnwagen": "Mini-Wohnwagen", "geldtransporter": "Geldtransporter", "schneeraupe": "Schneeraupe",
            "gewaechshaus": "Gewächshaus", "zirkus": "Zirkus", "schlauchboot": "Schlauchboot"}
+TIERE = ["vogel", "hase", "schaf"]  # je zwei Posen: NAME_1.png, NAME_2.png
 LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne"]  # Knuts erstes Angebot
 AUTO_PX = 320  # Breite des Autobilds (10 Zellen = 4 m)
 
@@ -112,13 +113,22 @@ def spielstart_teile() -> None:
 
 def main() -> int:
     raster = teilwerk.lade_raster()
-    daten = {"boden": {}, "objekte": {}, "autos": [], **figuren()}
+    daten = {"boden": {}, "objekte": {}, "tiere": {}, "autos": [], **figuren()}
     for name in BODEN:
         k = Image.open(os.path.join(ROOT, "assets", "karte", "boden", f"{name}.png")).convert("RGB")
         daten["boden"][name] = {"bild": _uri(k), "meter": k.width / 32}
     for name in OBJEKTE:
         o = Image.open(os.path.join(ROOT, "assets", "karte", "objekte", f"{name}.png")).convert("RGBA")
         daten["objekte"][name] = {"bild": _uri(o), "breite": o.width / 32, "hoehe": o.height / 32}
+    for name in TIERE:
+        posen = []
+        for i in (1, 2):
+            pfad = os.path.join(ROOT, "assets", "karte", "tiere", f"{name}_{i}.png")
+            if os.path.exists(pfad):
+                t = Image.open(pfad).convert("RGBA")
+                posen.append({"bild": _uri(t), "breite": t.width / 64, "hoehe": t.height / 64})  # 64 px/m
+        if posen:
+            daten["tiere"][name] = posen
     ohne = auto(raster, None)
     daten["autos"].append({"id": "ohne", "name": "Schrottkarre (ohne Karosserie)", "bild": _uri(ohne),
                            "laenge": ohne.width / AUTO_PX * 4})

@@ -174,3 +174,22 @@ schnellere Wolken). Im Tutorial scheint immer die Sonne. In der Kartenprobe
 lässt sich das Wetter zum Ausprobieren fest einstellen. Spielerisch hat das
 Wetter noch keine Folgen (Idee: Regen macht Wiesen rutschig, Nebel
 versteckt Gegenstände).
+
+## 13. Tiere
+
+Tierbilder kommen als Bogen mit zwei Posen nebeneinander (Kopf nach rechts)
+und werden mit `python klapperkiste/tools/tiere.py EINGABE NAME --meter M`
+geteilt, freigestellt (auch der graue Schlagschatten) und mit 64 px pro Meter
+gespeichert. Größen etwas übertrieben, damit man sie sieht: Vogel 0,9 m,
+Hase 1,3 m, Schaf 2 m.
+
+- **Vögel** sitzen in kleinen Gruppen am Weg, picken und drehen sich. Kommt
+  das Auto näher, fliegen sie auf, weg vom Auto, und steigen. Ihr Schatten
+  rückt mit der Höhe nach unten rechts ab und wird blasser, so sieht man,
+  wie hoch sie sind. Nach einer Weile landet ein neuer Schwarm. Ab und zu
+  zieht ein Schwarm hoch über das Auto hinweg.
+- **Hasen** hoppeln in kurzen Sprungfolgen um ihr Zuhause (manchmal über den
+  Weg) und flüchten mit schnellen Sprüngen vor dem Auto.
+- **Schafe** grasen auf der Weide (Kopf unten) und laufen langsam zum
+  nächsten Grasplatz.
+- Kühe folgen, sobald das Bild da ist.

@@ -707,6 +707,8 @@ window.Karte = function (opt = {}) {
       ctx.drawImage(rf.img, r.x - 0.7, r.y - 0.7, 1.4, 1.4);
     }
 
+    tiereBoden(sicht);
+
     // Auto, dann alles, was höher ist (Bäume über dem Auto)
     const img = autoWahl.img;
     if (img.complete && img.naturalWidth) {
@@ -721,6 +723,7 @@ window.Karte = function (opt = {}) {
       ctx.restore();
     }
     for (const o of OBJEKTE) zeichneObjekt(o, sicht);
+    tiereLuft(sicht);
     // Dunkler Wald hinter dem Hindernis
     const wg = ctx.createRadialGradient(62, 212, 8, 62, 212, 46);
     wg.addColorStop(0, "rgba(4,10,8,0.92)"); wg.addColorStop(0.75, "rgba(4,10,8,0.8)"); wg.addColorStop(1, "rgba(4,10,8,0)");
@@ -795,6 +798,148 @@ window.Karte = function (opt = {}) {
     mctx.fillStyle = "#f2b632"; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 2;
     mctx.beginPath(); mctx.moveTo(7, 0); mctx.lineTo(-5, -5); mctx.lineTo(-5, 5); mctx.closePath(); mctx.fill(); mctx.stroke();
     mctx.restore();
+  }
+
+  // --- Tiere -------------------------------------------------------------------
+  // Je Tier zwei Posen (Kopf zeigt nach rechts). Vögel sitzen in kleinen Gruppen am
+  // Weg und fliegen auf, wenn das Auto kommt; ihr Schatten rückt mit der Höhe ab.
+  // Hasen hoppeln herum und flüchten vor dem Auto, Schafe grasen auf der Weide.
+  const TIERBILD = {};
+  for (const [name, posen] of Object.entries(D.tiere || {})) {
+    TIERBILD[name] = posen.map((q) => ({ img: lade(q.bild), b: q.breite, h: q.hoehe }));
+  }
+  const zufall = (a, b) => a + Math.random() * (b - a);
+  const VOGELPLAETZE = [[160, 275], [196, 232], [205, 150], [250, 297], [122, 211], [244, 186], [293, 228]];
+  const VOEGEL = [];
+  function schwarmSetzen(platz) {
+    const [px, py] = platz;
+    for (let i = 0, n = 3 + Math.floor(Math.random() * 3); i < n; i++) {
+      VOEGEL.push({ platz, x: px + zufall(-2, 2), y: py + zufall(-2, 2), a: zufall(0, 6.3), z: 0, vz: 0, fliegt: false,
+        v: 0, flap: Math.random(), pick: Math.random() * 3 });
+    }
+  }
+  const HASEN = [[125, 190], [232, 122], [176, 300], [302, 214], [90, 240]].map(([x, y]) => ({ hx: x, hy: y, x, y,
+    a: zufall(0, 6.3), pause: zufall(0, 3), hops: 0, phase: 0, flucht: false }));
+  const WEIDE = [218, 210, 278, 280]; // innen am Zaun
+  const SCHAFE = Array.from({ length: 7 }, () => ({ x: zufall(WEIDE[0], WEIDE[2]), y: zufall(WEIDE[1], WEIDE[3]),
+    a: zufall(0, 6.3), zx: 0, zy: 0, warte: zufall(0, 5), grast: true }));
+  let ueberflug = { naechster: 12, voegel: [] };
+  function tiereStart() {
+    VOEGEL.length = 0;
+    for (const p of VOGELPLAETZE) schwarmSetzen(p);
+  }
+  function drehZu(t, ziel, max) {
+    let d = ziel - t.a; d = Math.atan2(Math.sin(d), Math.cos(d));
+    t.a += Math.max(-max, Math.min(max, d));
+  }
+  function tiereSchritt(dt) {
+    // Vögel: auffliegen, wenn das Auto nah ist, weg vom Auto und steigen
+    for (let i = VOEGEL.length - 1; i >= 0; i--) {
+      const v = VOEGEL[i];
+      const d = Math.hypot(v.x - auto.x, v.y - auto.y);
+      if (!v.fliegt && d < 9 && Math.abs(auto.v) > 0.5) {
+        v.fliegt = true; v.a = Math.atan2(v.y - auto.y, v.x - auto.x) + zufall(-0.6, 0.6); v.v = zufall(7, 10);
+      }
+      if (v.fliegt) {
+        v.z = Math.min(14, v.z + dt * 5); v.flap += dt * 9;
+        v.x += Math.cos(v.a) * v.v * dt; v.y += Math.sin(v.a) * v.v * dt; v.a += Math.sin(v.flap * 0.3) * dt * 0.3;
+        if (Math.hypot(v.x - v.platz[0], v.y - v.platz[1]) > 90) VOEGEL.splice(i, 1);
+      } else if ((v.pick -= dt) < 0) { v.pick = zufall(0.8, 3); v.a += zufall(-1.2, 1.2); } // picken und umdrehen
+    }
+    // Leere Plätze nach einer Weile wieder besetzen, aber nicht direkt vor dem Auto
+    for (const p of VOGELPLAETZE) {
+      if (VOEGEL.some((v) => v.platz === p)) continue;
+      p.leer = (p.leer || 0) + dt;
+      if (p.leer > 30 && Math.hypot(p[0] - auto.x, p[1] - auto.y) > 30) { p.leer = 0; schwarmSetzen(p); }
+    }
+    // Ab und zu fliegt ein Schwarm hoch über das Auto hinweg
+    if ((ueberflug.naechster -= dt) < 0 && !ueberflug.voegel.length) {
+      ueberflug.naechster = zufall(25, 45);
+      const r = zufall(0, 6.3), x = auto.x - Math.cos(r) * 35, y = auto.y - Math.sin(r) * 35;
+      ueberflug.voegel = Array.from({ length: 5 + Math.floor(Math.random() * 4) }, (_, k) => ({ x: x + zufall(-4, 4) - Math.cos(r) * k * 1.5,
+        y: y + zufall(-4, 4) - Math.sin(r) * k * 1.5, a: r, z: zufall(10, 16), v: 9, flap: Math.random() * 6, fliegt: true }));
+    }
+    for (const v of ueberflug.voegel) { v.x += Math.cos(v.a) * v.v * dt; v.y += Math.sin(v.a) * v.v * dt; v.flap += dt * 8; }
+    if (ueberflug.voegel.length && ueberflug.voegel.every((v) => Math.hypot(v.x - auto.x, v.y - auto.y) > 45 &&
+      Math.cos(v.a) * (v.x - auto.x) + Math.sin(v.a) * (v.y - auto.y) > 0)) ueberflug.voegel = [];
+    // Hasen: Pause, dann ein paar Sprünge; ist das Auto nah, schnell davon
+    for (const h of HASEN) {
+      const d = Math.hypot(h.x - auto.x, h.y - auto.y);
+      if (d < 8 && !h.flucht && Math.abs(auto.v) > 0.5) {
+        h.flucht = true; h.hops = 6; h.pause = 0; h.a = Math.atan2(h.y - auto.y, h.x - auto.x) + zufall(-0.5, 0.5);
+      }
+      if (h.phase > 0) {
+        h.phase -= dt;
+        const tempo = h.flucht ? 7 : 3.2;
+        h.x += Math.cos(h.a) * tempo * dt; h.y += Math.sin(h.a) * tempo * dt;
+        if (h.phase <= 0) { h.hops--; h.pause = h.hops > 0 ? (h.flucht ? 0.08 : zufall(0.15, 0.35)) : zufall(1.5, 5); }
+      } else if ((h.pause -= dt) <= 0) {
+        if (h.hops <= 0) {
+          h.flucht = false; h.hops = 2 + Math.floor(Math.random() * 4);
+          // weg vom Zuhause? Dann zurück, sonst irgendwohin (manchmal über den Weg)
+          const weg = Math.hypot(h.x - h.hx, h.y - h.hy);
+          h.a = weg > 14 ? Math.atan2(h.hy - h.y, h.hx - h.x) + zufall(-0.4, 0.4) : zufall(0, 6.3);
+        }
+        h.phase = 0.22;
+      }
+    }
+    // Schafe: langsam zu einem neuen Grasplatz laufen, dort grasen
+    for (const sf of SCHAFE) {
+      if (sf.grast) {
+        if ((sf.warte -= dt) <= 0) { sf.grast = false; sf.zx = zufall(WEIDE[0], WEIDE[2]); sf.zy = zufall(WEIDE[1], WEIDE[3]); }
+        continue;
+      }
+      const d = Math.hypot(sf.zx - sf.x, sf.zy - sf.y);
+      if (d < 0.4) { sf.grast = true; sf.warte = zufall(4, 12); continue; }
+      drehZu(sf, Math.atan2(sf.zy - sf.y, sf.zx - sf.x), dt * 1.2);
+      sf.x += Math.cos(sf.a) * 0.6 * dt; sf.y += Math.sin(sf.a) * 0.6 * dt;
+    }
+  }
+  function tierZeichnen(bild, x, y, a, gross = 1) {
+    if (!bild || !bild.img.complete || !bild.img.naturalWidth) return;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    ctx.drawImage(bild.img, -bild.b * gross / 2, -bild.h * gross / 2, bild.b * gross, bild.h * gross);
+    ctx.restore();
+  }
+  function tierSchatten(bild, x, y, a, gross, deck) {
+    if (!bild || !bild.img.complete || !bild.img.naturalWidth) return;
+    if (!bild.schatten) schattenVon(bild);
+    const k = bild.b * gross / bild.img.naturalWidth;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.globalAlpha = deck;
+    ctx.drawImage(bild.schatten, -bild.b * gross / 2 - bild.pad * k, -bild.h * gross / 2 - bild.pad * k,
+      bild.schatten.width * k, bild.schatten.height * k);
+    ctx.restore();
+  }
+  const imBild = (x, y, sicht, rand = 3) => x > sicht.x0 - rand && x < sicht.x1 + rand && y > sicht.y0 - rand && y < sicht.y1 + rand;
+  // Am Boden: Schafe, Hasen, sitzende Vögel und die Schatten der fliegenden
+  function tiereBoden(sicht) {
+    const T = TIERBILD;
+    for (const sf of SCHAFE) if (imBild(sf.x, sf.y, sicht) && T.schaf) {
+      const b = T.schaf[sf.grast ? 1 : 0];
+      tierSchatten(b, sf.x + 0.15, sf.y + 0.15, sf.a, 1, 1);
+      tierZeichnen(b, sf.x, sf.y, sf.a);
+    }
+    for (const h of HASEN) if (imBild(h.x, h.y, sicht) && T.hase) {
+      const b = T.hase[h.phase > 0 ? 1 : 0], hub = h.phase > 0 ? Math.sin((0.22 - h.phase) / 0.22 * Math.PI) * 0.25 : 0;
+      tierSchatten(b, h.x + 0.1, h.y + 0.1, h.a, 1, 1);
+      tierZeichnen(b, h.x - hub * 0.3, h.y - hub * 0.3, h.a, 1 + hub * 0.3);
+    }
+    if (!T.vogel) return;
+    for (const v of [...VOEGEL, ...ueberflug.voegel]) {
+      if (!imBild(v.x + v.z * 0.6, v.y + v.z * 0.6, sicht, 6)) continue;
+      const b = T.vogel[v.fliegt && Math.sin(v.flap * 2) > 0 ? 0 : 1];
+      // Je höher, desto weiter weg (nach unten rechts) und blasser liegt der Schatten
+      tierSchatten(b, v.x + v.z * 0.6, v.y + v.z * 0.6, v.a, 1, Math.max(0.5, 1 - v.z * 0.03));
+      if (!v.fliegt) tierZeichnen(b, v.x, v.y, v.a, 0.85);
+    }
+  }
+  // In der Luft (über Bäumen und Auto): fliegende Vögel, mit der Höhe etwas größer
+  function tiereLuft(sicht) {
+    if (!TIERBILD.vogel) return;
+    for (const v of [...VOEGEL, ...ueberflug.voegel]) {
+      if (!v.fliegt || !imBild(v.x, v.y, sicht, 6)) continue;
+      tierZeichnen(TIERBILD.vogel[Math.sin(v.flap * 2) > 0 ? 0 : 1], v.x, v.y, v.a, 1 + v.z * 0.05);
+    }
   }
 
   // --- Wetter ----------------------------------------------------------------
@@ -911,6 +1056,7 @@ window.Karte = function (opt = {}) {
     if (cv.clientWidth) {
       if (!fertig) schritt(dt); else auto.v *= 0.9;
       wetterSchritt(dt);
+      tiereSchritt(dt);
       zeichne();
     }
     requestAnimationFrame(bild);
@@ -1029,12 +1175,13 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, GEBIETE, wetter, wetterSetzen, WOLKEN, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   // Platz um die Kartenstücke und Reifen freiräumen
   for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && [...STUECKE, ...REIFEN].some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
   netzBauen();
   gebieteStart();
+  tiereStart();
   nebelNeu();
   requestAnimationFrame(bild);
 
