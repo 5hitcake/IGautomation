@@ -94,3 +94,12 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 #stopp.tipp { animation: stoppTipp 0.9s ease-in-out infinite; }
 @keyframes stoppTipp { 50% { box-shadow: 0 0 0 7px rgba(242,182,50,0.45); } }
 @media (prefers-reduced-motion: reduce) { #stopp.tipp { animation: none; } }
+/* Anzeigen am Rand: rechts unter der Minikarte Wetter und Münzen, unten rechts der Tacho */
+.hud-rechts { position: absolute; right: 10px; top: 132px; display: grid; gap: 6px; justify-items: end; pointer-events: none; }
+.hud-rechts span { background: rgba(18,35,42,0.82); border-radius: 999px; font-size: 14px; font-weight: 800; padding: 4px 10px; font-variant-numeric: tabular-nums; }
+#wetter { min-width: 34px; height: 34px; box-sizing: border-box; display: grid; place-items: center; font-size: 18px; padding: 0 !important; }
+#wetter.zeigen { padding: 0 12px !important; font-size: 14px; }
+#tacho { position: absolute; right: 10px; bottom: 10px; width: 76px; height: 76px; pointer-events: none; }
+#toast { bottom: 96px; }
+/* Fenster (große Karte, Meldung, Laden) liegen über allen Anzeigen am Rand */
+#grosskarte, #meldung, #laden, #ziel { z-index: 8; }

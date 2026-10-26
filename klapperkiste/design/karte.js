@@ -298,8 +298,9 @@ window.Karte = function (opt = {}) {
   function hudNeu() {
     const a = $("auftrag"), n = BRAUCHT[spiel.auftrag];
     a.hidden = !n;
-    if (n) a.textContent = `Auftrag: ${spiel.auftrag === "reifen" ? "alte Reifen" : "alte Batterie"} für Knut · ${spiel.beutel}/${n}`;
-    $("geld").textContent = `🪙 ${spiel.geld} Münzen`;
+    if (n) a.textContent = `📋 ${spiel.auftrag === "reifen" ? "Alte Reifen" : "Alte Batterie"} für Knut · ${spiel.beutel}/${n}`;
+    $("geld").textContent = `🪙 ${spiel.geld}`;
+    $("geld").title = `${spiel.geld} Münzen`;
     $("geld").hidden = spiel.auftrag === null;
   }
   // Beim ersten Reifen in Sichtweite erklären, wie das Aufsammeln geht
@@ -521,16 +522,19 @@ window.Karte = function (opt = {}) {
     KNOTEN.forEach(([kx, ky], i) => { if (nur && !nur(i)) return; const d = Math.hypot(kx - x, ky - y); if (d < bd) { bd = d; best = i; } });
     return best;
   }
+  // art "ort": Hauptziel (Ort mit Bewohner), "weg": Wegweiser/Wegpunkt. kommt: Ort gibt es
+  // noch nicht, er steht nur als Fragezeichen auf der Karte.
   const ZIELE = [
-    { id: "schuppen", name: "Opas Schuppen", x: 150, y: 243, gebiet: "start" },
-    { id: "wegweiser", name: "Wegweiser", x: 181, y: 204, gebiet: "start" },
-    { id: "schrottplatz", name: "Schrottplatz", x: 230, y: 60, gebiet: "nord" }, // parkt vor dem Tor
-    { id: "waldweg", name: "Waldweg", x: 60, y: 214, gebiet: "wald" },
-    { id: "feldrand", name: "Feldrand", x: 240, y: 177, gebiet: "nord" },
-    { id: "weide", name: "Weide", x: 298, y: 250, gebiet: "weide" },
-    { id: "bauernhof", name: "Bauernhof", x: 276, y: 162, gebiet: "nord" },
+    { id: "schuppen", name: "Opas Schuppen", art: "ort", x: 150, y: 243, gebiet: "start" },
+    { id: "wegweiser", name: "Wegweiser", art: "weg", x: 181, y: 204, gebiet: "start" },
+    { id: "schrottplatz", name: "Schrottplatz", art: "ort", x: 230, y: 60, gebiet: "nord" }, // parkt vor dem Tor
+    { id: "waldweg", name: "Waldweg", art: "weg", x: 60, y: 214, gebiet: "wald" },
+    { id: "feldrand", name: "Feldrand", art: "weg", x: 240, y: 177, gebiet: "nord" },
+    { id: "weide", name: "Weide", art: "weg", x: 298, y: 250, gebiet: "weide" },
+    { id: "bauernhof", name: "Bauernhof", art: "ort", x: 276, y: 162, gebiet: "nord" },
+    { id: "foersterhuette", name: "Försterhütte", art: "ort", x: 28, y: 205, gebiet: "wald", kommt: true },
   ];
-  const zielOffen = (z) => GEBIETE.find((g) => g.id === z.gebiet).offen;
+  const zielOffen = (z) => !z.kommt && GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
   // Hindernisse auf dem Weg: hier hält das Auto, wenn ihm ein Teil fehlt
   const HINDERNISSE = [
@@ -828,13 +832,12 @@ window.Karte = function (opt = {}) {
     wetterBildschirm(w, h, dpr);
 
     // Anzeige
-    const u = untergrund(auto.x, auto.y);
-    $("tempo").textContent = `${Math.round(Math.abs(auto.v) * 3.6)} km/h${auto.v < -0.2 ? " rückwärts" : ""}`;
-    $("boden").textContent = u.name;
+    tachoZeichnen();
     const sk = $("stopp");
     sk.hidden = !route;
     sk.textContent = angehalten ? "▶ Weiter" : "✋ Stopp";
-    $("weg").textContent = route ? `Ziel: ${zielWahl.name} · ${Math.round((route.length - routeI) * 2)} m` : besucht ? "Schrottplatz besucht" : `Schrottplatz: ${Math.round(Math.hypot(auto.x - SCHROTT.tor[0], auto.y - SCHROTT.tor[1]))} m Luftlinie`;
+    $("weg").hidden = !route;
+    if (route) $("weg").textContent = `📍 ${zielWahl.name} · ${Math.round((route.length - routeI) * 2)} m`;
     miniZeichnen();
   }
 
@@ -1036,18 +1039,26 @@ window.Karte = function (opt = {}) {
   // Jedes Wetter ist eine Mischung aus vier Stärken (0 bis 1). Beim Wechsel gleiten
   // die Stärken langsam zum neuen Wetter, so gibt es keine harten Sprünge.
   const WETTER = {
-    sonne: { name: "☀️ Sonnig", wolken: 0.3, regen: 0, nebel: 0, wind: 0.15 },
-    wolkig: { name: "⛅ Wolkig", wolken: 1, regen: 0, nebel: 0, wind: 0.35 },
-    regen: { name: "🌧️ Regen", wolken: 1, regen: 1, nebel: 0.15, wind: 0.45 },
-    nebel: { name: "🌫️ Nebel", wolken: 0.15, regen: 0, nebel: 1, wind: 0.05 },
-    wind: { name: "🍃 Windig", wolken: 0.6, regen: 0, nebel: 0, wind: 1 },
+    sonne: { name: "Sonnig", icon: "☀️", wolken: 0.3, regen: 0, nebel: 0, wind: 0.15 },
+    wolkig: { name: "Wolkig", icon: "⛅", wolken: 1, regen: 0, nebel: 0, wind: 0.35 },
+    regen: { name: "Regen", icon: "🌧️", wolken: 1, regen: 1, nebel: 0.15, wind: 0.45 },
+    nebel: { name: "Nebel", icon: "🌫️", wolken: 0.15, regen: 0, nebel: 1, wind: 0.05 },
+    wind: { name: "Windig", icon: "🍃", wolken: 0.6, regen: 0, nebel: 0, wind: 1 },
   };
   const FOLGE = { sonne: ["wolkig", "wind", "nebel"], wolkig: ["sonne", "regen", "wind"], regen: ["wolkig"],
     nebel: ["sonne", "wolkig"], wind: ["wolkig", "sonne"] };
   const wetter = { art: opt.wetter || "sonne", fest: Boolean(opt.wetter), dauer: 80, ist: { ...WETTER[opt.wetter || "sonne"] } };
   function wetterSetzen(art, fest) {
     wetter.art = art; wetter.fest = fest; wetter.dauer = 70 + Math.random() * 60;
-    if ($("wetter")) $("wetter").textContent = WETTER[art].name;
+    // Symbol im runden Feld; bei einem Wechsel steht ein paar Sekunden der Name daneben
+    const el = $("wetter");
+    if (!el) return;
+    const neu = el.dataset.art && el.dataset.art !== art;
+    el.dataset.art = art; el.title = `Wetter: ${WETTER[art].name}`; el.setAttribute("aria-label", el.title);
+    el.textContent = neu ? `${WETTER[art].icon} ${WETTER[art].name}` : WETTER[art].icon;
+    el.classList.toggle("zeigen", Boolean(neu));
+    clearTimeout(el.zeit);
+    if (neu) el.zeit = setTimeout(() => { el.textContent = WETTER[art].icon; el.classList.remove("zeigen"); }, 4000);
   }
   function wetterSchritt(dt) {
     if (!wetter.fest && (wetter.dauer -= dt) <= 0) {
@@ -1138,6 +1149,37 @@ window.Karte = function (opt = {}) {
     ctx.restore();
   }
 
+  // --- Tacho -------------------------------------------------------------------
+  // Kleiner Rundtacho unten rechts: 0 bis 40 km/h auf einem Dreiviertelkreis
+  const TACHO_MAX = 40;
+  function tachoZeichnen() {
+    const t = $("tacho");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), g = t.clientWidth || 76;
+    if (t.width !== Math.round(g * dpr)) { t.width = t.height = Math.round(g * dpr); }
+    const c = t.getContext("2d");
+    c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, g, g);
+    const m = g / 2, r = g / 2 - 3, von = Math.PI * 0.75, bogen = Math.PI * 1.5;
+    c.beginPath(); c.arc(m, m, r, 0, Math.PI * 2);
+    c.fillStyle = "rgba(18,35,42,0.85)"; c.fill(); c.lineWidth = 2; c.strokeStyle = "rgba(0,0,0,0.5)"; c.stroke();
+    const kmh = Math.abs(auto.v) * 3.6, anteil = Math.min(1, kmh / TACHO_MAX);
+    c.lineCap = "round"; c.lineWidth = 5;
+    c.beginPath(); c.arc(m, m, r - 7, von, von + bogen); c.strokeStyle = "rgba(233,239,230,0.15)"; c.stroke();
+    if (anteil > 0.005) { c.beginPath(); c.arc(m, m, r - 7, von, von + bogen * anteil); c.strokeStyle = "#f2b632"; c.stroke(); }
+    c.lineWidth = 1.5; c.strokeStyle = "rgba(233,239,230,0.6)";
+    for (let i = 0; i <= 4; i++) { // Striche bei 0, 10, 20, 30, 40
+      const w = von + bogen * i / 4;
+      c.beginPath(); c.moveTo(m + Math.cos(w) * (r - 13), m + Math.sin(w) * (r - 13)); c.lineTo(m + Math.cos(w) * (r - 17), m + Math.sin(w) * (r - 17)); c.stroke();
+    }
+    const w = von + bogen * anteil;
+    c.lineWidth = 2.5; c.strokeStyle = "#e8735f";
+    c.beginPath(); c.moveTo(m, m); c.lineTo(m + Math.cos(w) * (r - 12), m + Math.sin(w) * (r - 12)); c.stroke();
+    c.fillStyle = "#e9efe6"; c.beginPath(); c.arc(m, m, 3, 0, Math.PI * 2); c.fill();
+    c.textAlign = "center"; c.textBaseline = "middle";
+    c.font = "800 15px Nunito, sans-serif"; c.fillText(String(Math.round(kmh)), m, m + r * 0.5);
+    c.font = "800 8px Nunito, sans-serif"; c.fillStyle = "rgba(233,239,230,0.7)";
+    c.fillText(auto.v < -0.2 ? "R" : "km/h", m, m + r * 0.5 + 11);
+  }
+
   // --- Schleife --------------------------------------------------------------
   let zuletzt = 0;
   function bild(t) {
@@ -1175,32 +1217,62 @@ window.Karte = function (opt = {}) {
       gctx.fillStyle = "#1d1a16"; gctx.font = `800 ${Math.max(14, 16)}px Nunito, sans-serif`; gctx.textAlign = "center"; gctx.textBaseline = "middle";
       gctx.fillText("⚠", h.x * k, h.y * k);
     }
-    for (const z of ZIELE) {
+    // Wegweiser zuerst (klein), Orte darüber (groß); unbekannte Orte als Fragezeichen
+    const sortiert = [...ZIELE].sort((a, b) => (a.art === "ort") - (b.art === "ort"));
+    for (const z of sortiert) {
       if (!zielErlaubt(z)) continue;
       const x = z.x * k, y = z.y * k, frei = zielOffen(z);
-      gctx.beginPath(); gctx.arc(x, y, 13, 0, 7);
-      gctx.fillStyle = frei ? "#f2b632" : "rgba(120,100,70,0.6)"; gctx.fill();
-      gctx.lineWidth = 3; gctx.strokeStyle = "#12232a"; gctx.stroke();
-      gctx.fillStyle = "#12232a"; gctx.font = "800 15px Nunito, sans-serif"; gctx.textAlign = "center"; gctx.textBaseline = "middle";
-      gctx.fillText(frei ? "★" : "?", x, y + 1);
-      if (frei) {
-        gctx.font = "800 14px Nunito, sans-serif"; gctx.lineWidth = 4; gctx.strokeStyle = "rgba(255,250,240,0.95)";
-        gctx.strokeText(z.name, x, y - 22); gctx.fillText(z.name, x, y - 22);
-      }
+      if (z.art === "weg" && frei) wegweiserZeichnen(x, y, z.name);
+      else if (z.art === "ort" && frei) ortZeichnen(x, y, z.name);
+      else if (z.art === "ort") unbekanntZeichnen(x, y);
     }
     gctx.save(); gctx.translate(auto.x * k, auto.y * k); gctx.rotate(auto.a);
     gctx.fillStyle = "#e9efe6"; gctx.strokeStyle = "#12232a"; gctx.lineWidth = 2;
     gctx.beginPath(); gctx.moveTo(9, 0); gctx.lineTo(-6, -6); gctx.lineTo(-6, 6); gctx.closePath(); gctx.fill(); gctx.stroke();
     gctx.restore(); gctx.restore();
   }
+  function beschriftung(text, x, y, gross) {
+    gctx.font = `800 ${gross ? 15 : 12}px Nunito, sans-serif`; gctx.textAlign = "center"; gctx.textBaseline = "middle";
+    gctx.lineWidth = 4; gctx.strokeStyle = "rgba(255,250,240,0.95)"; gctx.fillStyle = gross ? "#12232a" : "#4a3420";
+    gctx.strokeText(text, x, y); gctx.fillText(text, x, y);
+  }
+  // Ort: großer gelber Kreis mit Haus, fetter Name
+  function ortZeichnen(x, y, name) {
+    gctx.beginPath(); gctx.arc(x, y, 16, 0, 7);
+    gctx.fillStyle = "#f2b632"; gctx.fill(); gctx.lineWidth = 3; gctx.strokeStyle = "#12232a"; gctx.stroke();
+    gctx.fillStyle = "#12232a";
+    gctx.beginPath(); gctx.moveTo(x - 8, y - 1); gctx.lineTo(x, y - 9); gctx.lineTo(x + 8, y - 1); gctx.closePath(); gctx.fill();
+    gctx.fillRect(x - 6, y - 1, 12, 9);
+    gctx.fillStyle = "#f2b632"; gctx.fillRect(x - 2, y + 3, 4, 5); // Tür
+    beschriftung(name, x, y + 27, true);
+  }
+  // Wegweiser: kleines Holzschild am Pfosten, kleiner Name
+  function wegweiserZeichnen(x, y, name) {
+    gctx.lineWidth = 2; gctx.strokeStyle = "#12232a";
+    gctx.fillStyle = "#6b4a2e"; gctx.fillRect(x - 1.5, y - 4, 3, 12); gctx.strokeRect(x - 1.5, y - 4, 3, 12);
+    gctx.fillStyle = "#c9935a";
+    gctx.beginPath(); gctx.moveTo(x - 9, y - 12); gctx.lineTo(x + 6, y - 12); gctx.lineTo(x + 10, y - 8); gctx.lineTo(x + 6, y - 4);
+    gctx.lineTo(x - 9, y - 4); gctx.closePath(); gctx.fill(); gctx.stroke();
+    beschriftung(name, x, y - 20, false);
+  }
+  // Noch unbekannter Ort: graues Fragezeichen ohne Namen
+  function unbekanntZeichnen(x, y) {
+    gctx.beginPath(); gctx.arc(x, y, 14, 0, 7);
+    gctx.fillStyle = "rgba(120,100,70,0.75)"; gctx.fill();
+    gctx.setLineDash([4, 3]); gctx.lineWidth = 2.5; gctx.strokeStyle = "#3a2a18"; gctx.stroke(); gctx.setLineDash([]);
+    gctx.fillStyle = "#fffaf0"; gctx.font = "800 17px Nunito, sans-serif"; gctx.textAlign = "center"; gctx.textBaseline = "middle";
+    gctx.fillText("?", x, y + 1);
+  }
   function karteAuf() { if (!$("gespraech").hidden) return; $("grosskarte").hidden = false; grossZeichnen(); $("karteZu").focus(); }
   function karteZu() { $("grosskarte").hidden = true; }
   gross.addEventListener("click", (e) => {
     const b = gross.getBoundingClientRect(), { k, ox, oy } = grossMass;
     const x = e.clientX - b.left - ox, y = e.clientY - b.top - oy;
-    const z = ZIELE.find((q) => zielErlaubt(q) && Math.hypot(q.x * k - x, q.y * k - y) < 22);
+    // Unbekannte Wegweiser sind unsichtbar und daher auch nicht antippbar
+    const z = ZIELE.find((q) => zielErlaubt(q) && (q.art === "ort" || zielOffen(q)) && Math.hypot(q.x * k - x, q.y * k - y) < 22);
     if (!z) return;
-    if (!zielOffen(z)) { toast("Dieses Ziel liegt noch im Nebel. Finde ein Kartenstück!"); return; }
+    if (z.kommt) { toast("Ein unbekannter Ort. Was dort wohl ist? (kommt später)"); return; }
+    if (!zielOffen(z)) { toast(z.art === "ort" ? "Ein unbekannter Ort im Nebel. Finde ein Kartenstück!" : "Dieses Ziel liegt noch im Nebel."); return; }
     karteZu();
     planen(z);
   });
@@ -1234,21 +1306,24 @@ window.Karte = function (opt = {}) {
   $("ziel").addEventListener("click", neu);
 
   // Geld-Anzeige und Laden-Fenster gehören zur Karte, damit beide Seiten sie haben
-  const wetterSpan = document.createElement("span");
-  wetterSpan.id = "wetter";
-  document.querySelector(".hud").append(wetterSpan);
+  // Anzeigen am Rand: oben links Ziel und Auftrag (.hud), rechts unter der Minikarte Wetter
+  // und Münzen, unten rechts der Tacho
+  const rechts = document.createElement("div");
+  rechts.className = "hud-rechts"; rechts.setAttribute("aria-live", "polite");
+  rechts.innerHTML = '<span id="wetter"></span><span id="geld" hidden></span>';
+  $("karte").parentElement.append(rechts);
+  const tacho = document.createElement("canvas");
+  tacho.id = "tacho"; tacho.setAttribute("aria-hidden", "true");
+  $("karte").parentElement.append(tacho);
   wetterSetzen(wetter.art, wetter.fest);
   if (opt.wetterWahl) {
     const sel = document.createElement("select");
     sel.id = "wetterWahl"; sel.setAttribute("aria-label", "Wetter");
     sel.innerHTML = '<option value="">Wetter: wechselt</option>' +
-      Object.entries(WETTER).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+      Object.entries(WETTER).map(([k, v]) => `<option value="${k}">${v.icon} ${v.name}</option>`).join("");
     sel.addEventListener("change", () => { if (sel.value) wetterSetzen(sel.value, true); else wetter.fest = false; sel.blur(); });
     ($("neu") ? $("neu").parentElement : document.body).append(sel);
   }
-  const geldSpan = document.createElement("span");
-  geldSpan.id = "geld"; geldSpan.hidden = true;
-  document.querySelector(".hud").append(geldSpan);
   const laden = document.createElement("div");
   laden.id = "laden"; laden.hidden = true;
   laden.setAttribute("role", "dialog"); laden.setAttribute("aria-label", "Knuts Schrottladen");

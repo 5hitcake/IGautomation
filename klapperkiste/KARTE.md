@@ -215,3 +215,21 @@ Rumpf (alles außer Vorderachse und Vorderrädern) und Lenkachse (Vorderachse
 mit beiden Vorderrädern). Die Lenkachse liegt unter dem Rumpf und dreht sich
 um ihre Mitte mit dem Lenkeinschlag, wie ein Drehschemel beim Bollerwagen.
 Rahmen und Karosserie verdecken sie dabei wie am echten Auto teilweise.
+
+## 16. Anzeigen und Zielmarken
+
+**Anzeigen am Rand der Karte:**
+- oben links: aktuelles Ziel mit Entfernung (📍, nur beim Fahren) und der Auftrag (📋)
+- oben rechts: Minikarte, darunter das Wetter als rundes Symbol (beim Wechsel
+  kurz mit Namen) und die Münzen (🪙)
+- unten links: Stopp/Weiter (nur beim Fahren)
+- unten rechts: kleiner Rundtacho (0–40 km/h, Nadel und Zahl, „R“ rückwärts)
+
+**Zielmarken auf der großen Karte:**
+- **Orte** (Hauptziele mit Bewohner): großer gelber Kreis mit Haus, fetter Name
+  darunter (Opas Schuppen, Schrottplatz, Bauernhof).
+- **Wegweiser** (Wegpunkte): kleines Holzschild, kleiner Name darüber
+  (Wegweiser, Feldrand, Waldweg, Weide).
+- **Unbekannte Orte**: graues Fragezeichen ohne Namen, z. B. im Nebel oder
+  Orte, die es noch nicht gibt (`kommt: true`, vorerst die Försterhütte im
+  Wald). Unbekannte Wegweiser werden gar nicht gezeigt.
