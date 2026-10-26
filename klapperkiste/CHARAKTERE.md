@@ -8,9 +8,9 @@ Geste wechselt.
 
 - **Lockere schwarze Tuschezeichnung** wie ein alter Zeitungscartoon: dünne,
   schwungvolle Linien, Gummiarme, große Nasen, übertriebene Proportionen.
-- **Kaum Farbe:** Papierweiß und Schwarz, dazu **eine einzige Akzentfarbe pro
-  Figur**. Die Farbe gehört zum Merkmal und taucht später auch auf der Karte am
-  Wohnort wieder auf.
+- **Voll farbig** mit warmen, flachen Farben wie aquarelliert. Jede Figur hat
+  eine **Hauptfarbe** (Kleidung), die zu ihrem Merkmal gehört und später auch
+  an ihrem Wohnort auf der Karte wieder auftaucht.
 - **Abstrakt mit einem Merkmal:** Jede Figur hat ein übertriebenes
   Erkennungszeichen (riesiger Schnurrbart, Brille wie Untertassen …), an dem
   man sie sofort erkennt.
@@ -38,6 +38,28 @@ ganzer Körper, gleich groß, mit viel Weiß dazwischen. Ich schneide sie aus.
 | Eisdiele | Gino Gelato | Haartolle wie eine Eiskugel | Erdbeerrosa |
 | Feuerwache | Hauptfrau Funke | Helm doppelt so groß wie der Kopf | Signalrot |
 | Kieswerk | Polier Brösel | Schultern breit wie ein Schrank, winziger Kopf | Betongrau |
-| Zirkus | Direktor Zylinda | Zylinder höher als sie selbst | Lila |
+| Zirkus | Direktorin Zylinda | Zylinder höher als sie selbst | Lila |
 | Hafen | Kapitänin Kiel | Pfeife mit Dampfwolken in Ankerform | Marineblau |
 | Frostpass | Hüttenwirt Frieder | Nase rot wie eine Tomate, dicker Schal bis zu den Knien | Eisblau |
+
+## Prompts
+
+Alle mit demselben Aufbau, Format 1:1. Erzeugt mit Z-Image (Hugging Face) oder
+extern. Der Stil-Satz am Ende bleibt immer gleich:
+
+`Vintage 1930s newspaper comic strip style, loose scratchy black ink pen lines, rubbery limbs, exaggerated proportions, fully coloured with warm flat watercolour-like colours. White background, no text.`
+
+Anfang immer: `Cartoon character model sheet, the same [FIGUR] shown in four poses arranged in a 2x2 grid on white paper: top left waving hello, top right scratching [his/her] head puzzled, bottom left pointing to the side, bottom right laughing with a big thumbs up.`
+
+| Figur | [FIGUR] und Aussehen |
+|---|---|
+| Knut Kurbel | funny tall thin old junk dealer · Bald head, enormous grey walrus moustache hanging down to his chest, long pointy red nose, tiny round glasses, long patched rust orange work coat, grey trousers, oversized brown boots. |
+| Opa Bolzen | funny little old grandpa mechanic · Short and round, enormous thick glasses as big as saucers that make his eyes look huge, a wrench tucked behind his ear, white fluffy hair on the sides, olive green work jacket with oil stains, brown trousers, slippers. |
+| Bäuerin Hilde | funny sturdy farmer woman · Enormous straw hat as wide as a cart wheel, rosy round cheeks, blond braids, wheat yellow dress with a checkered apron, rubber boots. |
+| Förster Moos | funny old forester · Huge round bushy brown beard like a bird nest with a little bird sitting in it, small green felt hat with a feather, dark green jacket, leather trousers, big boots. |
+| Gino Gelato | funny cheerful ice cream seller · A tall round pink hair quiff shaped exactly like a scoop of strawberry ice cream, thin curled moustache, strawberry pink and white striped shirt, white apron, small bow tie. |
+| Hauptfrau Funke | funny energetic fire chief woman · A shiny red fire helmet twice as big as her head, freckles, red uniform jacket with yellow stripes, black boots, a small brass whistle. |
+| Polier Brösel | funny construction foreman · Shoulders as wide as a wardrobe with a tiny head on top, small yellow hard hat, concrete grey overalls covered in dust, a folding ruler in the pocket. |
+| Direktorin Zylinda | funny small circus director woman · A purple top hat taller than she is, big curly red hair, purple tailcoat with golden buttons, white gloves, a little cane. |
+| Kapitänin Kiel | funny old sea captain woman · A pipe whose smoke puffs come out in the shape of little anchors, white captain's cap, grey bun of hair, navy blue coat with golden buttons, rain boots. |
+| Hüttenwirt Frieder | funny round mountain hut keeper · Nose red and round like a tomato, a thick ice blue knitted scarf reaching down to his knees, bobble hat, warm brown jumper, fur boots. |
