@@ -51,14 +51,21 @@ def _uri(bild: Image.Image) -> str:
     return "data:image/webp;base64," + base64.b64encode(puffer.getvalue()).decode("ascii")
 
 
-def auto(raster: dict, modell: str | None) -> Image.Image:
+LENKACHSE = ("achseV", "radV")  # dreht sich auf der Karte beim Lenken mit
+
+
+def auto(raster: dict, modell: str | None) -> tuple[Image.Image, Image.Image, list[float]]:
+    """Auto von oben in zwei Ebenen: Rumpf (alles außer Vorderachse und Vorderrädern)
+    und Lenkachse (nur diese, gleiche Leinwand wie der Rumpf ohne Anbauteil).
+    Dazu der Drehpunkt der Lenkachse in Metern (x ab Heck, y ab linker Kante)."""
     teile = {slot: Image.open(os.path.join(teilwerk.TEILE_DIR, tid, "oben.png")).convert("RGBA")
              for slot, tid in GRUND.items()}
     if modell:
         for slot, teil in (("karoH", "hinten"), ("karoM", "mitte"), ("karoV", "vorne")):
             pfad = os.path.join(teilwerk.TEILE_DIR, f"{modell}_{teil}", "oben.png")
             teile[slot] = Image.open(pfad).convert("RGBA")
-    bild = teilwerk.bauen(raster, "oben", teile)
+    lenkachse = teilwerk.bauen(raster, "oben", {s: t for s, t in teile.items() if s in LENKACHSE})
+    bild = teilwerk.bauen(raster, "oben", {s: t for s, t in teile.items() if s not in LENKACHSE})
     z = raster["zelle_px"]
     anbau = raster.get("anbauten", {}).get(f"{modell}_vorne") if modell else None
     if anbau:  # Anbauteil kann über das Auto hinausragen: Leinwand vorne verlängern
@@ -70,7 +77,12 @@ def auto(raster: dict, modell: str | None) -> Image.Image:
         breiter.alpha_composite(teil, (round(x * z), round(y * z)))
         bild = breiter
     faktor = AUTO_PX / (raster["oben"]["breite"] * z)
-    return bild.resize((round(bild.width * faktor), round(bild.height * faktor)), Image.LANCZOS)
+    klein = lambda b: b.resize((round(b.width * faktor), round(b.height * faktor)), Image.LANCZOS)  # noqa: E731
+    # Drehpunkt: Mitte der Vorderachse (Box in Zellen), umgerechnet in Meter (10 Zellen = 4 m)
+    ax, ay = raster["slots"]["achseV"]["oben"][0]
+    ab, ah = raster["kategorien"]["achse"]["oben"]
+    m = 4 / raster["oben"]["breite"]
+    return klein(bild), klein(lenkachse), [(ax + ab / 2) * m, (ay + ah / 2) * m]
 
 
 def figuren() -> dict:
@@ -130,14 +142,15 @@ def main() -> int:
                 posen.append({"bild": _uri(t), "breite": t.width / 64, "hoehe": t.height / 64})  # 64 px/m
         if posen:
             daten["tiere"][name] = posen
-    ohne = auto(raster, None)
+    ohne, achse, dreh = auto(raster, None)
     daten["autos"].append({"id": "ohne", "name": "Schrottkarre (ohne Karosserie)", "bild": _uri(ohne),
-                           "laenge": ohne.width / AUTO_PX * 4})
+                           "achse": _uri(achse), "drehpunkt": dreh, "laenge": ohne.width / AUTO_PX * 4})
     for mid, name in MODELLE.items():
         if not os.path.isdir(os.path.join(teilwerk.TEILE_DIR, f"{mid}_hinten")):
             continue
-        a = auto(raster, mid)
-        daten["autos"].append({"id": mid, "name": name, "bild": _uri(a), "laenge": a.width / AUTO_PX * 4})
+        a, achse, dreh = auto(raster, mid)
+        daten["autos"].append({"id": mid, "name": name, "bild": _uri(a), "achse": _uri(achse), "drehpunkt": dreh,
+                               "laenge": a.width / AUTO_PX * 4})
     with open(ZIEL, "w", encoding="utf-8") as f:
         f.write("// Automatisch erzeugt von tools/karte_daten.py. Nicht von Hand ändern.\n")
         f.write("window.KARTE_DATEN = " + json.dumps(daten) + ";\n")

@@ -23,7 +23,7 @@ window.Karte = function (opt = {}) {
   const BODEN = {}, OBJ = {};
   for (const [k, v] of Object.entries(D.boden)) BODEN[k] = { img: lade(v.bild), meter: v.meter };
   for (const [k, v] of Object.entries(D.objekte)) OBJ[k] = { img: lade(v.bild), b: v.breite, h: v.hoehe };
-  const AUTOS = D.autos.map((a) => ({ ...a, img: lade(a.bild) }));
+  const AUTOS = D.autos.map((a) => ({ ...a, img: lade(a.bild), achseImg: a.achse ? lade(a.achse) : null }));
 
   // Schatten je Objektart einmal vorberechnen (dunkle, weiche Silhouette)
   function schattenVon(o) {
@@ -795,6 +795,17 @@ window.Karte = function (opt = {}) {
       ctx.rotate(auto.a + (reduce ? 0 : auto.wackel));
       ctx.fillStyle = "rgba(10,20,8,0.3)";
       ctx.beginPath(); ctx.roundRect(-kurz / 2 + 0.25, -breit / 2 + 0.25, kurz, breit, 0.5); ctx.fill();
+      // Vorderachse mit Vorderrädern dreht sich um ihre Mitte mit dem Lenkeinschlag, darunter
+      // liegt sie, damit Rahmen und Karosserie sie wie am echten Auto teilweise verdecken
+      const ach = autoWahl.achseImg;
+      if (ach && ach.complete && ach.naturalWidth) {
+        const [px, py] = autoWahl.drehpunkt, hoch = kurz * ach.naturalHeight / ach.naturalWidth;
+        ctx.save();
+        ctx.translate(-kurz / 2 + px, -hoch / 2 + py);
+        ctx.rotate(lenk);
+        ctx.drawImage(ach, -px, -py, kurz, hoch);
+        ctx.restore();
+      }
       ctx.drawImage(img, -kurz / 2, -breit / 2, lang, breit);
       ctx.restore();
     }

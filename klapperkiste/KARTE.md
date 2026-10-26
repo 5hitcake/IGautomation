@@ -207,3 +207,11 @@ Hase 1,3 m, Schaf 2 m.
   und Scheune sind Hindernisse. Hier soll später Bäuerin Hilde wohnen. Das
   erste Bild war schräg gezeichnet (`objekte/roh/bauernhof_v1_schraeg.jpg`)
   und wird nicht verwendet.
+
+## 15. Lenkachse
+
+Das Auto auf der Karte besteht aus zwei Ebenen (`tools/karte_daten.py`):
+Rumpf (alles außer Vorderachse und Vorderrädern) und Lenkachse (Vorderachse
+mit beiden Vorderrädern). Die Lenkachse liegt unter dem Rumpf und dreht sich
+um ihre Mitte mit dem Lenkeinschlag, wie ein Drehschemel beim Bollerwagen.
+Rahmen und Karosserie verdecken sie dabei wie am echten Auto teilweise.
