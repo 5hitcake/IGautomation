@@ -79,7 +79,9 @@ window.Karte = function (opt = {}) {
   const ABZWEIG = [[181, 204], [130, 202], [96, 210], [60, 214]]; // in den Wald, endet vorerst am Zaun
   const FELDRAND = [[188, 170], [214, 173], [240, 177]]; // Stichweg nach Osten, endet am Feld
   // Weideweg: von der Kurve südlich der Weide um die Weide herum bis zum Feldrand (Rundweg)
-  const WEIDEWEG = [[203, 272], [230, 292], [270, 296], [296, 270], [300, 230], [292, 200], [262, 190], [240, 177]];
+  // Mit Abstand um die Zaunecken der Weide (214/282, 284) herum, sonst bleibt das Auto daran hängen
+  const WEIDEWEG = [[203, 272], [206, 290], [230, 296], [270, 298], [292, 290], [298, 270], [300, 230], [292, 200],
+    [262, 190], [240, 177]];
   const HOFWEG = [[276, 194.7], [276, 161]]; // Zufahrt vom Weideweg zum Hoftor
   const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG];
   const WEG_BREITE = 4.5;
