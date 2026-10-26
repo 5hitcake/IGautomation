@@ -5,7 +5,7 @@
 //   teile:    Liste der Teil-IDs im Regal (sonst alle)
 //   vorbau:   schon eingebaute Teile, z. B. { rahmen: "bettgestell" }
 //   stumm:    keine Begrüßung in der Statuszeile
-//   nachher:  wird nach jeder Änderung aufgerufen (für das Tutorial)
+//   nachher:  wird nach jeder Änderung aufgerufen (für den geführten Einstieg)
 window.Werkstatt = function (opt = {}) {
   const R = window.RASTER, G = window.GELIEFERT || {}, FULL = window.TEILE || {};
   const CELL = R.zelle_px;
@@ -635,7 +635,7 @@ window.Werkstatt = function (opt = {}) {
       if (p && !PARTS.includes(p)) PARTS.push(p);
       refresh();
     },
-    // Alles Fahrnötige einbauen (Tutorial überspringen)
+    // Alles Fahrnötige einbauen (zum Testen: Einstieg überspringen)
     zusammenbauen() {
       for (const slot of FAHRBEREIT) if (!state.mounted[slot]) state.mounted[slot] = PARTS.find((p) => p.kat === kat(slot)).id;
       refresh();

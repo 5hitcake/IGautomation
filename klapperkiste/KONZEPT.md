@@ -38,18 +38,21 @@ als Stimmung, nichts davon wird übernommen oder als Vorlage für Bilder benutzt
 
 1. Man startet mit einer **absoluten Schrottkarre**: Bettgestell-Rahmen,
    Schubkarrenräder, Rasenmäher-Motor, Gießkanne als Tank, Küchenstuhl.
-2. **Start in der Werkstatt** (Opas Schuppen) mit einem kleinen Tutorial,
-   siehe unten. Danach ist der **Schrottplatz die erste und einzige Option**
-   auf der Karte.
+2. **Start in der Werkstatt** (Opas Schuppen) mit einem geführten Einstieg,
+   siehe unten. Er ist der Anfang des Spiels für alle (kein abschaltbares
+   Tutorial), bevor es mehrere Wege und Möglichkeiten gibt. Danach ist der
+   **Schrottplatz die erste und einzige Option** auf der Karte.
 3. **Teile gibt es für Aufträge und bei Händlern gegen Geld**, Knut auf dem
    Schrottplatz ist der erste. Händler bekommen nach Aufträgen und Spielstand
    neue Teile, siehe „Teile, Geld und Händler“.
 4. **Nachbarn geben Aufträge** (liefern, abschleppen, Schnee räumen …). Belohnt
    wird mit Teilen, Geld oder neuen Wegen.
 
-### Spielstart und Tutorial (Entwurf)
+### Spielstart (Einstieg, für alle gleich)
 
-Kurz, nicht verlierbar und überspringbar. Opa führt durch, im Gesprächsstil
+Kurz und nicht verlierbar. Zum Testen gibt es einen Knopf „🧪 Test: direkt zu
+Knut“ (oder `#knut` in der Adresse), der das Auto fertig baut und direkt vor
+Knuts Tor stellt; im fertigen Spiel gibt es den nicht. Opa führt durch, im Gesprächsstil
 wie bei Knut (Figur plus Hintergrund, Text tippt sich ein). Höchstens ein,
 zwei Sätze pro Schritt; was gerade dran ist, leuchtet.
 
@@ -60,13 +63,13 @@ zwei Sätze pro Schritt; was gerade dran ist, leuchtet.
 | 3 | Werkstatt | Die übrigen Startteile selbst einbauen (Achsen, Räder, Motor, Tank, Sitz, Lenkung). Fehlt etwas, zeigt der Platz es an. | Plätze und Kategorien |
 | 4 | Werkstatt | Auto ist fahrbereit, Opa: „Fahr zu Knut auf den Schrottplatz, der hat Teile.“ Knopf „Losfahren“. | Fahrbereit-Prüfung |
 | 5 | Karte | Knopf „Karte“ leuchtet. Auf der großen Karte ist nur der Schrottplatz wählbar. Antippen, das Auto fährt selbst, die Route ist blau auf der Minikarte. | Ziel wählen, Minikarte |
-| 6 | Schrottplatz | Knut begrüßt und gibt den ersten Auftrag. Tutorial endet. | Aufträge |
+| 6 | Schrottplatz | Knut begrüßt und gibt den ersten Auftrag. Der Einstieg endet, ab jetzt frei. | Aufträge |
 
-Karosserie spielt im Tutorial noch keine Rolle: Die Schrottkarre fährt ohne.
+Karosserie spielt beim Einstieg noch keine Rolle: Die Schrottkarre fährt ohne.
 
 Probe: `design/spielstart.html`. Rahmen und Achsen sind dort schon montiert,
 der Weg zum Schrottplatz ist von Anfang an aufgedeckt, und während des
-Tutorials ist der Schrottplatz das einzige wählbare Ziel. „Zur Werkstatt“ und
+Einstiegs ist der Schrottplatz das einzige wählbare Ziel. „Zur Werkstatt“ und
 die Ankunft an Opas Schuppen führen zurück in die Werkstatt. Losfahren geht
 nur fahrbereit und ohne Karosserie oder mit komplettem Satz.
 
@@ -110,7 +113,7 @@ vorne bei einem anderen Händler).
 
 | Stand | Bei Knut zu kaufen | Aufträge offen | Belohnung |
 |---|---|---|---|
-| Nach dem Tutorial | wenig, z. B. bessere Reifen | Knut: 3 alte Reifen | Geld, Scheinwerfer |
+| Nach dem Einstieg | wenig, z. B. bessere Reifen | Knut: 3 alte Reifen | Geld, Scheinwerfer |
 | Wald erreichbar (Licht) | Lieferung: Badewanne hinten | Förster Moos | Geld, Badewanne Mitte |
 | Weitere Orte | Lieferung: stärkerer Motor | mehrere parallel | … |
 
@@ -242,7 +245,7 @@ Bilder da sind.
 | B2 | Karten-Raster: Abschnitte, Straßenanschlüsse, Maßstab Auto zu Karte | offen |
 | B3 | Erster Kartenabschnitt: Zuhause bis Schrottplatz | offen |
 | B4 | Hindernisse einzeln einbauen: Schotter, Steigung, Dunkelheit, Schafe, Distanz … | offen |
-| C1 | Karriere-Start: Werkstatt mit Tutorial, dann mit der Schrottkarre zum Schrottplatz | Probe: `design/spielstart.html` |
+| C1 | Karriere-Start: Werkstatt mit geführtem Einstieg, dann mit der Schrottkarre zum Schrottplatz | Probe: `design/spielstart.html` |
 | C2 | Geld, Händler (zuerst Knut) und Lieferungen nach Aufträgen und Spielstand | offen |
 | C3 | Nachbarn und Aufträge | offen |
 | C4 | Beutel für Materialien und Fundstücke (Schrauben, Kabel, Schläuche …), Tag und Nacht | offen |

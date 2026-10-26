@@ -10,13 +10,14 @@
 <link rel="stylesheet" href="werkstatt.css">
 <link rel="stylesheet" href="karte.css">
 <style>
-/* Spielstart: Werkstatt und Karte als zwei Bildschirme, Opa führt durchs Tutorial. */
+/* Spielstart: Werkstatt und Karte als zwei Bildschirme, Opa führt durch den Einstieg. */
 .kopf { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; justify-content: space-between; }
 .kopf .knoepfe { display: flex; gap: 8px; }
 .kopf .knoepfe button { font-size: 13px; padding: 6px 12px; }
 /* Gespräche über den ganzen Bildschirm, egal ob Werkstatt oder Karte */
 #gespraech { position: fixed; inset: 0; border-radius: 0; z-index: 40; }
-/* Opas Tipp-Zeile im Tutorial */
+/* Opas Tipp-Zeile beim Einstieg */
+#testKnut { position: fixed; top: 8px; right: 8px; z-index: 50; font-size: 12px; padding: 6px 10px; background: #5a3d6b; color: #f3e6ff; box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
 #tipp { display: flex; gap: 10px; align-items: center; background: #fffaf0; color: #1d1a16; border: 3px solid #1d1a16; border-radius: 14px; padding: 8px 12px 8px 8px; box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
 #tipp img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: 50% 8%; background: #e8dcc2; border: 2px solid #1d1a16; flex: none; }
 #tipp p { font-weight: 700; line-height: 1.35; }
@@ -32,11 +33,10 @@
 <div class="wrap">
   <header class="kopf">
     <div style="display:grid;gap:6px">
-      <p class="eyebrow">Schritt C1 · Spielstart mit Tutorial</p>
+      <p class="eyebrow">Schritt C1 · Spielstart</p>
       <h1>Klapperkiste</h1>
     </div>
     <div class="knoepfe">
-      <button type="button" id="ueberspringen">Tutorial überspringen</button>
       <button type="button" id="vonVorn">Von vorn</button>
     </div>
   </header>
@@ -98,6 +98,8 @@
   <img id="gFigur" alt="">
   <div class="g-box"><strong id="gName"></strong><p id="gText" aria-live="polite"></p><span class="g-weiter" aria-hidden="true">▼</span></div>
 </div>
+<!-- Nur zum Testen, liegt über allem (auch über Opas Begrüßung) -->
+<button type="button" id="testKnut" class="test" title="Nur zum Testen: Einstieg überspringen (auch mit #knut in der Adresse)">🧪 Test: direkt zu Knut</button>
 <canvas id="ghost" hidden></canvas>
 
 <script src="raster.js"></script>
@@ -109,10 +111,10 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   const OPA = "Opa Bolzen";
-  // Tutorial-Schritte: 0 Begrüßung, 1 Rad einbauen, 2 Rest einbauen, 3 Losfahren,
-  // 4 Ziel wählen, 5 unterwegs, 6 fertig (frei spielen)
+  // Einstieg (für alle gleich, bevor es mehrere Wege gibt): 0 Begrüßung, 1 Rad einbauen,
+  // 2 Rest einbauen, 3 Losfahren, 4 Ziel wählen, 5 unterwegs, 6 fertig (frei spielen)
   let schritt = 0;
-  const imTutorial = () => schritt < 6;
+  const imEinstieg = () => schritt < 6;
   let bereit = false; // die Werkstatt meldet sich schon beim Aufbauen
 
   function tipp(text) {
@@ -123,8 +125,8 @@
 
   const K = Karte({
     offen: ["start", "nord"], // Opas Gegend und der Weg zum Schrottplatz sind bekannt
-    wetter: "sonne", // im Tutorial scheint die Sonne, danach wechselt das Wetter
-    zielErlaubt: (z) => !imTutorial() || z.id === "schrottplatz",
+    wetter: "sonne", // beim Einstieg scheint die Sonne, danach wechselt das Wetter
+    zielErlaubt: (z) => !imEinstieg() || z.id === "schrottplatz",
     hatTeil: (kat) => Boolean(W.state.mounted[kat]),
     zurWerkstatt: () => zeige("werkstatt"),
     gekauft: (id) => W.neuesTeil(id),
@@ -150,7 +152,7 @@
   });
   bereit = true;
 
-  // Nach jeder Änderung in der Werkstatt: Knopf und Tutorial weiterschalten
+  // Nach jeder Änderung in der Werkstatt: Knopf und Einstieg weiterschalten
   function nachher() {
     $("losfahren").disabled = !W.fahrzeug() || schritt < 3;
     if (schritt === 1 && (W.state.mounted.radH || W.state.mounted.radV)) {
@@ -159,7 +161,8 @@
     }
     if (schritt === 2 && W.fahrbereit()) {
       schritt = 3; tipp(null);
-      setTimeout(() => K.gespraech("opa", OPA, "werkstatt", [
+      if (location.hash === "#knut") setTimeout(direktZuKnut, 300);
+  setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
         ["juhu", "Hörst du das? Sie knattert! Ich hab's ja immer gesagt: In der Kiste steckt noch Leben."],
         ["auftrag", "Jetzt fahr mal rüber zu Knut auf den Schrottplatz. Der hat Teile, und Arbeit für dich hat er bestimmt auch."],
       ], () => {
@@ -168,13 +171,13 @@
         tipp("Tipp auf <strong>„Losfahren“</strong>.");
       }), 500);
     }
-    if (!imTutorial() && W.fahrbereit() && !W.fahrzeug()) W.say("Mit gemischter oder halber Karosserie geht es nicht auf die Karte: ganz ohne oder ein kompletter Satz.", "warn");
+    if (!imEinstieg() && W.fahrbereit() && !W.fahrzeug()) W.say("Mit gemischter oder halber Karosserie geht es nicht auf die Karte: ganz ohne oder ein kompletter Satz.", "warn");
   }
 
   function zeige(name) {
     $("s-werkstatt").hidden = name !== "werkstatt";
     $("s-karte").hidden = name !== "karte";
-    if (name === "werkstatt") { W.refresh(); if (!imTutorial()) W.say("Zurück in Opas Werkstatt."); }
+    if (name === "werkstatt") { W.refresh(); if (!imEinstieg()) W.say("Zurück in Opas Werkstatt."); }
     window.scrollTo({ top: 0 });
   }
 
@@ -190,20 +193,28 @@
     }
   });
 
-  $("ueberspringen").addEventListener("click", () => {
-    schritt = 6; K.wetterFrei();
+  // Nur zum Testen: Einstieg überspringen, Auto fertig bauen und direkt vor Knuts Tor stehen.
+  // Das Spiel geht danach ganz normal mit Knuts erstem Gespräch weiter.
+  function direktZuKnut() {
+    if (schritt >= 5) return;
+    schritt = 5;
+    $("gespraech").hidden = true;
     W.tipp(null); W.zusammenbauen();
     for (const id of ["losfahren", "karteAuf"]) leuchte(id, false);
     tipp(null);
-    W.say("Tutorial übersprungen. Die Klapperkiste ist fahrbereit.", "ok");
-    $("ueberspringen").hidden = true;
-  });
+    K.setzeAuto(W.fahrzeug());
+    zeige("karte");
+    K.beiKnutAnkommen();
+    $("testKnut").hidden = true;
+  }
+  $("testKnut").addEventListener("click", direktZuKnut);
   $("vonVorn").addEventListener("click", () => location.reload());
 
   // Los geht's: Opa begrüßt in der Werkstatt
   const opaBild = ((window.KARTE_DATEN.figuren || {}).opa || {}).hallo;
   if (opaBild) $("tippBild").src = opaBild;
-  setTimeout(() => K.gespraech("opa", OPA, "werkstatt", [
+  if (location.hash === "#knut") setTimeout(direktZuKnut, 300);
+  setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
     ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Bolzen, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
     ["nachdenken", "Na ja, „Kiste“ ist geschmeichelt. Rahmen und Achsen sind schon dran, der Rest liegt noch hier im Regal herum."],
     ["auftrag", "Fang mit den Rädern an: Das leuchtende Rad im Regal ziehst du einfach auf einen gelben Platz. Antippen geht auch."],

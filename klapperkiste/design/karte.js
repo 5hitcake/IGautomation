@@ -10,7 +10,7 @@
 //   nachKnut:     nach dem ersten Gespräch mit Knut
 //   gekauft:      (teilId) => …, wenn bei Knut ein Teil gekauft wurde
 //   belohnung:    (teilId) => …, wenn es für einen Auftrag ein Teil gibt
-//   wetter:       festes Wetter am Anfang (z. B. "sonne" im Tutorial), sonst wechselt es
+//   wetter:       festes Wetter am Anfang (z. B. "sonne" beim Spielstart), sonst wechselt es
 //   wetterWahl:   Auswahlfeld fürs Wetter zeigen (zum Ausprobieren)
 window.Karte = function (opt = {}) {
   const D = window.KARTE_DATEN;
@@ -259,8 +259,9 @@ window.Karte = function (opt = {}) {
     fertig = true; besucht = true; route = null;
     const s = start ? (performance.now() - start) / 1000 : 0;
     const zeit = `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+    const wie = s > 1 ? `bis hierher, in ${zeit} Minuten? Respekt.` : "bis hierher? Respekt.";
     gespraech("knut", "Knut Kurbel", "schrottplatz", [
-      ["hallo", `Na sieh mal einer an! Mit der Klapperkiste bis hierher, in ${zeit} Minuten? Respekt. Ich bin Knut Kurbel, mir gehört der ganze Schrott hier.`],
+      ["hallo", `Na sieh mal einer an! Mit der Klapperkiste ${wie} Ich bin Knut Kurbel, mir gehört der ganze Schrott hier.`],
       ["nachdenken", "Hm … ohne Karosserie fährst du ja praktisch im Unterhemd durch die Gegend. Und die Reifen sind auch nicht mehr die jüngsten."],
       ["auftrag", "Pass auf: Draußen am Feldrand liegen drei alte Reifen herum. Bring sie mir, dann suche ich dir was Ordentliches aus dem Schrott raus."],
       ["juhu", "Abgemacht? Prima! Dann ab mit dir, der Schrott wartet nicht!"],
@@ -1356,6 +1357,8 @@ window.Karte = function (opt = {}) {
     setzeAuto(id) { autoWahl = AUTOS.find((a) => a.id === id) || AUTOS[0]; },
     // Vor Opas Schuppen abstellen (Start und Schnellreise)
     zuHause() { Object.assign(auto, { x: 150, y: 242.6, a: Math.PI / 2, v: 0 }); route = null; fertig = false; },
+    // Zum Testen: direkt vor Knuts Tor stellen und das erste Gespräch starten
+    beiKnutAnkommen() { Object.assign(auto, { x: 230, y: 62, a: Math.PI / 2, v: 0 }); route = null; fertig = false; ankunft(); },
     karteNeu() { if ($("grosskarte").hidden === false) grossZeichnen(); },
     wetterFrei() { wetter.fest = false; wetter.dauer = 40; }, // ab jetzt wechselt das Wetter
   };

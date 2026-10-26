@@ -116,7 +116,7 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Ort | Datei | Stand |
 |---|---|---|
 | Schrottplatz (Knut) | `schrottplatz.png` | ✅ |
-| Opas Werkstatt (Tutorial) | `werkstatt.png` | ✅ |
+| Opas Werkstatt (Spielstart) | `werkstatt.png` | ✅ |
 | Bauernhof (Hilde) | `bauernhof.png` | Prompt unten |
 | Försterhütte (Moos) | `foersterhuette.png` | Prompt unten |
 

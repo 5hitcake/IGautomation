@@ -170,7 +170,7 @@ Das Wetter wechselt von selbst alle ein bis zwei Minuten und gleitet weich
 über: **Sonnig** (wenige Wolkenschatten), **Wolkig** (Wolkenschatten ziehen
 über die Karte), **Regen** (Tropfen, Ringe auf dem Boden, trüberes Licht),
 **Nebel** (Dunst und Nebelschwaden) und **Windig** (fliegende Blätter,
-schnellere Wolken). Im Tutorial scheint immer die Sonne. In der Kartenprobe
+schnellere Wolken). Beim Einstieg scheint immer die Sonne. In der Kartenprobe
 lässt sich das Wetter zum Ausprobieren fest einstellen. Spielerisch hat das
 Wetter noch keine Folgen (Idee: Regen macht Wiesen rutschig, Nebel
 versteckt Gegenstände).
