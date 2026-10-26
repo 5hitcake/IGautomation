@@ -49,6 +49,10 @@ window.Karte = function (opt = {}) {
   // Opas Schuppen: Bild 14 m breit, linke obere Ecke bei (X, Y). Maße aus dem Bild vermessen.
   const SCHUPPEN = { X: 143.2, Y: 230, haus: [144.9, 231.1, 155.5, 238.9], bereich: [143, 230, 158, 252] };
   // Hütte am Feldrand: Bild 11 m breit, Mitte bei (x, y), Tür nach Süden zum Weg. Haus = Dach und Veranda.
+  // Bauernhof: Bild 32 m breit, linke obere Ecke bei (X, Y), Hoftor unten in der Mitte.
+  // Häuser: Wohnhaus (L-Form als zwei Rechtecke) und Scheune, aus dem Bild vermessen.
+  const HOF = { X: 260, Y: 141.25, haeuser: [[261.3, 141.25, 275.5, 149.3], [261.3, 141.25, 269.7, 156.2],
+    [276.4, 141.25, 290.6, 148.9]], bereich: [260, 141, 292, 159.5] };
   const HUETTE = { x: 244, y: 168, haus: [241.4, 164.1, 246.7, 170.9], bereich: [238.5, 163.4, 249.5, 172.6] };
   // Schrottplatz: Bild 26 m breit, Tor unten mittig bei (230, 50). Zaun und Hindernisse in Bildpixeln
   // des Ausschnitts (776 px breit) vermessen und hier in Meter umgerechnet.
@@ -76,7 +80,8 @@ window.Karte = function (opt = {}) {
   const FELDRAND = [[188, 170], [214, 173], [240, 177]]; // Stichweg nach Osten, endet am Feld
   // Weideweg: von der Kurve südlich der Weide um die Weide herum bis zum Feldrand (Rundweg)
   const WEIDEWEG = [[203, 272], [230, 292], [270, 296], [296, 270], [300, 230], [292, 200], [262, 190], [240, 177]];
-  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG];
+  const HOFWEG = [[276, 194.7], [276, 161]]; // Zufahrt vom Weideweg zum Hoftor
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG];
   const WEG_BREITE = 4.5;
 
   function abstandStrecke(px, py, a, b) {
@@ -91,7 +96,7 @@ window.Karte = function (opt = {}) {
   }
   function frei(x, y, r) {
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
-    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich]) {
+    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich]) {
       if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
     }
     if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
@@ -236,7 +241,7 @@ window.Karte = function (opt = {}) {
         if ((cx - a[0]) * nx + (cy - a[1]) * ny < 0) { nx = -nx; ny = -ny; }
         schieb(nx, ny, tief);
       }
-      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus]) {
+      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, ...HOF.haeuser]) {
         const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
         const d = Math.hypot(cx - hx, cy - hy);
         if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
@@ -482,7 +487,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -521,6 +526,7 @@ window.Karte = function (opt = {}) {
     { id: "waldweg", name: "Waldweg", x: 60, y: 214, gebiet: "wald" },
     { id: "feldrand", name: "Feldrand", x: 240, y: 177, gebiet: "nord" },
     { id: "weide", name: "Weide", x: 298, y: 250, gebiet: "weide" },
+    { id: "bauernhof", name: "Bauernhof", x: 276, y: 162, gebiet: "nord" },
   ];
   const zielOffen = (z) => GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
@@ -738,6 +744,8 @@ window.Karte = function (opt = {}) {
     if (sch.img.complete && sch.img.naturalWidth) ctx.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
     const hu = OBJ.huette;
     if (hu && hu.img.complete && hu.img.naturalWidth) ctx.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
+    const hof = OBJ.bauernhof;
+    if (hof && hof.img.complete && hof.img.naturalWidth) ctx.drawImage(hof.img, HOF.X, HOF.Y, hof.b, hof.h);
 
     // Route und Ziel
     const t = performance.now() / 1000;
@@ -839,8 +847,7 @@ window.Karte = function (opt = {}) {
       g.fill();
       const [mx0, my0, mx1, my1] = SCHUPPEN.haus;
       g.fillStyle = "#5a3d26"; g.fillRect(mx0 * k, my0 * k, (mx1 - mx0) * k, (my1 - my0) * k);
-      const [hx0, hy0, hx1, hy1] = HUETTE.haus;
-      g.fillRect(hx0 * k, hy0 * k, (hx1 - hx0) * k, (hy1 - hy0) * k);
+      for (const [hx0, hy0, hx1, hy1] of [HUETTE.haus, ...HOF.haeuser]) g.fillRect(hx0 * k, hy0 * k, (hx1 - hx0) * k, (hy1 - hy0) * k);
     }
     if (!miniGrund.mitNebel) { miniGrund.getContext("2d").drawImage(nebel, 0, 0, s, s); miniGrund.mitNebel = true; }
     mctx.drawImage(miniGrund, 0, 0);

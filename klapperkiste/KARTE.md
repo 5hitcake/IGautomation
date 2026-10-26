@@ -198,7 +198,11 @@ Hase 1,3 m, Schaf 2 m.
 
 - **Hütte am Feldrand** (`objekte/huette.png`, 11 m): steht am Ende des
   Stichwegs zum Feldrand, Tür zum Weg. Bäume halten Abstand, das Auto stößt
-  an Dach und Veranda.
-- **Bauernhof** an der Weide: erstes Bild war schräg von der Seite gezeichnet
-  (`objekte/roh/bauernhof_v1_schraeg.jpg`), passt nicht zur Draufsicht. Neu
-  erzeugen, streng von oben.
+  an Dach und Veranda. Der Schlamm drumherum läuft weich ins Gras aus
+  (`objekt.py einpassen … --weicher-rand 0.9`).
+- **Bauernhof** (`objekte/bauernhof.png`, 32 m, freigestellt mit
+  `tools/einmalig/bauernhof_einpassen.py`): nordöstlich der Weide, mit einer
+  Zufahrt vom Weideweg bis zum Hoftor und eigenem Ziel „Bauernhof“. Wohnhaus
+  und Scheune sind Hindernisse. Hier soll später Bäuerin Hilde wohnen. Das
+  erste Bild war schräg gezeichnet (`objekte/roh/bauernhof_v1_schraeg.jpg`)
+  und wird nicht verwendet.
