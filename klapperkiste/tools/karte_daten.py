@@ -28,7 +28,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ZIEL = os.path.join(ROOT, "design", "karte_daten.js")
 ZIEL_TEILE = os.path.join(ROOT, "design", "spielstart_teile.js")
 BODEN = ["gras_ruhig", "gras", "erde", "schotter"]
-OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz"]
+OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz", "reifen"]
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
          "radV": "schubkarre", "motor": "maeher", "energie": "giesskanne", "sitz": "kuechenstuhl",
          "lenkung": "fahrradlenker"}
@@ -38,6 +38,7 @@ MODELLE = {"rundling": "Rundling", "pickup": "Pick-up", "badewanne": "Badewanne"
            "hotdog": "Hot-Dog-Wagen", "feuerwehr": "Feuerwehr", "betonmischer": "Betonmischer",
            "wohnwagen": "Mini-Wohnwagen", "geldtransporter": "Geldtransporter", "schneeraupe": "Schneeraupe",
            "gewaechshaus": "Gewächshaus", "zirkus": "Zirkus", "schlauchboot": "Schlauchboot"}
+LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne"]  # Knuts erstes Angebot
 AUTO_PX = 320  # Breite des Autobilds (10 Zellen = 4 m)
 
 
@@ -93,9 +94,10 @@ def figuren() -> dict:
 
 
 def spielstart_teile() -> None:
-    """Teile der Schrottkarre (Seite und Draufsicht) für die Werkstatt im Spielstart."""
+    """Teile der Schrottkarre und aus Knuts Laden (Seite und Draufsicht) für die Werkstatt im Spielstart."""
     teile, vorschau = {}, {}
-    for tid in dict.fromkeys(GRUND.values()):
+    # dazu, was Knut im Laden hat (Karosserie-Teile kommen Stück für Stück)
+    for tid in [*dict.fromkeys(GRUND.values()), *LADEN]:
         for ansicht in ("seite", "oben"):
             uri = _uri(Image.open(os.path.join(teilwerk.TEILE_DIR, tid, f"{ansicht}.png")).convert("RGBA"))
             teile[f"{tid}_{ansicht}"] = uri

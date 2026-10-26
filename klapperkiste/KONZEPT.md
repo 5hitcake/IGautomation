@@ -114,7 +114,13 @@ vorne bei einem anderen Händler).
 | Wald erreichbar (Licht) | Lieferung: Badewanne hinten | Förster Moos | Geld, Badewanne Mitte |
 | Weitere Orte | Lieferung: stärkerer Motor | mehrere parallel | … |
 
-Noch offen: Name der Währung, Preise und wie stark Teile sich in den Werten
+Erste Probe in `design/spielstart.html` (und Kartenprobe): Knuts Auftrag
+„3 alte Reifen“ (liegen am Weg zum Feldrand, am Waldweg und an der Kurve bei
+Opa, das Auto sammelt sie im Vorbeifahren in den Beutel), Belohnung 40 Münzen,
+danach Knuts Laden mit Rundling hinten, Mitte und vorne (25, 35, 30 Münzen).
+Gekaufte Teile liegen in Opas Werkstatt im Regal.
+
+Noch offen: Name der Währung (vorläufig „Münzen“), Preise und wie stark Teile sich in den Werten
 unterscheiden (kommt mit den Teile-Werten).
 
 ### Wege, die man sich erarbeitet

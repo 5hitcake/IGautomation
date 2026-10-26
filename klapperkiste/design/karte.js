@@ -8,6 +8,7 @@
 //   zurWerkstatt: wird bei Schnellreise und Ankunft an Opas Schuppen aufgerufen
 //   unterwegs:    (ziel) => …, nach dem Wählen eines Ziels
 //   nachKnut:     nach dem ersten Gespräch mit Knut
+//   gekauft:      (teilId) => …, wenn bei Knut ein Teil gekauft wurde
 window.Karte = function (opt = {}) {
   const D = window.KARTE_DATEN;
   const $ = (id) => document.getElementById(id);
@@ -67,7 +68,8 @@ window.Karte = function (opt = {}) {
   const WEG = [[150, 251], [150, 292], [168, 304], [192, 298], [203, 272], [198, 244], [186, 220], [180, 196],
     [188, 170], [212, 140], [214, 108], [222, 78], [230, 60], [230, 50]];
   const ABZWEIG = [[181, 204], [130, 202], [96, 210], [60, 214]]; // in den Wald, endet vorerst am Zaun
-  const WEGE = [WEG, ABZWEIG];
+  const FELDRAND = [[188, 170], [214, 173], [240, 177]]; // Stichweg nach Osten, endet am Feld
+  const WEGE = [WEG, ABZWEIG, FELDRAND];
   const WEG_BREITE = 4.5;
 
   function abstandStrecke(px, py, a, b) {
@@ -158,6 +160,9 @@ window.Karte = function (opt = {}) {
     Object.assign(auto, { ...START, v: 0 });
     route = null;
     gebieteStart();
+    Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set() });
+    for (const r of REIFEN) r.weg = false;
+    hudNeu(); $("laden").hidden = true;
     nebelNeu();
     start = null; fertig = false; besucht = false; $("auftrag").hidden = true; $("ziel").hidden = true; $("gespraech").hidden = true; $("meldung").hidden = true; karteZu();
   }
@@ -198,6 +203,7 @@ window.Karte = function (opt = {}) {
     auto.y = Math.max(2, Math.min(W - 2, auto.y));
     if (Math.abs(auto.v) > 0.3 && start === null) start = performance.now();
     for (const st of STUECKE) if (!st.genommen && Math.hypot(st.x - auto.x, st.y - auto.y) < 2.4) stueckFinden(st);
+    reifenPruefen();
     if (!fertig && !besucht && imSchrottplatz(auto.x, auto.y) && auto.y < SCHROTT.tor[1] - 5) ankunft(); // nur beim Testen per Tastatur
   }
 
@@ -242,12 +248,83 @@ window.Karte = function (opt = {}) {
       ["auftrag", "Pass auf: Draußen am Feldrand liegen drei alte Reifen herum. Bring sie mir, dann suche ich dir was Ordentliches aus dem Schrott raus."],
       ["juhu", "Abgemacht? Prima! Dann ab mit dir, der Schrott wartet nicht!"],
     ], () => {
-      const a = $("auftrag");
-      a.textContent = "Auftrag: 3 alte Reifen für Knut (kommt bald)";
-      a.hidden = false;
+      spiel.auftrag = "reifen";
+      hudNeu();
       fertig = false;
       if (opt.nachKnut) opt.nachKnut();
     });
+  }
+
+  // --- Auftrag, Beutel, Geld und Knuts Laden ----------------------------------
+  // Die alten Reifen liegen erst da, wenn Knut den Auftrag gegeben hat. Das Auto
+  // sammelt sie im Vorbeifahren ein; sie kommen in den Beutel, nicht ins Auto.
+  const REIFEN = [{ x: 158, y: 299.5 }, { x: 120, y: 202.6 }, { x: 239, y: 179.5 }];
+  const LADEN = [
+    { id: "rundling_hinten", name: "Rundling hinten", preis: 25 },
+    { id: "rundling_mitte", name: "Rundling Mitte", preis: 35 },
+    { id: "rundling_vorne", name: "Rundling vorne", preis: 30 },
+  ];
+  const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set() }; // auftrag: null | "reifen" | "erledigt"
+  function hudNeu() {
+    const a = $("auftrag");
+    a.hidden = spiel.auftrag !== "reifen";
+    a.textContent = `Auftrag: alte Reifen für Knut · ${spiel.beutel}/3`;
+    $("geld").textContent = `🪙 ${spiel.geld} Münzen`;
+    $("geld").hidden = spiel.auftrag === null;
+  }
+  function reifenPruefen() {
+    if (spiel.auftrag !== "reifen") return;
+    for (const r of REIFEN) {
+      if (r.weg || Math.hypot(r.x - auto.x, r.y - auto.y) > 3.2) continue;
+      r.weg = true; spiel.beutel++;
+      toast(spiel.beutel < 3 ? `Alter Reifen eingesammelt (${spiel.beutel}/3). Ab in den Beutel!` : "Alle 3 Reifen im Beutel! Zurück zu Knut.");
+      if (navigator.vibrate) { try { navigator.vibrate(30); } catch { /* egal */ } }
+      hudNeu();
+    }
+  }
+  // Wieder am Schrottplatz: Reifen abgeben oder im Laden stöbern
+  function beiKnut() {
+    if (spiel.auftrag === "reifen" && spiel.beutel < 3) {
+      const n = 3 - spiel.beutel;
+      return gespraech("knut", "Knut Kurbel", "schrottplatz", [
+        ["nachdenken", `Hm, da fehl${n === 1 ? "t noch ein Reifen" : `en noch ${n} Reifen`}. Schau mal am Feldrand, am Weg in den Wald und unten an der Kurve bei Opa.`],
+      ]);
+    }
+    if (spiel.auftrag === "reifen") {
+      spiel.auftrag = "erledigt"; spiel.beutel = 0; spiel.geld += 40; hudNeu();
+      return gespraech("knut", "Knut Kurbel", "schrottplatz", [
+        ["juhu", "Drei Reifen, wie bestellt! Die kommen gleich auf meinen Turm da hinten."],
+        ["auftrag", "Hier, 40 Münzen für dich. Und schau dich ruhig um: Ich hab da was reinbekommen, das könnte dir gefallen."],
+      ], ladenAuf);
+    }
+    ladenAuf();
+  }
+  function ladenAuf() {
+    const l = $("laden");
+    const liste = l.querySelector(".waren");
+    liste.innerHTML = "";
+    for (const w of LADEN) {
+      const zeile = document.createElement("div");
+      zeile.className = "ware";
+      const name = document.createElement("span");
+      name.textContent = w.name;
+      const knopf = document.createElement("button");
+      knopf.type = "button"; knopf.className = "knopf";
+      const hat = spiel.gekauft.has(w.id);
+      knopf.textContent = hat ? "gekauft" : `🪙 ${w.preis}`;
+      knopf.disabled = hat || spiel.geld < w.preis;
+      knopf.addEventListener("click", () => {
+        spiel.geld -= w.preis; spiel.gekauft.add(w.id); hudNeu();
+        if (opt.gekauft) opt.gekauft(w.id);
+        toast(`${w.name} gekauft! Liegt jetzt in Opas Werkstatt im Regal.`);
+        ladenAuf();
+      });
+      zeile.append(name, knopf);
+      liste.append(zeile);
+    }
+    l.querySelector(".kasse").textContent = `Du hast 🪙 ${spiel.geld} Münzen.`;
+    l.hidden = false;
+    l.querySelector(".zweit").focus();
   }
 
   // --- Gespräch -------------------------------------------------------------
@@ -347,7 +424,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -380,6 +457,7 @@ window.Karte = function (opt = {}) {
     { id: "wegweiser", name: "Wegweiser", x: 181, y: 204, gebiet: "start" },
     { id: "schrottplatz", name: "Schrottplatz", x: 230, y: 60, gebiet: "nord" }, // parkt vor dem Tor
     { id: "waldweg", name: "Waldweg", x: 60, y: 214, gebiet: "wald" },
+    { id: "feldrand", name: "Feldrand", x: 240, y: 177, gebiet: "nord" },
   ];
   const zielOffen = (z) => GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
@@ -436,7 +514,7 @@ window.Karte = function (opt = {}) {
     const rest = Math.hypot(ende[0] - auto.x, ende[1] - auto.y);
     if (rest < 1.5) {
       route = null;
-      if (zielWahl.id === "schrottplatz" && !besucht) ankunft();
+      if (zielWahl.id === "schrottplatz") { if (!besucht) ankunft(); else beiKnut(); }
       else if (zielWahl.id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
@@ -581,6 +659,15 @@ window.Karte = function (opt = {}) {
       ctx.restore();
     }
 
+    // Alte Reifen (nur während des Auftrags), mit Leuchten, damit man sie findet
+    const rf = OBJ.reifen;
+    if (spiel.auftrag === "reifen" && rf && rf.img.complete) for (const r of REIFEN) {
+      if (r.weg) continue;
+      ctx.fillStyle = "rgba(255,230,140,0.3)";
+      ctx.beginPath(); ctx.arc(r.x, r.y, 1.3 + (reduce ? 0 : Math.sin(t * 4 + r.x) * 0.2), 0, Math.PI * 2); ctx.fill();
+      ctx.drawImage(rf.img, r.x - 0.7, r.y - 0.7, 1.4, 1.4);
+    }
+
     // Auto, dann alles, was höher ist (Bäume über dem Auto)
     const img = autoWahl.img;
     if (img.complete && img.naturalWidth) {
@@ -644,6 +731,10 @@ window.Karte = function (opt = {}) {
     mctx.drawImage(miniGrund, 0, 0);
     mctx.fillStyle = "#c0392b";
     for (const st of STUECKE) if (!st.genommen && offen(st.x, st.y)) { mctx.fillRect(st.x * k - 3, st.y * k - 3, 6, 6); }
+    if (spiel.auftrag === "reifen") {
+      mctx.fillStyle = "#1d1a16"; mctx.strokeStyle = "#f2b632"; mctx.lineWidth = 1.5;
+      for (const r of REIFEN) if (!r.weg && offen(r.x, r.y)) { mctx.beginPath(); mctx.arc(r.x * k, r.y * k, 3.5, 0, 7); mctx.fill(); mctx.stroke(); }
+    }
     if (route) {
       // Route wie bei einer Navi-App: blaue Linie mit hellem Rand, nur auf der Minikarte
       mctx.save(); mctx.lineCap = "round"; mctx.lineJoin = "round";
@@ -739,7 +830,7 @@ window.Karte = function (opt = {}) {
   $("zurWerkstatt").addEventListener("click", schnellreise);
   $("schnellreise").addEventListener("click", schnellreise);
   $("mZu").addEventListener("click", () => { $("meldung").hidden = true; });
-  window.addEventListener("keydown", (e) => { if (e.key === "Escape") { karteZu(); $("meldung").hidden = true; } });
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") { karteZu(); $("meldung").hidden = true; $("laden").hidden = true; } });
 
   // --- Tastatur (nur zum Testen) ---------------------------------------------
   const KEYS = { ArrowUp: "gas", KeyW: "gas", ArrowDown: "bremse", KeyS: "bremse", ArrowLeft: "links", KeyA: "links", ArrowRight: "rechts", KeyD: "rechts" };
@@ -755,11 +846,25 @@ window.Karte = function (opt = {}) {
   if ($("neu")) $("neu").addEventListener("click", neu);
   $("ziel").addEventListener("click", neu);
 
+  // Geld-Anzeige und Laden-Fenster gehören zur Karte, damit beide Seiten sie haben
+  const geldSpan = document.createElement("span");
+  geldSpan.id = "geld"; geldSpan.hidden = true;
+  document.querySelector(".hud").append(geldSpan);
+  const laden = document.createElement("div");
+  laden.id = "laden"; laden.hidden = true;
+  laden.setAttribute("role", "dialog"); laden.setAttribute("aria-label", "Knuts Schrottladen");
+  laden.innerHTML = '<div><strong>Knuts Schrottladen</strong><p class="kasse"></p><div class="waren"></div>' +
+    '<p class="klein">Neue Ware kommt nach Aufträgen. Karosserie-Teile gibt es Stück für Stück.</p>' +
+    '<div class="knoepfe"><button type="button" class="knopf zweit">Tschüss, Knut!</button></div></div>';
+  laden.querySelector(".zweit").addEventListener("click", () => { laden.hidden = true; });
+  $("karte").parentElement.append(laden);
+  hudNeu();
+
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { auto, planen, ZIELE, get route() { return route; } }; // für automatische Tests
+  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, get route() { return route; } }; // für automatische Tests
   karteBauen();
-  // Platz um die Kartenstücke freiräumen
-  for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && STUECKE.some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
+  // Platz um die Kartenstücke und Reifen freiräumen
+  for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && [...STUECKE, ...REIFEN].some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
   netzBauen();
   gebieteStart();
   nebelNeu();

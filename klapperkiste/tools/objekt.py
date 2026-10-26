@@ -5,7 +5,7 @@ Größe im Kartenmaßstab gebracht (32 px pro Meter). Den Schatten zeichnet das
 Spiel; die Probe zeigt ihn schon mit (nach unten rechts, Licht von oben links).
 
 Aufruf:
-  python klapperkiste/tools/objekt.py einpassen EINGABE NAME --meter 7
+  python klapperkiste/tools/objekt.py einpassen EINGABE NAME --meter 7 [--loch]
   python klapperkiste/tools/objekt.py probe AUSGABE --boden gras_ruhig NAME[@x,y] ... [--auto auto.png]
 
 Ergebnis: assets/karte/objekte/NAME.png (Breite = --meter, Höhe im Verhältnis)
@@ -18,7 +18,7 @@ import os
 import random
 import sys
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 sys.path.insert(0, os.path.dirname(__file__))
 import boden  # noqa: E402
@@ -28,8 +28,21 @@ OBJEKT_DIR = os.path.join(boden.ROOT, "assets", "karte", "objekte")
 PX = boden.PX_PRO_M
 
 
-def einpassen(eingabe: str, name: str, meter: float, dicker: float = 1.0) -> str:
+def loch_frei(teil: Image.Image, toleranz: int = 40) -> Image.Image:
+    """Weiße Fläche in der Bildmitte durchsichtig machen (z. B. das Loch im Reifen)."""
+    rgb = teil.convert("RGB")
+    mitte = (teil.width // 2, teil.height // 2)
+    ImageDraw.floodfill(rgb, mitte, (1, 254, 3), thresh=toleranz)
+    loch = ImageChops.difference(rgb, Image.new("RGB", rgb.size, (1, 254, 3))).convert("L")
+    alpha = ImageChops.multiply(teil.getchannel("A"), loch.point(lambda v: 255 if v > 0 else 0))
+    teil.putalpha(alpha)
+    return teil
+
+
+def einpassen(eingabe: str, name: str, meter: float, dicker: float = 1.0, loch: bool = False) -> str:
     teil = teilwerk.freistellen(Image.open(eingabe), inseln=False)
+    if loch:
+        teil = loch_frei(teil)
     teil = teil.crop(teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox())
     breite = round(meter * PX)
     teil = teil.resize((breite, round(teil.height * breite / teil.width * dicker)), Image.LANCZOS)
@@ -94,6 +107,7 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--meter", type=float, required=True, help="Breite des Objekts in Metern")
     e.add_argument("--dicker", type=float, default=1.0,
                    help="Höhe im Bild strecken, damit dünne Dinge (Zaun) auf dem Handy sichtbar bleiben")
+    e.add_argument("--loch", action="store_true", help="Weiße Fläche in der Mitte freistellen (Reifen)")
     pr = sub.add_parser("probe")
     pr.add_argument("ausgabe")
     pr.add_argument("objekte", nargs="+", help="NAME oder NAME@x,y (Meter), NAME! = unverändert")
@@ -102,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--auto")
     args = p.parse_args(argv)
     if args.befehl == "einpassen":
-        einpassen(args.eingabe, args.name, args.meter, args.dicker)
+        einpassen(args.eingabe, args.name, args.meter, args.dicker, args.loch)
     else:
         probe(args.ausgabe, args.boden, args.objekte, args.meter, args.auto)
     return 0

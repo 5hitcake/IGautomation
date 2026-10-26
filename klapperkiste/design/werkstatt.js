@@ -107,7 +107,7 @@ window.Werkstatt = function (opt = {}) {
 
   // Bilder laden
   const IMG = {};
-  for (const p of PARTS) for (const v of ["seite", "oben"]) {
+  for (const p of ALLE_TEILE) for (const v of ["seite", "oben"]) {
     const src = FULL[`${p.id}_${v}`] || (G[`${p.id}_${v}`] && G[`${p.id}_${v}`].bild);
     if (!src) continue;
     const im = new Image(); im.src = src; IMG[`${p.id}_${v}`] = im;
@@ -626,6 +626,12 @@ window.Werkstatt = function (opt = {}) {
       state.tipp = id;
       const p = PARTS.find((q) => q.id === id);
       if (p) state.tab = TABS.find((t) => t.kats.includes(p.kat)).id;
+      refresh();
+    },
+    // Neues Teil ins Regal legen (gekauft oder als Belohnung)
+    neuesTeil(id) {
+      const p = ALLE_TEILE.find((q) => q.id === id);
+      if (p && !PARTS.includes(p)) PARTS.push(p);
       refresh();
     },
     // Alles Fahrnötige einbauen (Tutorial überspringen)

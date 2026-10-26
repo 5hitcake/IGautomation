@@ -128,6 +128,7 @@
     zielErlaubt: (z) => !imTutorial() || z.id === "schrottplatz",
     hatTeil: (kat) => Boolean(W.state.mounted[kat]),
     zurWerkstatt: () => zeige("werkstatt"),
+    gekauft: (id) => W.neuesTeil(id),
     unterwegs: () => {
       if (schritt !== 4) return;
       schritt = 5; leuchte("karteAuf", false);
