@@ -678,10 +678,6 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     const t = performance.now() / 1000;
     if (route) {
       ctx.save();
-      ctx.strokeStyle = "rgba(242,182,50,0.9)"; ctx.lineWidth = 0.35; ctx.setLineDash([0.8, 0.9]); ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(auto.x, auto.y);
-      for (let k = routeI; k < route.length; k++) ctx.lineTo(route[k][0], route[k][1]);
-      ctx.stroke(); ctx.setLineDash([]);
       const [zx, zy] = route[route.length - 1], puls = reduce ? 0 : Math.sin(t * 5) * 0.25;
       ctx.lineWidth = 0.3; ctx.strokeStyle = "#f2b632";
       ctx.beginPath(); ctx.arc(zx, zy, 1.4 + puls, 0, Math.PI * 2); ctx.stroke();
@@ -766,7 +762,18 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     mctx.drawImage(miniGrund, 0, 0);
     mctx.fillStyle = "#c0392b";
     for (const st of STUECKE) if (!st.genommen && offen(st.x, st.y)) { mctx.fillRect(st.x * k - 3, st.y * k - 3, 6, 6); }
-    if (route) { const e = route[route.length - 1]; mctx.strokeStyle = "#f2b632"; mctx.lineWidth = 2; mctx.beginPath(); mctx.arc(e[0] * k, e[1] * k, 4, 0, 7); mctx.stroke(); }
+    if (route) {
+      // Route wie bei einer Navi-App: blaue Linie mit hellem Rand, nur auf der Minikarte
+      mctx.save(); mctx.lineCap = "round"; mctx.lineJoin = "round";
+      mctx.beginPath(); mctx.moveTo(auto.x * k, auto.y * k);
+      for (let i = routeI; i < route.length; i++) mctx.lineTo(route[i][0] * k, route[i][1] * k);
+      mctx.strokeStyle = "rgba(255,255,255,0.9)"; mctx.lineWidth = 6; mctx.stroke();
+      mctx.strokeStyle = "#2b7de9"; mctx.lineWidth = 3.5; mctx.stroke();
+      const e = route[route.length - 1];
+      mctx.fillStyle = "#2b7de9"; mctx.strokeStyle = "#fff"; mctx.lineWidth = 2;
+      mctx.beginPath(); mctx.arc(e[0] * k, e[1] * k, 4.5, 0, 7); mctx.fill(); mctx.stroke();
+      mctx.restore();
+    }
     mctx.save(); mctx.translate(auto.x * k, auto.y * k); mctx.rotate(auto.a);
     mctx.fillStyle = "#f2b632"; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 2;
     mctx.beginPath(); mctx.moveTo(7, 0); mctx.lineTo(-5, -5); mctx.lineTo(-5, 5); mctx.closePath(); mctx.fill(); mctx.stroke();

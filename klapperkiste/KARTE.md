@@ -126,6 +126,9 @@ längeren und breiteren Lichtkegel. Probe: Lichtkegel auf einem Feldweg
 - **Hindernisse:** Kann das Auto ein Hindernis mit den eingebauten Teilen nicht
   überwinden (z. B. dunkler Wald ohne Licht), bleibt es davor stehen. Eine
   Meldung sagt, was fehlt, mit dem Knopf **„Zur Werkstatt“** (Schnellreise).
+- **Route nur auf der Minikarte:** Der Weg wird wie bei einer Navi-App als
+  blaue Linie auf der Minikarte gezeigt, auf der großen Fahransicht nicht
+  (dort nur ein Ring am Ziel).
 - Pfeiltasten bleiben nur zum Testen.
 
 ## 9. Kartenstücke und Nebel
@@ -136,3 +139,14 @@ Gebiet auf. Ins Ungewisse kann man nicht tippen, das Auto plant seine Route
 nur durch aufgedeckte Gebiete. Kartenstücke liegen am Wegrand, auf Inseln
 oder gibt es als Belohnung für Aufträge. Probe: `design/kartenprobe.html`
 (Startgebiet plus zwei Gebiete).
+
+## 10. Vom einen Weg zu vielen Möglichkeiten
+
+Am Anfang gibt es **nur einen Weg und eine Option**: von Opas Schuppen zum
+Schrottplatz, mit dem ersten Auftrag. Das ist der Einstieg. Mit jedem
+Kartenstück, jedem Teil und jeder Karosserie wird die Welt breiter: Es gibt
+mehrere Ziele zur Auswahl, verschiedene Wege zum selben Ort und mehrere
+Aufträge gleichzeitig. Man muss selbst planen, wo man welche Teile bekommt
+und was man zuerst schaffen kann (z. B. erst Licht für den Wald oder erst die
+Spezialhupe für die Schafe). Aufträge sollen sich daher, wo es geht, auf
+mehr als eine Art lösen lassen.
