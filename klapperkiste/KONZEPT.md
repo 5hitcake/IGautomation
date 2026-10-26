@@ -119,6 +119,11 @@ Erste Probe in `design/spielstart.html` (und Kartenprobe): Knuts Auftrag
 Weideweg), Belohnung 40 Münzen,
 danach Knuts Laden mit Rundling hinten, Mitte und vorne (25, 35, 30 Münzen).
 Gekaufte Teile liegen in Opas Werkstatt im Regal.
+Danach Knuts zweiter Auftrag „alte Autobatterie“ (liegt am Weideweg im
+Osten, das Gebiet deckt das Kartenstück am Feldrand auf). Belohnung: 15
+Münzen und der **alte Scheinwerfer**, das erste Licht. Bei Opa eingebaut,
+öffnet er den dunklen Wald: Dort sieht man nur noch den Lichtkegel vor dem
+Auto und einen schwachen Schein drumherum.
 
 Noch offen: Name der Währung (vorläufig „Münzen“), Preise und wie stark Teile sich in den Werten
 unterscheiden (kommt mit den Teile-Werten).

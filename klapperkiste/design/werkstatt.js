@@ -19,6 +19,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "giesskanne", kat: "energie", name: "Gießkanne" },
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
+    { id: "scheinwerfer", kat: "licht", name: "Alter Scheinwerfer" },
     { id: "schlauchboot_hinten", kat: "karosserie_hinten", name: "Schlauchboot hinten" },
     { id: "schlauchboot_mitte", kat: "karosserie_mitte", name: "Schlauchboot Mitte" },
     { id: "schlauchboot_vorne", kat: "karosserie_vorne", name: "Schlauchboot vorne" },

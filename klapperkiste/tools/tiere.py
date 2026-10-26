@@ -7,6 +7,7 @@ Maßstab (--meter ist die Länge der ersten Pose, Kopf zeigt nach rechts).
 
 Aufruf:
   python klapperkiste/tools/tiere.py EINGABE NAME --meter 0.9
+  python klapperkiste/tools/tiere.py EINGABE NAME --meter 2.8 --eine   (nur eine Pose, z. B. Kuh)
 
 Ergebnis: assets/karte/tiere/NAME_1.png und NAME_2.png (64 px pro Meter, doppelt so fein wie
 der Boden, weil Tiere klein sind und sonst unscharf werden)
@@ -43,10 +44,14 @@ def ohne_schatten(frei: Image.Image) -> Image.Image:
     return frei
 
 
-def posen(bild: Image.Image, toleranz: int = 100) -> list[Image.Image]:
-    """Freistellen und an der breitesten leeren Spalte in der Mitte teilen."""
+def posen(bild: Image.Image, toleranz: int = 100, eine: bool = False) -> list[Image.Image]:
+    """Freistellen und an der breitesten leeren Spalte in der Mitte teilen.
+    Mit eine=True gibt es nur eine Pose; sie wird für beide verwendet."""
     frei = ohne_schatten(teilwerk.freistellen(bild.convert("RGB"), toleranz=toleranz, inseln=False))
     a = frei.getchannel("A").point(lambda v: 255 if v > 16 else 0)
+    if eine:
+        t = frei.crop(a.getbbox())
+        return [t, t.copy()]
     b = a.width
     voll = [a.crop((x, 0, x + 1, a.height)).getbbox() is not None for x in range(b)]
     # längste Lücke im mittleren Drittel
@@ -73,8 +78,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("name")
     p.add_argument("--meter", type=float, required=True, help="Länge der ersten Pose in Metern")
     p.add_argument("--toleranz", type=int, default=100)
+    p.add_argument("--eine", action="store_true", help="Bild zeigt nur eine Pose")
     args = p.parse_args(argv)
-    teile = posen(Image.open(args.eingabe), args.toleranz)
+    teile = posen(Image.open(args.eingabe), args.toleranz, args.eine)
     faktor = args.meter * PX / teile[0].width
     os.makedirs(TIER_DIR, exist_ok=True)
     for i, t in enumerate(teile, 1):

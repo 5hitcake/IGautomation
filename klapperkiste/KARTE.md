@@ -192,4 +192,4 @@ Hase 1,3 m, Schaf 2 m.
   Weg) und flüchten mit schnellen Sprüngen vor dem Auto.
 - **Schafe** grasen auf der Weide (Kopf unten) und laufen langsam zum
   nächsten Grasplatz.
-- Kühe folgen, sobald das Bild da ist.
+- **Kühe** (Bild mit einer Pose, `--eine`) grasen zusammen mit den Schafen, etwas langsamer.
