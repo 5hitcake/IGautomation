@@ -80,8 +80,9 @@ Karosserie spielt im Tutorial noch keine Rolle: Die Schrottkarre fährt ohne.
 
 **Materialien (kommt später):** Schrauben, Kabel, Schläuche, Federn, Blech …
 werden unterwegs gefunden oder gesammelt und bei Händlern verkauft, ähnlich
-wie die Fische bei Dredge. Sie landen auf der Ladefläche (Schritt C4,
-Ladefläche als Raster), dadurch zählt auch, wie viel Platz das Auto hat.
+wie die Fische bei Dredge. Sie kommen in einen **Beutel** (Rucksack oder
+Tasche), nicht ins Auto, damit das Auto so bleibt, wie es ist. Idee: Der
+Beutel hat begrenzt Platz und lässt sich später gegen einen größeren tauschen.
 Ob Materialien zusätzlich zum Bauen oder Reparieren gebraucht werden, klären
 wir später.
 
@@ -199,8 +200,9 @@ Das ausführliche Konzept mit Maßstab und Raster steht in [`KARTE.md`](KARTE.md
 
 ### Anleihen bei Dredge
 
-- **Ladefläche als Raster:** Fracht und Fundstücke haben Formen und müssen auf
-  die Ladefläche passen. Ein größerer Aufbau oder Anhänger bringt mehr Platz.
+- **Beutel statt Ladefläche:** Materialien und Fundstücke kommen in einen
+  Beutel (Rucksack oder Tasche), das Auto bleibt unverändert. Ein größerer
+  Beutel bringt mehr Platz.
 - **Unterwegs sammeln:** Schrottteile, Fundstücke und Lieferware liegen auf
   der Karte verteilt.
 - **Tag und Nacht:** Nachts wird es ohne Licht schwierig, manche Dinge gibt es
@@ -226,7 +228,7 @@ Bilder da sind.
 | C1 | Karriere-Start: Werkstatt mit Tutorial, dann mit der Schrottkarre zum Schrottplatz | offen |
 | C2 | Geld, Händler (zuerst Knut) und Lieferungen nach Aufträgen und Spielstand | offen |
 | C3 | Nachbarn und Aufträge | offen |
-| C4 | Ladefläche als Raster, Materialien und Fundstücke (Schrauben, Kabel, Schläuche …), Tag und Nacht | offen |
+| C4 | Beutel für Materialien und Fundstücke (Schrauben, Kabel, Schläuche …), Tag und Nacht | offen |
 | D | App-Verpackung (Android/iOS) | offen |
 
 ## 4. Technik
