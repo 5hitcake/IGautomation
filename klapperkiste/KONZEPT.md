@@ -64,6 +64,12 @@ zwei Sätze pro Schritt; was gerade dran ist, leuchtet.
 
 Karosserie spielt im Tutorial noch keine Rolle: Die Schrottkarre fährt ohne.
 
+Probe: `design/spielstart.html`. Rahmen und Achsen sind dort schon montiert,
+der Weg zum Schrottplatz ist von Anfang an aufgedeckt, und während des
+Tutorials ist der Schrottplatz das einzige wählbare Ziel. „Zur Werkstatt“ und
+die Ankunft an Opas Schuppen führen zurück in die Werkstatt. Losfahren geht
+nur fahrbereit und ohne Karosserie oder mit komplettem Satz.
+
 ### Teile, Geld und Händler (entschieden, wie bei Dredge)
 
 **Woher Teile kommen:**
@@ -225,7 +231,7 @@ Bilder da sind.
 | B2 | Karten-Raster: Abschnitte, Straßenanschlüsse, Maßstab Auto zu Karte | offen |
 | B3 | Erster Kartenabschnitt: Zuhause bis Schrottplatz | offen |
 | B4 | Hindernisse einzeln einbauen: Schotter, Steigung, Dunkelheit, Schafe, Distanz … | offen |
-| C1 | Karriere-Start: Werkstatt mit Tutorial, dann mit der Schrottkarre zum Schrottplatz | offen |
+| C1 | Karriere-Start: Werkstatt mit Tutorial, dann mit der Schrottkarre zum Schrottplatz | Probe: `design/spielstart.html` |
 | C2 | Geld, Händler (zuerst Knut) und Lieferungen nach Aufträgen und Spielstand | offen |
 | C3 | Nachbarn und Aufträge | offen |
 | C4 | Beutel für Materialien und Fundstücke (Schrauben, Kabel, Schläuche …), Tag und Nacht | offen |

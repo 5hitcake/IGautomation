@@ -12,6 +12,9 @@ const source = join(root, process.argv[3] || "index.html");
 let html = readFileSync(source, "utf8");
 html = html.replace(/<script src="([^"]+)"><\/script>/g, (_, src) =>
   `<script>\n${readFileSync(join(dirname(source), src), "utf8")}</script>`);
+// Eigene Stylesheets ebenfalls einbetten (Google Fonts bleiben Links)
+html = html.replace(/<link rel="stylesheet" href="(?!https?:)([^"]+)">/g, (_, href) =>
+  `<style>\n${readFileSync(join(dirname(source), href), "utf8")}</style>`);
 // Die Vorschau-Umgebung liefert Doctype, head und body selbst
 html = html
   .replace(/<!doctype html>\s*/i, "")

@@ -1,5 +1,8 @@
 """Bilder für die Karten-Fahrprobe (design/kartenprobe.html) als design/karte_daten.js.
 
+Dazu design/spielstart_teile.js mit den Teilen der Schrottkarre (Werkstatt im
+Spielstart). Die ganze Teile-Sammlung wäre für die Spielstart-Seite zu groß.
+
 Enthält die Boden-Kacheln, die Kartenobjekte und fertig zusammengebaute Autos
 von oben: die Schrottkarre ohne Karosserie und mit jedem kompletten
 Karosserie-Satz (inklusive Anbauteilen wie dem Räumschild).
@@ -23,6 +26,7 @@ import teilwerk  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ZIEL = os.path.join(ROOT, "design", "karte_daten.js")
+ZIEL_TEILE = os.path.join(ROOT, "design", "spielstart_teile.js")
 BODEN = ["gras_ruhig", "gras", "erde", "schotter"]
 OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz"]
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
@@ -88,6 +92,21 @@ def figuren() -> dict:
     return daten
 
 
+def spielstart_teile() -> None:
+    """Teile der Schrottkarre (Seite und Draufsicht) für die Werkstatt im Spielstart."""
+    teile, vorschau = {}, {}
+    for tid in dict.fromkeys(GRUND.values()):
+        for ansicht in ("seite", "oben"):
+            uri = _uri(Image.open(os.path.join(teilwerk.TEILE_DIR, tid, f"{ansicht}.png")).convert("RGBA"))
+            teile[f"{tid}_{ansicht}"] = uri
+            vorschau[f"{tid}_{ansicht}"] = {"bild": uri}
+    with open(ZIEL_TEILE, "w", encoding="utf-8") as f:
+        f.write("// Automatisch erzeugt von tools/karte_daten.py. Nicht von Hand ändern.\n")
+        f.write("window.TEILE = " + json.dumps(teile) + ";\n")
+        f.write("window.GELIEFERT = " + json.dumps(vorschau) + ";\n")
+    print(f"{os.path.relpath(ZIEL_TEILE)}: {len(teile)} Bilder, {os.path.getsize(ZIEL_TEILE) // 1024} KB")
+
+
 def main() -> int:
     raster = teilwerk.lade_raster()
     daten = {"boden": {}, "objekte": {}, "autos": [], **figuren()}
@@ -109,6 +128,7 @@ def main() -> int:
         f.write("// Automatisch erzeugt von tools/karte_daten.py. Nicht von Hand ändern.\n")
         f.write("window.KARTE_DATEN = " + json.dumps(daten) + ";\n")
     print(f"{os.path.relpath(ZIEL)}: {len(daten['autos'])} Autos, {os.path.getsize(ZIEL) // 1024} KB")
+    spielstart_teile()
     return 0
 
 

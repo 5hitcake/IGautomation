@@ -105,3 +105,21 @@ Cartoon character model sheet of ONE character: an old sea captain woman, drawn 
 ```
 Cartoon character model sheet of ONE character: a round jolly mountain hut keeper, drawn four times in a 2x2 grid with wide empty white space between the four drawings. Every drawing shows the full body from the top of the head to the shoes, all four at exactly the same size, facing the viewer. Top left: waving hello with one raised hand, friendly smile. Top right: scratching his head with one hand, puzzled face, one eyebrow raised. Bottom left: pointing firmly to the left side with a long outstretched arm, giving an order. Bottom right: laughing with mouth open and a big thumbs up. Appearance: a nose red and round like a tomato, a very long thick ice blue knitted scarf wrapped around his neck and hanging down to his knees, ice blue bobble hat, big bushy white eyebrows, warm brown knitted jumper, fur boots. Important: the tomato red nose and the knee-long ice blue scarf are clearly visible in every drawing. It must look exactly the same in all four drawings, same clothes, same colours, same face, nothing missing. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, rubbery bendy limbs, big expressive hands with four fingers, exaggerated cartoon proportions with a large head, fully coloured with warm flat watercolour-like colours and a light paper texture. Plain white background, no text, no speech bubbles, no frames, no ground except a tiny scribbled shadow under the feet.
 ```
+
+## Gesprächshintergründe
+
+Je Ort ein Bild im Format 16:9, auf Augenhöhe, ohne Figuren. Links und in
+der Mitte bleibt Platz für die Figur. Ablage:
+`assets/charaktere/hintergrund/<ort>.png`, danach
+`python klapperkiste/tools/karte_daten.py`.
+
+| Ort | Datei | Stand |
+|---|---|---|
+| Schrottplatz (Knut) | `schrottplatz.png` | ✅ |
+| Opas Werkstatt (Tutorial) | `werkstatt.png` | Prompt unten, bis dahin Holzton als Platzhalter |
+
+### Opas Werkstatt
+
+```
+Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals. Inside a small, cosy old wooden workshop shed in the afternoon: walls of weathered wooden planks, warm sunlight falling in through a dusty window on the left, a large pegboard on the back wall full of hanging tools (wrenches, hammers, saws, pliers), a long cluttered workbench on the right with a vice, tin cans with screws and an oil can, shelves with jars, coils of wire and an old radio, a hanging lamp with a metal shade, a rolled-up garden hose and a stack of old tyres in the corner. The left half and the centre of the image are calm and open: an empty wooden plank floor with a few oil stains and wood shavings, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```

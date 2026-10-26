@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Klapperkiste Spielstart</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<link rel="stylesheet" href="werkstatt.css">
+<link rel="stylesheet" href="karte.css">
+<style>
+/* Spielstart: Werkstatt und Karte als zwei Bildschirme, Opa führt durchs Tutorial. */
+.kopf { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; justify-content: space-between; }
+.kopf .knoepfe { display: flex; gap: 8px; }
+.kopf .knoepfe button { font-size: 13px; padding: 6px 12px; }
+/* Gespräche über den ganzen Bildschirm, egal ob Werkstatt oder Karte */
+#gespraech { position: fixed; inset: 0; border-radius: 0; z-index: 40; }
+/* Opas Tipp-Zeile im Tutorial */
+#tipp { display: flex; gap: 10px; align-items: center; background: #fffaf0; color: #1d1a16; border: 3px solid #1d1a16; border-radius: 14px; padding: 8px 12px 8px 8px; box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
+#tipp img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: 50% 8%; background: #e8dcc2; border: 2px solid #1d1a16; flex: none; }
+#tipp p { font-weight: 700; line-height: 1.35; }
+#tipp strong { color: #a23b1c; }
+.knopf.tipp, button.tipp { box-shadow: 0 0 0 3px var(--mustard); animation: knopfTipp 1.1s ease-in-out infinite; }
+@keyframes knopfTipp { 50% { box-shadow: 0 0 0 7px rgba(242,182,50,0.25); } }
+@media (prefers-reduced-motion: reduce) { .knopf.tipp, button.tipp { animation: none; } }
+.knopf:disabled { opacity: 0.45; cursor: not-allowed; }
+#stage { height: min(62vw, 520px, calc(100svh - 260px)); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="kopf">
+    <div style="display:grid;gap:6px">
+      <p class="eyebrow">Schritt C1 · Spielstart mit Tutorial</p>
+      <h1>Klapperkiste</h1>
+    </div>
+    <div class="knoepfe">
+      <button type="button" id="ueberspringen">Tutorial überspringen</button>
+      <button type="button" id="vonVorn">Von vorn</button>
+    </div>
+  </header>
+
+  <div id="tipp" role="status" aria-live="polite" hidden><img id="tippBild" alt=""><p id="tippText"></p></div>
+
+  <!-- Bildschirm 1: Opas Werkstatt -->
+  <section id="s-werkstatt" aria-label="Opas Werkstatt" style="display:grid;gap:12px">
+    <div class="top">
+      <h2>Opas Werkstatt</h2>
+      <div class="views" role="group" aria-label="Ansicht">
+        <button type="button" id="view-seite" aria-pressed="true">Seite</button>
+        <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
+      </div>
+    </div>
+    <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszubauen."></canvas>
+    <p id="status" aria-live="polite"></p>
+    <div class="fahrleiste"><button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
+    <section style="display:grid;gap:8px" aria-label="Teile-Regal">
+      <h2>Teile-Regal</h2>
+      <div class="tabs" id="tabs" role="tablist" aria-label="Kategorie"></div>
+      <div class="tray" id="tray"></div>
+    </section>
+    <section style="display:grid;gap:8px" aria-label="Fahrbereit">
+      <h2>Fahrbereit?</h2>
+      <div class="checks" id="checks"></div>
+    </section>
+    <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten). Ausbauen: Teil auf der Bühne antippen.</p>
+  </section>
+
+  <!-- Bildschirm 2: Karte -->
+  <section id="s-karte" aria-label="Karte" style="display:grid;gap:12px" hidden>
+    <div class="buehne">
+      <canvas id="karte" aria-label="Karte von oben mit deinem Auto"></canvas>
+      <canvas id="mini" aria-hidden="true"></canvas>
+      <div class="hud" aria-live="polite">
+        <span id="tempo">0 km/h</span>
+        <span id="boden">Feldweg</span>
+        <span id="weg">Schrottplatz: 0 m</span>
+        <span id="auftrag" class="auftrag" hidden></span>
+      </div>
+      <div id="toast" class="toast" hidden role="status"></div>
+      <div id="grosskarte" hidden role="dialog" aria-label="Karte: Ziel auswählen">
+        <header><h2>Wohin fahren?</h2><div class="knoepfe"><button type="button" class="knopf zweit" id="karteZu">Schließen</button></div></header>
+        <canvas id="gross" aria-label="Karte mit Zielen. Tippe auf ein markiertes Ziel."></canvas>
+      </div>
+      <div id="meldung" hidden role="alertdialog" aria-labelledby="mTitel">
+        <div><strong id="mTitel">Hier geht es nicht weiter</strong><p id="mText"></p><p class="fehlt" id="mFehlt"></p>
+          <div class="knoepfe"><button type="button" class="knopf" id="zurWerkstatt">Zur Werkstatt</button><button type="button" class="knopf zweit" id="mZu">Stehen bleiben</button></div></div>
+      </div>
+      <div id="ziel" hidden><div><strong>Geschafft!</strong><p id="zielText"></p></div></div>
+    </div>
+    <div class="fahrleiste">
+      <button type="button" class="knopf" id="karteAuf">🗺 Karte · Ziel wählen</button>
+      <button type="button" class="knopf zweit" id="schnellreise">Zur Werkstatt</button>
+    </div>
+  </section>
+</div>
+
+<div id="gespraech" hidden role="dialog" aria-label="Gespräch" tabindex="-1">
+  <img id="gFigur" alt="">
+  <div class="g-box"><strong id="gName"></strong><p id="gText" aria-live="polite"></p><span class="g-weiter" aria-hidden="true">▼</span></div>
+</div>
+<canvas id="ghost" hidden></canvas>
+
+<script src="raster.js"></script>
+<script src="spielstart_teile.js"></script>
+<script src="karte_daten.js"></script>
+<script src="werkstatt.js"></script>
+<script src="karte.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const OPA = "Opa Bolzen";
+  // Tutorial-Schritte: 0 Begrüßung, 1 Rad einbauen, 2 Rest einbauen, 3 Losfahren,
+  // 4 Ziel wählen, 5 unterwegs, 6 fertig (frei spielen)
+  let schritt = 0;
+  const imTutorial = () => schritt < 6;
+  let bereit = false; // die Werkstatt meldet sich schon beim Aufbauen
+
+  function tipp(text) {
+    $("tipp").hidden = !text;
+    if (text) $("tippText").innerHTML = text;
+  }
+  function leuchte(id, an) { $(id).classList.toggle("tipp", an); }
+
+  const K = Karte({
+    offen: ["start", "nord"], // Opas Gegend und der Weg zum Schrottplatz sind bekannt
+    zielErlaubt: (z) => !imTutorial() || z.id === "schrottplatz",
+    hatTeil: (kat) => Boolean(W.state.mounted[kat]),
+    zurWerkstatt: () => zeige("werkstatt"),
+    unterwegs: () => {
+      if (schritt !== 4) return;
+      schritt = 5; leuchte("karteAuf", false);
+      tipp("Die Klapperkiste fährt jetzt <strong>von selbst</strong>. Den Weg siehst du blau auf der <strong>Minikarte</strong> oben rechts.");
+    },
+    nachKnut: () => {
+      if (schritt !== 5) return;
+      schritt = 6;
+      tipp("<strong>Geschafft!</strong> Ab jetzt entscheidest du selbst, wohin es geht. Mit „Zur Werkstatt“ kommst du jederzeit zurück zu mir.");
+      setTimeout(() => { if (schritt === 6) tipp(null); }, 9000);
+    },
+  });
+
+  const W = Werkstatt({
+    teile: ["bettgestell", "rostachse", "schubkarre", "maeher", "giesskanne", "kuechenstuhl", "fahrradlenker"],
+    vorbau: { rahmen: "bettgestell", achseH: "rostachse", achseV: "rostachse" },
+    stumm: true,
+    nachher: () => { if (bereit) nachher(); },
+  });
+  bereit = true;
+
+  // Nach jeder Änderung in der Werkstatt: Knopf und Tutorial weiterschalten
+  function nachher() {
+    $("losfahren").disabled = !W.fahrzeug() || schritt < 3;
+    if (schritt === 1 && (W.state.mounted.radH || W.state.mounted.radV)) {
+      schritt = 2; W.tipp(null);
+      tipp("Prima! Jetzt der Rest: <strong>das zweite Rad, Motor, Tank, Sitz und Lenkung</strong>. Unter „Fahrbereit?“ siehst du, was noch fehlt.");
+    }
+    if (schritt === 2 && W.fahrbereit()) {
+      schritt = 3; tipp(null);
+      setTimeout(() => K.gespraech("opa", OPA, "werkstatt", [
+        ["juhu", "Hörst du das? Sie knattert! Ich hab's ja immer gesagt: In der Kiste steckt noch Leben."],
+        ["auftrag", "Jetzt fahr mal rüber zu Knut auf den Schrottplatz. Der hat Teile, und Arbeit für dich hat er bestimmt auch."],
+      ], () => {
+        nachher();
+        leuchte("losfahren", true);
+        tipp("Tipp auf <strong>„Losfahren“</strong>.");
+      }), 500);
+    }
+    if (!imTutorial() && W.fahrbereit() && !W.fahrzeug()) W.say("Mit gemischter oder halber Karosserie geht es nicht auf die Karte: ganz ohne oder ein kompletter Satz.", "warn");
+  }
+
+  function zeige(name) {
+    $("s-werkstatt").hidden = name !== "werkstatt";
+    $("s-karte").hidden = name !== "karte";
+    if (name === "werkstatt") { W.refresh(); if (!imTutorial()) W.say("Zurück in Opas Werkstatt."); }
+    window.scrollTo({ top: 0 });
+  }
+
+  $("losfahren").addEventListener("click", () => {
+    const auto = W.fahrzeug();
+    if (!auto) return;
+    K.setzeAuto(auto);
+    K.zuHause();
+    zeige("karte");
+    if (schritt === 3) {
+      schritt = 4; leuchte("losfahren", false); leuchte("karteAuf", true);
+      tipp("Tipp auf <strong>„Karte · Ziel wählen“</strong> und such dir den <strong>Schrottplatz</strong> aus.");
+    }
+  });
+
+  $("ueberspringen").addEventListener("click", () => {
+    schritt = 6;
+    W.tipp(null); W.zusammenbauen();
+    for (const id of ["losfahren", "karteAuf"]) leuchte(id, false);
+    tipp(null);
+    W.say("Tutorial übersprungen. Die Klapperkiste ist fahrbereit.", "ok");
+    $("ueberspringen").hidden = true;
+  });
+  $("vonVorn").addEventListener("click", () => location.reload());
+
+  // Los geht's: Opa begrüßt in der Werkstatt
+  const opaBild = ((window.KARTE_DATEN.figuren || {}).opa || {}).hallo;
+  if (opaBild) $("tippBild").src = opaBild;
+  setTimeout(() => K.gespraech("opa", OPA, "werkstatt", [
+    ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Bolzen, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
+    ["nachdenken", "Na ja, „Kiste“ ist geschmeichelt. Rahmen und Achsen sind schon dran, der Rest liegt noch hier im Regal herum."],
+    ["auftrag", "Fang mit den Rädern an: Das leuchtende Rad im Regal ziehst du einfach auf einen gelben Platz. Antippen geht auch."],
+  ], () => {
+    if (schritt !== 0) return;
+    schritt = 1;
+    W.tipp("schubkarre");
+    tipp("Zieh das <strong>leuchtende Rad</strong> auf einen gelben Platz auf der Hebebühne, oder tipp es an.");
+  }), 300);
+  window.__ss = { W, K, get schritt() { return schritt; } }; // für automatische Tests
+})();
+</script>
+</body>
+</html>
