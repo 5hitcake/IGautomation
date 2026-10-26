@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Klapperkiste Kartenprobe</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Fahrprobe auf der Karte: oben die Bühne (Kamera folgt dem Auto), darunter
+   Steuerknöpfe für den Finger. Gleicher dunkler Look wie die Werkstatt. */
+:root {
+  color-scheme: dark;
+  --wall: #1b3138;
+  --board: #12232a;
+  --card: #203a42;
+  --chalk: #e9efe6;
+  --chalk-dim: #a3b8b3;
+  --mustard: #f2b632;
+  --mint: #6fd3a3;
+  --font-display: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+}
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--wall); color: var(--chalk); font-family: var(--font-body); font-weight: 600; font-size: 15px; line-height: 1.5; }
+.wrap {
+  max-width: 900px; margin: 0 auto; padding-block: 16px 32px; display: grid; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1 { font-family: var(--font-display); font-weight: 400; margin: 0; font-size: clamp(26px, 6vw, 38px); line-height: 1; color: var(--mustard); }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mint); }
+.lead { color: var(--chalk-dim); max-width: 62ch; }
+.buehne { position: relative; }
+#karte { display: block; width: 100%; height: min(68vh, 620px); border-radius: 14px; background: #2d4a2a; touch-action: none; }
+#mini { position: absolute; top: 10px; right: 10px; width: 96px; height: 96px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.5); }
+.hud { position: absolute; left: 10px; top: 10px; display: grid; gap: 4px; pointer-events: none; }
+.hud span { background: rgba(18,35,42,0.82); padding: 3px 9px; border-radius: 8px; font-size: 13px; font-variant-numeric: tabular-nums; width: max-content; }
+#ziel { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+#ziel div { background: rgba(18,35,42,0.92); border: 3px solid var(--mustard); border-radius: 16px; padding: 16px 22px; text-align: center; pointer-events: auto; max-width: 80%; }
+#ziel strong { font-family: var(--font-display); font-weight: 400; font-size: 28px; color: var(--mustard); display: block; }
+.steuer { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+.steuer button, .leiste button, select {
+  font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 16px 8px; cursor: pointer;
+  background: var(--card); color: var(--chalk); touch-action: none; -webkit-user-select: none; user-select: none;
+}
+.steuer button[aria-pressed="true"] { background: var(--mustard); color: var(--board); }
+#gas { background: #2f6b4a; }
+#bremse { background: #6b3a2f; }
+.leiste { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.leiste button { padding: 10px 14px; background: var(--mustard); color: var(--board); }
+select { padding: 10px 12px; min-width: 0; max-width: 100%; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+.how { background: var(--board); border-radius: 14px; padding: 12px 16px; color: var(--chalk-dim); }
+.how strong { color: var(--chalk); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <p class="eyebrow">Schritt K4 · Startgebiet · 320 × 320 m</p>
+    <h1>Klapperkiste Kartenprobe</h1>
+    <p class="lead">Fahr mit deinem Auto von Opas Schuppen zum Schrottplatz. Auf dem Feldweg geht es am schnellsten, über die Wiese holpert es langsam, Bäume und Felsen halten dich auf.</p>
+  </header>
+
+  <div class="leiste">
+    <label for="auto" style="color:var(--chalk-dim)">Auto</label>
+    <select id="auto"></select>
+    <button type="button" id="neu">Zurück zum Schuppen</button>
+  </div>
+
+  <div class="buehne">
+    <canvas id="karte" aria-label="Karte von oben mit deinem Auto"></canvas>
+    <canvas id="mini" aria-hidden="true"></canvas>
+    <div class="hud" aria-live="polite">
+      <span id="tempo">0 km/h</span>
+      <span id="boden">Feldweg</span>
+      <span id="weg">Schrottplatz: 0 m</span>
+    </div>
+    <div id="ziel" hidden><div><strong>Geschafft!</strong><p id="zielText"></p></div></div>
+  </div>
+
+  <div class="steuer">
+    <button type="button" id="links" aria-label="Links lenken">◀ Links</button>
+    <button type="button" id="bremse" aria-label="Bremsen und rückwärts">Bremse</button>
+    <button type="button" id="gas" aria-label="Gas geben">Gas</button>
+    <button type="button" id="rechts" aria-label="Rechts lenken">Rechts ▶</button>
+  </div>
+  <p class="how"><strong>Steuerung:</strong> Knöpfe gedrückt halten, oder auf der Tastatur Pfeiltasten bzw. W A S D. Bremse im Stand fährt rückwärts. Der Schrottplatz ist noch ein Platzhalter, bis sein Bild da ist.</p>
+</div>
+
+<script src="karte_daten.js"></script>
+<script>
+(function () {
+  const D = window.KARTE_DATEN;
+  const $ = (id) => document.getElementById(id);
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const W = 320; // Kartengröße in Metern (5 × 5 Abschnitte à 64 m)
+
+  // --- Bilder laden --------------------------------------------------------
+  const lade = (src) => { const im = new Image(); im.src = src; return im; };
+  const BODEN = {}, OBJ = {};
+  for (const [k, v] of Object.entries(D.boden)) BODEN[k] = { img: lade(v.bild), meter: v.meter };
+  for (const [k, v] of Object.entries(D.objekte)) OBJ[k] = { img: lade(v.bild), b: v.breite, h: v.hoehe };
+  const AUTOS = D.autos.map((a) => ({ ...a, img: lade(a.bild) }));
+
+  // Schatten je Objektart einmal vorberechnen (dunkle, weiche Silhouette)
+  function schattenVon(o) {
+    const pad = 12, w = o.img.naturalWidth, h = o.img.naturalHeight;
+    const c = document.createElement("canvas");
+    c.width = w + 2 * pad; c.height = h + 2 * pad;
+    const x = c.getContext("2d");
+    const s = document.createElement("canvas"); s.width = w; s.height = h;
+    const sx = s.getContext("2d");
+    sx.drawImage(o.img, 0, 0);
+    sx.globalCompositeOperation = "source-in";
+    sx.fillStyle = "rgb(15,30,10)"; sx.fillRect(0, 0, w, h);
+    x.globalAlpha = 0.07;
+    for (let dx = -6; dx <= 6; dx += 3) for (let dy = -6; dy <= 6; dy += 3) x.drawImage(s, pad + dx, pad + dy);
+    o.schatten = c; o.pad = pad;
+  }
+
+  // --- Zufall mit festem Startwert, damit die Karte immer gleich ist --------
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+  // --- Karte -----------------------------------------------------------------
+  // Opas Schuppen: Bild 14 m breit, linke obere Ecke bei (X, Y). Maße aus dem Bild vermessen.
+  const SCHUPPEN = { X: 143.2, Y: 230, haus: [144.9, 231.1, 155.5, 238.9], bereich: [143, 230, 158, 252] };
+  const SCHROTT = { x: 232, y: 44, r: 16 };
+  const WEG = [[150, 251], [150, 292], [168, 304], [192, 298], [203, 272], [198, 244], [186, 220], [180, 196],
+    [188, 170], [212, 140], [214, 108], [222, 78], [230, 56]];
+  const ABZWEIG = [[181, 204], [130, 202], [96, 210], [60, 214]]; // in den Wald, endet vorerst am Zaun
+  const WEGE = [WEG, ABZWEIG];
+  const WEG_BREITE = 4.5;
+
+  function abstandStrecke(px, py, a, b) {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(px - (a[0] + t * dx), py - (a[1] + t * dy));
+  }
+  function abstandWeg(px, py) {
+    let m = Infinity;
+    for (const w of WEGE) for (let i = 1; i < w.length; i++) m = Math.min(m, abstandStrecke(px, py, w[i - 1], w[i]));
+    return m;
+  }
+  function frei(x, y, r) {
+    if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
+    const [bx0, by0, bx1, by1] = SCHUPPEN.bereich;
+    if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
+    if (Math.hypot(x - SCHROTT.x, y - SCHROTT.y) < SCHROTT.r + r + 2) return false;
+    return !OBJEKTE.some((o) => o.r && Math.hypot(o.x - x, o.y - y) < o.r + r + 0.6);
+  }
+
+  const OBJEKTE = []; // {art, x, y, rot, s, spiegel, r (Kollision)}
+  function setze(art, x, y, opt = {}) {
+    const o = OBJ[art], s = opt.s ?? 0.85 + rnd() * 0.3;
+    const r = opt.r ?? (art === "felsbrocken" ? 0.42 : art === "busch" ? 0.4 : 0.3) * o.b * s;
+    if (!opt.fest && !frei(x, y, r)) return false;
+    OBJEKTE.push({ art, x, y, rot: opt.rot ?? (rnd() - 0.5) * 0.7, s, spiegel: opt.spiegel ?? rnd() < 0.5, r: opt.ohne ? 0 : r });
+    return true;
+  }
+  function streue(art, anzahl, x0, y0, x1, y1) {
+    for (let i = 0, n = 0; i < anzahl * 8 && n < anzahl; i++) if (setze(art, x0 + rnd() * (x1 - x0), y0 + rnd() * (y1 - y0))) n++;
+  }
+  const ZAEUNE = []; // Strecken für die Kollision
+  function zaun(punkte) {
+    for (let i = 1; i < punkte.length; i++) {
+      const [ax, ay] = punkte[i - 1], [bx, by] = punkte[i];
+      const len = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.round(len / 3.64)), rot = Math.atan2(by - ay, bx - ax);
+      for (let k = 0; k < n; k++) {
+        const t = (k + 0.5) / n;
+        setze("zaun", ax + (bx - ax) * t, ay + (by - ay) * t, { fest: true, ohne: true, rot, s: len / n / 3.64 * 0.98, spiegel: false });
+      }
+      ZAEUNE.push([[ax, ay], [bx, by]]);
+    }
+  }
+
+  function karteBauen() {
+    // Weide mit Zaun östlich des Wegs, der Abzweig endet am geschlossenen Gatter
+    zaun([[214, 206], [282, 206], [282, 284], [214, 284], [214, 212]]);
+    zaun([[56, 204], [56, 224]]);
+    setze("schild", 176, 210, { fest: true, rot: 0.1, s: 1, spiegel: false, r: 0.5 });
+    // Hofzaun des Schuppens nur als Kollision, das Bild zeigt ihn schon
+    ZAEUNE.push([[144.1, 234], [144.1, 246.4]], [[156.4, 234], [156.4, 246.4]],
+      [[144.1, 246.4], [148.3, 246.4]], [[151.6, 246.4], [156.4, 246.4]]);
+    // Wald im Westen, lichter Mischwald im Norden, Einzelbäume
+    streue("nadelbaum", 140, 6, 100, 120, 250);
+    streue("laubbaum", 30, 10, 110, 120, 250);
+    streue("laubbaum", 40, 6, 6, 200, 100);
+    streue("nadelbaum", 40, 250, 80, 314, 200);
+    streue("laubbaum", 18, 100, 306, 314, 318);
+    streue("laubbaum", 12, 170, 120, 250, 200);
+    streue("nadelbaum", 20, 10, 255, 130, 316);
+    // Büsche und Felsen am Wegrand
+    for (const w of WEGE) for (let i = 1; i < w.length; i++) for (let t = 0; t < 1; t += 0.2) {
+      const x = w[i - 1][0] + (w[i][0] - w[i - 1][0]) * t, y = w[i - 1][1] + (w[i][1] - w[i - 1][1]) * t;
+      const seite = rnd() < 0.5 ? -1 : 1, d = 4.2 + rnd() * 4;
+      const nx = -(w[i][1] - w[i - 1][1]), ny = w[i][0] - w[i - 1][0], nl = Math.hypot(nx, ny);
+      if (rnd() < 0.55) setze(rnd() < 0.7 ? "busch" : "felsbrocken", x + nx / nl * d * seite, y + ny / nl * d * seite);
+    }
+    streue("felsbrocken", 20, 180, 10, 314, 120);
+    streue("busch", 30, 130, 120, 260, 300);
+    OBJEKTE.sort((a, b) => a.y - b.y);
+  }
+
+  // Blumenwiesen-Flecken (Gras mit Blumen) über dem ruhigen Gras
+  const FLECKEN = [];
+  for (let i = 0; i < 40; i++) FLECKEN.push([rnd() * W, rnd() * W, 6 + rnd() * 14]);
+
+  // --- Zustand ---------------------------------------------------------------
+  const START = { x: 150, y: 242.6, a: Math.PI / 2 };
+  const auto = { ...START, v: 0, wackel: 0 };
+  let autoWahl = AUTOS[0];
+  const taste = { gas: false, bremse: false, links: false, rechts: false };
+  let start = null, fertig = false, rumms = 0;
+
+  function neu() {
+    Object.assign(auto, { ...START, v: 0 });
+    start = null; fertig = false; $("ziel").hidden = true;
+  }
+
+  // --- Physik ----------------------------------------------------------------
+  const L = 2.4;              // Radstand in Metern
+  const LENK = 0.55;          // größter Lenkeinschlag
+  let lenk = 0;
+
+  function untergrund(x, y) {
+    if (Math.hypot(x - SCHROTT.x, y - SCHROTT.y) < SCHROTT.r) return { name: "Schotter", f: 0.85 };
+    const [hx0, hy0, hx1, hy1] = SCHUPPEN.bereich;
+    if (x > hx0 && x < hx1 && y > hy0 && y < hy1) return { name: "Opas Hof", f: 0.7 };
+    if (abstandWeg(x, y) < WEG_BREITE / 2 + 0.2) return { name: "Feldweg", f: 1 };
+    return { name: "Wiese", f: 0.55 };
+  }
+
+  function schritt(dt) {
+    const u = untergrund(auto.x, auto.y);
+    const vmax = 6.2 * u.f; // 22 km/h auf dem Feldweg
+    let acc = 0;
+    if (taste.gas) acc = auto.v < 0 ? 7 : 3.2;
+    if (taste.bremse) acc = auto.v > 0.2 ? -7 : -2.2;
+    auto.v += acc * dt;
+    if (!taste.gas && !taste.bremse) auto.v -= Math.sign(auto.v) * Math.min(Math.abs(auto.v), 1.6 * dt);
+    if (auto.v > vmax) auto.v = Math.max(vmax, auto.v - 5 * dt);
+    auto.v = Math.max(-2.2, auto.v);
+    const ziel = (taste.links ? -1 : 0) + (taste.rechts ? 1 : 0);
+    lenk += (ziel * LENK - lenk) * Math.min(1, dt * 6);
+    auto.a += auto.v * Math.tan(lenk) / L * dt;
+    auto.x += Math.cos(auto.a) * auto.v * dt;
+    auto.y += Math.sin(auto.a) * auto.v * dt;
+    if (u.name === "Wiese" && Math.abs(auto.v) > 0.5) auto.wackel = (Math.random() - 0.5) * 0.06;
+    else auto.wackel = 0;
+    stoss();
+    auto.x = Math.max(2, Math.min(W - 2, auto.x));
+    auto.y = Math.max(2, Math.min(W - 2, auto.y));
+    if (Math.abs(auto.v) > 0.3 && start === null) start = performance.now();
+    if (!fertig && Math.hypot(auto.x - SCHROTT.x, auto.y - SCHROTT.y) < SCHROTT.r - 4) ankunft();
+  }
+
+  // Auto als zwei Kreise (vorne, hinten) gegen Bäume, Felsen, Schuppen und Zäune
+  function stoss() {
+    const r = 0.85;
+    let getroffen = false;
+    for (const s of [1.1, -1.1]) {
+      let cx = auto.x + Math.cos(auto.a) * s, cy = auto.y + Math.sin(auto.a) * s;
+      const schieb = (nx, ny, tief) => { auto.x += nx * tief; auto.y += ny * tief; cx += nx * tief; cy += ny * tief; getroffen = true; };
+      for (const o of OBJEKTE) {
+        if (!o.r || Math.abs(o.x - cx) > 6 || Math.abs(o.y - cy) > 6) continue;
+        const d = Math.hypot(cx - o.x, cy - o.y), tief = o.r + r - d;
+        if (tief > 0 && d > 0) schieb((cx - o.x) / d, (cy - o.y) / d, tief);
+      }
+      for (const [a, b] of ZAEUNE) {
+        const d = abstandStrecke(cx, cy, a, b), tief = 0.35 + r - d;
+        if (tief <= 0) continue;
+        const dx = b[0] - a[0], dy = b[1] - a[1], ll = Math.hypot(dx, dy);
+        let nx = -dy / ll, ny = dx / ll;
+        if ((cx - a[0]) * nx + (cy - a[1]) * ny < 0) { nx = -nx; ny = -ny; }
+        schieb(nx, ny, tief);
+      }
+      const [sx0, sy0, sx1, sy1] = SCHUPPEN.haus;
+      const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
+      const d = Math.hypot(cx - hx, cy - hy);
+      if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
+    }
+    if (getroffen) {
+      if (Math.abs(auto.v) > 1.5 && performance.now() - rumms > 600) { rumms = performance.now(); if (navigator.vibrate) { try { navigator.vibrate(40); } catch { /* egal */ } } }
+      auto.v *= Math.abs(auto.v) > 1 ? -0.25 : 0.5;
+    }
+  }
+
+  function ankunft() {
+    fertig = true;
+    const s = start ? (performance.now() - start) / 1000 : 0;
+    $("zielText").textContent = `Du hast den Schrottplatz in ${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")} Minuten erreicht. Hier gibt es später die ersten Teile.`;
+    $("ziel").hidden = false;
+  }
+
+  // --- Zeichnen --------------------------------------------------------------
+  const cv = $("karte"), ctx = cv.getContext("2d");
+  const muster = {};
+  function musterVon(name) {
+    if (muster[name]) return muster[name];
+    const b = BODEN[name];
+    if (!b.img.complete || !b.img.naturalWidth) return null;
+    const p = ctx.createPattern(b.img, "repeat");
+    p.setTransform(new DOMMatrix().scale(b.meter / b.img.naturalWidth));
+    return (muster[name] = p);
+  }
+
+  function zeichneWege(name, breite, alpha) {
+    const p = musterVon(name);
+    if (!p) return;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = p; ctx.lineWidth = breite; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (const w of WEGE) {
+      ctx.beginPath();
+      ctx.moveTo(w[0][0], w[0][1]);
+      for (let i = 1; i < w.length; i++) ctx.lineTo(w[i][0], w[i][1]);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function zeichneObjekt(o, sicht) {
+    const t = OBJ[o.art];
+    const b = t.b * o.s, h = t.h * o.s;
+    if (o.x + b < sicht.x0 || o.x - b > sicht.x1 || o.y + b < sicht.y0 || o.y - b > sicht.y1) return;
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    ctx.rotate(o.rot);
+    if (o.spiegel) ctx.transform(0, 1, 1, 0, 0, 0); // an der Diagonale spiegeln, Licht bleibt oben links
+    if (!t.schatten && t.img.complete && t.img.naturalWidth) schattenVon(t);
+    if (t.schatten) {
+      const k = b / t.img.naturalWidth, d = b * 0.14;
+      ctx.drawImage(t.schatten, -b / 2 - t.pad * k + d, -h / 2 - t.pad * k + d, t.schatten.width * k, t.schatten.height * k);
+    }
+    ctx.drawImage(t.img, -b / 2, -h / 2, b, h);
+    ctx.restore();
+  }
+
+  function platzhalter(text, x, y, w, h, rund) {
+    ctx.save();
+    ctx.fillStyle = rund ? "rgba(90,80,70,0.35)" : "#5a3d26";
+    ctx.strokeStyle = "#1a1410"; ctx.lineWidth = 0.25;
+    ctx.beginPath();
+    if (rund) ctx.arc(x, y, w, 0, Math.PI * 2); else ctx.rect(x - w / 2, y - h / 2, w, h);
+    ctx.fill(); ctx.stroke();
+    if (!rund) {
+      ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.lineWidth = 0.12;
+      for (let i = -w / 2 + 1; i < w / 2; i += 1) { ctx.beginPath(); ctx.moveTo(x + i, y - h / 2); ctx.lineTo(x + i, y + h / 2); ctx.stroke(); }
+    }
+    ctx.fillStyle = "#f6f0dc"; ctx.font = "800 1.6px Nunito, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.strokeStyle = "rgba(0,0,0,0.7)"; ctx.lineWidth = 0.3;
+    ctx.strokeText(text, x, y); ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  function zeichne() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = cv.clientWidth, h = cv.clientHeight;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const m = Math.min(w, h) / 26; // Pixel pro Meter: kurze Bildseite zeigt 26 m
+    const vor = Math.max(0, auto.v) * 1.2;
+    const kx = auto.x + Math.cos(auto.a) * vor, ky = auto.y + Math.sin(auto.a) * vor;
+    ctx.setTransform(dpr * m, 0, 0, dpr * m, dpr * (w / 2 - kx * m), dpr * (h / 2 - ky * m));
+    const sicht = { x0: kx - w / 2 / m, x1: kx + w / 2 / m, y0: ky - h / 2 / m, y1: ky + h / 2 / m };
+
+    // Boden: ruhiges Gras, Blumenflecken, Wege
+    const gras = musterVon("gras_ruhig");
+    ctx.fillStyle = gras || "#4d7a35";
+    ctx.fillRect(sicht.x0 - 1, sicht.y0 - 1, sicht.x1 - sicht.x0 + 2, sicht.y1 - sicht.y0 + 2);
+    const blumen = musterVon("gras");
+    if (blumen) {
+      ctx.fillStyle = blumen;
+      for (const [fx, fy, fr] of FLECKEN) {
+        if (fx + fr < sicht.x0 || fx - fr > sicht.x1 || fy + fr < sicht.y0 || fy - fr > sicht.y1) continue;
+        for (const [k, al] of [[1, 0.25], [0.8, 0.35], [0.6, 0.5]]) {
+          ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(fx, fy, fr * k, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+    const schotter = musterVon("schotter");
+    if (schotter) {
+      ctx.fillStyle = schotter;
+      for (const [k, al] of [[1.15, 0.35], [1, 1]]) { ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(SCHROTT.x, SCHROTT.y, SCHROTT.r * k, 0, Math.PI * 2); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+    zeichneWege("erde", WEG_BREITE + 1.4, 0.35);
+    zeichneWege("erde", WEG_BREITE, 1);
+    // Rand der Karte
+    ctx.fillStyle = "rgba(10,20,15,0.85)";
+    ctx.fillRect(-60, -60, W + 120, 60); ctx.fillRect(-60, W, W + 120, 60); ctx.fillRect(-60, 0, 60, W); ctx.fillRect(W, 0, 60, W);
+
+    platzhalter("Schrottplatz (Bild folgt)", SCHROTT.x, SCHROTT.y, SCHROTT.r, 0, true);
+    const sch = OBJ.schuppen;
+    if (sch.img.complete && sch.img.naturalWidth) ctx.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
+
+    // Auto, dann alles, was höher ist (Bäume über dem Auto)
+    const img = autoWahl.img;
+    if (img.complete && img.naturalWidth) {
+      const lang = autoWahl.laenge, breit = lang * img.naturalHeight / img.naturalWidth;
+      const kurz = 4; // 4 m: Länge ohne Anbauteil, Mitte des Autos
+      ctx.save();
+      ctx.translate(auto.x, auto.y);
+      ctx.rotate(auto.a + (reduce ? 0 : auto.wackel));
+      ctx.fillStyle = "rgba(10,20,8,0.3)";
+      ctx.beginPath(); ctx.roundRect(-kurz / 2 + 0.25, -breit / 2 + 0.25, kurz, breit, 0.5); ctx.fill();
+      ctx.drawImage(img, -kurz / 2, -breit / 2, lang, breit);
+      ctx.restore();
+    }
+    for (const o of OBJEKTE) zeichneObjekt(o, sicht);
+
+    // Anzeige
+    const u = untergrund(auto.x, auto.y);
+    $("tempo").textContent = `${Math.round(Math.abs(auto.v) * 3.6)} km/h${auto.v < -0.2 ? " rückwärts" : ""}`;
+    $("boden").textContent = u.name;
+    $("weg").textContent = fertig ? "Schrottplatz erreicht" : `Schrottplatz: ${Math.max(0, Math.round(Math.hypot(auto.x - SCHROTT.x, auto.y - SCHROTT.y) - SCHROTT.r))} m Luftlinie`;
+    miniZeichnen();
+  }
+
+  // Übersichtskarte oben rechts
+  const mini = $("mini"), mctx = mini.getContext("2d");
+  let miniGrund = null;
+  function miniZeichnen() {
+    const s = 96 * Math.min(window.devicePixelRatio || 1, 2);
+    if (mini.width !== s) { mini.width = s; mini.height = s; miniGrund = null; }
+    const k = s / W;
+    if (!miniGrund) {
+      miniGrund = document.createElement("canvas"); miniGrund.width = s; miniGrund.height = s;
+      const g = miniGrund.getContext("2d");
+      g.fillStyle = "#5d8a3e"; g.fillRect(0, 0, s, s);
+      g.fillStyle = "#2c4d2a";
+      for (const o of OBJEKTE) if (o.art === "nadelbaum" || o.art === "laubbaum") { g.beginPath(); g.arc(o.x * k, o.y * k, 2.2 * k, 0, 7); g.fill(); }
+      g.strokeStyle = "#c9a26b"; g.lineWidth = Math.max(2, 4.5 * k); g.lineCap = "round"; g.lineJoin = "round";
+      for (const w of WEGE) { g.beginPath(); g.moveTo(w[0][0] * k, w[0][1] * k); for (const [x, y] of w.slice(1)) g.lineTo(x * k, y * k); g.stroke(); }
+      g.strokeStyle = "#8a6a48"; g.lineWidth = Math.max(1, 0.8 * k);
+      for (const [a, b] of ZAEUNE) { g.beginPath(); g.moveTo(a[0] * k, a[1] * k); g.lineTo(b[0] * k, b[1] * k); g.stroke(); }
+      g.fillStyle = "#9a9a90"; g.beginPath(); g.arc(SCHROTT.x * k, SCHROTT.y * k, SCHROTT.r * k, 0, 7); g.fill();
+      const [mx0, my0, mx1, my1] = SCHUPPEN.haus;
+      g.fillStyle = "#5a3d26"; g.fillRect(mx0 * k, my0 * k, (mx1 - mx0) * k, (my1 - my0) * k);
+    }
+    mctx.drawImage(miniGrund, 0, 0);
+    mctx.save(); mctx.translate(auto.x * k, auto.y * k); mctx.rotate(auto.a);
+    mctx.fillStyle = "#f2b632"; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 2;
+    mctx.beginPath(); mctx.moveTo(7, 0); mctx.lineTo(-5, -5); mctx.lineTo(-5, 5); mctx.closePath(); mctx.fill(); mctx.stroke();
+    mctx.restore();
+  }
+
+  // --- Schleife --------------------------------------------------------------
+  let zuletzt = 0;
+  function bild(t) {
+    const dt = Math.min(0.05, (t - (zuletzt || t)) / 1000);
+    zuletzt = t;
+    if (!fertig) schritt(dt); else auto.v *= 0.9;
+    zeichne();
+    requestAnimationFrame(bild);
+  }
+
+  // --- Steuerung -------------------------------------------------------------
+  const KNOEPFE = { links: "links", rechts: "rechts", gas: "gas", bremse: "bremse" };
+  for (const [id, k] of Object.entries(KNOEPFE)) {
+    const b = $(id);
+    const an = (e) => { e.preventDefault(); taste[k] = true; b.setAttribute("aria-pressed", "true"); try { b.setPointerCapture(e.pointerId); } catch { /* egal */ } };
+    const aus = () => { taste[k] = false; b.setAttribute("aria-pressed", "false"); };
+    b.addEventListener("pointerdown", an);
+    b.addEventListener("pointerup", aus);
+    b.addEventListener("pointercancel", aus);
+    b.addEventListener("lostpointercapture", aus);
+    b.addEventListener("contextmenu", (e) => e.preventDefault());
+  }
+  const KEYS = { ArrowUp: "gas", KeyW: "gas", ArrowDown: "bremse", KeyS: "bremse", ArrowLeft: "links", KeyA: "links", ArrowRight: "rechts", KeyD: "rechts" };
+  window.addEventListener("keydown", (e) => { const k = KEYS[e.code]; if (k && !(e.target instanceof HTMLSelectElement)) { taste[k] = true; e.preventDefault(); } });
+  window.addEventListener("keyup", (e) => { const k = KEYS[e.code]; if (k) taste[k] = false; });
+  window.addEventListener("blur", () => { for (const k in taste) taste[k] = false; });
+
+  const wahl = $("auto");
+  for (const a of AUTOS) { const o = document.createElement("option"); o.value = a.id; o.textContent = a.name; wahl.append(o); }
+  wahl.addEventListener("change", () => { autoWahl = AUTOS.find((a) => a.id === wahl.value); wahl.blur(); });
+  $("neu").addEventListener("click", neu);
+  $("ziel").addEventListener("click", neu);
+
+  // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
+  karteBauen();
+  requestAnimationFrame(bild);
+})();
+</script>
+</body>
+</html>

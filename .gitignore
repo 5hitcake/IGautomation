@@ -4,3 +4,4 @@ __pycache__/
 Thumbs.db
 .claude/settings.local.json
 klapperkiste/design/teile.js
+klapperkiste/design/karte_daten.js
