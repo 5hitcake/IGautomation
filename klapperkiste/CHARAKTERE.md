@@ -116,7 +116,7 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Ort | Datei | Stand |
 |---|---|---|
 | Schrottplatz (Knut) | `schrottplatz.png` | ✅ |
-| Opas Werkstatt (Tutorial) | `werkstatt.png` | Prompt unten, bis dahin Holzton als Platzhalter |
+| Opas Werkstatt (Tutorial) | `werkstatt.png` | ✅ |
 
 ### Opas Werkstatt
 
