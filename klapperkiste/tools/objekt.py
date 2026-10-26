@@ -61,8 +61,10 @@ def weicher_rand(teil: Image.Image, breite_px: int, seed: int = 3,
     rampe = ImageChops.subtract(rampe, rauschen.point(lambda v: max(0, 128 - v) // 2))
     neu = ImageChops.darker(alt, rampe)
     for x0, y0, x1, y1 in schutz or []:
-        box = (round(x0 * teil.width), round(y0 * teil.height), round(x1 * teil.width), round(y1 * teil.height))
-        grau = teil.crop(box).convert("RGB").convert("HSV").getchannel("S").point(lambda v: 255 if v < 60 else 0)
+        b, h = teil.size
+        box = (round(x0 * b), round(y0 * h), round(x1 * b), round(y1 * h))
+        saettigung = teil.crop(box).convert("RGB").convert("HSV").getchannel("S")
+        grau = saettigung.point(lambda v: 255 if v < 60 else 0)
         neu.paste(alt.crop(box), box[:2], grau)
     teil.putalpha(neu)
     return teil
@@ -143,7 +145,7 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--weicher-rand", type=float, default=0.0, metavar="METER",
                    help="Außenkante über so viele Meter ins Gelände ausblenden (Schlamm, Erde)")
     e.add_argument("--rand-schutz", action="append", default=[], metavar="X0,Y0,X1,Y1",
-                   help="Bereich (Anteile 0–1), in dem Graues/Schwarzes nicht ausgeblendet wird, z. B. ein Kamin")
+                   help="Bereich (Anteile 0–1), in dem Graues und Schwarzes bleibt, z. B. ein Kamin")
     pr = sub.add_parser("probe")
     pr.add_argument("ausgabe")
     pr.add_argument("objekte", nargs="+", help="NAME oder NAME@x,y (Meter), NAME! = unverändert")
