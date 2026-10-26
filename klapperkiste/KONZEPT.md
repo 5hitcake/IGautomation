@@ -72,8 +72,18 @@ Karosserie spielt im Tutorial noch keine Rolle: Die Schrottkarre fährt ohne.
    beides.
 2. **Händler:** Man kauft Teile mit Geld. Knut auf dem Schrottplatz ist der
    erste Händler, später gibt es weitere an anderen Orten.
-3. **Geld** verdient man mit Aufträgen. Idee: alte, ausgebaute Teile an Knut
-   zurückverkaufen (kleiner Betrag).
+3. **Geld** bekommt man für:
+   - abgeschlossene Aufträge,
+   - Preise (z. B. Wettbewerbe oder Rennen, noch auszuarbeiten),
+   - den Verkauf von Teilen (alte, ausgebaute Teile an Händler),
+   - den Verkauf von **Materialien** (siehe unten).
+
+**Materialien (kommt später):** Schrauben, Kabel, Schläuche, Federn, Blech …
+werden unterwegs gefunden oder gesammelt und bei Händlern verkauft, ähnlich
+wie die Fische bei Dredge. Sie landen auf der Ladefläche (Schritt C4,
+Ladefläche als Raster), dadurch zählt auch, wie viel Platz das Auto hat.
+Ob Materialien zusätzlich zum Bauen oder Reparieren gebraucht werden, klären
+wir später.
 
 **Neue Teile bei Händlern (Lieferungen):** Händler bekommen ab und zu ein
 neues Teil, und zwar abhängig von **erledigten Aufträgen und dem
@@ -216,7 +226,7 @@ Bilder da sind.
 | C1 | Karriere-Start: Werkstatt mit Tutorial, dann mit der Schrottkarre zum Schrottplatz | offen |
 | C2 | Geld, Händler (zuerst Knut) und Lieferungen nach Aufträgen und Spielstand | offen |
 | C3 | Nachbarn und Aufträge | offen |
-| C4 | Ladefläche als Raster, Fundstücke, Tag und Nacht | offen |
+| C4 | Ladefläche als Raster, Materialien und Fundstücke (Schrauben, Kabel, Schläuche …), Tag und Nacht | offen |
 | D | App-Verpackung (Android/iOS) | offen |
 
 ## 4. Technik
