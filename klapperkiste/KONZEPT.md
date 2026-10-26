@@ -41,9 +41,9 @@ als Stimmung, nichts davon wird übernommen oder als Vorlage für Bilder benutzt
 2. **Start in der Werkstatt** (Opas Schuppen) mit einem kleinen Tutorial,
    siehe unten. Danach ist der **Schrottplatz die erste und einzige Option**
    auf der Karte.
-3. Der **Schrottplatz bekommt im Laufe des Spiels immer wieder neue,
-   meist minderwertige Teile** (Lieferungen). Muss noch ausgearbeitet werden,
-   siehe unten.
+3. **Teile gibt es für Aufträge und bei Händlern gegen Geld**, Knut auf dem
+   Schrottplatz ist der erste. Händler bekommen nach Aufträgen und Spielstand
+   neue Teile, siehe „Teile, Geld und Händler“.
 4. **Nachbarn geben Aufträge** (liefern, abschleppen, Schnee räumen …). Belohnt
    wird mit Teilen, Geld oder neuen Wegen.
 
@@ -64,19 +64,41 @@ zwei Sätze pro Schritt; was gerade dran ist, leuchtet.
 
 Karosserie spielt im Tutorial noch keine Rolle: Die Schrottkarre fährt ohne.
 
-### Schrottplatz-Lieferungen (noch auszuarbeiten)
+### Teile, Geld und Händler (entschieden, wie bei Dredge)
 
-Knut bekommt im Laufe des Spiels immer wieder neue Teile, meist minderwertig
-(rostig, wackelig, schwach). Offene Fragen:
+**Woher Teile kommen:**
 
-- **Wann** kommt eine Lieferung: nach Aufträgen, nach einer Anzahl Fahrten,
-  oder zu festen Zeiten im Spiel?
-- **Was** kommt: Zufall aus einer Liste je Spielfortschritt, oder feste
-  Lieferungen, die zum nächsten Hindernis passen?
-- **Wie kommt man dran:** tauschen, mit Geld kaufen, oder als Belohnung?
-- **Wie lange** liegt ein Teil da (manches nur kurz)?
-- **Woran merkt man es:** Knut meldet sich, Symbol auf der Karte.
-- Gute Teile gibt es dagegen eher bei Aufträgen und an besonderen Orten.
+1. **Belohnung für Aufträge:** Abgeschlossene Aufträge geben Teile, Geld oder
+   beides.
+2. **Händler:** Man kauft Teile mit Geld. Knut auf dem Schrottplatz ist der
+   erste Händler, später gibt es weitere an anderen Orten.
+3. **Geld** verdient man mit Aufträgen. Idee: alte, ausgebaute Teile an Knut
+   zurückverkaufen (kleiner Betrag).
+
+**Neue Teile bei Händlern (Lieferungen):** Händler bekommen ab und zu ein
+neues Teil, und zwar abhängig von **erledigten Aufträgen und dem
+Spielstand**. Manches gibt es erst, wenn man bestimmte Orte erreicht hat
+(wie bei Dredge, wo neue Ware an Fortschritt und Orte gebunden ist). Knuts
+Lieferungen sind meist minderwertig (rostig, wackelig, schwach), gute Teile
+gibt es eher als Belohnung und bei Händlern weiter draußen.
+
+**Dosierung:** Karosserie-Teile und Innenleben (Motor, Tank, Licht, Reifen …)
+werden **Stück für Stück** herausgegeben, nie alles auf einmal. Zu jedem
+Zeitpunkt reicht es nur für **manche** Aufträge, man entscheidet selbst, was
+man zuerst angeht. Die drei Teile eines Karosserie-Satzes kommen dabei oft aus
+verschiedenen Quellen (z. B. hinten bei Knut, Mitte als Auftragsbelohnung,
+vorne bei einem anderen Händler).
+
+**Beispiel für den Anfang (Entwurf):**
+
+| Stand | Bei Knut zu kaufen | Aufträge offen | Belohnung |
+|---|---|---|---|
+| Nach dem Tutorial | wenig, z. B. bessere Reifen | Knut: 3 alte Reifen | Geld, Scheinwerfer |
+| Wald erreichbar (Licht) | Lieferung: Badewanne hinten | Förster Moos | Geld, Badewanne Mitte |
+| Weitere Orte | Lieferung: stärkerer Motor | mehrere parallel | … |
+
+Noch offen: Name der Währung, Preise und wie stark Teile sich in den Werten
+unterscheiden (kommt mit den Teile-Werten).
 
 ### Wege, die man sich erarbeitet
 
@@ -192,7 +214,7 @@ Bilder da sind.
 | B3 | Erster Kartenabschnitt: Zuhause bis Schrottplatz | offen |
 | B4 | Hindernisse einzeln einbauen: Schotter, Steigung, Dunkelheit, Schafe, Distanz … | offen |
 | C1 | Karriere-Start: Werkstatt mit Tutorial, dann mit der Schrottkarre zum Schrottplatz | offen |
-| C2 | Schrottplatz mit Lieferungen (meist minderwertige Teile) | offen, noch auszuarbeiten |
+| C2 | Geld, Händler (zuerst Knut) und Lieferungen nach Aufträgen und Spielstand | offen |
 | C3 | Nachbarn und Aufträge | offen |
 | C4 | Ladefläche als Raster, Fundstücke, Tag und Nacht | offen |
 | D | App-Verpackung (Android/iOS) | offen |
