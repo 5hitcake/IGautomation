@@ -34,7 +34,7 @@ p { margin: 0; }
 .lead { color: var(--chalk-dim); max-width: 62ch; }
 .buehne { position: relative; }
 #karte { display: block; width: 100%; height: min(68vh, 620px); border-radius: 14px; background: #2d4a2a; touch-action: none; }
-#mini { position: absolute; top: 10px; right: 10px; width: 96px; height: 96px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.5); }
+#mini { position: absolute; top: 10px; right: 10px; width: 112px; height: 112px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.5); }
 .hud { position: absolute; left: 10px; top: 10px; display: grid; gap: 4px; pointer-events: none; }
 .hud span { background: rgba(18,35,42,0.82); padding: 3px 9px; border-radius: 8px; font-size: 13px; font-variant-numeric: tabular-nums; width: max-content; }
 #ziel { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
@@ -56,6 +56,9 @@ p { margin: 0; }
 .g-box p { font-size: clamp(15px, 3.6vw, 18px); line-height: 1.4; font-weight: 700; margin-top: 6px; min-height: 2.8em; }
 .g-weiter { position: absolute; right: 14px; bottom: 6px; font-size: 14px; animation: blink 0.9s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
+.toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: rgba(18,35,42,0.94); border: 2px solid var(--mustard); color: var(--chalk); padding: 8px 14px; border-radius: 12px; font-weight: 800; text-align: center; max-width: 86%; pointer-events: none; }
+#karte { cursor: crosshair; }
+#mini { cursor: pointer; }
 .hud span.auftrag { background: rgba(200,100,42,0.92); }
 #ziel strong { font-family: var(--font-display); font-weight: 400; font-size: 28px; color: var(--mustard); display: block; }
 .steuer { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
@@ -79,7 +82,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   <header style="display:grid;gap:6px">
     <p class="eyebrow">Schritt K4 · Startgebiet · 320 × 320 m</p>
     <h1>Klapperkiste Kartenprobe</h1>
-    <p class="lead">Fahr mit deinem Auto von Opas Schuppen zum Schrottplatz, dort wartet Knut Kurbel. Auf dem Feldweg geht es am schnellsten, über die Wiese holpert es langsam, Bäume und Felsen halten dich auf.</p>
+    <p class="lead">Tippe ein Ziel an, und die Klapperkiste fährt selbst hin. Am Anfang kennst du nur die Gegend um Opas Schuppen. Finde Kartenstücke, um weitere Gebiete aufzudecken, und fahr zum Schrottplatz, dort wartet Knut Kurbel.</p>
   </header>
 
   <div class="leiste">
@@ -97,6 +100,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       <span id="weg">Schrottplatz: 0 m</span>
       <span id="auftrag" class="auftrag" hidden></span>
     </div>
+    <div id="toast" class="toast" hidden role="status"></div>
     <div id="ziel" hidden><div><strong>Geschafft!</strong><p id="zielText"></p></div></div>
     <div id="gespraech" hidden role="dialog" aria-label="Gespräch" tabindex="-1">
       <img id="gFigur" alt="">
@@ -104,13 +108,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     </div>
   </div>
 
-  <div class="steuer">
-    <button type="button" id="links" aria-label="Links lenken">◀ Links</button>
-    <button type="button" id="bremse" aria-label="Bremsen und rückwärts">Bremse</button>
-    <button type="button" id="gas" aria-label="Gas geben">Gas</button>
-    <button type="button" id="rechts" aria-label="Rechts lenken">Rechts ▶</button>
-  </div>
-  <p class="how"><strong>Steuerung:</strong> Knöpfe gedrückt halten, oder auf der Tastatur Pfeiltasten bzw. W A S D. Bremse im Stand fährt rückwärts. Am Schrottplatz endet die Probe; Teile und Charaktere kommen als Nächstes.</p>
+  <p class="how"><strong>Fahren:</strong> Tippe auf die Karte oder auf die Übersichtskarte oben rechts, wohin die Klapperkiste fahren soll. Sie sucht sich den Weg selbst. Der Nebel lichtet sich erst, wenn du ein <strong>Kartenstück</strong> findest. Pfeiltasten bzw. W A S D gehen zum Testen weiterhin. Am Schrottplatz endet die Probe; Teile und Charaktere kommen als Nächstes.</p>
 </div>
 
 <script src="karte_daten.js"></script>
@@ -263,6 +261,10 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 
   function neu() {
     Object.assign(auto, { ...START, v: 0 });
+    route = null;
+    for (const g of GEBIETE) g.offen = g.id === "start" || location.hash === "#schrottplatz";
+    for (const st of STUECKE) st.genommen = false;
+    nebelNeu();
     start = null; fertig = false; besucht = false; $("auftrag").hidden = true; $("ziel").hidden = true; $("gespraech").hidden = true;
   }
 
@@ -282,14 +284,15 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   function schritt(dt) {
     const u = untergrund(auto.x, auto.y);
     const vmax = 6.2 * u.f; // 22 km/h auf dem Feldweg
+    const ctl = steuerAuto(dt) || { gas: taste.gas, bremse: taste.bremse, lenk: (taste.rechts ? 1 : 0) - (taste.links ? 1 : 0) };
     let acc = 0;
-    if (taste.gas) acc = auto.v < 0 ? 7 : 3.2;
-    if (taste.bremse) acc = auto.v > 0.2 ? -7 : -2.2;
+    if (ctl.gas) acc = auto.v < 0 ? 7 : 3.2;
+    if (ctl.bremse) acc = auto.v > 0.2 ? -7 : -2.2;
     auto.v += acc * dt;
-    if (!taste.gas && !taste.bremse) auto.v -= Math.sign(auto.v) * Math.min(Math.abs(auto.v), 1.6 * dt);
+    if (!ctl.gas && !ctl.bremse) auto.v -= Math.sign(auto.v) * Math.min(Math.abs(auto.v), 1.6 * dt);
     if (auto.v > vmax) auto.v = Math.max(vmax, auto.v - 5 * dt);
     auto.v = Math.max(-2.2, auto.v);
-    const ziel = (taste.links ? -1 : 0) + (taste.rechts ? 1 : 0);
+    const ziel = ctl.lenk;
     lenk += (ziel * LENK - lenk) * Math.min(1, dt * 6);
     auto.a += auto.v * Math.tan(lenk) / L * dt;
     auto.x += Math.cos(auto.a) * auto.v * dt;
@@ -300,6 +303,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     auto.x = Math.max(2, Math.min(W - 2, auto.x));
     auto.y = Math.max(2, Math.min(W - 2, auto.y));
     if (Math.abs(auto.v) > 0.3 && start === null) start = performance.now();
+    for (const st of STUECKE) if (!st.genommen && Math.hypot(st.x - auto.x, st.y - auto.y) < 2.4) stueckFinden(st);
     if (!fertig && !besucht && imSchrottplatz(auto.x, auto.y) && auto.y < SCHROTT.tor[1] - 5) ankunft();
   }
 
@@ -335,7 +339,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   }
 
   function ankunft() {
-    fertig = true; besucht = true;
+    fertig = true; besucht = true; route = null;
     const s = start ? (performance.now() - start) / 1000 : 0;
     const zeit = `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
     gespraech("knut", "Knut Kurbel", "schrottplatz", [
@@ -392,6 +396,147 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   }
   $("gespraech").addEventListener("click", weiter);
   $("gespraech").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); weiter(); } });
+
+  // --- Gebiete, Nebel und Kartenstücke --------------------------------------
+  const GEBIETE = [
+    { id: "start", name: "Rund um Opas Schuppen", x: 166, y: 262, r: 92, offen: true },
+    { id: "nord", name: "Nordweg und Schrottplatz", x: 214, y: 112, r: 112, offen: false },
+    { id: "wald", name: "Waldrand im Westen", x: 70, y: 196, r: 82, offen: false },
+  ];
+  const STUECKE = [
+    { gebiet: "nord", x: 184, y: 189 },
+    { gebiet: "wald", x: 238, y: 152 },
+  ];
+  const offen = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r - 2);
+  const nebel = document.createElement("canvas");
+  nebel.width = W; nebel.height = W;
+  function nebelNeu() {
+    const n = nebel.getContext("2d");
+    n.globalCompositeOperation = "source-over";
+    n.clearRect(0, 0, W, W);
+    n.fillStyle = "rgba(228,214,180,0.97)"; n.fillRect(0, 0, W, W);
+    n.strokeStyle = "rgba(140,110,70,0.22)"; n.lineWidth = 0.5;
+    for (let i = -W; i < W; i += 7) { n.beginPath(); n.moveTo(i, 0); n.lineTo(i + W, W); n.stroke(); }
+    n.globalCompositeOperation = "destination-out";
+    for (const g of GEBIETE) {
+      if (!g.offen) continue;
+      const gr = n.createRadialGradient(g.x, g.y, g.r * 0.8, g.x, g.y, g.r);
+      gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+      n.fillStyle = gr; n.beginPath(); n.arc(g.x, g.y, g.r, 0, Math.PI * 2); n.fill();
+    }
+    miniGrund = null;
+  }
+  let toastZeit = null;
+  function toast(text) {
+    const t = $("toast");
+    t.textContent = text; t.hidden = false;
+    clearTimeout(toastZeit);
+    toastZeit = setTimeout(() => { t.hidden = true; }, 3200);
+  }
+  function stueckFinden(st) {
+    st.genommen = true;
+    const g = GEBIETE.find((x) => x.id === st.gebiet);
+    g.offen = true;
+    nebelNeu();
+    toast(`Kartenstück gefunden! Neues Gebiet: ${g.name}`);
+    if (navigator.vibrate) { try { navigator.vibrate([30, 40, 30]); } catch { /* egal */ } }
+  }
+
+  // --- Wegsuche auf einem 1-m-Raster ------------------------------------------
+  const sperre = new Uint8Array(W * W), kosten = new Float32Array(W * W);
+  function rasterBauen() {
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+      const u = untergrund(x + 0.5, y + 0.5).name;
+      kosten[y * W + x] = u === "Feldweg" ? 1 : u === "Wiese" ? 2.6 : 1.3;
+    }
+    const mark = (x, y, r) => {
+      for (let yy = Math.floor(y - r); yy <= Math.ceil(y + r); yy++) for (let xx = Math.floor(x - r); xx <= Math.ceil(x + r); xx++) {
+        if (xx >= 0 && yy >= 0 && xx < W && yy < W && Math.hypot(xx + 0.5 - x, yy + 0.5 - y) <= r) sperre[yy * W + xx] = 1;
+      }
+    };
+    for (const o of OBJEKTE) if (o.r) mark(o.x, o.y, o.r + 1);
+    for (const [a, b] of ZAEUNE) {
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      for (let t = 0; t <= l; t += 0.4) mark(a[0] + (b[0] - a[0]) * t / l, a[1] + (b[1] - a[1]) * t / l, 1.1);
+    }
+    const [hx0, hy0, hx1, hy1] = SCHUPPEN.haus;
+    for (let y = Math.floor(hy0 - 1); y <= hy1 + 1; y++) for (let x = Math.floor(hx0 - 1); x <= hx1 + 1; x++) sperre[y * W + x] = 1;
+    // Abstand halten: Felder nahe an Hindernissen kosten mehr, so fährt das Auto mittig durch Tore
+    let rand = sperre.slice();
+    for (const zuschlag of [2.5, 1.2, 0.5]) {
+      const neu = rand.slice();
+      for (let y = 1; y < W - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const i = y * W + x;
+        if (rand[i]) continue;
+        if (rand[i - 1] || rand[i + 1] || rand[i - W] || rand[i + W]) { kosten[i] += zuschlag; neu[i] = 1; }
+      }
+      rand = neu;
+    }
+  }
+  const frei1 = (x, y) => x >= 1 && y >= 1 && x < W - 1 && y < W - 1 && !sperre[y * W + x] && offen(x + 0.5, y + 0.5);
+  function suche(sx, sy, zx, zy) {
+    const start = sy * W + sx, ziel = zy * W + zx;
+    const g = new Float32Array(W * W).fill(Infinity), von = new Int32Array(W * W).fill(-1), zu = new Uint8Array(W * W);
+    const heap = [];
+    const push = (i, f) => { heap.push([f, i]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top[1]; };
+    g[start] = 0; push(start, 0);
+    const h = (i) => Math.hypot(i % W - zx, ((i / W) | 0) - zy);
+    while (heap.length) {
+      const i = pop();
+      if (i === ziel) break;
+      if (zu[i]) continue;
+      zu[i] = 1;
+      const x = i % W, y = (i / W) | 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nx = x + dx, ny = y + dy;
+        if (!frei1(nx, ny) && (ny * W + nx) !== ziel) continue;
+        if (dx && dy && (!frei1(x + dx, y) || !frei1(x, y + dy))) continue;
+        const j = ny * W + nx, ng = g[i] + kosten[j] * (dx && dy ? 1.414 : 1);
+        if (ng < g[j]) { g[j] = ng; von[j] = i; push(j, ng + h(j)); }
+      }
+    }
+    if (von[ziel] < 0) return null;
+    const weg = [];
+    for (let i = ziel; i !== start && i >= 0; i = von[i]) weg.push([i % W + 0.5, ((i / W) | 0) + 0.5]);
+    return weg.reverse().filter((_, k, a) => k % 2 === 0 || k === a.length - 1);
+  }
+  function naechsterFreier(x, y) {
+    for (let r = 0; r < 8; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) === r && frei1(x + dx, y + dy)) return [x + dx, y + dy];
+    }
+    return null;
+  }
+
+  // --- Selbst fahren zum angetippten Ziel ------------------------------------
+  let route = null, routeI = 0, zielPunkt = null, haengt = 0, rueck = 0;
+  function planen(x, y) {
+    if (!offen(x, y)) { toast("Dieses Gebiet liegt noch im Nebel. Finde ein Kartenstück!"); return; }
+    const z = naechsterFreier(Math.floor(x), Math.floor(y));
+    let s0 = [Math.floor(auto.x), Math.floor(auto.y)];
+    if (!frei1(...s0)) s0 = naechsterFreier(...s0) || s0;
+    const weg = z && suche(s0[0], s0[1], z[0], z[1]);
+    if (!weg || !weg.length) { toast("Da kommt die Klapperkiste nicht hin."); return; }
+    route = weg; routeI = 0; zielPunkt = [x, y]; haengt = 0;
+  }
+  function steuerAuto(dt) {
+    if (!route) return null;
+    const voraus = 1.8 + Math.max(0, auto.v) * 0.35; // langsam: kurz vorausschauen, damit Ecken nicht geschnitten werden
+    while (routeI < route.length - 1 && Math.hypot(route[routeI][0] - auto.x, route[routeI][1] - auto.y) < voraus) routeI++;
+    const [tx, ty] = route[routeI], ende = route[route.length - 1];
+    const rest = Math.hypot(ende[0] - auto.x, ende[1] - auto.y);
+    if (rest < 1.5) { route = null; return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 }; }
+    if (rueck > 0) { rueck -= dt; return { gas: false, bremse: true, lenk: 0 }; }
+    let diff = Math.atan2(ty - auto.y, tx - auto.x) - auto.a;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    const soll = Math.min(6.2, Math.max(1.4, rest * 0.9)) * (Math.abs(diff) > 0.9 ? 0.45 : 1);
+    if (Math.abs(auto.v) < 0.25) {
+      haengt += dt;
+      if (haengt > 1.2) { haengt = 0; rueck = 1.4; const z = zielPunkt; planen(z[0], z[1]); }
+    } else haengt = 0;
+    return { gas: auto.v < soll, bremse: auto.v > soll + 1.5, lenk: Math.max(-1, Math.min(1, diff * 2.2)) };
+  }
 
   // --- Zeichnen --------------------------------------------------------------
   const cv = $("karte"), ctx = cv.getContext("2d");
@@ -464,6 +609,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     const kx = auto.x + Math.cos(auto.a) * vor, ky = auto.y + Math.sin(auto.a) * vor;
     ctx.setTransform(dpr * m, 0, 0, dpr * m, dpr * (w / 2 - kx * m), dpr * (h / 2 - ky * m));
     const sicht = { x0: kx - w / 2 / m, x1: kx + w / 2 / m, y0: ky - h / 2 / m, y1: ky + h / 2 / m };
+    kamera = { m, kx, ky, w, h };
 
     // Boden: ruhiges Gras, Blumenflecken, Wege
     const gras = musterVon("gras_ruhig");
@@ -491,6 +637,35 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     const sch = OBJ.schuppen;
     if (sch.img.complete && sch.img.naturalWidth) ctx.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
 
+    // Route und Ziel
+    const t = performance.now() / 1000;
+    if (route) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(242,182,50,0.9)"; ctx.lineWidth = 0.35; ctx.setLineDash([0.8, 0.9]); ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(auto.x, auto.y);
+      for (let k = routeI; k < route.length; k++) ctx.lineTo(route[k][0], route[k][1]);
+      ctx.stroke(); ctx.setLineDash([]);
+      const [zx, zy] = route[route.length - 1], puls = reduce ? 0 : Math.sin(t * 5) * 0.25;
+      ctx.lineWidth = 0.3; ctx.strokeStyle = "#f2b632";
+      ctx.beginPath(); ctx.arc(zx, zy, 1.4 + puls, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "rgba(242,182,50,0.35)"; ctx.beginPath(); ctx.arc(zx, zy, 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    // Kartenstücke: kleine Karte mit rotem Kreuz, wippt und leuchtet
+    for (const st of STUECKE) {
+      if (st.genommen) continue;
+      const hub = reduce ? 0 : Math.sin(t * 3 + st.x) * 0.15;
+      ctx.save(); ctx.translate(st.x, st.y + hub); ctx.rotate(-0.2);
+      ctx.fillStyle = "rgba(255,230,140,0.35)"; ctx.beginPath(); ctx.arc(0, 0, 1.6 + (reduce ? 0 : Math.sin(t * 4) * 0.2), 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f3e2b8"; ctx.strokeStyle = "#3a2a18"; ctx.lineWidth = 0.12;
+      ctx.beginPath(); ctx.rect(-0.8, -0.6, 1.6, 1.2); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = "#8a6a48"; ctx.lineWidth = 0.06;
+      ctx.beginPath(); ctx.moveTo(-0.6, 0.2); ctx.quadraticCurveTo(-0.1, -0.4, 0.3, 0.1); ctx.stroke();
+      ctx.strokeStyle = "#c0392b"; ctx.lineWidth = 0.14;
+      ctx.beginPath(); ctx.moveTo(0.25, -0.25); ctx.lineTo(0.55, 0.05); ctx.moveTo(0.55, -0.25); ctx.lineTo(0.25, 0.05); ctx.stroke();
+      ctx.restore();
+    }
+
     // Auto, dann alles, was höher ist (Bäume über dem Auto)
     const img = autoWahl.img;
     if (img.complete && img.naturalWidth) {
@@ -505,6 +680,15 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       ctx.restore();
     }
     for (const o of OBJEKTE) zeichneObjekt(o, sicht);
+    // Nebel über unerforschten Gebieten
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(nebel, 0, 0, W, W);
+    ctx.save();
+    ctx.fillStyle = "rgba(90,70,45,0.75)"; ctx.font = "800 2.2px Nunito, sans-serif"; ctx.textAlign = "center";
+    for (const g of GEBIETE) if (!g.offen && g.x > sicht.x0 - 20 && g.x < sicht.x1 + 20 && g.y > sicht.y0 - 20 && g.y < sicht.y1 + 20) {
+      ctx.fillText("? Unerforscht ?", g.x, g.y); ctx.fillText("Kartenstück fehlt", g.x, g.y + 3);
+    }
+    ctx.restore();
 
     // Anzeige
     const u = untergrund(auto.x, auto.y);
@@ -537,7 +721,11 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
       const [mx0, my0, mx1, my1] = SCHUPPEN.haus;
       g.fillStyle = "#5a3d26"; g.fillRect(mx0 * k, my0 * k, (mx1 - mx0) * k, (my1 - my0) * k);
     }
+    if (!miniGrund.mitNebel) { miniGrund.getContext("2d").drawImage(nebel, 0, 0, s, s); miniGrund.mitNebel = true; }
     mctx.drawImage(miniGrund, 0, 0);
+    mctx.fillStyle = "#c0392b";
+    for (const st of STUECKE) if (!st.genommen && offen(st.x, st.y)) { mctx.fillRect(st.x * k - 3, st.y * k - 3, 6, 6); }
+    if (route) { const e = route[route.length - 1]; mctx.strokeStyle = "#f2b632"; mctx.lineWidth = 2; mctx.beginPath(); mctx.arc(e[0] * k, e[1] * k, 4, 0, 7); mctx.stroke(); }
     mctx.save(); mctx.translate(auto.x * k, auto.y * k); mctx.rotate(auto.a);
     mctx.fillStyle = "#f2b632"; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 2;
     mctx.beginPath(); mctx.moveTo(7, 0); mctx.lineTo(-5, -5); mctx.lineTo(-5, 5); mctx.closePath(); mctx.fill(); mctx.stroke();
@@ -554,20 +742,22 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
     requestAnimationFrame(bild);
   }
 
-  // --- Steuerung -------------------------------------------------------------
-  const KNOEPFE = { links: "links", rechts: "rechts", gas: "gas", bremse: "bremse" };
-  for (const [id, k] of Object.entries(KNOEPFE)) {
-    const b = $(id);
-    const an = (e) => { e.preventDefault(); taste[k] = true; b.setAttribute("aria-pressed", "true"); try { b.setPointerCapture(e.pointerId); } catch { /* egal */ } };
-    const aus = () => { taste[k] = false; b.setAttribute("aria-pressed", "false"); };
-    b.addEventListener("pointerdown", an);
-    b.addEventListener("pointerup", aus);
-    b.addEventListener("pointercancel", aus);
-    b.addEventListener("lostpointercapture", aus);
-    b.addEventListener("contextmenu", (e) => e.preventDefault());
-  }
+  // --- Ziel antippen ----------------------------------------------------------
+  let kamera = null;
+  cv.addEventListener("click", (e) => {
+    if (!kamera || fertig) return;
+    const b = cv.getBoundingClientRect();
+    planen(kamera.kx + (e.clientX - b.left - kamera.w / 2) / kamera.m, kamera.ky + (e.clientY - b.top - kamera.h / 2) / kamera.m);
+  });
+  mini.addEventListener("click", (e) => {
+    if (fertig) return;
+    const b = mini.getBoundingClientRect();
+    planen((e.clientX - b.left) / b.width * W, (e.clientY - b.top) / b.height * W);
+  });
+
+  // --- Tastatur (nur zum Testen) ---------------------------------------------
   const KEYS = { ArrowUp: "gas", KeyW: "gas", ArrowDown: "bremse", KeyS: "bremse", ArrowLeft: "links", KeyA: "links", ArrowRight: "rechts", KeyD: "rechts" };
-  window.addEventListener("keydown", (e) => { const k = KEYS[e.code]; if (k && !(e.target instanceof HTMLSelectElement)) { taste[k] = true; e.preventDefault(); } });
+  window.addEventListener("keydown", (e) => { const k = KEYS[e.code]; if (k && !(e.target instanceof HTMLSelectElement)) { taste[k] = true; route = null; e.preventDefault(); } });
   window.addEventListener("keyup", (e) => { const k = KEYS[e.code]; if (k) taste[k] = false; });
   window.addEventListener("blur", () => { for (const k in taste) taste[k] = false; });
 
@@ -578,7 +768,13 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
   $("ziel").addEventListener("click", neu);
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
+  window.__kp = { auto, planen, get route() { return route; } }; // für automatische Tests
   karteBauen();
+  // Platz um die Kartenstücke freiräumen
+  for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && STUECKE.some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
+  rasterBauen();
+  if (location.hash === "#schrottplatz") for (const g of GEBIETE) g.offen = true;
+  nebelNeu();
   requestAnimationFrame(bild);
 })();
 </script>

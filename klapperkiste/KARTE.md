@@ -123,3 +123,12 @@ längeren und breiteren Lichtkegel. Probe: Lichtkegel auf einem Feldweg
 - **Schnellreise zur Werkstatt:** Von überall zurück in Opas Werkstatt, ohne
   den ganzen Weg zu fahren.
 - Die Gas-und-Lenken-Steuerung der Kartenprobe bleibt nur zum Testen.
+
+## 9. Kartenstücke und Nebel
+
+Am Anfang kennt man nur die Gegend um Opas Schuppen, der Rest liegt im Nebel
+(alte Landkarte). Unterwegs findet man **Kartenstücke**; jedes deckt ein
+Gebiet auf. Ins Ungewisse kann man nicht tippen, das Auto plant seine Route
+nur durch aufgedeckte Gebiete. Kartenstücke liegen am Wegrand, auf Inseln
+oder gibt es als Belohnung für Aufträge. Probe: `design/kartenprobe.html`
+(Startgebiet plus zwei Gebiete).

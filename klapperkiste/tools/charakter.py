@@ -48,7 +48,7 @@ def schneiden(eingabe: str, name: str) -> list[str]:
     os.makedirs(ziel, exist_ok=True)
     pfade = []
     for geste, feld in zip(GESTEN, felder):
-        teil = teilwerk.freistellen(bild.crop(feld), toleranz=30, inseln=True)
+        teil = teilwerk.freistellen(bild.crop(feld), toleranz=30, inseln=False)
         # Papierkrümel am Rand (fast weiß, kaum Farbe) entfernen
         px = teil.load()
         for y in range(teil.height):
