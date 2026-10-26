@@ -114,3 +114,16 @@ Scheinwerfer im Lichtkegel treffen, dazu einen schwachen Schein ums Auto. Ohne
 Licht-Teil ist der Wald praktisch nicht befahrbar. Bessere Lampen geben einen
 längeren und breiteren Lichtkegel. Probe: Lichtkegel auf einem Feldweg
 (`design/probe_dunkel.png`).
+
+## 8. Offen: Fahrsteuerung
+
+Die Kartenprobe (K4) nutzt vorerst eine einfache Steuerung mit Gas, Bremse und
+Lenken. Sie reicht zum Testen, wird aber überarbeitet. Im Original fährt das
+Auto möglicherweise automatisch (noch prüfen). Mögliche Varianten:
+
+- **Automatisch:** Das Auto folgt dem Weg selbst, man wählt nur an Kreuzungen
+  die Richtung. Teile entscheiden, ob es durchkommt (wie im Original).
+- **Ziel antippen:** Man tippt auf der Karte ein Ziel an, das Auto sucht sich
+  den Weg dorthin.
+- **Selbst lenken:** wie jetzt, aber mit besserer Handhabung für das Handy
+  (z. B. Lenken durch Wischen, Gas automatisch).
