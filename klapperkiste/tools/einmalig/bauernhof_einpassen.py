@@ -26,9 +26,9 @@ MIN_FLAECHE = 1500  # kleinere weiße Flächen sind Hühner und Glanzlichter
 
 
 def grosse_weisse_flaechen_weg(bild: Image.Image) -> Image.Image:
-    weiss = bild.convert("RGB").point(lambda v: 255 if v > 225 else 0).convert("L")
-    weiss = ImageChops.darker(ImageChops.darker(*[bild.getchannel(k).point(lambda v: 255 if v > 225 else 0)
-                                                  for k in "RG"]), bild.getchannel("B").point(lambda v: 255 if v > 225 else 0))
+    # fast weiß = alle drei Farbkanäle über 225
+    r, g, b = (bild.getchannel(k).point(lambda v: 255 if v > 225 else 0) for k in "RGB")
+    weiss = ImageChops.darker(ImageChops.darker(r, g), b)
     weiss = ImageChops.multiply(weiss, bild.getchannel("A").point(lambda v: 255 if v > 128 else 0))
     weg = Image.new("L", bild.size, 0)
     arbeit = weiss.copy()
