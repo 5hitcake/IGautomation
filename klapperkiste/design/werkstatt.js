@@ -21,6 +21,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "traktormotor", kat: "motor", name: "Traktormotor" },
     { id: "waschmaschinenmotor", kat: "motor", name: "Waschmaschinen-Motor" },
     { id: "giesskanne", kat: "energie", name: "Gießkanne" },
+    { id: "kanister", kat: "energie", name: "Benzinkanister" },
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "sofasessel", kat: "sitz", name: "Ohrensessel" },
     { id: "traktorsitz", kat: "sitz", name: "Traktorsitz" },
