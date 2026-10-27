@@ -27,6 +27,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "rennschale", kat: "sitz", name: "Rennschale" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
     { id: "bus_lenkrad", kat: "lenkung", name: "Bus-Lenkrad" },
+    { id: "steuerrad", kat: "lenkung", name: "Schiffs-Steuerrad" },
     { id: "scheinwerfer", kat: "licht", name: "Alter Scheinwerfer" },
     { id: "spezialhupe", kat: "hupe", name: "Spezialhupe" },
     { id: "schlauchboot_hinten", kat: "karosserie_hinten", name: "Schlauchboot hinten" },
