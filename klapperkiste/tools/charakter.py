@@ -7,12 +7,14 @@ Reihenfolge der Gesten: 1 hallo (oben links), 2 nachdenken (oben rechts),
 3 auftrag (unten links), 4 juhu (unten rechts).
 
 Aufruf:
-  python klapperkiste/tools/charakter.py EINGABE NAME [--arme] [--saum GESTE] [--loch GESTE:X,Y]
+  python klapperkiste/tools/charakter.py EINGABE NAME [--arme] [--saum GESTE] [--loch GESTE:X,Y] [--toleranz N]
   --arme: auch weiße Lücken zwischen Arm und Körper entfernen (nicht bei weißer Kleidung)
   --saum GESTE: hellen Papiersaum um Kopf und Arme dieser Geste abtragen (nur obere
     Hälfte, sonst frisst er sich in weiße Hosenstreifen), z. B. --saum hallo bei Zylinda
   --loch GESTE:X,Y: eingeschlossene weiße Lücke an dieser Stelle (Anteile 0–1 der
     Geste) durchsichtig machen, z. B. zwischen Kopf und Arm neben einem weißen Handschuh
+  --toleranz N: Farbabstand beim Freistellen (Standard 30); kleiner, wenn helle Stellen
+    am Rand mit weggehen (z. B. Frieders weißer Bommel)
 Ergebnis: assets/charaktere/NAME/hallo.png, nachdenken.png, auftrag.png, juhu.png
 """
 
@@ -162,8 +164,35 @@ def loch_frei(teil: Image.Image, fx: float, fy: float) -> Image.Image:
     return teil
 
 
+def kleine_inseln_weg(teil: Image.Image, max_flaeche: int = 150) -> Image.Image:
+    """Kleine, freistehende Flecken neben der Figur entfernen (Papierkrümel).
+    Größere abgesetzte Teile wie Rauchwölkchen bleiben."""
+    a = teil.getchannel("A").point(lambda v: 255 if v >= 40 else 0)
+    apx, px = a.load(), teil.load()
+    gesehen = set()
+    for y in range(teil.height):
+        for x in range(teil.width):
+            if apx[x, y] != 255 or (x, y) in gesehen:
+                continue
+            insel, stapel = [], [(x, y)]
+            gesehen.add((x, y))
+            while stapel:
+                cx, cy = stapel.pop()
+                insel.append((cx, cy))
+                for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+                    drin = 0 <= nx < teil.width and 0 <= ny < teil.height
+                    if drin and apx[nx, ny] == 255 and (nx, ny) not in gesehen:
+                        gesehen.add((nx, ny))
+                        stapel.append((nx, ny))
+            if len(insel) <= max_flaeche:
+                for ix, iy in insel:
+                    rr, g, b, _ = px[ix, iy]
+                    px[ix, iy] = (rr, g, b, 0)
+    return teil
+
+
 def schneiden(eingabe: str, name: str, arme: bool = False, saum: tuple[str, ...] = (),
-              loecher: tuple[tuple[str, float, float], ...] = ()) -> list[str]:
+              loecher: tuple[tuple[str, float, float], ...] = (), toleranz: int = 30) -> list[str]:
     bild = Image.open(eingabe).convert("RGB")
     tx, ty = _trenner(bild, "x"), _trenner(bild, "y")
     b, h = bild.size
@@ -172,9 +201,12 @@ def schneiden(eingabe: str, name: str, arme: bool = False, saum: tuple[str, ...]
     os.makedirs(ziel, exist_ok=True)
     pfade = []
     for geste, feld in zip(GESTEN, felder):
-        teil = teilwerk.freistellen(bild.crop(feld), toleranz=30, inseln=False)
+        teil = teilwerk.freistellen(bild.crop(feld), toleranz=toleranz, inseln=False)
         # Papierkrümel am Rand (fast weiß, kaum Farbe) entfernen
+        # Erst sammeln, dann löschen: sonst frisst sich die Prüfung beim Durchlaufen in
+        # helle Flächen am Rand hinein (z. B. Frieders weißer Bommel)
         px = teil.load()
+        kruemel = []
         for y in range(teil.height):
             for x in range(teil.width):
                 r, g, b, a = px[x, y]
@@ -183,7 +215,11 @@ def schneiden(eingabe: str, name: str, arme: bool = False, saum: tuple[str, ...]
                                        and px[x + dx, y + dy][3] == 0
                                        for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)))
                     if nachbar_leer:
-                        px[x, y] = (r, g, b, 0)
+                        kruemel.append((x, y))
+        for x, y in kruemel:
+            r, g, b, _ = px[x, y]
+            px[x, y] = (r, g, b, 0)
+        teil = kleine_inseln_weg(teil)
         teil = teil.crop(teil.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox())
         teil = beine_frei(teil, arme=arme)
         if geste in saum:
@@ -200,11 +236,13 @@ def schneiden(eingabe: str, name: str, arme: bool = False, saum: tuple[str, ...]
 
 
 if __name__ == "__main__":
-    argumente, saum, loecher = [], [], []
+    argumente, saum, loecher, toleranz = [], [], [], 30
     rest = iter(sys.argv[1:])
     for a in rest:
         if a == "--saum":
             saum.append(next(rest, ""))
+        elif a == "--toleranz":
+            toleranz = int(next(rest, "30"))
         elif a == "--loch":
             g, _, xy = next(rest, "").partition(":")
             loecher.append((g, *(float(v) for v in xy.split(","))))
@@ -213,4 +251,5 @@ if __name__ == "__main__":
     if len(argumente) != 2:
         print(__doc__)
         sys.exit(1)
-    schneiden(argumente[0], argumente[1], arme="--arme" in sys.argv, saum=tuple(saum), loecher=tuple(loecher))
+    schneiden(argumente[0], argumente[1], arme="--arme" in sys.argv, saum=tuple(saum), loecher=tuple(loecher),
+               toleranz=toleranz)

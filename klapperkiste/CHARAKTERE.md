@@ -145,4 +145,9 @@ Background illustration for a game dialogue scene, seen at eye level from the gr
   macht in Pose 2 die weiße Lücke zwischen Kopf, Hand und Ärmel frei, ohne den
   weißen Handschuh anzufassen). Kleine eingeschlossene Löcher in der Figur
   schließt das Werkzeug inzwischen immer von selbst.
+- **Kapitänin Kiel:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/kiel.jpg kiel --loch nachdenken:0.768,0.486`
+  (Lücke zwischen Arm in der Hüfte und Körper).
+- **Hüttenwirt Frieder:** ohne Sonderoptionen.
+- Immer automatisch: kleine Löcher in der Figur werden geschlossen, kleine
+  freistehende Papierkrümel neben der Figur entfernt.
 
