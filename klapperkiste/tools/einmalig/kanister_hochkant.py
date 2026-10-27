@@ -1,8 +1,9 @@
-"""Einmalige Bearbeitung: Benzinkanister hochkant.
+"""Einmalige Bearbeitung: Benzinkanister (zweite Fassung, aufrecht).
 
-Das Blatt zeigt den Kanister liegend, gut dreimal so breit wie hoch. Der Tank-Platz
-ist schmal und hoch (1 × 2). Beide Ansichten werden um 90° gegen den Uhrzeigersinn
-gedreht: Der Kanister steht dann aufrecht, der Verschluss ist oben.
+Die Seitenansicht steht schon aufrecht. Die Draufsicht liegt quer; der Tank-Platz
+ist aber schmal und hoch (1 × 2), darum wird sie um 90° gedreht. Weiße Löcher in
+den Griffen werden mit der normalen Lochsuche entfernt.
+(Die erste, liegende Fassung liegt als roh/kanister_v1_liegend.jpg daneben.)
 
 Aufruf:
   python klapperkiste/tools/einmalig/kanister_hochkant.py
@@ -20,17 +21,18 @@ import teilwerk  # noqa: E402
 
 TEIL = os.path.join(teilwerk.TEILE_DIR, "kanister")
 ROH = os.path.join(TEIL, "roh")
-TRENNUNG_Y = 410  # zwischen Seiten- und Draufsicht
+TRENNUNG_Y = 1060  # in der Lücke zwischen Seiten- und Draufsicht
 
 
 def main() -> int:
-    blatt = Image.open(os.path.join(ROH, "kanister_blatt.jpg")).convert("RGB")
-    teile = {"seite": blatt.crop((0, 0, blatt.width, TRENNUNG_Y)),
-             "oben": blatt.crop((0, TRENNUNG_Y, blatt.width, blatt.height))}
-    for ansicht, bild in teile.items():
-        roh = os.path.join(ROH, f"kanister_{ansicht}_hochkant.png")
-        bild.rotate(90, expand=True, fillcolor=(255, 255, 255)).save(roh)
-        teilwerk.main(["einpassen", roh, "energie", ansicht, os.path.join(TEIL, f"{ansicht}.png")])
+    blatt = Image.open(os.path.join(ROH, "kanister_blatt.png")).convert("RGB")
+    seite = os.path.join(ROH, "kanister_seite.png")
+    oben = os.path.join(ROH, "kanister_oben_gedreht.png")
+    blatt.crop((0, 0, blatt.width, TRENNUNG_Y)).save(seite)
+    unten = blatt.crop((0, TRENNUNG_Y, blatt.width, blatt.height))
+    unten.rotate(90, expand=True, fillcolor=(255, 255, 255)).save(oben)
+    teilwerk.main(["einpassen", seite, "energie", "seite", os.path.join(TEIL, "seite.png")])
+    teilwerk.main(["einpassen", oben, "energie", "oben", os.path.join(TEIL, "oben.png")])
     return 0
 
 
