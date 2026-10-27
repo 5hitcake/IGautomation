@@ -176,7 +176,7 @@ window.Karte = function (opt = {}) {
     route = null;
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set() });
-    hinweisGezeigt = false; angehalten = false;
+    hinweisGezeigt = false; angehalten = false; hildeKennt = false;
     for (const r of SAMMEL) r.weg = false;
     hudNeu(); $("laden").hidden = true;
     nebelNeu();
@@ -332,6 +332,23 @@ window.Karte = function (opt = {}) {
     if (r) aufsammeln(r);
   }
   // Wieder am Schrottplatz: Reifen abgeben oder im Laden stöbern
+  // Bäuerin Hilde auf dem Bauernhof: erst einmal nur Begrüßung, ihr Auftrag kommt noch.
+  // Sie deutet schon an, worum es gehen wird (Schafe auf dem Weg, Spezialhupe).
+  let hildeKennt = false;
+  function beiHilde() {
+    const hilde = (zeilen) => gespraech("hilde", "Bäuerin Hilde", "bauernhof", zeilen);
+    if (hildeKennt) {
+      return hilde([["nachdenken", "Na, wieder da? Meine Schafe stehen immer noch ständig auf dem Weg. Wenn du eine richtig laute Hupe findest, sag Bescheid!"]]);
+    }
+    hildeKennt = true;
+    hilde([
+      ["hallo", "Ja grüß dich! Ein Besuch auf dem Hof, wie schön. Ich bin Hilde, mir gehören die Weide, die Schafe und die Kühe da drüben."],
+      ["nachdenken", "Nur die Schafe machen mir Sorgen: Die stehen dauernd mitten auf dem Weg und rühren sich keinen Zentimeter."],
+      ["auftrag", "Mit so einer Klapperkiste kommst du doch viel herum. Halt die Augen offen nach einer richtig lauten Hupe, dann hätte ich Arbeit für dich."],
+      ["juhu", "Und komm ruhig öfter vorbei, für Gäste gibt's bei mir immer frische Milch!"],
+    ]);
+  }
+
   function beiKnut() {
     const knut = (zeilen, danach) => gespraech("knut", "Knut Kurbel", "schrottplatz", zeilen, danach);
     const n = BRAUCHT[spiel.auftrag];
@@ -596,6 +613,7 @@ window.Karte = function (opt = {}) {
       route = null;
       if (zielWahl.id === "schrottplatz") { if (!besucht) ankunft(); else beiKnut(); }
       else if (zielWahl.id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
+      else if (zielWahl.id === "bauernhof") beiHilde();
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }

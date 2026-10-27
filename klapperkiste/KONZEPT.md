@@ -128,6 +128,10 @@ Münzen und der **alte Scheinwerfer**, das erste Licht. Bei Opa eingebaut,
 öffnet er den dunklen Wald: Dort sieht man nur noch den Lichtkegel vor dem
 Auto und einen schwachen Schein drumherum.
 
+Bäuerin Hilde auf dem Bauernhof begrüßt beim ersten Besuch und deutet ihr
+Problem an (Schafe stehen auf dem Weg, sie sucht eine laute Hupe). Ihr
+Auftrag ist noch offen.
+
 Noch offen: Name der Währung (vorläufig „Münzen“), Preise und wie stark Teile sich in den Werten
 unterscheiden (kommt mit den Teile-Werten).
 
