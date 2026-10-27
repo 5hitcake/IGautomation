@@ -536,6 +536,23 @@ window.Karte = function (opt = {}) {
     } catch { audio = null; }
     return audio;
   }
+  // Handy-Browser (vor allem Safari) geben Ton nur frei, wenn er direkt in einer
+  // Berührung gestartet wird: beim ersten Antippen sofort einschalten und einen
+  // stummen Ton abspielen, danach klappen auch die zeitversetzten Silben.
+  function tonFreischalten() {
+    const a = audioBereit();
+    if (!a) return;
+    try {
+      const s = a.createBufferSource();
+      s.buffer = a.createBuffer(1, 1, 22050);
+      s.connect(a.destination); s.start(0);
+      if (a.state === "suspended") a.resume();
+    } catch { /* egal */ }
+    if (a.state === "running") {
+      for (const ev of ["pointerdown", "touchend", "click", "keydown"]) window.removeEventListener(ev, tonFreischalten, true);
+    }
+  }
+  for (const ev of ["pointerdown", "touchend", "click", "keydown"]) window.addEventListener(ev, tonFreischalten, true);
   let silben = 0; // für automatische Tests
   function silbe(figur, betont) {
     const a = audioBereit();
@@ -614,6 +631,7 @@ window.Karte = function (opt = {}) {
   tonKnopf.addEventListener("click", (e) => {
     e.stopPropagation();
     tonAn = !tonAn; tonZeigen();
+    if (tonAn) { tonFreischalten(); silbe($("gespraech").dataset.figur, true); } // kurze Probe zum Hören
     try { localStorage.setItem("klapperkiste-ton", tonAn ? "an" : "aus"); } catch { /* egal */ }
   });
   document.querySelector("#gespraech .g-box").append(tonKnopf);
