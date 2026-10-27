@@ -24,6 +24,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "sofasessel", kat: "sitz", name: "Ohrensessel" },
     { id: "traktorsitz", kat: "sitz", name: "Traktorsitz" },
+    { id: "rennschale", kat: "sitz", name: "Rennschale" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
     { id: "scheinwerfer", kat: "licht", name: "Alter Scheinwerfer" },
     { id: "spezialhupe", kat: "hupe", name: "Spezialhupe" },
