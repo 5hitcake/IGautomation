@@ -16,6 +16,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "rostachse", kat: "achse", name: "Rostige Achse" },
     { id: "schubkarre", kat: "rad", name: "Schubkarrenrad" },
     { id: "autoreifen", kat: "rad", name: "Autoreifen" },
+    { id: "traktorreifen", kat: "rad", name: "Traktorreifen" },
     { id: "maeher", kat: "motor", name: "Rasenmäher-Motor" },
     { id: "raketenmotor", kat: "motor", name: "Raketen-Triebwerk" },
     { id: "mopedmotor", kat: "motor", name: "Mopedmotor" },
