@@ -117,8 +117,10 @@ window.Karte = function (opt = {}) {
   }
 
   const OBJEKTE = []; // {art, x, y, rot, s, spiegel, r (Kollision)}
+  const NADELWALD = [[0, 100, 125, 255], [245, 75, 320, 205], [0, 250, 135, 320]]; // wie die Nadelbaum-Flächen unten
   function setze(art, x, y, opt = {}) {
-    if (art === "laubbaum") art = "nadelbaum"; // nur Nadelbäume, das sieht besser aus (Plätze bleiben gleich)
+    // In den Nadelwäldern stechen helle Laubbäume heraus: dort wird ein Nadelbaum daraus
+    if (art === "laubbaum" && NADELWALD.some(([x0, y0, x1, y1]) => x > x0 && x < x1 && y > y0 && y < y1)) art = "nadelbaum";
     const o = OBJ[art], s = opt.s ?? 0.85 + rnd() * 0.3;
     const r = opt.r ?? (art === "felsbrocken" ? 0.42 : art === "busch" ? 0.4 : 0.3) * o.b * s;
     if (!opt.fest && !frei(x, y, r)) return false;
