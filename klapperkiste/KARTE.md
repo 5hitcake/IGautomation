@@ -251,3 +251,13 @@ Rahmen und Karosserie verdecken sie dabei wie am echten Auto teilweise.
   Büsche). Dunkel ist nur, was unter dem Dach liegt: der Waldweg ab dem
   Hindernis, der Pfad und (etwas heller) die Lichtung der Hütte. Dort sieht
   man nur im Lichtkegel.
+
+## 18. Musik
+
+Musik entsteht im Browser aus Noten in ABC-Schreibweise (`STUECKE` in
+`design/ton.js`), dazu Bass und Akkorde aus den Akkordnamen. Stücke: Werkstatt
+(Ragtime, Klavier), Fahren (Polka, Akkordeon), dunkler Wald (langsam, Moll,
+Klarinette). Auf der Karte wechselt die Musik von selbst zwischen Fahren und
+Wald, im Spielstart läuft in der Werkstatt der Ragtime. Bei Gesprächen wird sie
+leiser. Knopf 🎵 unten links schaltet sie aus (wird gemerkt). Die Noten lassen
+sich mit dem Notenblatt-Werkzeug vorab anhören und ändern.

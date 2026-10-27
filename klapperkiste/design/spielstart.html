@@ -106,6 +106,7 @@
 <script src="spielstart_teile.js"></script>
 <script src="karte_daten.js"></script>
 <script src="werkstatt.js"></script>
+<script src="ton.js"></script>
 <script src="karte.js"></script>
 <script>
 (function () {
@@ -177,7 +178,7 @@
   function zeige(name) {
     $("s-werkstatt").hidden = name !== "werkstatt";
     $("s-karte").hidden = name !== "karte";
-    if (name === "werkstatt") { W.refresh(); if (!imEinstieg()) W.say("Zurück in Opas Werkstatt."); }
+    if (name === "werkstatt") { W.refresh(); K.musik("werkstatt"); if (!imEinstieg()) W.say("Zurück in Opas Werkstatt."); }
     window.scrollTo({ top: 0 });
   }
 
@@ -210,6 +211,7 @@
   $("testKnut").addEventListener("click", direktZuKnut);
   $("vonVorn").addEventListener("click", () => location.reload());
 
+  K.musik("werkstatt"); // läuft los, sobald der Ton freigeschaltet ist (erstes Antippen)
   // Los geht's: Opa begrüßt in der Werkstatt
   const opaBild = ((window.KARTE_DATEN.figuren || {}).opa || {}).hallo;
   if (opaBild) $("tippBild").src = opaBild;

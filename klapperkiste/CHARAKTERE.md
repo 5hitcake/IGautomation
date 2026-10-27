@@ -176,3 +176,8 @@ Der Knopf 🔊/🔇 im Gesprächsfeld schaltet den Ton aus (wird im Browser geme
 | Hüttenwirt Frieder | gemütlich, mittel-tief |
 | Polier Brösel | ganz tief und rau |
 | Gino, Funke | heller, Gino singend, Funke zackig |
+
+Seit der zweiten Fassung (`design/ton.js`) ist das Gebrummel eine Formant-Stimme:
+summender Grundton durch zwei Resonanzfilter (Vokal), Atemrauschen, manchmal ein
+kurzer Konsonant, Satzmelodie (fällt zum Satzende, steigt bei Fragen) und weich
+ineinanderfließende Silben. Klingt nach Murmeln statt nach Piepsen.
