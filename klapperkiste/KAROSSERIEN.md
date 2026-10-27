@@ -64,12 +64,12 @@ auseinanderhält. Sie steht im Prompt hinter dem Modell als `Main colours: …`.
 | Nr. | Modell | Hauptfarbe |
 |---|---|---|
 | 1 | Rundling | blassblau, creme, viel Rost |
-| 2 | Pick-up | dunkles Waldgrün, Ladefläche aus Holz (neu, war zu nah am Rundling) |
+| 2 | Pick-up | dunkles Waldgrün, Ladefläche aus Holz (neu geliefert, vorher zu nah am Rundling) |
 | 3 | Badewanne | weiß-cremige Emaille, abgeplatztes Blassblau |
 | 4 | Telefonzelle | Briefkastenrot |
 | 5 | Eiswagen | creme mit Pastellrosa und Mint |
 | 6 | Heuscheune | verwittertes Braunholz, scheunenrotes Dach |
-| 7 | Rakete | Silber-Chrom, türkise Flossen (neu, war rot wie die Telefonzelle) |
+| 7 | Rakete | Silber-Chrom, türkise Flossen (neu geliefert, mit `--keine-inseln` geschnitten; seitlich schlank, an den Nähten niedriger als die Gürtellinie) |
 | 8 | Kutsche | warmes Orange und Ocker mit dunklem Holz |
 | 9 | Hot-Dog-Kastenwagen | Senfgelb und Ketchuprot |
 | 10 | Feuerwehr | Signalrot mit weißen Streifen und Chrom |
