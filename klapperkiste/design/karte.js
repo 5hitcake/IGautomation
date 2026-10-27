@@ -118,6 +118,7 @@ window.Karte = function (opt = {}) {
 
   const OBJEKTE = []; // {art, x, y, rot, s, spiegel, r (Kollision)}
   function setze(art, x, y, opt = {}) {
+    if (art === "laubbaum") art = "nadelbaum"; // nur Nadelbäume, das sieht besser aus (Plätze bleiben gleich)
     const o = OBJ[art], s = opt.s ?? 0.85 + rnd() * 0.3;
     const r = opt.r ?? (art === "felsbrocken" ? 0.42 : art === "busch" ? 0.4 : 0.3) * o.b * s;
     if (!opt.fest && !frei(x, y, r)) return false;
