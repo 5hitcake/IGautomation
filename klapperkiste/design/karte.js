@@ -54,6 +54,11 @@ window.Karte = function (opt = {}) {
   // Försterhütte im dunklen Wald: Bild 14 m breit, Mitte bei (x, y), Pfad unten zum Waldweg.
   // Dach und Laterne aus dem Bild vermessen.
   const FOERSTER = { x: 36, y: 186, haus: [32.4, 178.4, 39.7, 184.3], bereich: [29, 175.6, 43, 196.4], laterne: [41, 185.5] };
+  // Dunkler Wald im Westen: Kreise (x, y, r), zusammen die Waldfläche. Hier liegt überall
+  // das Walddach; nur auf Waldweg, Pfad und Lichtung bei der Försterhütte ist es dunkel.
+  const WALD = [[50, 205, 50], [22, 175, 32], [70, 235, 30], [35, 238, 30], [80, 190, 26]];
+  const WALD_EINGANG = 102; // hier beginnt die Dunkelheit auf dem Waldweg (Hindernis Licht)
+  const imWald = (x, y, rand = 0) => WALD.some(([wx, wy, wr]) => Math.hypot(x - wx, y - wy) < wr + rand);
   const HOF = { X: 260, Y: 141.25, haeuser: [[261.3, 141.25, 275.5, 149.3], [261.3, 141.25, 269.7, 156.2],
     [276.4, 141.25, 290.6, 148.9]], bereich: [260, 141, 292, 159.5] };
   const HUETTE = { x: 244, y: 168, haus: [241.4, 164.1, 246.7, 170.9], bereich: [238.5, 163.4, 249.5, 172.6] };
@@ -162,6 +167,16 @@ window.Karte = function (opt = {}) {
     }
     streue("felsbrocken", 20, 180, 10, 314, 120);
     streue("busch", 30, 130, 120, 260, 300);
+    // Dichter dunkler Wald: viele Nadelbäume und einige Laubbäume, nur in der Waldfläche
+    for (let i = 0, n = 0; i < 2000 && n < 170; i++) {
+      const x = rnd() * 110, y = 140 + rnd() * 130;
+      if (imWald(x, y, -3) && setze("nadelbaum", x, y)) n++;
+    }
+    // Helle Laubbäume und Büsche passen nicht in den dunklen Nadelwald
+    for (let k = OBJEKTE.length - 1; k >= 0; k--) {
+      const o = OBJEKTE[k];
+      if ((o.art === "laubbaum" || o.art === "busch") && imWald(o.x, o.y, -4)) OBJEKTE.splice(k, 1);
+    }
     OBJEKTE.sort((a, b) => a.y - b.y);
   }
 
@@ -724,6 +739,22 @@ window.Karte = function (opt = {}) {
     return (muster[name] = p);
   }
 
+  // Walddach als Boden der Waldfläche, mit weichem Rand ins Gras
+  function walddachZeichnen(sicht) {
+    const p = musterVon("walddach");
+    if (!p) return;
+    ctx.save();
+    ctx.fillStyle = p;
+    for (const [wx, wy, wr] of WALD) {
+      if (wx + wr < sicht.x0 || wx - wr > sicht.x1 || wy + wr < sicht.y0 || wy - wr > sicht.y1) continue;
+      for (let i = 0; i < 8; i++) { // viele dünne Ringe übereinander: weicher Übergang ins Gras
+        ctx.globalAlpha = 0.18; ctx.beginPath(); ctx.arc(wx, wy, wr * (1.08 - i * 0.02), 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(wx, wy, wr * 0.92, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
   function zeichneWege(name, breite, alpha) {
     const p = musterVon(name);
     if (!p) return;
@@ -779,14 +810,28 @@ window.Karte = function (opt = {}) {
   // nur die Dunkelheit ausschneidet und nicht die Karte darunter.
   const dunkel = document.createElement("canvas"), dctx = dunkel.getContext("2d");
   function dunklerWald(w, h) {
-    const WX = 50, WY = 205, WR = 54; // reicht vom Hindernis (x 102) bis über die Försterhütte
+    const WX = 50, WY = 205, WR = 54; // Bereich, in dem der Lichtkegel gebraucht wird
     const mitLicht = hatTeil("licht") && Math.hypot(auto.x - WX, auto.y - WY) < WR + 20;
     if (dunkel.width !== cv.width || dunkel.height !== cv.height) { dunkel.width = cv.width; dunkel.height = cv.height; }
     dctx.setTransform(1, 0, 0, 1, 0, 0); dctx.clearRect(0, 0, dunkel.width, dunkel.height);
     dctx.setTransform(ctx.getTransform());
-    const wg = dctx.createRadialGradient(WX, WY, 8, WX, WY, WR);
-    wg.addColorStop(0, "rgba(4,10,8,0.95)"); wg.addColorStop(0.75, "rgba(4,10,8,0.85)"); wg.addColorStop(1, "rgba(4,10,8,0)");
-    dctx.fillStyle = wg; dctx.beginPath(); dctx.arc(WX, WY, WR, 0, Math.PI * 2); dctx.fill();
+    // Dunkel nur unter dem Walddach: auf den Wegen im Wald und auf der Lichtung der Hütte
+    dctx.fillStyle = dctx.strokeStyle = "rgba(4,10,8,0.93)"; dctx.lineCap = dctx.lineJoin = "round";
+    dctx.lineWidth = WEG_BREITE + 3;
+    for (const w of [ABZWEIG, WALDPFAD]) {
+      dctx.beginPath(); dctx.moveTo(w[0][0], w[0][1]);
+      for (const [x, y] of w.slice(1)) dctx.lineTo(x, y);
+      dctx.stroke();
+    }
+    const [fx0, fy0, fx1, fy1] = FOERSTER.bereich;
+    dctx.fillStyle = "rgba(4,10,8,0.78)"; // Lichtung etwas heller, die Hütte ahnt man
+    dctx.beginPath(); dctx.ellipse((fx0 + fx1) / 2, (fy0 + fy1) / 2, (fx1 - fx0) / 2 + 2, (fy1 - fy0) / 2 + 2, 0, 0, Math.PI * 2); dctx.fill();
+    // nur innerhalb der Waldfläche, zum Waldrand hin weich auslaufen
+    dctx.globalCompositeOperation = "destination-in";
+    const rand = dctx.createLinearGradient(WALD_EINGANG + 6, 0, WALD_EINGANG - 4, 0);
+    rand.addColorStop(0, "rgba(0,0,0,0)"); rand.addColorStop(1, "rgba(0,0,0,1)");
+    dctx.fillStyle = rand; dctx.fillRect(-20, 100, WALD_EINGANG + 30, 200);
+    dctx.globalCompositeOperation = "source-over";
     // Die Laterne an der Försterhütte brennt immer: kleiner warmer Lichtfleck, flackert leicht
     const [lx, ly] = FOERSTER.laterne, flacker = reduce ? 1 : 1 + Math.sin(performance.now() / 130) * 0.05;
     const lr = 4.2 * flacker;
@@ -846,6 +891,7 @@ window.Karte = function (opt = {}) {
       }
       ctx.globalAlpha = 1;
     }
+    walddachZeichnen(sicht);
     zeichneWege("erde", WEG_BREITE + 1.4, 0.35);
     zeichneWege("erde", WEG_BREITE, 1);
     // Rand der Karte

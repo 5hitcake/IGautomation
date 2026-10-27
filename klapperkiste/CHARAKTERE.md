@@ -147,7 +147,8 @@ Background illustration for a game dialogue scene, seen at eye level from the gr
   schließt das Werkzeug inzwischen immer von selbst.
 - **Kapitänin Kiel:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/kiel.jpg kiel --loch nachdenken:0.768,0.486`
   (Lücke zwischen Arm in der Hüfte und Körper).
-- **Hüttenwirt Frieder:** ohne Sonderoptionen.
+- **Hüttenwirt Frieder:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/frieder.jpg frieder --loch nachdenken:0.25,0.259`
+  (Lücke zwischen Arm und Kopf).
 - Immer automatisch: kleine Löcher in der Figur werden geschlossen, kleine
   freistehende Papierkrümel neben der Figur entfernt.
 

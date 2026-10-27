@@ -243,5 +243,11 @@ Rahmen und Karosserie verdecken sie dabei wie am echten Auto teilweise.
   Schafe seitlich auf die Wiese und das Auto fährt weiter zum Ziel.
 - **Försterhütte** (`objekte/foersterhuette.png`, 14 m, weicher Rand) am Ende
   des Waldwegs: Das Gatter ist jetzt ein offenes Tor, ein kurzer Pfad führt
-  zur Hütte. Der dunkle Wald ist größer und reicht über die Hütte, ihre
-  Laterne leuchtet immer mit einem warmen, leicht flackernden Schein.
+  zur Hütte. Ihre Laterne leuchtet immer mit einem warmen, leicht
+  flackernden Schein.
+- **Dunkler Wald als Fläche:** Die ganze Waldfläche im Westen (`WALD` in
+  `karte.js`, mehrere Kreise) hat das Walddach als Boden, mit weichem Rand ins
+  Gras, und ist dicht mit Nadelbäumen bewachsen (keine hellen Laubbäume oder
+  Büsche). Dunkel ist nur, was unter dem Dach liegt: der Waldweg ab dem
+  Hindernis, der Pfad und (etwas heller) die Lichtung der Hütte. Dort sieht
+  man nur im Lichtkegel.
