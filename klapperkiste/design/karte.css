@@ -104,3 +104,5 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 /* Fenster (große Karte, Meldung, Laden) liegen über allen Anzeigen am Rand */
 #grosskarte, #meldung, #laden, #ziel { z-index: 8; }
 .hud span.auftrag { white-space: pre-line; line-height: 1.5; } /* mehrere Aufträge untereinander */
+/* Ton an/aus im Gesprächsfeld */
+.g-ton { position: absolute; top: -18px; right: 12px; font-size: 16px; line-height: 1; padding: 6px 8px; border-radius: 10px; border: 3px solid #1d1a16; background: #fffaf0; cursor: pointer; }

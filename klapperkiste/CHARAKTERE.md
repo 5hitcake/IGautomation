@@ -152,3 +152,25 @@ Background illustration for a game dialogue scene, seen at eye level from the gr
 - Immer automatisch: kleine Löcher in der Figur werden geschlossen, kleine
   freistehende Papierkrümel neben der Figur entfernt.
 
+
+## Gebrummel statt Sprache
+
+Die Figuren sprechen keine echte Sprache, sondern brummeln beim Eintippen des
+Texts unverständliche Silben (wie bei Animal Crossing). So bleibt es in jeder
+Übersetzung gleich. Erzeugt wird es im Browser (`STIMMEN` in `design/karte.js`):
+je Figur Grundtonhöhe, Klangfarbe, Zittern und Rauheit; jede Silbe bekommt
+einen zufälligen „Vokal“, Satzzeichen machen eine kurze Pause, Großbuchstaben
+werden etwas höher betont. Förster Moos' Vogel Pieps piepst ab und zu dazwischen.
+Der Knopf 🔊/🔇 im Gesprächsfeld schaltet den Ton aus (wird im Browser gemerkt).
+
+| Figur | Stimme |
+|---|---|
+| Opa Bolzen | tief, alt und etwas zittrig |
+| Knut Kurbel | sehr tief und brummig, rau |
+| Bäuerin Hilde | warm und freundlich, mittel |
+| Förster Moos | tief und rau, mit Vogelpiepsen |
+| Direktorin Zylinda | hoch und lebhaft |
+| Kapitänin Kiel | mittel, rau (Seebärin) |
+| Hüttenwirt Frieder | gemütlich, mittel-tief |
+| Polier Brösel | ganz tief und rau |
+| Gino, Funke | heller, Gino singend, Funke zackig |

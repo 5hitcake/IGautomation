@@ -503,6 +503,77 @@ window.Karte = function (opt = {}) {
     box.focus();
     zeile();
   }
+  // --- Gebrummel: unverständliche Silben statt Sprache (bleibt in jeder Sprache gleich) ---
+  // Jede Figur hat eine Grundtonhöhe, eine Klangfarbe und ein Tempo. Beim Eintippen
+  // erklingt etwa jede dritte Buchstabengruppe eine kurze Silbe mit zufälligem „Vokal“
+  // (Bandpass-Filter), Satzzeichen machen eine kleine Pause.
+  const STIMMEN = {
+    opa: { ton: 115, welle: "triangle", wackel: 9, rauh: 0.15 },     // alt, etwas zittrig
+    knut: { ton: 92, welle: "sawtooth", wackel: 2, rauh: 0.35 },     // tief und brummig
+    hilde: { ton: 205, welle: "triangle", wackel: 3, rauh: 0.05 },   // warm, freundlich
+    moos: { ton: 100, welle: "sawtooth", wackel: 4, rauh: 0.25, piep: true }, // mit Vogel im Bart
+    gino: { ton: 175, welle: "square", wackel: 5, rauh: 0.05 },
+    funke: { ton: 230, welle: "square", wackel: 2, rauh: 0.1 },
+    broesel: { ton: 78, welle: "sawtooth", wackel: 1, rauh: 0.4 },
+    zylinda: { ton: 285, welle: "triangle", wackel: 6, rauh: 0 },
+    kiel: { ton: 150, welle: "sawtooth", wackel: 3, rauh: 0.3 },
+    frieder: { ton: 135, welle: "triangle", wackel: 4, rauh: 0.1 },
+  };
+  const VOKALE = [700, 1000, 1400, 1900, 2500]; // grobe Formanten für a, o, e, i, ü
+  let audio = null, laerm = null;
+  let tonAn = true;
+  try { tonAn = localStorage.getItem("klapperkiste-ton") !== "aus"; } catch { /* egal */ }
+  function audioBereit() {
+    if (!tonAn) return null;
+    try {
+      if (!audio) {
+        audio = new (window.AudioContext || window.webkitAudioContext)();
+        laerm = audio.createBuffer(1, audio.sampleRate * 0.2, audio.sampleRate);
+        const d = laerm.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (audio.state === "suspended") audio.resume();
+    } catch { audio = null; }
+    return audio;
+  }
+  let silben = 0; // für automatische Tests
+  function silbe(figur, betont) {
+    const a = audioBereit();
+    if (!a) return;
+    const st = STIMMEN[figur] || { ton: 150, welle: "triangle", wackel: 3, rauh: 0.1 };
+    const t = a.currentTime, dauer = 0.07 + Math.random() * 0.05;
+    const f = st.ton * (0.85 + Math.random() * 0.45) * (betont ? 1.15 : 1);
+    const osz = a.createOscillator();
+    osz.type = st.welle;
+    osz.frequency.setValueAtTime(f, t);
+    osz.frequency.linearRampToValueAtTime(f * (0.9 + Math.random() * 0.25), t + dauer);
+    const vib = a.createOscillator(), vibStaerke = a.createGain();
+    vib.frequency.value = 7; vibStaerke.gain.value = st.wackel;
+    vib.connect(vibStaerke).connect(osz.frequency);
+    const vokal = a.createBiquadFilter();
+    vokal.type = "bandpass"; vokal.Q.value = 4;
+    vokal.frequency.value = VOKALE[Math.floor(Math.random() * VOKALE.length)];
+    const lautst = a.createGain();
+    lautst.gain.setValueAtTime(0, t);
+    lautst.gain.linearRampToValueAtTime(0.22, t + 0.012);
+    lautst.gain.exponentialRampToValueAtTime(0.001, t + dauer);
+    osz.connect(vokal).connect(lautst).connect(a.destination);
+    const tief = a.createGain(); tief.gain.value = 0.35; osz.connect(tief).connect(lautst); // Grundton dazu
+    if (st.rauh > 0) { // etwas Rauschen für raue Stimmen
+      const r = a.createBufferSource(); r.buffer = laerm;
+      const rg = a.createGain(); rg.gain.value = st.rauh * 0.5;
+      r.connect(rg).connect(vokal); r.start(t); r.stop(t + dauer);
+    }
+    osz.start(t); vib.start(t); osz.stop(t + dauer + 0.02); vib.stop(t + dauer + 0.02);
+    if (st.piep && Math.random() < 0.06) { // ab und zu piepst Pieps dazwischen
+      const v = a.createOscillator(), vg = a.createGain();
+      v.type = "sine"; v.frequency.setValueAtTime(3200, t + 0.05); v.frequency.linearRampToValueAtTime(4200, t + 0.11);
+      vg.gain.setValueAtTime(0.06, t + 0.05); vg.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+      v.connect(vg).connect(a.destination); v.start(t + 0.05); v.stop(t + 0.14);
+    }
+    silben++;
+  }
+
   function zeile() {
     const [geste, text] = gZeilen[gNr];
     const fig = $("gFigur"), figuren = (D.figuren || {})[$("gespraech").dataset.figur] || {};
@@ -511,12 +582,21 @@ window.Karte = function (opt = {}) {
     }
     const p = $("gText");
     clearInterval(gTipp);
-    if (reduce) { p.textContent = text; gTipp = null; return; }
-    let i = 0;
+    const figur = $("gespraech").dataset.figur;
+    if (reduce) { // ohne Animation: nur ein kurzes Gebrummel
+      p.textContent = text; gTipp = null;
+      for (let k = 0; k < 4; k++) setTimeout(() => silbe(figur, k === 0), k * 110);
+      return;
+    }
+    let i = 0, schritt = 0, pause = 0;
     p.textContent = "";
     gTipp = setInterval(() => {
       i += 2;
       p.textContent = text.slice(0, i);
+      const neu = text.slice(i - 2, i);
+      if (/[.,!?…:;]/.test(neu)) pause = 4; // Satzzeichen: kurz Luft holen
+      else if (pause > 0) pause--;
+      else if (schritt++ % 3 === 0 && /[\p{L}]/u.test(neu)) silbe(figur, /[A-ZÄÖÜ]/.test(neu));
       if (i >= text.length) { clearInterval(gTipp); gTipp = null; }
     }, 30);
   }
@@ -527,6 +607,16 @@ window.Karte = function (opt = {}) {
     $("gespraech").hidden = true;
     if (gEnde) gEnde();
   }
+  const tonKnopf = document.createElement("button");
+  tonKnopf.type = "button"; tonKnopf.className = "g-ton";
+  const tonZeigen = () => { tonKnopf.textContent = tonAn ? "🔊" : "🔇"; tonKnopf.setAttribute("aria-label", tonAn ? "Ton aus" : "Ton an"); };
+  tonZeigen();
+  tonKnopf.addEventListener("click", (e) => {
+    e.stopPropagation();
+    tonAn = !tonAn; tonZeigen();
+    try { localStorage.setItem("klapperkiste-ton", tonAn ? "an" : "aus"); } catch { /* egal */ }
+  });
+  document.querySelector("#gespraech .g-box").append(tonKnopf);
   $("gespraech").addEventListener("click", weiter);
   $("gespraech").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); weiter(); } });
 
@@ -1521,7 +1611,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { get silben() { return silben; }, auto, planen, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   // Platz um die Kartenstücke und Reifen freiräumen
   for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && [...STUECKE, ...SAMMEL].some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
