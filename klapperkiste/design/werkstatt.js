@@ -18,6 +18,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "autoreifen", kat: "rad", name: "Autoreifen" },
     { id: "traktorreifen", kat: "rad", name: "Traktorreifen" },
     { id: "schneeketten", kat: "rad", name: "Rad mit Schneeketten" },
+    { id: "ballonreifen", kat: "rad", name: "Ballonreifen" },
     { id: "maeher", kat: "motor", name: "Rasenmäher-Motor" },
     { id: "raketenmotor", kat: "motor", name: "Raketen-Triebwerk" },
     { id: "mopedmotor", kat: "motor", name: "Mopedmotor" },
