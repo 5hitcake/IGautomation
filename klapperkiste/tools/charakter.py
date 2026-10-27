@@ -7,7 +7,8 @@ Reihenfolge der Gesten: 1 hallo (oben links), 2 nachdenken (oben rechts),
 3 auftrag (unten links), 4 juhu (unten rechts).
 
 Aufruf:
-  python klapperkiste/tools/charakter.py EINGABE NAME [--arme] [--saum GESTE] [--loch GESTE:X,Y] [--toleranz N]
+  python klapperkiste/tools/charakter.py EINGABE NAME [--arme] [--saum GESTE] [--loch GESTE:X,Y]
+                                         [--toleranz N]
   --arme: auch weiße Lücken zwischen Arm und Körper entfernen (nicht bei weißer Kleidung)
   --saum GESTE: hellen Papiersaum um Kopf und Arme dieser Geste abtragen (nur obere
     Hälfte, sonst frisst er sich in weiße Hosenstreifen), z. B. --saum hallo bei Zylinda
