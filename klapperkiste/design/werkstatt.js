@@ -18,6 +18,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "maeher", kat: "motor", name: "Rasenmäher-Motor" },
     { id: "raketenmotor", kat: "motor", name: "Raketen-Triebwerk" },
     { id: "mopedmotor", kat: "motor", name: "Mopedmotor" },
+    { id: "traktormotor", kat: "motor", name: "Traktormotor" },
     { id: "giesskanne", kat: "energie", name: "Gießkanne" },
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
