@@ -135,7 +135,8 @@ def kleine_loecher_zu(teil: Image.Image, max_flaeche: int = 80) -> Image.Image:
                 cx, cy = stapel.pop()
                 loch.append((cx, cy))
                 for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
-                    if 0 <= nx < teil.width and 0 <= ny < teil.height and ipx[nx, ny] == 255 and (nx, ny) not in gesehen:
+                    drin = 0 <= nx < teil.width and 0 <= ny < teil.height
+                    if drin and ipx[nx, ny] == 255 and (nx, ny) not in gesehen:
                         gesehen.add((nx, ny))
                         stapel.append((nx, ny))
             if len(loch) <= max_flaeche and not stapel:
