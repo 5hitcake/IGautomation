@@ -23,6 +23,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "giesskanne", kat: "energie", name: "Gießkanne" },
     { id: "kanister", kat: "energie", name: "Benzinkanister" },
     { id: "milchkanne", kat: "energie", name: "Milchkanne" },
+    { id: "batterieturm", kat: "energie", name: "Batterie-Turm" },
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "sofasessel", kat: "sitz", name: "Ohrensessel" },
     { id: "traktorsitz", kat: "sitz", name: "Traktorsitz" },
