@@ -117,8 +117,8 @@ der Mitte bleibt Platz für die Figur. Ablage:
 |---|---|---|
 | Schrottplatz (Knut) | `schrottplatz.png` | ✅ |
 | Opas Werkstatt (Spielstart) | `werkstatt.png` | ✅ |
-| Bauernhof (Hilde) | `bauernhof.png` | Prompt unten |
-| Försterhütte (Moos) | `foersterhuette.png` | Prompt unten |
+| Bauernhof (Hilde) | `bauernhof.png` | ✅ |
+| Försterhütte (Moos) | `foersterhuette.png` | ✅ |
 
 ### Opas Werkstatt
 
@@ -137,4 +137,12 @@ Background illustration for a game dialogue scene, seen at eye level from the gr
 ```
 Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals except a small bird on a branch. A small clearing deep in a dark pine forest in the evening: on the right a cosy log cabin with a mossy roof, a warm glowing window and a lantern hanging by the door, a stack of firewood, an axe in a chopping block and antlers above the door, tall dark fir trees all around, a few rays of golden evening light falling through the branches, ferns and mushrooms on the ground. The left half and the centre of the image are calm and open: a soft forest floor with pine needles and a narrow dirt path, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
 ```
+
+## Ausschneiden, Sonderfälle
+
+- **Direktorin Zylinda:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/zylinda.jpg zylinda --saum hallo --loch nachdenken:0.81,0.387`
+  (`--saum` trägt in Pose 1 den hellen Papierrand um Haare und Arm ab, `--loch`
+  macht in Pose 2 die weiße Lücke zwischen Kopf, Hand und Ärmel frei, ohne den
+  weißen Handschuh anzufassen). Kleine eingeschlossene Löcher in der Figur
+  schließt das Werkzeug inzwischen immer von selbst.
 

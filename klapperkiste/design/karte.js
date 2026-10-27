@@ -51,6 +51,9 @@ window.Karte = function (opt = {}) {
   // Hütte am Feldrand: Bild 11 m breit, Mitte bei (x, y), Tür nach Süden zum Weg. Haus = Dach und Veranda.
   // Bauernhof: Bild 32 m breit, linke obere Ecke bei (X, Y), Hoftor unten in der Mitte.
   // Häuser: Wohnhaus (L-Form als zwei Rechtecke) und Scheune, aus dem Bild vermessen.
+  // Försterhütte im dunklen Wald: Bild 14 m breit, Mitte bei (x, y), Pfad unten zum Waldweg.
+  // Dach und Laterne aus dem Bild vermessen.
+  const FOERSTER = { x: 36, y: 186, haus: [32.4, 178.4, 39.7, 184.3], bereich: [29, 175.6, 43, 196.4], laterne: [41, 185.5] };
   const HOF = { X: 260, Y: 141.25, haeuser: [[261.3, 141.25, 275.5, 149.3], [261.3, 141.25, 269.7, 156.2],
     [276.4, 141.25, 290.6, 148.9]], bereich: [260, 141, 292, 159.5] };
   const HUETTE = { x: 244, y: 168, haus: [241.4, 164.1, 246.7, 170.9], bereich: [238.5, 163.4, 249.5, 172.6] };
@@ -83,7 +86,10 @@ window.Karte = function (opt = {}) {
   const WEIDEWEG = [[203, 272], [206, 290], [230, 296], [270, 298], [292, 290], [298, 270], [300, 230], [292, 200],
     [262, 190], [240, 177]];
   const HOFWEG = [[276, 194.7], [276, 161]]; // Zufahrt vom Weideweg zum Hoftor
-  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG];
+  // Feldweg: vom Weideweg nach Norden zu den Feldern. Hier steht Hildes Schafherde im Weg.
+  const FELDERWEG = [[296, 215], [306, 190], [309, 160], [307, 120], [300, 85]];
+  const WALDPFAD = [[60, 214], [45, 212], [37.5, 205], [36, 196]]; // durchs Tor zur Försterhütte
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD];
   const WEG_BREITE = 4.5;
 
   function abstandStrecke(px, py, a, b) {
@@ -98,7 +104,7 @@ window.Karte = function (opt = {}) {
   }
   function frei(x, y, r) {
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
-    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich]) {
+    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich]) {
       if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
     }
     if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
@@ -132,7 +138,7 @@ window.Karte = function (opt = {}) {
   function karteBauen() {
     // Weide mit Zaun östlich des Wegs, der Abzweig endet am geschlossenen Gatter
     zaun([[214, 206], [282, 206], [282, 284], [214, 284], [214, 212]]);
-    zaun([[56, 204], [56, 224]]);
+    zaun([[56, 202], [56, 209]]); zaun([[56, 219], [56, 226]]); // offenes Tor zum Wald
     setze("schild", 176, 210, { fest: true, rot: 0.1, s: 1, spiegel: false, r: 0.5 });
     // Hofzaun des Schuppens nur als Kollision, das Bild zeigt ihn schon
     for (let i = 1; i < SCHROTT.zaun.length; i++) ZAEUNE.push([SCHROTT.zaun[i - 1], SCHROTT.zaun[i]]);
@@ -175,8 +181,10 @@ window.Karte = function (opt = {}) {
     Object.assign(auto, { ...START, v: 0 });
     route = null;
     gebieteStart();
-    Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set() });
-    hinweisGezeigt = false; angehalten = false; hildeKennt = false;
+    Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null });
+    hinweisGezeigt = false; angehalten = false; moosKennt = false;
+    for (const h of HINDERNISSE) h.weg = false;
+    herdeSetzen();
     for (const r of SAMMEL) r.weg = false;
     hudNeu(); $("laden").hidden = true;
     nebelNeu();
@@ -243,7 +251,7 @@ window.Karte = function (opt = {}) {
         if ((cx - a[0]) * nx + (cy - a[1]) * ny < 0) { nx = -nx; ny = -ny; }
         schieb(nx, ny, tief);
       }
-      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, ...HOF.haeuser]) {
+      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser]) {
         const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
         const d = Math.hypot(cx - hx, cy - hy);
         if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
@@ -293,13 +301,18 @@ window.Karte = function (opt = {}) {
     { id: "rundling_hinten", name: "Rundling hinten", preis: 25 },
     { id: "rundling_mitte", name: "Rundling Mitte", preis: 35 },
     { id: "rundling_vorne", name: "Rundling vorne", preis: 30 },
+    // Lieferung nach dem Batterie-Auftrag
+    { id: "spezialhupe", name: "Spezialhupe", preis: 25, ab: () => spiel.auftrag === "erledigt" },
   ];
   // auftrag: null | "reifen" | "batterie" | "erledigt"; teile: Belohnungen (für die Kartenprobe ohne Werkstatt)
-  const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set() };
+  const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null };
   function hudNeu() {
-    const a = $("auftrag"), n = BRAUCHT[spiel.auftrag];
-    a.hidden = !n;
-    if (n) a.textContent = `📋 ${spiel.auftrag === "reifen" ? "Alte Reifen" : "Alte Batterie"} für Knut · ${spiel.beutel}/${n}`;
+    const a = $("auftrag"), n = BRAUCHT[spiel.auftrag], zeilen = [];
+    if (n) zeilen.push(`📋 ${spiel.auftrag === "reifen" ? "Alte Reifen" : "Alte Batterie"} für Knut · ${spiel.beutel}/${n}`);
+    if (spiel.hilde === "auftrag") zeilen.push("📋 Hildes Schafe vom Feldweg scheuchen");
+    if (spiel.hilde === "frei") zeilen.push("📋 Zurück zu Hilde");
+    a.hidden = !zeilen.length;
+    a.textContent = zeilen.join("\n");
     $("geld").textContent = `🪙 ${spiel.geld}`;
     $("geld").title = `${spiel.geld} Münzen`;
     $("geld").hidden = spiel.auftrag === null;
@@ -332,21 +345,66 @@ window.Karte = function (opt = {}) {
     if (r) aufsammeln(r);
   }
   // Wieder am Schrottplatz: Reifen abgeben oder im Laden stöbern
-  // Bäuerin Hilde auf dem Bauernhof: erst einmal nur Begrüßung, ihr Auftrag kommt noch.
-  // Sie deutet schon an, worum es gehen wird (Schafe auf dem Weg, Spezialhupe).
-  let hildeKennt = false;
+  // Bäuerin Hilde: Ihre Schafherde steht auf dem Feldweg hinter dem Hof. Mit der
+  // Spezialhupe (gibt es bei Knut) scheucht man sie weg, Hilde belohnt mit einem
+  // Karosserie-Teil. spiel.hilde: null | "auftrag" | "frei" (Schafe weg) | "erledigt"
   function beiHilde() {
-    const hilde = (zeilen) => gespraech("hilde", "Bäuerin Hilde", "bauernhof", zeilen);
-    if (hildeKennt) {
-      return hilde([["nachdenken", "Na, wieder da? Meine Schafe stehen immer noch ständig auf dem Weg. Wenn du eine richtig laute Hupe findest, sag Bescheid!"]]);
+    const hilde = (zeilen, danach) => gespraech("hilde", "Bäuerin Hilde", "bauernhof", zeilen, danach);
+    if (!spiel.hilde) {
+      return hilde([
+        ["hallo", "Ja grüß dich! Ein Besuch auf dem Hof, wie schön. Ich bin Hilde, mir gehören die Weide, die Schafe und die Kühe da drüben."],
+        ["nachdenken", "Nur meine Schafe machen mir Sorgen: Die stehen hinter dem Hof mitten auf dem Feldweg und rühren sich keinen Zentimeter."],
+        ["auftrag", "Kannst du sie mir vom Weg scheuchen? Ich zeichne dir den Feldweg auf deiner Karte ein. Aber Vorsicht: Rufen hilft da nix, die hören nur auf eine richtig laute Hupe!"],
+        ["juhu", "Wenn der Weg frei ist, hab ich was Schönes für dich. Und frische Milch gibt's sowieso!"],
+      ], () => {
+        spiel.hilde = "auftrag"; hudNeu();
+        const g = GEBIETE.find((q) => q.id === "felder");
+        if (!g.offen) { g.offen = true; nebelNeu(); toast("Neu auf der Karte: der Feldweg zu den Feldern"); }
+      });
     }
-    hildeKennt = true;
-    hilde([
-      ["hallo", "Ja grüß dich! Ein Besuch auf dem Hof, wie schön. Ich bin Hilde, mir gehören die Weide, die Schafe und die Kühe da drüben."],
-      ["nachdenken", "Nur die Schafe machen mir Sorgen: Die stehen dauernd mitten auf dem Weg und rühren sich keinen Zentimeter."],
-      ["auftrag", "Mit so einer Klapperkiste kommst du doch viel herum. Halt die Augen offen nach einer richtig lauten Hupe, dann hätte ich Arbeit für dich."],
-      ["juhu", "Und komm ruhig öfter vorbei, für Gäste gibt's bei mir immer frische Milch!"],
+    if (spiel.hilde === "auftrag") {
+      return hilde([["nachdenken", hatTeil("hupe")
+        ? "Du hast eine Hupe? Prima! Dann ab zum Feldweg hinter dem Hof und kräftig drauf!"
+        : "Die Schafe stehen immer noch auf dem Feldweg. Ohne eine richtig laute Hupe wird das nix. Frag doch mal Knut auf dem Schrottplatz."]]);
+    }
+    if (spiel.hilde === "frei") {
+      spiel.hilde = "erledigt"; spiel.geld += 30; spiel.teile.add("pickup_hinten"); hudNeu();
+      if (opt.belohnung) opt.belohnung("pickup_hinten");
+      return hilde([
+        ["juhu", "Der Weg ist frei! Ich hab's bis hierher tröten hören, die Schafe sind jetzt auf der Wiese. Danke dir!"],
+        ["auftrag", "Hier, 30 Münzen. Und nimm das hier mit: das Heck von unserem alten Pick-up. Der Rest davon steht noch irgendwo herum."],
+      ], () => toast("Pick-up hinten erhalten! Liegt in Opas Werkstatt im Regal.", 4500));
+    }
+    hilde([["hallo", "Schön, dich zu sehen! Die Schafe sind brav auf der Wiese geblieben. Komm ruhig wieder vorbei!"]]);
+  }
+  // Hupen vor der Herde: Schafe stieben auseinander, danach fährt das Auto weiter zum Ziel
+  // Förster Moos in der Försterhütte: vorerst Begrüßung, sein Auftrag kommt noch
+  let moosKennt = false;
+  function beiMoos() {
+    const moos = (zeilen) => gespraech("moos", "Förster Moos", "foersterhuette", zeilen);
+    if (moosKennt) {
+      return moos([["nachdenken", "Na, wieder im Wald unterwegs? Ich grüble noch, wobei du mir helfen könntest. Komm bald wieder!"]]);
+    }
+    moosKennt = true;
+    moos([
+      ["hallo", "Na so was, Besuch mitten im dunklen Wald! Ich bin Förster Moos. Das Piepsen? Das ist Pieps, der wohnt in meinem Bart."],
+      ["nachdenken", "Ohne Licht hätte dich der Wald glatt verschluckt. Gut, dass dir einer einen Scheinwerfer eingebaut hat."],
+      ["auftrag", "Ich hätte da bestimmt was für dich zu tun. Aber erst muss ich in Ruhe nachdenken, was genau. Schau bald wieder vorbei!"],
+      ["juhu", "Und fahr vorsichtig, hier laufen nachts die Hasen über den Weg!"],
     ]);
+  }
+  function hupenBei(h) {
+    h.weg = true;
+    $("meldung").hidden = true;
+    toast("📯 TRÖÖÖT! Die Schafe springen zur Seite.");
+    if (navigator.vibrate) { try { navigator.vibrate([60, 40, 120]); } catch { /* egal */ } }
+    for (const sf of HERDE) {
+      const seite = sf.x < h.x ? -1 : 1;
+      Object.assign(sf, { flucht: true, zx: h.x + seite * zufall(9, 15), zy: sf.y + zufall(-6, 6) });
+    }
+    if (spiel.hilde === "auftrag") { spiel.hilde = "frei"; hudNeu(); }
+    const ziel = zielWahl;
+    setTimeout(() => { if (ziel && !route) planen(ziel); }, 1500);
   }
 
   function beiKnut() {
@@ -376,6 +434,7 @@ window.Karte = function (opt = {}) {
       return knut([
         ["juhu", "Die Batterie hat ja noch ordentlich Saft! Und 15 Münzen obendrauf, weil du so fix warst."],
         ["auftrag", "Hier, der Scheinwerfer gehört dir. Lass ihn dir von Opa einbauen, dann siehst du auch im dunklen Wald was."],
+        ["nachdenken", "Ach, und gerade kam eine Lieferung rein: eine Spezialhupe, laut wie ein Nebelhorn. Steht jetzt im Laden."],
       ], () => { toast("Alter Scheinwerfer erhalten! Er liegt in Opas Werkstatt im Regal.", 4500); ladenAuf(); });
     }
     ladenAuf();
@@ -385,6 +444,7 @@ window.Karte = function (opt = {}) {
     const liste = l.querySelector(".waren");
     liste.innerHTML = "";
     for (const w of LADEN) {
+      if (w.ab && !w.ab()) continue;
       const zeile = document.createElement("div");
       zeile.className = "ware";
       const name = document.createElement("span");
@@ -395,7 +455,7 @@ window.Karte = function (opt = {}) {
       knopf.textContent = hat ? "gekauft" : `🪙 ${w.preis}`;
       knopf.disabled = hat || spiel.geld < w.preis;
       knopf.addEventListener("click", () => {
-        spiel.geld -= w.preis; spiel.gekauft.add(w.id); hudNeu();
+        spiel.geld -= w.preis; spiel.gekauft.add(w.id); spiel.teile.add(w.id); hudNeu();
         if (opt.gekauft) opt.gekauft(w.id);
         toast(`${w.name} gekauft! Liegt jetzt in Opas Werkstatt im Regal.`);
         ladenAuf();
@@ -458,6 +518,7 @@ window.Karte = function (opt = {}) {
     { id: "nord", name: "Nordweg und Schrottplatz", x: 214, y: 112, r: 112, offen: false },
     { id: "wald", name: "Waldrand im Westen", x: 70, y: 196, r: 82, offen: false },
     { id: "weide", name: "Weideweg im Osten", x: 282, y: 248, r: 62, offen: false },
+    { id: "felder", name: "Feldweg zu den Feldern", x: 300, y: 140, r: 70, offen: false }, // zeigt Hilde
   ];
   const STUECKE = [
     { gebiet: "nord", x: 184, y: 213 },
@@ -508,7 +569,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -550,7 +611,9 @@ window.Karte = function (opt = {}) {
     { id: "feldrand", name: "Feldrand", art: "weg", x: 240, y: 177, gebiet: "nord" },
     { id: "weide", name: "Weide", art: "weg", x: 298, y: 250, gebiet: "weide" },
     { id: "bauernhof", name: "Bauernhof", art: "ort", x: 276, y: 162, gebiet: "nord" },
-    { id: "foersterhuette", name: "Försterhütte", art: "ort", x: 28, y: 205, gebiet: "wald", kommt: true },
+    { id: "foersterhuette", name: "Försterhütte", art: "ort", x: 36, y: 197, gebiet: "wald" },
+    { id: "felder", name: "Zu den Feldern", art: "weg", x: 300, y: 85, gebiet: "felder" },
+    { id: "muehle", name: "Mühle", art: "ort", x: 296, y: 45, gebiet: "felder", kommt: true },
   ];
   const zielOffen = (z) => !z.kommt && GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
@@ -559,9 +622,14 @@ window.Karte = function (opt = {}) {
     { x: 102, y: 208.5, r: 3, braucht: "licht", titel: "Zu dunkel!",
       text: "Hier beginnt der dunkle Wald. Ohne Licht sieht die Klapperkiste die Hand vor Augen nicht.",
       fehlt: "Es fehlt: Scheinwerfer (Kategorie Licht). Bau in der Werkstatt ein Licht ein." },
+    // Die Schafherde geht nur mit Hupe weg: Mit Hupe hält das Auto trotzdem und man hupt selbst
+    { id: "schafe", x: 309, y: 158, r: 4, braucht: "hupe", aktion: "hupen", titel: "Mäh!",
+      text: "Eine ganze Schafherde steht mitten auf dem Weg und rührt sich keinen Zentimeter.",
+      fehlt: "Es fehlt: eine richtig laute Hupe (Kategorie Hupe). Vielleicht hat Knut eine." },
   ];
   // Ohne Werkstatt (Kartenprobe) zählt eine Belohnung gleich als eingebaut
-  const hatTeil = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : teil === "licht" && spiel.teile.has("scheinwerfer"));
+  const TEIL_FUER = { licht: "scheinwerfer", hupe: "spezialhupe" };
+  const hatTeil = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : spiel.teile.has(TEIL_FUER[teil]));
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
   let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0, angehalten = false;
@@ -592,13 +660,20 @@ window.Karte = function (opt = {}) {
   }
   function hindernisPruefen() {
     for (const h of HINDERNISSE) {
-      if (hatTeil(h.braucht) || Math.hypot(h.x - auto.x, h.y - auto.y) > h.r + 2) continue;
+      if (h.weg || Math.hypot(h.x - auto.x, h.y - auto.y) > h.r + 2) continue;
+      const kann = hatTeil(h.braucht);
+      if (kann && !h.aktion) continue;
       // nur anhalten, wenn die Route noch hinter das Hindernis führt
       if (!route.slice(routeI).some(([x, y]) => Math.hypot(x - h.x, y - h.y) < 1.5)) continue;
       route = null;
-      $("mTitel").textContent = h.titel; $("mText").textContent = h.text; $("mFehlt").textContent = h.fehlt;
+      $("mTitel").textContent = h.titel;
+      const hupen = kann && h.aktion === "hupen";
+      $("mText").textContent = hupen ? "Die Schafe stehen mitten auf dem Weg. Zeit für die Spezialhupe!" : h.text;
+      $("mFehlt").textContent = h.fehlt; $("mFehlt").hidden = hupen;
+      $("hupen").hidden = !hupen; $("zurWerkstatt").hidden = hupen;
+      $("hupen").onclick = () => hupenBei(h);
       $("meldung").hidden = false;
-      $("zurWerkstatt").focus();
+      (hupen ? $("hupen") : $("zurWerkstatt")).focus();
       return true;
     }
     return false;
@@ -614,6 +689,7 @@ window.Karte = function (opt = {}) {
       if (zielWahl.id === "schrottplatz") { if (!besucht) ankunft(); else beiKnut(); }
       else if (zielWahl.id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
       else if (zielWahl.id === "bauernhof") beiHilde();
+      else if (zielWahl.id === "foersterhuette") beiMoos();
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -703,18 +779,30 @@ window.Karte = function (opt = {}) {
   // nur die Dunkelheit ausschneidet und nicht die Karte darunter.
   const dunkel = document.createElement("canvas"), dctx = dunkel.getContext("2d");
   function dunklerWald(w, h) {
-    const WX = 62, WY = 212, WR = 46;
+    const WX = 50, WY = 205, WR = 54; // reicht vom Hindernis (x 102) bis über die Försterhütte
     const mitLicht = hatTeil("licht") && Math.hypot(auto.x - WX, auto.y - WY) < WR + 20;
-    const ziel = mitLicht ? dctx : ctx;
-    if (mitLicht) {
-      if (dunkel.width !== cv.width || dunkel.height !== cv.height) { dunkel.width = cv.width; dunkel.height = cv.height; }
-      dctx.setTransform(1, 0, 0, 1, 0, 0); dctx.clearRect(0, 0, dunkel.width, dunkel.height);
-      dctx.setTransform(ctx.getTransform());
-    }
-    const wg = ziel.createRadialGradient(WX, WY, 8, WX, WY, WR);
+    if (dunkel.width !== cv.width || dunkel.height !== cv.height) { dunkel.width = cv.width; dunkel.height = cv.height; }
+    dctx.setTransform(1, 0, 0, 1, 0, 0); dctx.clearRect(0, 0, dunkel.width, dunkel.height);
+    dctx.setTransform(ctx.getTransform());
+    const wg = dctx.createRadialGradient(WX, WY, 8, WX, WY, WR);
     wg.addColorStop(0, "rgba(4,10,8,0.95)"); wg.addColorStop(0.75, "rgba(4,10,8,0.85)"); wg.addColorStop(1, "rgba(4,10,8,0)");
-    ziel.fillStyle = wg; ziel.beginPath(); ziel.arc(WX, WY, WR, 0, Math.PI * 2); ziel.fill();
-    if (!mitLicht) return;
+    dctx.fillStyle = wg; dctx.beginPath(); dctx.arc(WX, WY, WR, 0, Math.PI * 2); dctx.fill();
+    // Die Laterne an der Försterhütte brennt immer: kleiner warmer Lichtfleck, flackert leicht
+    const [lx, ly] = FOERSTER.laterne, flacker = reduce ? 1 : 1 + Math.sin(performance.now() / 130) * 0.05;
+    const lr = 4.2 * flacker;
+    const laterne = (c, farbe0, farbe1) => {
+      const g = c.createRadialGradient(lx, ly, 0.2, lx, ly, lr);
+      g.addColorStop(0, farbe0); g.addColorStop(1, farbe1);
+      c.fillStyle = g; c.beginPath(); c.arc(lx, ly, lr, 0, Math.PI * 2); c.fill();
+    };
+    dctx.globalCompositeOperation = "destination-out";
+    laterne(dctx, "rgba(0,0,0,0.9)", "rgba(0,0,0,0)");
+    dctx.globalCompositeOperation = "source-over";
+    if (!mitLicht) {
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(dunkel, 0, 0); ctx.restore();
+      laterne(ctx, "rgba(255,200,110,0.3)", "rgba(255,200,110,0)");
+      return;
+    }
     const fx = auto.x + Math.cos(auto.a) * 1.8, fy = auto.y + Math.sin(auto.a) * 1.8, weit = 15, breit = 0.5;
     const kegel = (c, farbe0, farbe1) => {
       const g = c.createRadialGradient(fx, fy, 0.5, fx, fy, weit);
@@ -729,6 +817,7 @@ window.Karte = function (opt = {}) {
     dctx.globalCompositeOperation = "source-over";
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(dunkel, 0, 0); ctx.restore();
     kegel(ctx, "rgba(255,226,140,0.22)", "rgba(255,226,140,0)"); // warmes Licht im Kegel
+    laterne(ctx, "rgba(255,200,110,0.3)", "rgba(255,200,110,0)");
   }
 
   function zeichne() {
@@ -771,6 +860,8 @@ window.Karte = function (opt = {}) {
     if (hu && hu.img.complete && hu.img.naturalWidth) ctx.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
     const hof = OBJ.bauernhof;
     if (hof && hof.img.complete && hof.img.naturalWidth) ctx.drawImage(hof.img, HOF.X, HOF.Y, hof.b, hof.h);
+    const fh = OBJ.foersterhuette;
+    if (fh && fh.img.complete && fh.img.naturalWidth) ctx.drawImage(fh.img, FOERSTER.x - fh.b / 2, FOERSTER.y - fh.h / 2, fh.b, fh.h);
 
     // Route und Ziel
     const t = performance.now() / 1000;
@@ -882,7 +973,7 @@ window.Karte = function (opt = {}) {
       g.fill();
       const [mx0, my0, mx1, my1] = SCHUPPEN.haus;
       g.fillStyle = "#5a3d26"; g.fillRect(mx0 * k, my0 * k, (mx1 - mx0) * k, (my1 - my0) * k);
-      for (const [hx0, hy0, hx1, hy1] of [HUETTE.haus, ...HOF.haeuser]) g.fillRect(hx0 * k, hy0 * k, (hx1 - hx0) * k, (hy1 - hy0) * k);
+      for (const [hx0, hy0, hx1, hy1] of [HUETTE.haus, FOERSTER.haus, ...HOF.haeuser]) g.fillRect(hx0 * k, hy0 * k, (hx1 - hx0) * k, (hy1 - hy0) * k);
     }
     if (!miniGrund.mitNebel) { miniGrund.getContext("2d").drawImage(nebel, 0, 0, s, s); miniGrund.mitNebel = true; }
     mctx.drawImage(miniGrund, 0, 0);
@@ -935,6 +1026,16 @@ window.Karte = function (opt = {}) {
     x: zufall(WEIDE[0] + 3, WEIDE[2] - 3), y: zufall(WEIDE[1] + 3, WEIDE[3] - 3), a: zufall(0, 6.3), zx: 0, zy: 0,
     warte: zufall(0, 5), grast: true }));
   let ueberflug = { naechster: 12, voegel: [] };
+  // Hildes Schafherde steht auf dem Feldweg (Hindernis "schafe"), bis man hupt
+  const HERDE = [];
+  function herdeSetzen() {
+    HERDE.length = 0;
+    const h = HINDERNISSE.find((q) => q.id === "schafe");
+    for (let i = 0; i < 6; i++) {
+      HERDE.push({ x: h.x + zufall(-2.5, 2.5), y: h.y + zufall(-3.5, 3.5), a: zufall(0, 6.3), grast: Math.random() < 0.5,
+        wechsel: zufall(1, 4), flucht: false, zx: 0, zy: 0 });
+    }
+  }
   function tiereStart() {
     VOEGEL.length = 0;
     for (const p of VOGELPLAETZE) schwarmSetzen(p);
@@ -944,6 +1045,14 @@ window.Karte = function (opt = {}) {
     t.a += Math.max(-max, Math.min(max, d));
   }
   function tiereSchritt(dt) {
+    for (const sf of HERDE) {
+      if (sf.flucht) { // davonlaufen zur Wiese neben dem Weg, dort wieder grasen
+        const d = Math.hypot(sf.zx - sf.x, sf.zy - sf.y);
+        if (d < 0.4) { sf.flucht = false; sf.grast = true; continue; }
+        drehZu(sf, Math.atan2(sf.zy - sf.y, sf.zx - sf.x), dt * 6);
+        sf.x += Math.cos(sf.a) * 4 * dt; sf.y += Math.sin(sf.a) * 4 * dt;
+      } else if ((sf.wechsel -= dt) <= 0) { sf.wechsel = zufall(1.5, 5); sf.grast = !sf.grast; sf.a += zufall(-0.8, 0.8); }
+    }
     // Vögel: auffliegen, wenn das Auto nah ist, weg vom Auto und steigen
     for (let i = VOEGEL.length - 1; i >= 0; i--) {
       const v = VOEGEL[i];
@@ -1026,7 +1135,7 @@ window.Karte = function (opt = {}) {
   // Am Boden: Schafe, Hasen, sitzende Vögel und die Schatten der fliegenden
   function tiereBoden(sicht) {
     const T = TIERBILD;
-    for (const sf of SCHAFE) if (imBild(sf.x, sf.y, sicht) && T[sf.art]) {
+    for (const sf of [...SCHAFE, ...HERDE.map((q) => ({ ...q, art: "schaf", grast: q.grast && !q.flucht }))]) if (imBild(sf.x, sf.y, sicht) && T[sf.art]) {
       const b = T[sf.art][sf.grast ? 1 : 0];
       tierSchatten(b, sf.x + 0.15, sf.y + 0.15, sf.a, 1, 1);
       tierZeichnen(b, sf.x, sf.y, sf.a);
@@ -1350,6 +1459,10 @@ window.Karte = function (opt = {}) {
     '<p class="klein">Neue Ware kommt nach Aufträgen. Karosserie-Teile gibt es Stück für Stück.</p>' +
     '<div class="knoepfe"><button type="button" class="knopf zweit">Tschüss, Knut!</button></div></div>';
   laden.querySelector(".zweit").addEventListener("click", () => { laden.hidden = true; });
+  const hupKnopf = document.createElement("button");
+  hupKnopf.type = "button"; hupKnopf.id = "hupen"; hupKnopf.className = "knopf"; hupKnopf.hidden = true;
+  hupKnopf.textContent = "📯 Hupen";
+  $("zurWerkstatt").parentElement.prepend(hupKnopf);
   const stopp = document.createElement("button");
   stopp.type = "button"; stopp.id = "stopp"; stopp.className = "knopf"; stopp.hidden = true;
   stopp.addEventListener("click", () => { angehalten = !angehalten; stopp.classList.remove("tipp"); });
@@ -1359,13 +1472,14 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, SAMMEL, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { auto, planen, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   // Platz um die Kartenstücke und Reifen freiräumen
   for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && [...STUECKE, ...SAMMEL].some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
   netzBauen();
   gebieteStart();
   tiereStart();
+  herdeSetzen();
   nebelNeu();
   requestAnimationFrame(bild);
 

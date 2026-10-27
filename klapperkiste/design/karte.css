@@ -103,3 +103,4 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 #toast { bottom: 96px; }
 /* Fenster (große Karte, Meldung, Laden) liegen über allen Anzeigen am Rand */
 #grosskarte, #meldung, #laden, #ziel { z-index: 8; }
+.hud span.auftrag { white-space: pre-line; line-height: 1.5; } /* mehrere Aufträge untereinander */

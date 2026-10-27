@@ -233,3 +233,15 @@ Rahmen und Karosserie verdecken sie dabei wie am echten Auto teilweise.
 - **Unbekannte Orte**: graues Fragezeichen ohne Namen, z. B. im Nebel oder
   Orte, die es noch nicht gibt (`kommt: true`, vorerst die Försterhütte im
   Wald). Unbekannte Wegweiser werden gar nicht gezeigt.
+
+## 17. Feldweg, Schafherde und Försterhütte
+
+- **Feldweg** vom Weideweg nach Norden zu den Feldern (eigenes Gebiet, das
+  Hilde aufdeckt). Ende: Wegweiser „Zu den Feldern“, dahinter die Mühle als
+  „?“. Auf dem Weg steht Hildes **Schafherde** als Hindernis: Ohne Hupe hält
+  das Auto mit Meldung, mit Hupe kommt der Knopf „📯 Hupen“, danach laufen die
+  Schafe seitlich auf die Wiese und das Auto fährt weiter zum Ziel.
+- **Försterhütte** (`objekte/foersterhuette.png`, 14 m, weicher Rand) am Ende
+  des Waldwegs: Das Gatter ist jetzt ein offenes Tor, ein kurzer Pfad führt
+  zur Hütte. Der dunkle Wald ist größer und reicht über die Hütte, ihre
+  Laterne leuchtet immer mit einem warmen, leicht flackernden Schein.

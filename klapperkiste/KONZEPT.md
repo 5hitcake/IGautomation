@@ -128,9 +128,16 @@ Münzen und der **alte Scheinwerfer**, das erste Licht. Bei Opa eingebaut,
 öffnet er den dunklen Wald: Dort sieht man nur noch den Lichtkegel vor dem
 Auto und einen schwachen Schein drumherum.
 
-Bäuerin Hilde auf dem Bauernhof begrüßt beim ersten Besuch und deutet ihr
-Problem an (Schafe stehen auf dem Weg, sie sucht eine laute Hupe). Ihr
-Auftrag ist noch offen.
+**Hildes Auftrag „Die Schafe müssen weg“:** Beim ersten Besuch zeichnet Hilde
+den Feldweg hinter dem Hof auf die Karte. Dort steht ihre Schafherde auf dem
+Weg; ohne Hupe hält das Auto mit „Mäh!“. Nach dem Batterie-Auftrag hat Knut
+eine **Spezialhupe** (25 Münzen, eigener Platz „Hupe“ am Auto). Mit eingebauter
+Hupe erscheint vor der Herde der Knopf „📯 Hupen“, die Schafe stieben auf die
+Wiese, der Weg zu den Feldern ist frei. Hilde belohnt mit 30 Münzen und
+**Pick-up hinten**. Am Ende des Feldwegs wartet die Mühle (noch „?“).
+
+**Förster Moos** wohnt in der Försterhütte am Ende des Waldwegs (nur mit
+Licht erreichbar) und begrüßt vorerst nur; sein Auftrag kommt noch.
 
 Noch offen: Name der Währung (vorläufig „Münzen“), Preise und wie stark Teile sich in den Werten
 unterscheiden (kommt mit den Teile-Werten).

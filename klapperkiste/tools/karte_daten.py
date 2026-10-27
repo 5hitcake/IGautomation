@@ -30,7 +30,7 @@ ZIEL_TEILE = os.path.join(ROOT, "design", "spielstart_teile.js")
 BODEN = ["gras_ruhig", "gras", "erde", "schotter"]
 OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz",
            "reifen", "batterie", "huette",
-           "bauernhof"]
+           "bauernhof", "foersterhuette"]
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
          "radV": "schubkarre", "motor": "maeher", "energie": "giesskanne", "sitz": "kuechenstuhl",
          "lenkung": "fahrradlenker"}
@@ -41,7 +41,8 @@ MODELLE = {"rundling": "Rundling", "pickup": "Pick-up", "badewanne": "Badewanne"
            "wohnwagen": "Mini-Wohnwagen", "geldtransporter": "Geldtransporter", "schneeraupe": "Schneeraupe",
            "gewaechshaus": "Gewächshaus", "zirkus": "Zirkus", "schlauchboot": "Schlauchboot"}
 TIERE = ["vogel", "hase", "schaf", "kuh"]  # je zwei Posen: NAME_1.png, NAME_2.png
-LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne", "scheinwerfer"]  # Knuts Laden und Belohnungen
+LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne", "scheinwerfer", "spezialhupe",
+         "pickup_hinten"]  # Knuts Laden und Belohnungen
 AUTO_PX = 320  # Breite des Autobilds (10 Zellen = 4 m)
 
 

@@ -322,6 +322,26 @@
       ],
       "karosserie": "vorne",
       "regel": "Vorderer Teil einer Karosserie (Haube, Kühlergrill)."
+    },
+    "hupe": {
+      "name": "Hupe",
+      "seite": [
+        2,
+        1
+      ],
+      "oben": [
+        2,
+        1
+      ],
+      "anker_seite": [
+        "mitte",
+        "mitte"
+      ],
+      "anker_oben": [
+        "mitte",
+        "mitte"
+      ],
+      "regel": "Hupe außen an der linken Wagenseite zwischen den Rädern, Trichter zeigt nach vorne (rechts). Seite: liegt über dem Rahmen vor dem Sitz."
     }
   },
   "slots": {
@@ -544,6 +564,19 @@
           3
         ]
       ]
+    },
+    "hupe": {
+      "kategorie": "hupe",
+      "seite": [
+        4,
+        4
+      ],
+      "oben": [
+        [
+          4,
+          0
+        ]
+      ]
     }
   },
   "reihenfolge_seite": [
@@ -552,6 +585,7 @@
     "energie",
     "sitz",
     "lenkung",
+    "hupe",
     "vorderbau",
     "karoH",
     "karoM",
@@ -576,6 +610,7 @@
     "energie",
     "sitz",
     "lenkung",
+    "hupe",
     "vorderbau",
     "karoH",
     "karoM",

@@ -20,6 +20,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "kuechenstuhl", kat: "sitz", name: "Küchenstuhl" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
     { id: "scheinwerfer", kat: "licht", name: "Alter Scheinwerfer" },
+    { id: "spezialhupe", kat: "hupe", name: "Spezialhupe" },
     { id: "schlauchboot_hinten", kat: "karosserie_hinten", name: "Schlauchboot hinten" },
     { id: "schlauchboot_mitte", kat: "karosserie_mitte", name: "Schlauchboot Mitte" },
     { id: "schlauchboot_vorne", kat: "karosserie_vorne", name: "Schlauchboot vorne" },
@@ -83,12 +84,13 @@ window.Werkstatt = function (opt = {}) {
     { id: "sitz", label: "Sitz", kats: ["sitz"] },
     { id: "lenkung", label: "Lenkung", kats: ["lenkung"] },
     { id: "licht", label: "Licht", kats: ["licht"] },
+    { id: "hupe", label: "Hupe", kats: ["hupe"] },
     { id: "karosserie", label: "Karosserie", kats: ["karosserie_hinten", "karosserie_mitte", "karosserie_vorne"] },
   ];
-  const SLOTS = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung", "licht",
+  const SLOTS = ["rahmen", "achseH", "achseV", "radH", "radV", "motor", "energie", "sitz", "lenkung", "licht", "hupe",
     "karoH", "karoM", "karoV"];
   const LABEL = { rahmen: "Rahmen", achseH: "Hinterachse", achseV: "Vorderachse", radH: "Hinterräder", radV: "Vorderräder",
-    motor: "Motor", energie: "Tank", sitz: "Sitz", lenkung: "Lenkung", licht: "Licht",
+    motor: "Motor", energie: "Tank", sitz: "Sitz", lenkung: "Lenkung", licht: "Licht", hupe: "Hupe",
     karoH: "Karosserie hinten", karoM: "Karosserie Mitte", karoV: "Karosserie vorne" };
   const KARO = ["karoH", "karoM", "karoV"];
   // Das muss drin sein, bevor die Karosserie drauf darf (fahrbereit)
@@ -97,7 +99,7 @@ window.Werkstatt = function (opt = {}) {
 
   // Einbaureihenfolge: was muss schon drin sein?
   const NEEDS = { rahmen: null, achseH: "rahmen", achseV: "rahmen", radH: "achseH", radV: "achseV",
-    motor: "rahmen", energie: "rahmen", sitz: "rahmen", lenkung: "rahmen", licht: "rahmen",
+    motor: "rahmen", energie: "rahmen", sitz: "rahmen", lenkung: "rahmen", licht: "rahmen", hupe: "rahmen",
     karoH: "fahrbereit", karoM: "fahrbereit", karoV: "fahrbereit" };
   // Was blockiert das Ausbauen?
   const BLOCKS = { achseH: ["radH"], achseV: ["radV"] };
@@ -187,7 +189,7 @@ window.Werkstatt = function (opt = {}) {
 
   // Darf dieser Platz ausgebaut werden? Gibt den Grund zurück, falls nicht.
   function removeBlocked(slot) {
-    if (!KARO.includes(slot) && slot !== "licht" && KARO.some((s) => state.mounted[s])) {
+    if (!KARO.includes(slot) && slot !== "licht" && slot !== "hupe" && KARO.some((s) => state.mounted[s])) {
       return "Erst die Karosserie abnehmen, dann kommst du an die Teile darunter.";
     }
     if (slot === "rahmen" && SLOTS.some((s) => s !== "rahmen" && state.mounted[s])) {
