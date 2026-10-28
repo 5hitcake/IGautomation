@@ -516,6 +516,7 @@ window.Karte = function (opt = {}) {
     }
     const p = $("gText");
     clearInterval(gTipp);
+    if (Ton) Ton.still();
     const figur = $("gespraech").dataset.figur;
     if (reduce) { // ohne Animation: nur ein kurzes Gebrummel
       p.textContent = text; gTipp = null;
@@ -540,11 +541,11 @@ window.Karte = function (opt = {}) {
     }, 30);
   }
   function weiter() {
-    if (gTipp) { clearInterval(gTipp); gTipp = null; $("gText").textContent = gZeilen[gNr][1]; return; }
+    if (gTipp) { clearInterval(gTipp); gTipp = null; $("gText").textContent = gZeilen[gNr][1]; if (Ton) Ton.still(); return; }
     gNr++;
     if (gNr < gZeilen.length) return zeile();
     $("gespraech").hidden = true;
-    if (Ton) Ton.leise(false);
+    if (Ton) { Ton.leise(false); Ton.still(); }
     if (gEnde) gEnde();
   }
   const tonKnopf = document.createElement("button");

@@ -1,11 +1,12 @@
-"""Silben für das Gebrummel der Figuren aus zwei gesprochenen Fantasie-Aufnahmen.
+"""Gebrummel der Figuren aus zwei gesprochenen Fantasie-Aufnahmen.
 
 Die Aufnahmen (assets/ton/roh/weiblich.wav und maennlich.wav) sind mit einer
 Sprachausgabe (Chatterbox auf Hugging Face) aus Fantasie-Silben wie „Mabba lomi,
-nuka tefo“ erzeugt, also ohne echte Wörter. Dieses Werkzeug schneidet sie an den
-leisen Stellen in einzelne Silben (etwa 0,08 bis 0,25 s), hängt sie zu einer Datei
-je Stimme aneinander und schreibt design/stimmen_daten.js mit den Abschnitten.
-Im Spiel spielt ton.js zufällige Silben je Figur höher oder tiefer ab.
+nuka tefo“ erzeugt, also ohne echte Wörter. Dieses Werkzeug kürzt lange Pausen,
+gleicht die Lautstärke an und merkt sich die leisen Stellen zwischen den Silben
+(etwa 0,08 bis 0,25 s auseinander). design/stimmen_daten.js enthält je Stimme die
+ganze Aufnahme und diese Grenzen. Im Spiel spielt ton.js ab einer zufälligen Grenze
+mehrere Silben am Stück, damit sie natürlich ineinander übergehen.
 
 Aufruf:
   python klapperkiste/tools/stimmen.py
@@ -66,22 +67,45 @@ def silben(x: np.ndarray) -> list[tuple[int, int]]:
     return ergebnis
 
 
+def pausen_kuerzen(x: np.ndarray, laengste: float = 0.12) -> np.ndarray:
+    """Leise Stellen länger als `laengste` auf diese Länge kürzen, damit es flüssig bleibt."""
+    hop = RATE // 100
+    energie = np.array([np.abs(x[i:i + hop]).mean() for i in range(0, len(x) - hop, hop)])
+    leise = energie < np.percentile(energie, 95) * 0.06
+    behalten, n, halb = [], int(laengste * 100), int(laengste * 50)
+    i = 0
+    while i < len(leise):
+        j = i
+        while j < len(leise) and leise[j] == leise[i]:
+            j += 1
+        if leise[i] and j - i > n:
+            behalten += [(i, i + halb), (j - halb, j)]
+        else:
+            behalten.append((i, j))
+        i = j
+    return np.concatenate([x[a * hop:b * hop] for a, b in behalten])
+
+
+def angleichen(x: np.ndarray) -> np.ndarray:
+    """Langsame Lautstärkeregelung (Fenster 0,3 s), damit leise Silben nicht untergehen."""
+    fenster = int(0.3 * RATE)
+    huelle = np.sqrt(np.convolve(x ** 2, np.ones(fenster) / fenster, mode="same"))
+    ziel = np.percentile(huelle, 90)
+    y = x * np.clip(ziel / np.maximum(huelle, 1e-4), 0.5, 3)
+    return y * 0.9 / max(1e-4, np.abs(y).max())
+
+
 def main() -> int:
     daten = {}
     for name in STIMMEN:
-        x = lesen(os.path.join(ROH, f"{name}.wav"))
-        teile = silben(x)
-        stuecke, abschnitte, pos = [], [], 0
-        for a, b in teile:
-            s = x[a:b].copy()
-            rampe = min(len(s) // 4, RATE // 100 * 2)  # 20 ms ein- und ausblenden
-            s[:rampe] *= np.linspace(0, 1, rampe)
-            s[-rampe:] *= np.linspace(1, 0, rampe)
-            s *= 0.9 / max(1e-4, np.abs(s).max())  # jede Silbe gleich laut
-            stuecke.append(s)
-            abschnitte.append([round(pos / RATE, 4), round(len(s) / RATE, 4)])
-            pos += len(s)
-        alles = (np.concatenate(stuecke) * 32767).astype(np.int16)
+        x = angleichen(pausen_kuerzen(lesen(os.path.join(ROH, f"{name}.wav"))))
+        grenzen = set()
+        for a, b in silben(x):  # leise Stellen kurz vor und nach jeder Silbe
+            grenzen.add(round(max(0, a - RATE // 50) / RATE, 3))
+            grenzen.add(round(min(len(x), b + RATE // 50) / RATE, 3))
+        roh = sorted(grenzen)
+        grenzen = [g for i, g in enumerate(roh) if i == 0 or g - roh[i - 1] > 0.03]
+        alles = (x * 32767).astype(np.int16)
         puffer = io.BytesIO()
         with wave.open(puffer, "wb") as w:
             w.setnchannels(1)
@@ -89,8 +113,8 @@ def main() -> int:
             w.setframerate(RATE)
             w.writeframes(alles.tobytes())
         daten[name] = {"wav": "data:audio/wav;base64," + base64.b64encode(puffer.getvalue()).decode("ascii"),
-                       "silben": abschnitte}
-        print(f"{name}: {len(abschnitte)} Silben, {pos / RATE:.1f} s")
+                       "grenzen": grenzen}
+        print(f"{name}: {len(grenzen)} Grenzen, {len(x) / RATE:.1f} s")
     with open(ZIEL, "w", encoding="utf-8") as f:
         f.write("// Automatisch erzeugt von tools/stimmen.py. Nicht von Hand ändern.\n")
         f.write("window.STIMMEN_DATEN = " + json.dumps(daten) + ";\n")

@@ -82,30 +82,47 @@ window.Ton = (function () {
     return null;
   }
   function stimmeLaden(a) { for (const n of Object.keys(BANK_DATEN)) bank(a, n); }
-  const zuletzt = {}; // letzte Silbe je Stimme, damit sie sich nicht direkt wiederholt
-  function echteSilbe(a, ziel, st, info, buf) {
-    const liste = BANK_DATEN[st.bank].silben;
-    let nr;
-    do { nr = Math.floor(Math.random() * liste.length); } while (liste.length > 3 && nr === zuletzt[st.bank]);
-    zuletzt[st.bank] = nr;
-    const [ab, lang] = liste[nr];
+  // Die Stimme läuft am Stück: ab einer zufälligen leisen Stelle spielen 0,5 bis 1,2 s
+  // der Aufnahme (mehrere Silben mit ihren echten Übergängen). Ruft der Text weiter
+  // nach Silben, schließt das nächste Stück nahtlos an; nur die Tonhöhe folgt dem Satz.
+  let fluss = null; // { a, figur, g, ende, start }
+  function echteSilbe(a, ziel, st, info, buf, figur) {
+    const jetzt = Math.max(a.currentTime, 0);
+    if (fluss && fluss.a === a && fluss.figur === figur && fluss.ende > jetzt + 0.12) return;
+    const grenzen = BANK_DATEN[st.bank].grenzen;
+    let i, j, k = 0;
+    do {
+      i = Math.floor(Math.random() * (grenzen.length - 1));
+      const lang = 0.5 + Math.random() * 0.7;
+      for (j = i + 1; j < grenzen.length - 1 && grenzen[j + 1] - grenzen[i] <= lang; j++);
+    } while (fluss && fluss.start === i && k++ < 5);
     const fort = info.fortschritt ?? 0.5;
-    let kurve = 1.06 - 0.14 * fort; // Satzmelodie: zum Ende tiefer, bei Fragen am Ende höher
-    if (info.frage && fort > 0.7) kurve += (fort - 0.7) * 0.6;
-    if (info.betont) kurve *= 1.05;
-    const rate = st.rate * kurve * (0.96 + Math.random() * 0.08);
-    const t = Math.max(a.currentTime, 0) + 0.02;
-    const nutz = Math.min(lang, 0.17) / rate; // lange Silben kürzen, damit es flüssig bleibt
+    let kurve = 1.05 - 0.12 * fort; // Satzmelodie: zum Ende tiefer, bei Fragen am Ende höher
+    if (info.frage && fort > 0.6) kurve += (fort - 0.6) * 0.5;
+    if (info.betont) kurve *= 1.03;
+    const rate = st.rate * kurve * (0.97 + Math.random() * 0.06);
+    const anschluss = fluss && fluss.a === a && fluss.figur === figur && fluss.ende > jetzt;
+    const t = anschluss ? fluss.ende - 0.03 : jetzt + 0.02;
+    const ab = grenzen[i], dauer = (grenzen[j] - ab) / rate;
     const q = a.createBufferSource(); q.buffer = buf; q.playbackRate.value = rate;
-    const g = a.createGain(), laut = (info.betont ? 0.7 : 0.6) * (0.85 + Math.random() * 0.25);
+    const g = a.createGain(), laut = 0.65;
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(laut, t + 0.015);
-    g.gain.setValueAtTime(laut, t + nutz * 0.7);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + nutz + 0.03);
+    g.gain.linearRampToValueAtTime(laut, t + 0.03);
+    g.gain.setValueAtTime(laut, t + dauer - 0.03);
+    g.gain.linearRampToValueAtTime(0.0001, t + dauer);
     q.connect(g).connect(ziel);
-    q.start(t, ab, Math.min(lang, 0.17) + 0.04);
-    if (st.piep && Math.random() < 0.06) piep(a, ziel, t);
+    q.start(t, ab, grenzen[j] - ab);
+    if (st.piep && Math.random() < 0.15) piep(a, ziel, t + Math.random() * dauer * 0.8);
+    fluss = { a, figur, g, ende: t + dauer, start: i };
     silbenZahl++;
+  }
+  // Gesprochenes sofort leise ausblenden (Text übersprungen oder neue Zeile)
+  function still() {
+    if (!fluss) return;
+    const t = Math.max(fluss.a.currentTime, 0);
+    fluss.g.gain.cancelScheduledValues(t);
+    fluss.g.gain.setTargetAtTime(0.0001, t, 0.04);
+    fluss = null;
   }
   function piep(a, ziel, t) { // Pieps im Bart von Förster Moos
     const v = a.createOscillator(), vg = a.createGain();
@@ -118,7 +135,7 @@ window.Ton = (function () {
     if (!a) return;
     const stEcht = STIMMEN[figur] || { bank: "maennlich", rate: 1 };
     const buf = stEcht.bank && bank(a, stEcht.bank);
-    if (buf) return echteSilbe(a, ziel, stEcht, info, buf);
+    if (buf) return echteSilbe(a, ziel, stEcht, info, buf, figur);
     const st = STIMMEN[figur] || { ton: 140, groesse: 1, zittern: 0.02, atem: 0.3, tempo: 1 };
     const t = Math.max(a.currentTime, 0) + 0.04; // Luft für den Konsonanten davor
     const dauer = (0.11 + Math.random() * 0.07) / st.tempo;
@@ -433,10 +450,20 @@ K:Am
     } else {
       const altA = audio, altL = laerm;
       laerm = a.createBuffer(1, rate, rate); const d = laerm.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      audio = a; letzteZeit = 0;
-      // ein Satz: 12 Silben mit Pause in der Mitte, dann eine Frage
-      const plan = [...Array(12)].map((_, k) => ({ t: 0.2 + k * 0.09 + (k > 5 ? 0.25 : 0), fortschritt: k / 11, betont: k === 0 }));
-      for (let k = 0; k < 8; k++) plan.push({ t: 1.9 + k * 0.09, fortschritt: k / 7, frage: true, betont: k === 0 });
+      audio = a; letzteZeit = 0; fluss = null;
+      // wie in karte.js: alle 30 ms zwei Buchstaben, jeder dritte Schritt eine Silbe, nach Satzzeichen Luft holen
+      const text = "Na, da bist du ja! Hast du die Reifen schon gefunden? Dann komm mal her, ich zeig dir was.";
+      const plan = [];
+      for (let i = 2, schritt = 0, pause = 0; i <= text.length; i += 2) {
+        const neu = text.slice(i - 2, i);
+        if (/[.,!?]/.test(neu)) pause = 4;
+        else if (pause > 0) pause--;
+        else if (schritt++ % 3 === 0 && /\p{L}/u.test(neu)) {
+          const vorher = text.slice(0, i).search(/[^.!?]*$/), nach = text.slice(i).search(/[.!?]/);
+          const ende = nach < 0 ? text.length : i + nach;
+          plan.push({ t: 0.2 + i / 2 * 0.03, fortschritt: (i - vorher) / Math.max(1, ende - vorher), frage: text[ende] === "?", betont: /[A-Z]/.test(neu) });
+        }
+      }
       for (const p of plan) {
         const orig = a.currentTime; // OfflineAudioContext: currentTime ist 0, Zeit über Versatz setzen
         Object.defineProperty(a, "currentTime", { value: p.t, configurable: true });
@@ -450,7 +477,7 @@ K:Am
   }
 
   return {
-    silbe, musik, leise, freischalten, probe, STUECKE,
+    silbe, still, musik, leise, freischalten, probe, STUECKE,
     get an() { return ein; }, schalte,
     get laeuft() { return laeuft && { name: laeuft.name, aufnahme: laeuft.aufnahme, runde: laeuft.runde }; }, get silben() { return silbenZahl; },
   };
