@@ -1,6 +1,6 @@
-// Ton: Gebrummel der Figuren und Musik, beides im Browser erzeugt (Web Audio).
-// Wird von karte.js genutzt (window.Ton). Keine Aufnahmen, keine Sprache: Die Figuren
-// brabbeln unverständlich, damit es in jeder Übersetzung gleich bleibt.
+// Ton: Gebrummel der Figuren und Musik im Browser (Web Audio), aus Aufnahmen oder selbst gespielt.
+// Wird von karte.js genutzt (window.Ton). Keine Sprache: Die Figuren brabbeln
+// unverständlich, damit es in jeder Übersetzung gleich bleibt.
 window.Ton = (function () {
   let audio = null, laerm = null, stimmBus = null, musikBus = null;
   const lies = (k, std) => { try { return localStorage.getItem(k) ?? std; } catch { return std; } };
@@ -333,10 +333,52 @@ K:Am
   }
 
   // Abspielen mit Vorausplanung: alle 80 ms werden die Noten der nächsten 0,3 s gesetzt
+  // Aufnahmen (tools/musik.py, design/musik_daten.js) haben Vorrang vor den Noten
+  const MUSIK_DATEN = window.MUSIK_DATEN || {};
+  const aufnahmen = {}; // name: AudioBuffer | "laedt" | "fehlt"
+  function aufnahme(a, name) {
+    if (!MUSIK_DATEN[name]) return "fehlt";
+    if (!aufnahmen[name]) {
+      aufnahmen[name] = "laedt";
+      try {
+        const bin = atob(MUSIK_DATEN[name].split(",")[1]), bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const fertig = (buf) => { aufnahmen[name] = buf; }, fehler = () => { aufnahmen[name] = "fehlt"; };
+        const p = a.decodeAudioData(bytes.buffer, fertig, fehler);
+        if (p && p.then) p.then(fertig).catch(fehler);
+      } catch { aufnahmen[name] = "fehlt"; }
+    }
+    return aufnahmen[name];
+  }
+  // Aufnahme in Schleife: jede Runde startet kurz vor dem Ende der letzten und blendet über
+  const UEBERBLENDEN = 2;
+  function aufnahmePlanen(a, buf) {
+    if (laeuft.naechste === null) laeuft.naechste = a.currentTime + 0.1;
+    if (laeuft.naechste > a.currentTime + 0.5) return;
+    const t = laeuft.naechste, ende = t + buf.duration;
+    const src = a.createBufferSource(), g = a.createGain();
+    src.buffer = buf; src.connect(g).connect(laeuft.bus);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(1, t + (laeuft.runde ? UEBERBLENDEN : 0.3));
+    g.gain.setValueAtTime(1, ende - UEBERBLENDEN);
+    g.gain.linearRampToValueAtTime(0.0001, ende);
+    src.start(t); src.stop(ende + 0.05);
+    laeuft.quellen = [...laeuft.quellen.slice(-2), src];
+    laeuft.runde++;
+    laeuft.naechste = ende - UEBERBLENDEN;
+  }
+
   let laeuft = null, wunsch = null, uhr = null;
   function planen() {
     const a = audio;
     if (!a || a.state !== "running" || !laeuft) return;
+    if (laeuft.aufnahme) {
+      const buf = aufnahme(a, laeuft.name);
+      if (buf instanceof AudioBuffer) return aufnahmePlanen(a, buf);
+      if (buf === "laedt") return;
+      laeuft.aufnahme = false; laeuft.start = a.currentTime + 0.1; // Aufnahme kaputt: Noten spielen
+    }
+    if (!STUECKE[laeuft.name]) return;
     const s = STUECKE[laeuft.name], bis = a.currentTime + 0.3;
     while (true) {
       const e = s.ereignisse[laeuft.i];
@@ -354,15 +396,16 @@ K:Am
     const a = bereit();
     if (!a) return;
     if (laeuft) { // altes Stück ausblenden
-      const alt = laeuft.bus;
+      const { bus: alt, quellen } = laeuft;
       alt.gain.setTargetAtTime(0.0001, a.currentTime, 0.25);
-      setTimeout(() => alt.disconnect(), 1500);
+      setTimeout(() => { for (const q of quellen) try { q.stop(); } catch { /* schon aus */ } alt.disconnect(); }, 1500);
       laeuft = null;
     }
-    if (!name || !STUECKE[name]) return;
+    const hatAufnahme = name && aufnahme(a, name) !== "fehlt";
+    if (!name || !(hatAufnahme || STUECKE[name])) return;
     const bus = a.createGain(); bus.gain.value = 0.0001; bus.connect(musikBus);
     bus.gain.setTargetAtTime(gedaempft ? 0.55 : 1, a.currentTime + 0.1, 0.4);
-    laeuft = { name, bus, start: a.currentTime + 0.15, i: 0 };
+    laeuft = { name, bus, start: a.currentTime + 0.15, i: 0, aufnahme: hatAufnahme, naechste: null, runde: 0, quellen: [] };
     if (!uhr) uhr = setInterval(planen, 80);
   }
   // Während eines Gesprächs leiser, damit man das Gebrummel hört
@@ -408,6 +451,7 @@ K:Am
 
   return {
     silbe, musik, leise, freischalten, probe, STUECKE,
-    get an() { return ein; }, schalte, get silben() { return silbenZahl; },
+    get an() { return ein; }, schalte,
+    get laeuft() { return laeuft && { name: laeuft.name, aufnahme: laeuft.aufnahme, runde: laeuft.runde }; }, get silben() { return silbenZahl; },
   };
 })();
