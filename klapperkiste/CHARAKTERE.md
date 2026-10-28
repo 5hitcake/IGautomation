@@ -181,3 +181,11 @@ Seit der zweiten Fassung (`design/ton.js`) ist das Gebrummel eine Formant-Stimme
 summender Grundton durch zwei Resonanzfilter (Vokal), Atemrauschen, manchmal ein
 kurzer Konsonant, Satzmelodie (fällt zum Satzende, steigt bei Fragen) und weich
 ineinanderfließende Silben. Klingt nach Murmeln statt nach Piepsen.
+
+Dritte Fassung: **echte Silben**. Mit der Sprachausgabe Chatterbox (Hugging Face)
+wurden zwei Aufnahmen aus Fantasie-Silben erzeugt, eine weibliche und eine
+männliche Stimme (`assets/ton/roh/`). `python klapperkiste/tools/stimmen.py`
+schneidet sie in rund 50 Silben je Stimme (`design/stimmen_daten.js`). Jede
+Figur nutzt eine der beiden Stimmen, schneller und höher (Zylinda) oder langsamer
+und tiefer (Knut, Brösel) abgespielt, mit Satzmelodie. Die Formant-Stimme bleibt
+als Ersatz, falls die Silben nicht geladen sind.

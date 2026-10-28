@@ -14,8 +14,9 @@ window.Ton = (function () {
         laerm = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
         const d = laerm.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-        stimmBus = busBauen(audio, audio.destination, 0.9, 2600);
-        musikBus = busBauen(audio, audio.destination, 0.5, 6000);
+        stimmBus = busBauen(audio, audio.destination, 0.9, 5000);
+        stimmeLaden(audio);
+        musikBus = busBauen(audio, audio.destination, 1, 6000);
       }
       if (audio.state === "suspended") audio.resume();
     } catch { audio = null; }
@@ -46,23 +47,78 @@ window.Ton = (function () {
   // zum Satzende abfällt (bei Fragen steigt), und weiche, ineinanderfließende Silben.
   // groesse: >1 hebt die Resonanzen (kleinere, hellere Stimme), ton: Grundton in Hz.
   const STIMMEN = {
-    opa: { ton: 112, groesse: 0.95, zittern: 0.035, atem: 0.35, tempo: 0.9 },     // alt, zittrig, hauchig
-    knut: { ton: 88, groesse: 0.9, zittern: 0.012, atem: 0.45, tempo: 1 },        // tief und brummig
-    hilde: { ton: 205, groesse: 1.15, zittern: 0.015, atem: 0.2, tempo: 1.05 },   // warm, freundlich
-    moos: { ton: 98, groesse: 0.92, zittern: 0.02, atem: 0.4, tempo: 0.9, piep: true },
-    gino: { ton: 165, groesse: 1.05, zittern: 0.03, atem: 0.2, tempo: 1.15 },     // singend
-    funke: { ton: 220, groesse: 1.18, zittern: 0.01, atem: 0.15, tempo: 1.2 },    // zackig
-    broesel: { ton: 74, groesse: 0.85, zittern: 0.01, atem: 0.5, tempo: 0.85 },
-    zylinda: { ton: 270, groesse: 1.25, zittern: 0.025, atem: 0.15, tempo: 1.2 },
-    kiel: { ton: 150, groesse: 1.08, zittern: 0.015, atem: 0.45, tempo: 1 },      // rau, Seebärin
-    frieder: { ton: 128, groesse: 1, zittern: 0.02, atem: 0.3, tempo: 0.95 },
+    opa: { bank: "maennlich", rate: 0.97, ton: 112, groesse: 0.95, zittern: 0.035, atem: 0.35, tempo: 0.9 },     // alt, zittrig, hauchig
+    knut: { bank: "maennlich", rate: 0.84, ton: 88, groesse: 0.9, zittern: 0.012, atem: 0.45, tempo: 1 },        // tief und brummig
+    hilde: { bank: "weiblich", rate: 1.0, ton: 205, groesse: 1.15, zittern: 0.015, atem: 0.2, tempo: 1.05 },   // warm, freundlich
+    moos: { bank: "maennlich", rate: 0.92, ton: 98, groesse: 0.92, zittern: 0.02, atem: 0.4, tempo: 0.9, piep: true },
+    gino: { bank: "maennlich", rate: 1.12, ton: 165, groesse: 1.05, zittern: 0.03, atem: 0.2, tempo: 1.15 },     // singend
+    funke: { bank: "weiblich", rate: 1.06, ton: 220, groesse: 1.18, zittern: 0.01, atem: 0.15, tempo: 1.2 },    // zackig
+    broesel: { bank: "maennlich", rate: 0.76, ton: 74, groesse: 0.85, zittern: 0.01, atem: 0.5, tempo: 0.85 },
+    zylinda: { bank: "weiblich", rate: 1.2, ton: 270, groesse: 1.25, zittern: 0.025, atem: 0.15, tempo: 1.2 },
+    kiel: { bank: "weiblich", rate: 0.86, ton: 150, groesse: 1.08, zittern: 0.015, atem: 0.45, tempo: 1 },      // rau, Seebärin
+    frieder: { bank: "maennlich", rate: 1.02, ton: 128, groesse: 1, zittern: 0.02, atem: 0.3, tempo: 0.95 },
   };
   // Vokale als erste und zweite Resonanz (Hz, Erwachsenen-Mittelwerte)
   const VOKALE = [[730, 1090], [530, 1840], [300, 2250], [570, 840], [320, 870], [660, 1700], [440, 1020]];
   let silbenZahl = 0, letzterTon = 0, letzteZeit = 0;
 
+  // Echte Silben: aus zwei gesprochenen Fantasie-Aufnahmen geschnitten (tools/stimmen.py,
+  // design/stimmen_daten.js). Je Figur eine der beiden Stimmen, höher oder tiefer
+  // abgespielt. Fehlen die Daten, springt die künstliche Formant-Stimme ein.
+  const BANK_DATEN = window.STIMMEN_DATEN || {};
+  const banken = new WeakMap(); // je AudioContext: { name: AudioBuffer | "laedt" }
+  function bank(a, name) {
+    let b = banken.get(a);
+    if (!b) { b = {}; banken.set(a, b); }
+    if (b[name] || !BANK_DATEN[name]) return b[name] instanceof AudioBuffer ? b[name] : null;
+    b[name] = "laedt";
+    try {
+      const bin = atob(BANK_DATEN[name].wav.split(",")[1]), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const fertig = (buf) => { b[name] = buf; };
+      const p = a.decodeAudioData(bytes.buffer, fertig, () => { b[name] = null; });
+      if (p && p.then) p.then(fertig).catch(() => { b[name] = null; });
+    } catch { b[name] = null; }
+    return null;
+  }
+  function stimmeLaden(a) { for (const n of Object.keys(BANK_DATEN)) bank(a, n); }
+  const zuletzt = {}; // letzte Silbe je Stimme, damit sie sich nicht direkt wiederholt
+  function echteSilbe(a, ziel, st, info, buf) {
+    const liste = BANK_DATEN[st.bank].silben;
+    let nr;
+    do { nr = Math.floor(Math.random() * liste.length); } while (liste.length > 3 && nr === zuletzt[st.bank]);
+    zuletzt[st.bank] = nr;
+    const [ab, lang] = liste[nr];
+    const fort = info.fortschritt ?? 0.5;
+    let kurve = 1.06 - 0.14 * fort; // Satzmelodie: zum Ende tiefer, bei Fragen am Ende höher
+    if (info.frage && fort > 0.7) kurve += (fort - 0.7) * 0.6;
+    if (info.betont) kurve *= 1.05;
+    const rate = st.rate * kurve * (0.96 + Math.random() * 0.08);
+    const t = Math.max(a.currentTime, 0) + 0.02;
+    const nutz = Math.min(lang, 0.17) / rate; // lange Silben kürzen, damit es flüssig bleibt
+    const q = a.createBufferSource(); q.buffer = buf; q.playbackRate.value = rate;
+    const g = a.createGain(), laut = (info.betont ? 0.7 : 0.6) * (0.85 + Math.random() * 0.25);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(laut, t + 0.015);
+    g.gain.setValueAtTime(laut, t + nutz * 0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + nutz + 0.03);
+    q.connect(g).connect(ziel);
+    q.start(t, ab, Math.min(lang, 0.17) + 0.04);
+    if (st.piep && Math.random() < 0.06) piep(a, ziel, t);
+    silbenZahl++;
+  }
+  function piep(a, ziel, t) { // Pieps im Bart von Förster Moos
+    const v = a.createOscillator(), vg = a.createGain();
+    v.type = "sine"; v.frequency.setValueAtTime(3200, t + 0.05); v.frequency.linearRampToValueAtTime(4200, t + 0.11);
+    vg.gain.setValueAtTime(0.05, t + 0.05); vg.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+    v.connect(vg).connect(ziel); v.start(t + 0.05); v.stop(t + 0.14);
+  }
+
   function silbe(figur, info = {}, a = ein.stimmen && bereit(), ziel = stimmBus) {
     if (!a) return;
+    const stEcht = STIMMEN[figur] || { bank: "maennlich", rate: 1 };
+    const buf = stEcht.bank && bank(a, stEcht.bank);
+    if (buf) return echteSilbe(a, ziel, stEcht, info, buf);
     const st = STIMMEN[figur] || { ton: 140, groesse: 1, zittern: 0.02, atem: 0.3, tempo: 1 };
     const t = Math.max(a.currentTime, 0) + 0.04; // Luft für den Konsonanten davor
     const dauer = (0.11 + Math.random() * 0.07) / st.tempo;
@@ -273,7 +329,7 @@ K:Am
   }
   for (const s of Object.values(STUECKE)) {
     s.daten = abcLesen(s.abc);
-    s.ereignisse = [...s.daten.noten.map((n) => ({ ...n, instr: s.instr, laut: 0.28 })), ...begleitung(s)].sort((a, b) => a.t - b.t);
+    s.ereignisse = [...s.daten.noten.map((n) => ({ ...n, instr: s.instr, laut: 0.4 })), ...begleitung(s)].sort((a, b) => a.t - b.t);
   }
 
   // Abspielen mit Vorausplanung: alle 80 ms werden die Noten der nächsten 0,3 s gesetzt
@@ -305,7 +361,7 @@ K:Am
     }
     if (!name || !STUECKE[name]) return;
     const bus = a.createGain(); bus.gain.value = 0.0001; bus.connect(musikBus);
-    bus.gain.setTargetAtTime(gedaempft ? 0.35 : 1, a.currentTime + 0.1, 0.4);
+    bus.gain.setTargetAtTime(gedaempft ? 0.55 : 1, a.currentTime + 0.1, 0.4);
     laeuft = { name, bus, start: a.currentTime + 0.15, i: 0 };
     if (!uhr) uhr = setInterval(planen, 80);
   }
@@ -313,7 +369,7 @@ K:Am
   let gedaempft = false;
   function leise(an) {
     gedaempft = an;
-    if (laeuft && audio) laeuft.bus.gain.setTargetAtTime(an ? 0.35 : 1, audio.currentTime, 0.3);
+    if (laeuft && audio) laeuft.bus.gain.setTargetAtTime(an ? 0.55 : 1, audio.currentTime, 0.3);
   }
   function schalte(was, an) {
     ein[was] = an;
@@ -324,7 +380,11 @@ K:Am
   // Zum Testen: Ton ohne Lautsprecher berechnen (OfflineAudioContext) und als Zahlen zurückgeben
   async function probe(art, name, sekunden = 6) {
     const rate = 22050, a = new OfflineAudioContext(1, rate * sekunden, rate);
-    const bus = busBauen(a, a.destination, art === "musik" ? 0.5 : 0.9, art === "musik" ? 6000 : 2600);
+    const bus = busBauen(a, a.destination, art === "musik" ? 1 : 0.9, art === "musik" ? 6000 : 5000);
+    if (art !== "musik") { // Silben im Offline-Kontext dekodieren und abwarten
+      stimmeLaden(a);
+      for (let k = 0; k < 50 && !(bank(a, "weiblich") && bank(a, "maennlich")); k++) await new Promise((ok) => setTimeout(ok, 50));
+    }
     if (art === "musik") {
       for (const e of STUECKE[name].ereignisse) if (e.t < sekunden) note(a, bus, e.instr, e.midi, e.t + 0.05, e.l, e.laut);
     } else {

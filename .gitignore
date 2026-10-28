@@ -5,4 +5,5 @@ Thumbs.db
 .claude/settings.local.json
 klapperkiste/design/teile.js
 klapperkiste/design/karte_daten.js
+klapperkiste/design/stimmen_daten.js
 klapperkiste/design/spielstart_teile.js
