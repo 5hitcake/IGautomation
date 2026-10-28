@@ -442,6 +442,58 @@ K:Am
     if (was === "musik") spielen(an ? gespraechStueck || wunsch : null);
   }
 
+  // --- Geräusche ------------------------------------------------------------------
+  // Motor: ein tiefer Sägezahn (Brummen) und Rauschen (Klappern), beides im Takt der
+  // Zündungen zerhackt – das macht das „Tuck-tuck“. Schneller fahren und Gas geben
+  // heben Takt, Tonhöhe und Helligkeit. Läuft mit dem Schalter für Stimmen (🔊).
+  let motorTeile = null;
+  function motorBauen(a, ziel) {
+    const bus = a.createGain(); bus.gain.value = 0.0001; bus.connect(ziel);
+    const takt = a.createGain(); takt.gain.value = 0.5; // wird vom Zündtakt auf und ab bewegt
+    const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 350; lp.Q.value = 2;
+    takt.connect(lp).connect(bus);
+    const brumm = a.createOscillator(); brumm.type = "sawtooth"; brumm.frequency.value = 14;
+    const bg = a.createGain(); bg.gain.value = 0.9; brumm.connect(bg).connect(takt);
+    const klapper = a.createBufferSource(); klapper.buffer = laerm || a.createBuffer(1, a.sampleRate, a.sampleRate); klapper.loop = true;
+    const kf = a.createBiquadFilter(); kf.type = "bandpass"; kf.frequency.value = 700; kf.Q.value = 1.2;
+    const kg = a.createGain(); kg.gain.value = 0.35; klapper.connect(kf).connect(kg).connect(takt);
+    const zuend = a.createOscillator(); zuend.type = "square"; zuend.frequency.value = 7;
+    const zg = a.createGain(); zg.gain.value = 0.5; zuend.connect(zg).connect(takt.gain);
+    for (const q of [brumm, klapper, zuend]) q.start();
+    return { bus, lp, brumm, zuend, kf };
+  }
+  // zustand: null = aus, sonst { v: m/s, gas: true/false }
+  function motor(zustand) {
+    const a = audio;
+    if (!a || a.state !== "running") return;
+    if (!motorTeile) { if (!zustand || !ein.stimmen) return; motorTeile = motorBauen(a, a.destination); }
+    const m = motorTeile, t = a.currentTime;
+    if (!zustand || !ein.stimmen) { m.bus.gain.setTargetAtTime(0.0001, t, 0.15); return; }
+    const v = Math.min(1, Math.abs(zustand.v) / 6.2), gas = zustand.gas ? 1 : 0;
+    const f = 14 + v * 24 + gas * 4;
+    m.brumm.frequency.setTargetAtTime(f, t, 0.12);
+    m.zuend.frequency.setTargetAtTime(f / 2, t, 0.12);
+    m.lp.frequency.setTargetAtTime(320 + v * 500 + gas * 250, t, 0.15);
+    m.kf.frequency.setTargetAtTime(600 + v * 500, t, 0.2);
+    m.bus.gain.setTargetAtTime(0.16 + v * 0.1 + gas * 0.05, t, 0.15);
+  }
+  // Spezialhupe: zwei schiefe Töne, die kurz ansteigen, mit Flattern – „Trööööt!“
+  function hupe(a = ein.stimmen && bereit(), ziel = a && a.destination, ab = 0) {
+    if (!a) return;
+    const t = a.currentTime + 0.02 + ab, g = a.createGain(), lp = a.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 2400; g.connect(lp).connect(ziel);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.05);
+    g.gain.setValueAtTime(0.22, t + 0.75); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+    const flattern = a.createOscillator(), fg = a.createGain(); flattern.frequency.value = 9; fg.gain.value = 6;
+    flattern.connect(fg);
+    for (const f of [349, 440]) {
+      const o = a.createOscillator(); o.type = "square";
+      o.frequency.setValueAtTime(f * 0.92, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.12);
+      fg.connect(o.frequency); o.connect(g); o.start(t); o.stop(t + 1.05);
+    }
+    flattern.start(t); flattern.stop(t + 1.05);
+  }
+
   // Zum Testen: Ton ohne Lautsprecher berechnen (OfflineAudioContext) und als Zahlen zurückgeben
   async function probe(art, name, sekunden = 6) {
     const rate = 22050, a = new OfflineAudioContext(1, rate * sekunden, rate);
@@ -450,9 +502,19 @@ K:Am
       stimmeLaden(a);
       for (let k = 0; k < 50 && !(bank(a, "weiblich") && bank(a, "maennlich")); k++) await new Promise((ok) => setTimeout(ok, 50));
     }
-    if (art === "musik") {
+    if (art === "hupe") hupe(a, bus, 0.2);
+    else if (art === "motor") { // Leerlauf, Gas bis 22 km/h, rollen lassen, wieder Leerlauf
+      const m = motorBauen(a, bus);
+      for (let t = 0; t < sekunden; t += 0.1) {
+        const v = t < 1.5 ? 0 : t < 5 ? (t - 1.5) / 3.5 : t < 8 ? 1 - (t - 5) / 4 : 0, gas = t >= 1.5 && t < 5 ? 1 : 0;
+        const f = 14 + v * 24 + gas * 4;
+        m.brumm.frequency.setTargetAtTime(f, t, 0.12); m.zuend.frequency.setTargetAtTime(f / 2, t, 0.12);
+        m.lp.frequency.setTargetAtTime(320 + v * 500 + gas * 250, t, 0.15); m.kf.frequency.setTargetAtTime(600 + v * 500, t, 0.2);
+        m.bus.gain.setTargetAtTime(0.16 + v * 0.1 + gas * 0.05, t, 0.15);
+      }
+    } else if (art === "musik") {
       for (const e of STUECKE[name].ereignisse) if (e.t < sekunden) note(a, bus, e.instr, e.midi, e.t + 0.05, e.l, e.laut);
-    } else {
+    } else if (art === "stimme") {
       const altA = audio, altL = laerm;
       laerm = a.createBuffer(1, rate, rate); const d = laerm.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       audio = a; letzteZeit = 0; fluss = null;
@@ -482,7 +544,7 @@ K:Am
   }
 
   return {
-    silbe, still, musik, leise, freischalten, probe, STUECKE,
+    silbe, still, musik, leise, motor, hupe, freischalten, probe, STUECKE,
     get an() { return ein; }, schalte,
     get laeuft() { return laeuft && { name: laeuft.name, aufnahme: laeuft.aufnahme, runde: laeuft.runde }; }, get silben() { return silbenZahl; },
   };

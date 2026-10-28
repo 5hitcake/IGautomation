@@ -270,3 +270,11 @@ Stück nahtlos im Kreis (`design/musik_daten.js`). Ein Stück `figur_<name>.mp3`
 läuft deutlich leiser im Gespräch mit dieser Figur und löst die Ortsmusik so
 lange ab; ohne eigenes Stück wird die Ortsmusik nur gedämpft. Wo eine Aufnahme
 fehlt (zurzeit Wald), spielen die Noten.
+
+## 19. Geräusche
+
+Motor (`Ton.motor` in `design/ton.js`): tiefer Sägezahn und Rauschen, im Takt der
+Zündungen zerhackt („Tuck-tuck“). Takt, Tonhöhe und Helligkeit steigen mit dem
+Tempo und beim Gasgeben; im Stand tuckert er im Leerlauf. In der Werkstatt und
+während Gesprächen ist er aus. Die Spezialhupe macht bei den Schafen „Trööööt“.
+Beides hängt am Schalter 🔊 (Stimmen und Geräusche).

@@ -227,6 +227,7 @@ window.Karte = function (opt = {}) {
     const vmax = 6.2 * u.f; // 22 km/h auf dem Feldweg
     const ctl = steuerAuto(dt) || { gas: taste.gas, bremse: taste.bremse, lenk: (taste.rechts ? 1 : 0) - (taste.links ? 1 : 0) };
     let acc = 0;
+    auto.gas = ctl.gas; // für das Motorgeräusch
     if (ctl.gas) acc = auto.v < 0 ? 7 : 3.2;
     if (ctl.bremse) acc = auto.v > 0.2 ? -7 : -2.2;
     auto.v += acc * dt;
@@ -415,6 +416,7 @@ window.Karte = function (opt = {}) {
     h.weg = true;
     $("meldung").hidden = true;
     toast("📯 TRÖÖÖT! Die Schafe springen zur Seite.");
+    if (Ton) Ton.hupe();
     if (navigator.vibrate) { try { navigator.vibrate([60, 40, 120]); } catch { /* egal */ } }
     for (const sf of HERDE) {
       const seite = sf.x < h.x ? -1 : 1;
@@ -550,7 +552,7 @@ window.Karte = function (opt = {}) {
   }
   const tonKnopf = document.createElement("button");
   tonKnopf.type = "button"; tonKnopf.className = "g-ton";
-  const tonZeigen = () => { const an = Ton && Ton.an.stimmen; tonKnopf.textContent = an ? "🔊" : "🔇"; tonKnopf.setAttribute("aria-label", an ? "Stimmen aus" : "Stimmen an"); };
+  const tonZeigen = () => { const an = Ton && Ton.an.stimmen; tonKnopf.textContent = an ? "🔊" : "🔇"; tonKnopf.setAttribute("aria-label", an ? "Stimmen und Geräusche aus" : "Stimmen und Geräusche an"); };
   tonZeigen();
   tonKnopf.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -1401,6 +1403,7 @@ window.Karte = function (opt = {}) {
   function bild(t) {
     const dt = Math.min(0.05, (t - (zuletzt || t)) / 1000);
     zuletzt = t;
+    if (Ton) Ton.motor(cv.clientWidth && $("gespraech").hidden ? { v: auto.v, gas: auto.gas } : null);
     if (cv.clientWidth) {
       if (Ton) Ton.musik(imWald(auto.x, auto.y) ? "wald" : "fahren");
       if (!fertig) schritt(dt); else auto.v *= 0.9;
