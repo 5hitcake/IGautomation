@@ -501,7 +501,7 @@ window.Karte = function (opt = {}) {
     box.classList.add("auf");
     setTimeout(() => box.classList.remove("auf"), 500);
     box.focus();
-    if (Ton) Ton.leise(true);
+    if (Ton) Ton.leise(true, figur);
     zeile();
   }
   // --- Gebrummel und Musik: siehe ton.js (window.Ton) ---------------------------

@@ -261,3 +261,12 @@ Klarinette). Auf der Karte wechselt die Musik von selbst zwischen Fahren und
 Wald, im Spielstart läuft in der Werkstatt der Ragtime. Bei Gesprächen wird sie
 leiser. Knopf 🎵 unten links schaltet sie aus (wird gemerkt). Die Noten lassen
 sich mit dem Notenblatt-Werkzeug vorab anhören und ändern.
+
+Seit der zweiten Fassung haben Aufnahmen Vorrang: Werkstatt und Fahren sind mit
+MiniMax Music (Hugging Face) erzeugt (`assets/ton/musik/*.mp3`).
+`python klapperkiste/tools/musik.py` sucht in jedem Stück zwei gleich klingende
+Stellen und schneidet den langsamer werdenden Schluss ab; dazwischen läuft das
+Stück nahtlos im Kreis (`design/musik_daten.js`). Ein Stück `figur_<name>.mp3`
+läuft deutlich leiser im Gespräch mit dieser Figur und löst die Ortsmusik so
+lange ab; ohne eigenes Stück wird die Ortsmusik nur gedämpft. Wo eine Aufnahme
+fehlt (zurzeit Wald), spielen die Noten.

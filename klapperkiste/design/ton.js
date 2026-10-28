@@ -14,7 +14,7 @@ window.Ton = (function () {
         laerm = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
         const d = laerm.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-        stimmBus = busBauen(audio, audio.destination, 0.9, 5000);
+        stimmBus = busBauen(audio, audio.destination, 0.9, 2600); // weicher Tiefpass: genuschelt
         stimmeLaden(audio);
         musikBus = busBauen(audio, audio.destination, 1, 6000);
       }
@@ -82,7 +82,7 @@ window.Ton = (function () {
     return null;
   }
   function stimmeLaden(a) { for (const n of Object.keys(BANK_DATEN)) bank(a, n); }
-  // Die Stimme läuft am Stück: ab einer zufälligen leisen Stelle spielen 0,5 bis 1,2 s
+  // Die Stimme läuft am Stück: ab einer zufälligen leisen Stelle spielen 0,8 bis 1,8 s
   // der Aufnahme (mehrere Silben mit ihren echten Übergängen). Ruft der Text weiter
   // nach Silben, schließt das nächste Stück nahtlos an; nur die Tonhöhe folgt dem Satz.
   let fluss = null; // { a, figur, g, ende, start }
@@ -93,7 +93,7 @@ window.Ton = (function () {
     let i, j, k = 0;
     do {
       i = Math.floor(Math.random() * (grenzen.length - 1));
-      const lang = 0.5 + Math.random() * 0.7;
+      const lang = 0.8 + Math.random() * 1.0;
       for (j = i + 1; j < grenzen.length - 1 && grenzen[j + 1] - grenzen[i] <= lang; j++);
     } while (fluss && fluss.start === i && k++ < 5);
     const fort = info.fortschritt ?? 0.5;
@@ -350,7 +350,9 @@ K:Am
   }
 
   // Abspielen mit Vorausplanung: alle 80 ms werden die Noten der nächsten 0,3 s gesetzt
-  // Aufnahmen (tools/musik.py, design/musik_daten.js) haben Vorrang vor den Noten
+  // Aufnahmen (tools/musik.py, design/musik_daten.js) haben Vorrang vor den Noten.
+  // Je Stück: { src, schleife: [Anfang, Ende] } – zwischen den beiden Stellen läuft es
+  // nahtlos im Kreis, der Schluss (wird langsamer) fällt weg.
   const MUSIK_DATEN = window.MUSIK_DATEN || {};
   const aufnahmen = {}; // name: AudioBuffer | "laedt" | "fehlt"
   function aufnahme(a, name) {
@@ -358,7 +360,7 @@ K:Am
     if (!aufnahmen[name]) {
       aufnahmen[name] = "laedt";
       try {
-        const bin = atob(MUSIK_DATEN[name].split(",")[1]), bytes = new Uint8Array(bin.length);
+        const bin = atob(MUSIK_DATEN[name].src.split(",")[1]), bytes = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
         const fertig = (buf) => { aufnahmen[name] = buf; }, fehler = () => { aufnahmen[name] = "fehlt"; };
         const p = a.decodeAudioData(bytes.buffer, fertig, fehler);
@@ -367,22 +369,13 @@ K:Am
     }
     return aufnahmen[name];
   }
-  // Aufnahme in Schleife: jede Runde startet kurz vor dem Ende der letzten und blendet über
-  const UEBERBLENDEN = 2;
   function aufnahmePlanen(a, buf) {
-    if (laeuft.naechste === null) laeuft.naechste = a.currentTime + 0.1;
-    if (laeuft.naechste > a.currentTime + 0.5) return;
-    const t = laeuft.naechste, ende = t + buf.duration;
-    const src = a.createBufferSource(), g = a.createGain();
-    src.buffer = buf; src.connect(g).connect(laeuft.bus);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(1, t + (laeuft.runde ? UEBERBLENDEN : 0.3));
-    g.gain.setValueAtTime(1, ende - UEBERBLENDEN);
-    g.gain.linearRampToValueAtTime(0.0001, ende);
-    src.start(t); src.stop(ende + 0.05);
-    laeuft.quellen = [...laeuft.quellen.slice(-2), src];
+    if (laeuft.quellen.length) return;
+    const src = a.createBufferSource(), [anfang, ende] = MUSIK_DATEN[laeuft.name].schleife;
+    src.buffer = buf; src.loop = true; src.loopStart = anfang; src.loopEnd = Math.min(ende, buf.duration);
+    src.connect(laeuft.bus); src.start(a.currentTime + 0.05);
+    laeuft.quellen.push(src);
     laeuft.runde++;
-    laeuft.naechste = ende - UEBERBLENDEN;
   }
 
   let laeuft = null, wunsch = null, uhr = null;
@@ -406,8 +399,9 @@ K:Am
       laeuft.i++;
     }
   }
-  function musik(name) {
-    wunsch = name;
+  // Lautstärke je Lage: Gesprächsstück deutlich leiser, sonst im Gespräch etwas gedämpft
+  const zielLaut = (name) => (name && name.startsWith("figur_") ? 0.3 : gedaempft ? 0.55 : 1);
+  function spielen(name) {
     if (!ein.musik) name = null;
     if (laeuft && laeuft.name === name) return;
     const a = bereit();
@@ -421,26 +415,37 @@ K:Am
     const hatAufnahme = name && aufnahme(a, name) !== "fehlt";
     if (!name || !(hatAufnahme || STUECKE[name])) return;
     const bus = a.createGain(); bus.gain.value = 0.0001; bus.connect(musikBus);
-    bus.gain.setTargetAtTime(gedaempft ? 0.55 : 1, a.currentTime + 0.1, 0.4);
-    laeuft = { name, bus, start: a.currentTime + 0.15, i: 0, aufnahme: hatAufnahme, naechste: null, runde: 0, quellen: [] };
+    bus.gain.setTargetAtTime(zielLaut(name), a.currentTime + 0.1, 0.4);
+    laeuft = { name, bus, start: a.currentTime + 0.15, i: 0, aufnahme: hatAufnahme, runde: 0, quellen: [] };
     if (!uhr) uhr = setInterval(planen, 80);
   }
-  // Während eines Gesprächs leiser, damit man das Gebrummel hört
+  // Musik für einen Ort; während eines Gesprächs mit eigenem Stück wird nur vorgemerkt
+  let gespraechStueck = null;
+  function musik(name) {
+    wunsch = name;
+    if (!gespraechStueck) spielen(name);
+  }
+  // Gespräch: hat die Figur ein eigenes Stück, läuft das leise, sonst wird die Musik gedämpft
   let gedaempft = false;
-  function leise(an) {
+  function leise(an, figur) {
     gedaempft = an;
-    if (laeuft && audio) laeuft.bus.gain.setTargetAtTime(an ? 0.55 : 1, audio.currentTime, 0.3);
+    const eigenes = an && figur && MUSIK_DATEN["figur_" + figur] ? "figur_" + figur : null;
+    if (eigenes || gespraechStueck) {
+      gespraechStueck = eigenes;
+      spielen(eigenes || wunsch);
+    }
+    if (laeuft && audio) laeuft.bus.gain.setTargetAtTime(zielLaut(laeuft.name), audio.currentTime, 0.3);
   }
   function schalte(was, an) {
     ein[was] = an;
     merk(was === "musik" ? "klapperkiste-musik" : "klapperkiste-ton", an ? "an" : "aus");
-    if (was === "musik") { const w = wunsch; laeuft && musik(null); wunsch = w; if (an) musik(w); }
+    if (was === "musik") spielen(an ? gespraechStueck || wunsch : null);
   }
 
   // Zum Testen: Ton ohne Lautsprecher berechnen (OfflineAudioContext) und als Zahlen zurückgeben
   async function probe(art, name, sekunden = 6) {
     const rate = 22050, a = new OfflineAudioContext(1, rate * sekunden, rate);
-    const bus = busBauen(a, a.destination, art === "musik" ? 1 : 0.9, art === "musik" ? 6000 : 5000);
+    const bus = busBauen(a, a.destination, art === "musik" ? 1 : 0.9, art === "musik" ? 6000 : 2600);
     if (art !== "musik") { // Silben im Offline-Kontext dekodieren und abwarten
       stimmeLaden(a);
       for (let k = 0; k < 50 && !(bank(a, "weiblich") && bank(a, "maennlich")); k++) await new Promise((ok) => setTimeout(ok, 50));

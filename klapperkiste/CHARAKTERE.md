@@ -189,3 +189,9 @@ schneidet sie in rund 50 Silben je Stimme (`design/stimmen_daten.js`). Jede
 Figur nutzt eine der beiden Stimmen, schneller und höher (Zylinda) oder langsamer
 und tiefer (Knut, Brösel) abgespielt, mit Satzmelodie. Die Formant-Stimme bleibt
 als Ersatz, falls die Silben nicht geladen sind.
+
+Vierte Fassung: **genuschelt am Stück**. Neue Aufnahmen aus nuschelnden Lauten
+(„Hmm nja, dömm wennem hönn brummeln …“, weniger offene Vokale, damit es nicht
+nach Italienisch klingt). `stimmen.py` kürzt nur lange Pausen und merkt sich die
+leisen Stellen; `ton.js` spielt 0,8 bis 1,8 s am Stück und hängt das nächste
+Stück nahtlos an, mit weichem Tiefpass (2,6 kHz).
