@@ -143,13 +143,21 @@ window.Karte = function (opt = {}) {
     for (const w of WEGE) for (let i = 1; i < w.length; i++) m = Math.min(m, abstandStrecke(px, py, w[i - 1], w[i]));
     return m;
   }
-  function frei(x, y, r) {
+  // vis: sichtbarer Halbmesser des neuen Objekts. Felsen, Büsche und Bäume dürfen sich im
+  // Bild nicht überlagern; nur Nadelbäume stehen im Wald etwas dichter.
+  function frei(x, y, r, vis = r, art = null) {
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
+    if (ZAEUNE.some(([a, b]) => abstandStrecke(x, y, a, b) < vis + 0.3)) return false;
     for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich]) {
       if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
     }
     if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
-    return !OBJEKTE.some((o) => o.r && Math.hypot(o.x - x, o.y - y) < o.r + r + 0.6);
+    return !OBJEKTE.some((o) => {
+      const d = Math.hypot(o.x - x, o.y - y);
+      if (!o.vis) return o.r && d < o.r + r + 0.6; // reine Kollisionskreise (Schrottplatz)
+      const wald = o.art === "nadelbaum" && art === "nadelbaum"; // nur im Nadelwald dürfen sich Kronen berühren
+      return d < (o.vis + vis) * (wald ? 0.75 : 1.05);
+    });
   }
 
   const OBJEKTE = []; // {art, x, y, rot, s, spiegel, r (Kollision)}
@@ -159,8 +167,9 @@ window.Karte = function (opt = {}) {
     if (art === "laubbaum" && NADELWALD.some(([x0, y0, x1, y1]) => x > x0 && x < x1 && y > y0 && y < y1)) art = "nadelbaum";
     const o = OBJ[art], s = opt.s ?? 0.85 + rnd() * 0.3;
     const r = opt.r ?? (art === "felsbrocken" ? 0.42 : art === "busch" ? 0.4 : 0.3) * o.b * s;
-    if (!opt.fest && !frei(x, y, r)) return false;
-    OBJEKTE.push({ art, x, y, rot: opt.rot ?? (rnd() - 0.5) * 0.7, s, spiegel: opt.spiegel ?? rnd() < 0.5, r: opt.ohne ? 0 : r });
+    const vis = art === "zaun" ? 0 : 0.5 * o.b * s;
+    if (!opt.fest && !frei(x, y, r, vis, art)) return false;
+    OBJEKTE.push({ art, x, y, rot: opt.rot ?? (rnd() - 0.5) * 0.7, s, spiegel: opt.spiegel ?? rnd() < 0.5, r: opt.ohne ? 0 : r, vis });
     return true;
   }
   function streue(art, anzahl, x0, y0, x1, y1) {
@@ -190,10 +199,10 @@ window.Karte = function (opt = {}) {
     ZAEUNE.push([[144.1, 234], [144.1, 246.4]], [[156.4, 234], [156.4, 246.4]],
       [[144.1, 246.4], [148.3, 246.4]], [[151.6, 246.4], [156.4, 246.4]]);
     // Wald im Westen, lichter Mischwald im Norden, Einzelbäume
-    streue("nadelbaum", 140, 6, 100, 120, 250);
+    streue("nadelbaum", 110, 6, 100, 120, 250);
     streue("laubbaum", 30, 10, 110, 120, 250);
-    streue("laubbaum", 40, 6, 6, 200, 100);
-    streue("nadelbaum", 40, 250, 80, 314, 200);
+    streue("laubbaum", 30, 6, 6, 200, 100);
+    streue("nadelbaum", 32, 250, 80, 314, 200);
     streue("laubbaum", 18, 100, 306, 314, 318);
     streue("laubbaum", 12, 170, 120, 250, 200);
     streue("nadelbaum", 20, 10, 255, 130, 316);
@@ -202,12 +211,12 @@ window.Karte = function (opt = {}) {
       const x = w[i - 1][0] + (w[i][0] - w[i - 1][0]) * t, y = w[i - 1][1] + (w[i][1] - w[i - 1][1]) * t;
       const seite = rnd() < 0.5 ? -1 : 1, d = 4.2 + rnd() * 4;
       const nx = -(w[i][1] - w[i - 1][1]), ny = w[i][0] - w[i - 1][0], nl = Math.hypot(nx, ny);
-      if (rnd() < 0.55) setze(rnd() < 0.7 ? "busch" : "felsbrocken", x + nx / nl * d * seite, y + ny / nl * d * seite);
+      if (rnd() < 0.4) setze(rnd() < 0.7 ? "busch" : "felsbrocken", x + nx / nl * d * seite, y + ny / nl * d * seite);
     }
-    streue("felsbrocken", 20, 180, 10, 314, 120);
-    streue("busch", 30, 130, 120, 260, 300);
+    streue("felsbrocken", 14, 180, 10, 314, 120);
+    streue("busch", 22, 130, 120, 260, 300);
     // Dichter dunkler Wald: viele Nadelbäume und einige Laubbäume, nur in der Waldfläche
-    for (let i = 0, n = 0; i < 2000 && n < 170; i++) {
+    for (let i = 0, n = 0; i < 2000 && n < 150; i++) {
       const x = rnd() * 110, y = 140 + rnd() * 130;
       if (imWald(x, y, -3) && setze("nadelbaum", x, y)) n++;
     }
@@ -1306,6 +1315,7 @@ window.Karte = function (opt = {}) {
       const sx = vy * seite + dx / d * 0.5, sy = -vx * seite + dy / d * 0.5;
       return Math.atan2(sy, sx) + zufall(-0.25, 0.25);
     }
+    auseinander(dt);
     // Schafe: langsam zu einem neuen Grasplatz laufen, dort grasen
     for (const sf of SCHAFE) {
       if (sf.grast) {
@@ -1317,6 +1327,28 @@ window.Karte = function (opt = {}) {
       drehZu(sf, Math.atan2(sf.zy - sf.y, sf.zx - sf.x), dt * 1.2);
       const tempo = sf.art === "kuh" ? 0.45 : 0.6;
       sf.x += Math.cos(sf.a) * tempo * dt; sf.y += Math.sin(sf.a) * tempo * dt;
+    }
+  }
+  // Tiere laufen nicht übereinander und nicht über Felsen, Büsche und Bäume: wer zu nah
+  // kommt, wird sanft zur Seite geschoben
+  const tierGroesse = (t) => (t.art === "kuh" ? 1.0 : t.art === "schaf" || t.zx !== undefined ? 0.65 : 0.35);
+  function auseinander(dt) {
+    const alle = [...SCHAFE, ...HERDE, ...HASEN], k = Math.min(1, dt * 8);
+    for (let i = 0; i < alle.length; i++) {
+      const a = alle[i], ga = tierGroesse(a);
+      for (let j = i + 1; j < alle.length; j++) {
+        const b = alle[j], min = ga + tierGroesse(b), dx = b.x - a.x, dy = b.y - a.y;
+        if (Math.abs(dx) > min || Math.abs(dy) > min) continue;
+        const d = Math.hypot(dx, dy) || 0.01;
+        if (d >= min) continue;
+        const s = (min - d) / 2 * k / d;
+        a.x -= dx * s; a.y -= dy * s; b.x += dx * s; b.y += dy * s;
+      }
+      for (const o of OBJEKTE) {
+        if (!o.r || !o.art || o.art === "zaun" || Math.abs(o.x - a.x) > 5 || Math.abs(o.y - a.y) > 5) continue;
+        const dx = a.x - o.x, dy = a.y - o.y, d = Math.hypot(dx, dy) || 0.01, min = o.r + ga;
+        if (d < min) { a.x += dx / d * (min - d) * k; a.y += dy / d * (min - d) * k; }
+      }
     }
   }
   function tierZeichnen(bild, x, y, a, gross = 1) {
