@@ -29,16 +29,35 @@ window.Ton = (function () {
     g.connect(f).connect(ziel);
     return g;
   }
-  // Handy-Browser geben Ton nur frei, wenn er direkt in einer Berührung startet
+  // Handy-Browser geben Ton nur frei, wenn er direkt in einer Berührung startet. Ein
+  // Fingerdruck (pointerdown) zählt dafür noch nicht, erst das Loslassen (touchend,
+  // pointerup, click). Musik, die vorher bestellt wurde, startet erst, wenn der Ton
+  // wirklich läuft: Stücke, die im stummen Zustand angelegt wurden, blieben auf
+  // manchen Handys still, bis man die Musik aus- und wieder einschaltete.
+  const FREI = ["pointerdown", "pointerup", "touchend", "click", "keydown", "mousedown"];
   function freischalten() {
     const a = bereit();
     if (!a) return;
     try {
       const s = a.createBufferSource(); s.buffer = a.createBuffer(1, 1, 22050); s.connect(a.destination); s.start(0);
     } catch { /* egal */ }
-    if (a.state === "running") for (const ev of ["pointerdown", "touchend", "click", "keydown"]) window.removeEventListener(ev, freischalten, true);
+    if (a.state === "running") {
+      for (const ev of FREI) window.removeEventListener(ev, freischalten, true);
+      laufenLassen();
+    } else if (a.resume) {
+      a.resume().then(laufenLassen).catch(() => { /* beim nächsten Tippen wieder */ });
+    }
   }
-  for (const ev of ["pointerdown", "touchend", "click", "keydown"]) window.addEventListener(ev, freischalten, true);
+  for (const ev of FREI) window.addEventListener(ev, freischalten, true);
+  // Ton läuft (wieder): bestellte Musik jetzt wirklich starten
+  function laufenLassen() {
+    if (!audio || audio.state !== "running") return;
+    if (!audio.wach) {
+      audio.wach = performance.now();
+      audio.addEventListener("statechange", () => { if (audio.state === "running") laufenLassen(); });
+    }
+    if (!laeuft) spielen(gespraechStueck || wunsch);
+  }
 
   // --- Gebrummel ---------------------------------------------------------------
   // Formant-Stimme: ein summender Grundton (wie die Stimmbänder) läuft durch zwei
@@ -404,8 +423,12 @@ K:Am
   function spielen(name) {
     if (!ein.musik) name = null;
     if (laeuft && laeuft.name === name) return;
-    const a = bereit();
-    if (!a) return;
+    // Noch kein Ton erlaubt: nur vormerken (wunsch), laufenLassen() startet es später
+    if (!audio || audio.state !== "running") {
+      if (laeuft) { for (const q of laeuft.quellen) try { q.stop(); } catch { /* schon aus */ } laeuft = null; }
+      return;
+    }
+    const a = audio;
     if (laeuft) { // altes Stück ausblenden
       const { bus: alt, quellen } = laeuft;
       alt.gain.setTargetAtTime(0.0001, a.currentTime, 0.25);
@@ -546,6 +569,8 @@ K:Am
   return {
     silbe, still, musik, leise, motor, hupe, freischalten, probe, STUECKE,
     get an() { return ein; }, schalte,
+    // Zeitpunkt, seit dem Ton erlaubt ist (0: noch nicht)
+    get seit() { return (audio && audio.wach) || 0; },
     get laeuft() { return laeuft && { name: laeuft.name, aufnahme: laeuft.aufnahme, runde: laeuft.runde }; }, get silben() { return silbenZahl; },
   };
 })();

@@ -565,7 +565,14 @@ window.Karte = function (opt = {}) {
   musikKnopf.type = "button"; musikKnopf.id = "musikKnopf";
   const musikZeigen = () => { const an = Ton && Ton.an.musik; musikKnopf.textContent = an ? "🎵" : "🎵̸"; musikKnopf.classList.toggle("aus", !an); musikKnopf.setAttribute("aria-label", an ? "Musik aus" : "Musik an"); };
   musikZeigen();
-  musikKnopf.addEventListener("click", () => { if (!Ton) return; Ton.freischalten(); Ton.schalte("musik", !Ton.an.musik); musikZeigen(); });
+  musikKnopf.addEventListener("click", () => {
+    if (!Ton) return;
+    Ton.freischalten();
+    // Erster Tipp überhaupt auf die Note: Der Ton war noch gesperrt, die Musik also nur
+    // scheinbar an. Dann nicht ausschalten, sondern nur hörbar machen.
+    if (Ton.an.musik && performance.now() - Ton.seit < 800) return musikZeigen();
+    Ton.schalte("musik", !Ton.an.musik); musikZeigen();
+  });
   document.body.append(musikKnopf);
   document.querySelector("#gespraech .g-box").append(tonKnopf);
   $("gespraech").addEventListener("click", weiter);
