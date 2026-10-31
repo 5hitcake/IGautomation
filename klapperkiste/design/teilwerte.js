@@ -4,6 +4,7 @@
 // Werte (alle freiwillig):
 //   tempo      Höchstgeschwindigkeit in km/h (Motor)
 //   kraft      schafft Steigungen bis so viel Grad (Motor)
+//   schub      Beschleunigung 1–10 (Motor), z. B. Rakete 10
 //   reichweite Meter mit einer Füllung (Energie)
 //   grip       Bodenhaftung 1–10 (Räder)
 //   wendig     Wendigkeit 1–10 (Lenkung)
@@ -25,11 +26,11 @@ window.TEILWERTE = (function () {
     ballonreifen: { grip: 4, gewicht: 6, text: "Dick aufgepumpt und federleicht. Sinkt im Moor nicht ein.", extras: ["Moor", "Federt weich"] },
     kutschenrad: { grip: 3, gewicht: 10, text: "Ein Holzrad mit Eisenring. Hübsch anzusehen, aber ganz schön wackelig.", extras: ["Hübsch", "Wackelt"] },
 
-    maeher: { tempo: 15, kraft: 8, gewicht: 20, text: "Der Motor von Opas altem Rasenmäher. Knattert laut und zieht kaum einen Hering vom Teller.", extras: ["Knattert"] },
-    mopedmotor: { tempo: 35, kraft: 10, gewicht: 25, text: "Flink und sparsam, aber am Berg schnell aus der Puste.", extras: ["Sparsam"] },
-    waschmaschinenmotor: { tempo: 25, kraft: 15, gewicht: 35, text: "Läuft mit Strom und schleudert ordentlich. Ohne Batterie bewegt er sich aber keinen Millimeter.", extras: ["Braucht Strom", "Leise"] },
-    traktormotor: { tempo: 30, kraft: 35, gewicht: 120, text: "Langsam, schwer und unglaublich stark. Zieht dich jeden Berg hinauf.", extras: ["Bergziege", "Schwer"] },
-    raketenmotor: { tempo: 120, kraft: 20, gewicht: 60, text: "Fauch! Geradeaus unschlagbar schnell, in Kurven eher ein Abenteuer.", extras: ["Sehr schnell", "Durstig"] },
+    maeher: { schub: 1, tempo: 15, kraft: 8, gewicht: 20, text: "Der Motor von Opas altem Rasenmäher. Knattert laut und zieht kaum einen Hering vom Teller.", extras: ["Knattert"] },
+    mopedmotor: { schub: 3, tempo: 35, kraft: 10, gewicht: 25, text: "Flink und sparsam, aber am Berg schnell aus der Puste.", extras: ["Sparsam"] },
+    waschmaschinenmotor: { schub: 2, tempo: 25, kraft: 15, gewicht: 35, text: "Läuft mit Strom und schleudert ordentlich. Ohne Batterie bewegt er sich aber keinen Millimeter.", extras: ["Braucht Strom", "Leise"] },
+    traktormotor: { schub: 2, tempo: 30, kraft: 35, gewicht: 120, text: "Langsam, schwer und unglaublich stark. Zieht dich jeden Berg hinauf.", extras: ["Bergziege", "Schwer"] },
+    raketenmotor: { schub: 10, tempo: 120, kraft: 20, gewicht: 60, text: "Fauch! Geradeaus unschlagbar schnell, in Kurven eher ein Abenteuer.", extras: ["Sehr schnell", "Durstig"] },
 
     giesskanne: { reichweite: 1500, gewicht: 3, text: "Eine Gießkanne voll Sprit. Reicht für eine kurze Runde ums Haus.", extras: [] },
     milchkanne: { reichweite: 2200, gewicht: 10, text: "Eine große Milchkanne vom Bauernhof, jetzt mit Benzin statt Milch.", extras: [] },

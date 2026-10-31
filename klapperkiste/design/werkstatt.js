@@ -599,7 +599,7 @@ window.Werkstatt = function (opt = {}) {
   // --- Kategorien, Teile, Info ------------------------------------------------
   const TW = window.TEILWERTE || {};
   // [Schlüssel, Name, Einheit, Wert für einen vollen Balken]
-  const WERTE = [["tempo", "Tempo", "km/h", 120], ["kraft", "Steigung", "°", 40], ["reichweite", "Reichweite", "m", 3500],
+  const WERTE = [["tempo", "Tempo", "km/h", 120], ["schub", "Beschleunigung", "", 10], ["kraft", "Steigung", "°", 40], ["reichweite", "Reichweite", "m", 3500],
     ["grip", "Grip", "", 10], ["wendig", "Lenkung", "", 10], ["komfort", "Komfort", "", 10], ["robust", "Robustheit", "", 10],
     ["licht", "Licht", "m", 30], ["laut", "Lautstärke", "", 10], ["gewicht", "Gewicht", "kg", 300]];
   const AUTO_WERTE = ["tempo", "kraft", "reichweite", "grip", "wendig", "gewicht"];
@@ -609,7 +609,7 @@ window.Werkstatt = function (opt = {}) {
   // Werte des ganzen Autos aus den eingebauten Teilen
   function autoWerte(m) {
     const w = {}, an = (sl, k) => (m[sl] ? wert(m[sl], k) || 0 : 0);
-    w.tempo = an("motor", "tempo"); w.kraft = an("motor", "kraft"); w.reichweite = an("energie", "reichweite");
+    w.tempo = an("motor", "tempo"); w.kraft = an("motor", "kraft"); w.schub = an("motor", "schub"); w.reichweite = an("energie", "reichweite");
     w.grip = m.radH && m.radV ? Math.min(an("radH", "grip"), an("radV", "grip")) : 0;
     w.wendig = an("lenkung", "wendig"); w.komfort = an("sitz", "komfort"); w.licht = an("licht", "licht"); w.laut = an("hupe", "laut");
     const tragend = ["rahmen", "achseH", "achseV", ...KARO].filter((sl) => m[sl]);

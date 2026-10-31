@@ -69,7 +69,7 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
     const w = (id, k) => (TW[id] || {})[k] || 0;
     const gewicht = w("bettgestell", "gewicht") + 2 * w("rostachse", "gewicht") + 4 * w(teile.rad, "gewicht") +
       w(teile.motor, "gewicht") + w(teile.energie, "gewicht") + w(teile.sitz, "gewicht") + w(teile.lenkung, "gewicht") + (teile.karo || 0);
-    return { tempo: w(teile.motor, "tempo"), gewicht, wendig: w(teile.lenkung, "wendig"), grip: w(teile.rad, "grip") };
+    return { tempo: w(teile.motor, "tempo"), schub: w(teile.motor, "schub"), gewicht, wendig: w(teile.lenkung, "wendig"), grip: w(teile.rad, "grip") };
   }
   const AUTOS = [
     { id: "schrott", name: "Schrottkarre", bild: "ohne", info: "Rasenmäher-Motor, Schubkarrenräder",
@@ -78,7 +78,7 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
       teile: { motor: "mopedmotor", rad: "autoreifen", lenkung: "bus_lenkrad", sitz: "rennschale", energie: "kanister", karo: 45 } },
     { id: "traktor", name: "Traktor-Kiste", bild: "pickup", info: "Traktormotor, Traktorreifen, schwer",
       teile: { motor: "traktormotor", rad: "traktorreifen", lenkung: "steuerrad", sitz: "traktorsitz", energie: "kanister", karo: 75 } },
-    { id: "rakete", name: "Rakete", bild: "rakete", info: "Raketen-Triebwerk, Ballonreifen",
+    { id: "rakete", name: "Rakete", bild: "rakete", info: "Raketen-Triebwerk (Turbine), Ballonreifen",
       teile: { motor: "raketenmotor", rad: "ballonreifen", lenkung: "bus_lenkrad", sitz: "rennschale", energie: "kanister", karo: 60 } },
   ];
   for (const a of AUTOS) { a.werte = werte(a.teile); a.auto = auto(a.bild); }

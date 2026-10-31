@@ -69,7 +69,8 @@ window.Rallye = function (opt) {
     const w = opt.werte() || {};
     lauf = {
       x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 3, lenkwinkel: 0,
-      vmax: 5 + (w.tempo || 15) / 10, acc: Math.max(1.4, 4.5 - (w.gewicht || 90) / 100),
+      vmax: 5 + (w.tempo || 15) / 10, acc: Math.max(1.4, 4.5 - (w.gewicht || 90) / 100) + (w.schub || 1) * 0.6,
+      rakete: (w.schub || 1) >= 8,
       lenk: 5 + (w.wendig || 4) * 0.6 + (5 + (w.tempo || 15) / 10) * 0.3, grip: w.grip || 2, muenzen: 0, fehl: 0, wackel: 0, spritz: 0, gesehen: new Set(),
     };
     for (const d of DINGE) d.weg = false;
@@ -288,6 +289,13 @@ window.Rallye = function (opt) {
         const [px, py] = a.drehpunkt, hoch = 4 * ach.naturalHeight / ach.naturalWidth;
         ctx.save(); ctx.translate(-2 + px, -hoch / 2 + py); ctx.rotate(L.lenkwinkel);
         ctx.drawImage(ach, -px, -py, 4, hoch); ctx.restore();
+      }
+      // Raketenantrieb: Flamme am Heck, solange er beschleunigt
+      if (L.rakete && L.phase === "fahrt" && L.v < L.vmax * 0.98) {
+        const f = 1 - L.v / L.vmax, fl = 1.2 + f * 2.2 + (reduce ? 0 : Math.random() * 0.5);
+        const g = ctx.createLinearGradient(-2, 0, -2 - fl, 0);
+        g.addColorStop(0, "rgba(255,240,180,0.95)"); g.addColorStop(0.4, "rgba(255,150,40,0.85)"); g.addColorStop(1, "rgba(220,60,20,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-1.9, -0.45); ctx.quadraticCurveTo(-2 - fl, 0, -1.9, 0.45); ctx.closePath(); ctx.fill();
       }
       ctx.drawImage(a.img, -2, -breit / 2, lang, breit);
       ctx.restore();

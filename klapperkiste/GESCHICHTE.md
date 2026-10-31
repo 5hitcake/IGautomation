@@ -79,7 +79,8 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
 - **Es geht nach Zeit**, schnellere Autos lohnen sich: Höchstgeschwindigkeit 5 m/s +
   Tempo/10 (Rasenmäher 6,5, Moped 8,5, Rakete 17). Probefahrten mit vier Beispielautos
   und Bestzeiten je Auto: `design/rallyeprobe.html`.
-- **Werte zählen:** Tempo (Höchstgeschwindigkeit), Gewicht (Beschleunigung),
+- **Werte zählen:** Tempo (Höchstgeschwindigkeit), Schub des Motors und Gewicht
+  (Beschleunigung; das Raketen-Triebwerk zieht mit Flamme am Heck davon),
   Lenkung (wie schnell man ausweicht), Grip (Pfützen).
 - **Medaillen:** 🥇 66 s · 🥈 78 s · 🥉 92 s. Gold schafft man erst mit einem
   schnelleren Motor als dem Rasenmäher. Bronze reicht zur Qualifikation.
