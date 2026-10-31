@@ -271,6 +271,13 @@ läuft deutlich leiser im Gespräch mit dieser Figur und löst die Ortsmusik so
 lange ab; ohne eigenes Stück wird die Ortsmusik nur gedämpft. Wo eine Aufnahme
 fehlt (zurzeit Wald), spielen die Noten.
 
+Längere Stücke entstehen aus mehreren kurzen Teilen im gleichen Stil und der gleichen
+Tonart, z. B. `assets/ton/musik/fahren/1.mp3 … 3.mp3`. Das Werkzeug misst das Tempo
+jedes Teils (die Musik-KI hält die gewünschte Zahl nicht ein: 172, 180 und 199 Schläge),
+streckt alle auf den mittleren Wert, verbindet je zwei Teile an ihrer ähnlichsten
+Stelle direkt vor einem Schlag (120 ms Überblendung) und schleift vom letzten Teil
+zurück in den ersten. Fahren läuft so 52 s, bevor sich etwas wiederholt.
+
 ## 19. Geräusche
 
 Motor (`Ton.motor` in `design/ton.js`): tiefer Sägezahn und Rauschen, im Takt der
