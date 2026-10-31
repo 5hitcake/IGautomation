@@ -262,8 +262,8 @@ window.Karte = function (opt = {}) {
     route = null;
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, knutMoped: false, ...verbrauchStart() });
-    hinweisGezeigt = false; angehalten = false; moosKennt = false;
+      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, knutMoped: false, neben: nebenStart(), ...verbrauchStart() });
+    hinweisGezeigt = false; angehalten = false; moosKennt = false; bertaSetzen();
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
     for (const r of SAMMEL) r.weg = false;
@@ -409,7 +409,11 @@ window.Karte = function (opt = {}) {
   // opa: null | "rennen" (hat vom Rennen und vom Donnerkeil erzählt); moosRallye: Moos hat
   // von der Waldrallye erzählt; donnerkeil: gefundene Teile von Opas altem Rennwagen
   const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, knutMoped: false, ...verbrauchStart() };
+    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, knutMoped: false, neben: nebenStart(), ...verbrauchStart() };
+  // Nebenaufträge, die parallel zur Rallye entstehen (man kann sie vorher oder nachher machen):
+  // kuh (Hilde): null | "suchen" | "heim" | "erledigt"; vogelhaus (Moos): null | "auftrag" | "erledigt";
+  // motor (Rosi → Knut → Rosi): null | "zuKnut" | "zurueck" | "erledigt"
+  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null }; }
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -494,6 +498,23 @@ window.Karte = function (opt = {}) {
         ["auftrag", "Hier, 30 Münzen und zwei alte Federn aus der Scheune. Und nimm das hier mit: das Heck von unserem alten Pick-up. Der Rest davon steht noch irgendwo herum."],
       ], () => toast("Pick-up hinten erhalten! Liegt in Opas Werkstatt im Regal.", 4500));
     }
+    const n = spiel.neben;
+    if (spiel.rosi === "erledigt" && !n.kuh) {
+      return hilde([
+        ["nachdenken", "Ach, gut, dass du kommst! Meine Kuh Berta ist schon wieder ausgebüxt. Die Schafe sind brav, aber Berta …"],
+        ["auftrag", "Zuletzt hat sie einer am Waldweg gesehen, beim Pilze-Mampfen. Fährst du hin? Wenn sie dein Auto hört, trottet sie von allein heim."],
+        ["juhu", "Bring sie mir zurück, dann kriegst du was Feines: Opas alte Milchkanne. Da passt mehr Sprit rein als in eine Gießkanne!"],
+      ], () => { n.kuh = "suchen"; bertaSetzen(); hudNeu(); toast("🐄 Neuer Auftrag: Kuh Berta suchen. Steht im Auftragsbuch.", 4000); });
+    }
+    if (n.kuh === "suchen") return hilde([["nachdenken", "Berta ist noch nicht zurück. Schau mal am Waldweg, da frisst sie so gern Pilze."]]);
+    if (n.kuh === "heim") {
+      n.kuh = "erledigt"; spiel.geld += 30; spiel.teile.add("milchkanne"); materialGeben({ blech: 1 });
+      if (opt.belohnung) opt.belohnung("milchkanne");
+      return hilde([
+        ["juhu", "Berta! Da bist du ja, du alte Ausreißerin. Muuh macht sie, als wär nix gewesen."],
+        ["auftrag", "Danke dir! Hier, 30 Münzen, ein Stück Blech und die Milchkanne. Mit der kommst du ein ganzes Stück weiter, bevor der Tank leer ist."],
+      ], () => toast("🥛 Milchkanne erhalten (Tank: 2.200 m)! Liegt in Opas Werkstatt im Regal.", 4500));
+    }
     hilde([["hallo", "Schön, dich zu sehen! Die Schafe sind brav auf der Wiese geblieben. Komm ruhig wieder vorbei!"]]);
   }
   // Hupen vor der Herde: Schafe stieben auseinander, danach fährt das Auto weiter zum Ziel
@@ -523,6 +544,23 @@ window.Karte = function (opt = {}) {
         ["auftrag", "Hier, 25 Münzen und ein Stück Blech. Und das Vorderteil der alten Badewanne gehört dir, mit Gummiente vorne drauf!"],
         ["nachdenken", "Die anderen Teile? Eins hat bestimmt der Sperrmüll-Händler … ach, das erzähl ich dir ein andermal."],
       ], () => toast("Badewanne vorne erhalten! Liegt in Opas Werkstatt im Regal.", 4500));
+    }
+    const n = spiel.neben;
+    if (!n.motor) {
+      return rosi([
+        ["nachdenken", "Sag mal, du kennst doch Knut vom Schrottplatz? Mein Außenbordmotor stottert nur noch, so komm ich nie raus zu den dicken Fischen."],
+        ["auftrag", "Nimmst du ihn mit zu Knut? Der kriegt so was im Handumdrehen hin. Die Rallye läuft dir ja nicht weg."],
+        ["juhu", "Wenn er wieder schnurrt, schenk ich dir das Steuerrad von meinem alten Kahn. Damit lenkt sich's butterweich!"],
+      ], () => { n.motor = "zuKnut"; hudNeu(); toast("⚙️ Neuer Auftrag: Rosis Außenbordmotor zu Knut bringen.", 4000); });
+    }
+    if (n.motor === "zuKnut") return rosi([["nachdenken", "Mein Motor muss zu Knut auf den Schrottplatz. Der weiß, wie man ihn wieder zum Schnurren bringt!"]]);
+    if (n.motor === "zurueck") {
+      n.motor = "erledigt"; spiel.geld += 20; spiel.teile.add("steuerrad");
+      if (opt.belohnung) opt.belohnung("steuerrad");
+      return rosi([
+        ["juhu", "Er schnurrt wie ein Kätzchen! Morgen fahr ich raus und hol mir den dicken Hecht."],
+        ["auftrag", "Hier, 20 Münzen und das Steuerrad, wie versprochen. Damit weichst du in der Rallye jedem Stamm aus!"],
+      ], () => toast("🛞 Schiffs-Steuerrad erhalten (lenkt sich besser)! Liegt in Opas Werkstatt im Regal.", 4500));
     }
     rosi([["hallo", spiel.moosRallye && spiel.holzweg
       ? spiel.rallye && spiel.rallye.medaille
@@ -620,6 +658,23 @@ window.Karte = function (opt = {}) {
       } else {
         zeilen.push(["nachdenken", `Für den Seilzug fehlen mir noch ${Math.max(0, 2 - m.kabel)} Kabel und ${Math.max(0, 2 - m.federn)} Federn. Schau mal am Wegrand, da liegt oft was herum.`]);
       }
+    } else if (spiel.moosSeil === "erledigt" && spiel.neben.vogelhaus !== "erledigt") {
+      const n = spiel.neben, m = spiel.material;
+      if (!n.vogelhaus) {
+        zeilen.push(
+          ["nachdenken", "Pieps ist ganz durcheinander. Seit die Lichter im Wald flackern, schläft er nicht mehr in meinem Bart."],
+          ["auftrag", "Ich will ihm ein Vogelhaus bauen, ein richtiges, mit Blechdach. Bringst du mir 2 Blech und 2 Schrauben? Liegen manchmal am Wegrand."]);
+        n.vogelhaus = "auftrag";
+        setTimeout(() => toast("🐦 Neuer Auftrag: Ein Vogelhaus für Pieps. Steht im Auftragsbuch.", 4000), 300);
+      } else if (m.blech >= 2 && m.schrauben >= 2) {
+        m.blech -= 2; m.schrauben -= 2; n.vogelhaus = "erledigt"; spiel.geld += 25;
+        zeilen.push(
+          ["juhu", "Blech und Schrauben! Zack, zack … und fertig ist das Vogelhaus. Pieps zieht sofort ein, schau!"],
+          ["auftrag", "Hier, 25 Münzen. Und weißt du, wer früher die schönsten Vogelhäuser im Tal gebaut hat? Der alte Kauz."],
+          ["nachdenken", "Ein Tüftler, wohnt irgendwo drüben am anderen Seeufer. Keiner hat ihn lang gesehen. Ob die Lichter was mit ihm zu tun haben?"]);
+      } else {
+        zeilen.push(["nachdenken", `Fürs Vogelhaus fehlen mir noch ${Math.max(0, 2 - m.blech)} Blech und ${Math.max(0, 2 - m.schrauben)} Schrauben.`]);
+      }
     } else if (moosKennt) {
       zeilen.push(["nachdenken", spiel.holzweg
         ? "Der Holzweg ist frei, die Rallye-Strecke stecke ich gerade ab. Und die Lichter? Letzte Nacht wieder. Unheimlich, sag ich dir."
@@ -678,6 +733,13 @@ window.Karte = function (opt = {}) {
         ["auftrag", "Hier, der Scheinwerfer gehört dir. Lass ihn dir von Opa einbauen, dann siehst du auch im dunklen Wald was."],
         ["nachdenken", "Ach, und gerade kam eine Lieferung rein: eine Spezialhupe, laut wie ein Nebelhorn. Steht jetzt im Laden."],
       ], () => { toast("Alter Scheinwerfer erhalten! Er liegt in Opas Werkstatt im Regal.", 4500); ladenAuf(); });
+    }
+    if (spiel.neben.motor === "zuKnut") {
+      spiel.neben.motor = "zurueck"; hudNeu();
+      return knut([
+        ["nachdenken", "Rosis Außenbordmotor? Zeig mal her … Aha. Da hat einer Seegras in die Schraube gewickelt."],
+        ["juhu", "Raus damit, Zündkerze sauber, ein Tropfen Öl … Brrrrumm! Läuft wie neu. Bring ihn ihr zurück!"],
+      ], () => toast("⚙️ Motor repariert. Zurück zu Rosi an den Waldsee!", 4000));
     }
     if (spiel.rallye && !spiel.knutMoped && !spiel.gekauft.has("mopedmotor")) {
       // nach der ersten Rallye-Fahrt erzählt Knut einmal vom Mopedmotor
@@ -790,7 +852,49 @@ window.Karte = function (opt = {}) {
     if (spiel.rosi === "fisch") offen.push({ ...rosiA, stand: "🐟 Fisch dabei", text: "Bring Hilde auf dem Bauernhof den frischen Fisch von Rosi.", ziel: zielVon("bauernhof") });
     if (spiel.rosi === "milch") offen.push({ ...rosiA, stand: "🥛 Milch dabei", text: "Bring Rosi die Kanne Milch von Hilde zurück an den Waldsee.", ziel: zielVon("camping") });
     if (spiel.rosi === "erledigt") erledigt.push(rosiA);
+    // Nebenaufträge
+    const n = spiel.neben, m = spiel.material;
+    const kuh = { figur: "hilde", wer: "Bäuerin Hilde", titel: "Kuh Berta ist ausgebüxt", belohnung: "30 Münzen, 1 🥫 Blech, Milchkanne (größerer Tank)" };
+    if (n.kuh === "suchen") offen.push({ ...kuh, stand: "🐄 gesucht", text: "Berta frisst am Waldweg Pilze. Fahr hin, dann trottet sie von allein heim.", ziel: { id: "fund", name: "Kuh Berta", x: BERTA.x, y: BERTA.y } });
+    if (n.kuh === "heim") offen.push({ ...kuh, stand: "🐄 gefunden", text: "Berta ist auf dem Heimweg. Sag Hilde auf dem Bauernhof Bescheid.", ziel: zielVon("bauernhof") });
+    if (n.kuh === "erledigt") erledigt.push(kuh);
+    const vogel = { figur: "moos", wer: "Förster Moos", titel: "Ein Vogelhaus für Pieps", belohnung: "25 Münzen und ein Tipp" };
+    if (n.vogelhaus === "auftrag") {
+      const genug = m.blech >= 2 && m.schrauben >= 2;
+      offen.push({ ...vogel, stand: `🥫 ${Math.min(2, m.blech)}/2 · 🔩 ${Math.min(2, m.schrauben)}/2`,
+        text: genug ? "Blech und Schrauben sind im Beutel. Bring sie Moos in die Försterhütte." : "Moos braucht 2 Blech und 2 Schrauben für ein Vogelhaus. Die liegen am Wegrand.",
+        ziel: genug ? zielVon("foersterhuette") : materialZiel(["blech", "schrauben"].filter((a) => m[a] < 2)),
+        fehlt: "Gerade liegt kein Blech und keine Schraube am Wegrand. Morgen gibt es neue." });
+    }
+    if (n.vogelhaus === "erledigt") erledigt.push(vogel);
+    const motor = { figur: "rosi", wer: "Anglerin Rosi", titel: "Rosis Außenbordmotor", belohnung: "20 Münzen, Schiffs-Steuerrad (lenkt besser)" };
+    if (n.motor === "zuKnut") offen.push({ ...motor, stand: "⚙️ kaputt", text: "Bring Rosis stotternden Außenbordmotor zu Knut auf den Schrottplatz.", ziel: zielVon("schrottplatz") });
+    if (n.motor === "zurueck") offen.push({ ...motor, stand: "⚙️ repariert", text: "Knut hat den Motor repariert. Bring ihn Rosi an den Waldsee zurück.", ziel: zielVon("camping") });
+    if (n.motor === "erledigt") erledigt.push(motor);
     return { offen, erledigt };
+  }
+  // Orte mit Aufgabe (neuer Auftrag oder nächster Schritt): leuchten auf den Karten gelb
+  let aufgabenCache = null, aufgabenZeit = -1;
+  function aufgabenOrte() {
+    const jetzt = performance.now();
+    if (aufgabenCache && jetzt - aufgabenZeit < 500) return aufgabenCache;
+    const orte = new Set(), punkte = [];
+    for (const a of auftraege().offen) {
+      if (!a.ziel) continue;
+      if (ZIELE.includes(a.ziel)) orte.add(a.ziel.id);
+      else if (a.ziel.name === "Kuh Berta") punkte.push(a.ziel);
+    }
+    const n = spiel.neben;
+    // neue Aufträge, die bei jemandem warten
+    if (spiel.auftrag === null || (spiel.rallye && !spiel.knutMoped && !spiel.gekauft.has("mopedmotor"))) orte.add("schrottplatz");
+    if (!spiel.hilde || (spiel.hilde === "erledigt" && spiel.rosi === "erledigt" && !n.kuh)) orte.add("bauernhof");
+    if (!spiel.rosi || (spiel.rosi === "erledigt" && !n.motor)) orte.add("camping");
+    if (spiel.moosSeil === "erledigt" && !n.vogelhaus) orte.add("foersterhuette");
+    if (spiel.donnerkeil.includes("lenkrad") && !spiel.opaLenkrad) orte.add("schuppen");
+    if (!spiel.opa && ["batterie", "erledigt"].includes(spiel.auftrag)) orte.add("schuppen");
+    const liste = ZIELE.filter((z) => orte.has(z.id) && zielOffen(z) && zielErlaubt(z));
+    aufgabenCache = [...liste, ...punkte.filter((q) => bekannt(q.x, q.y))]; aufgabenZeit = jetzt;
+    return aufgabenCache;
   }
   function buchZeigen() {
     const liste = $("buchListe"), { offen, erledigt } = auftraege();
@@ -1768,6 +1872,7 @@ window.Karte = function (opt = {}) {
     }
     ctx.restore();
     nachtZeichnen(w, h, dpr);
+    aufgabenWelt(sicht, t); // nach Nacht und dunklem Wald: Aufgaben leuchten immer
     wetterBildschirm(w, h, dpr);
 
     // Anzeige
@@ -1780,6 +1885,19 @@ window.Karte = function (opt = {}) {
     miniZeichnen();
   }
 
+  // Aufgaben-Orte in der Fahransicht: gelber Ring am Boden und ein schwebendes Ausrufezeichen
+  function aufgabenWelt(sicht, t) {
+    const puls = reduce ? 0.5 : (Math.sin(t * 4) + 1) / 2;
+    for (const z of aufgabenOrte()) {
+      if (!imBild(z.x, z.y, sicht, 8)) continue;
+      ctx.save();
+      ctx.lineWidth = 0.35; ctx.strokeStyle = `rgba(255,214,60,${0.45 + puls * 0.45})`;
+      ctx.beginPath(); ctx.arc(z.x, z.y, 3 + puls * 0.8, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = `rgba(255,214,60,${0.12 + puls * 0.12})`; ctx.fill();
+      ctx.restore();
+      ausrufZeichnen(ctx, z.x, z.y - 4.2 - (reduce ? 0 : Math.abs(Math.sin(t * 3)) * 0.6), 0.9);
+    }
+  }
   // Übersichtskarte oben rechts
   const mini = $("mini"), mctx = mini.getContext("2d");
   let miniGrund = null;
@@ -1824,6 +1942,12 @@ window.Karte = function (opt = {}) {
       mctx.beginPath(); mctx.arc(e[0] * k, e[1] * k, 4.5, 0, 7); mctx.fill(); mctx.stroke();
       mctx.restore();
     }
+    // Aufgaben-Orte blinken gelb
+    const puls = reduce ? 0.5 : (Math.sin(performance.now() / 250) + 1) / 2;
+    for (const z of aufgabenOrte()) {
+      mctx.fillStyle = `rgba(255,214,60,${0.35 + puls * 0.5})`; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 1.5;
+      mctx.beginPath(); mctx.arc(z.x * k, z.y * k, 4 + puls * 2.5, 0, 7); mctx.fill(); mctx.stroke();
+    }
     mctx.save(); mctx.translate(auto.x * k, auto.y * k); mctx.rotate(auto.a);
     mctx.fillStyle = "#f2b632"; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 2;
     mctx.beginPath(); mctx.moveTo(7, 0); mctx.lineTo(-5, -5); mctx.lineTo(-5, 5); mctx.closePath(); mctx.fill(); mctx.stroke();
@@ -1855,6 +1979,32 @@ window.Karte = function (opt = {}) {
     x: zufall(WEIDE[0] + 3, WEIDE[2] - 3), y: zufall(WEIDE[1] + 3, WEIDE[3] - 3), a: zufall(0, 6.3), zx: 0, zy: 0,
     warte: zufall(0, 5), grast: true }));
   let ueberflug = { naechster: 12, voegel: [] };
+  // Hildes ausgebüxte Kuh Berta: steht am Waldweg, bis man mit dem Auto vorbeikommt, dann trottet sie zur Weide
+  const BERTA = { art: "kuh", hx: 78, hy: 215.3, x: 78, y: 215.3, a: 2.4, grast: true, da: false, heim: false, wechsel: 2 };
+  function bertaSetzen() {
+    const k = spiel.neben.kuh;
+    Object.assign(BERTA, { x: BERTA.hx, y: BERTA.hy, da: k === "suchen", heim: false, grast: true });
+  }
+  function bertaSchritt(dt) {
+    if (!BERTA.da) return;
+    if (!BERTA.heim) {
+      if ((BERTA.wechsel -= dt) <= 0) { BERTA.grast = !BERTA.grast; BERTA.wechsel = zufall(1.5, 4); }
+      if (spiel.neben.kuh === "suchen" && Math.hypot(auto.x - BERTA.x, auto.y - BERTA.y) < 8) {
+        spiel.neben.kuh = "heim"; BERTA.heim = true; BERTA.grast = false; hudNeu();
+        toast("🐄 Muuuh! Da ist Berta. Sie trottet gemütlich zurück zum Hof. Sag Hilde Bescheid!", 4500);
+        if (Ton && Ton.silbe) for (let i = 0; i < 3; i++) setTimeout(() => silbe("hilde", { fortschritt: i / 2, betont: i === 0 }), i * 160);
+      }
+      return;
+    }
+    // zur Weide: erst vom Auto weg, dann über die Felder (Zäune und Bäume stören eine Kuh nicht)
+    const zx = (WEIDE[0] + WEIDE[2]) / 2, zy = (WEIDE[1] + WEIDE[3]) / 2;
+    drehZu(BERTA, Math.atan2(zy - BERTA.y, zx - BERTA.x), dt * 1.5);
+    BERTA.x += Math.cos(BERTA.a) * 2.2 * dt; BERTA.y += Math.sin(BERTA.a) * 2.2 * dt;
+    if (BERTA.x > WEIDE[0] + 3 && BERTA.x < WEIDE[2] - 3 && BERTA.y > WEIDE[1] + 3 && BERTA.y < WEIDE[3] - 3) {
+      BERTA.da = false;
+      SCHAFE.push({ art: "kuh", x: BERTA.x, y: BERTA.y, a: BERTA.a, zx: 0, zy: 0, warte: zufall(2, 6), grast: true });
+    }
+  }
   // Hildes Schafherde steht auf dem Feldweg (Hindernis "schafe"), bis man hupt
   const HERDE = [];
   function herdeSetzen() {
@@ -1874,6 +2024,7 @@ window.Karte = function (opt = {}) {
     t.a += Math.max(-max, Math.min(max, d));
   }
   function tiereSchritt(dt) {
+    bertaSchritt(dt);
     for (const sf of HERDE) {
       if (sf.flucht) { // davonlaufen zur Wiese neben dem Weg, dort wieder grasen
         const d = Math.hypot(sf.zx - sf.x, sf.zy - sf.y);
@@ -1999,7 +2150,8 @@ window.Karte = function (opt = {}) {
   // Am Boden: Schafe, Hasen, sitzende Vögel und die Schatten der fliegenden
   function tiereBoden(sicht) {
     const T = TIERBILD;
-    for (const sf of [...SCHAFE, ...HERDE.map((q) => ({ ...q, art: "schaf", grast: q.grast && !q.flucht }))]) if (imBild(sf.x, sf.y, sicht) && T[sf.art]) {
+    const berta = BERTA.da ? [BERTA] : [];
+    for (const sf of [...SCHAFE, ...berta, ...HERDE.map((q) => ({ ...q, art: "schaf", grast: q.grast && !q.flucht }))]) if (imBild(sf.x, sf.y, sicht) && T[sf.art]) {
       const b = T[sf.art][sf.grast ? 1 : 0];
       tierSchatten(b, sf.x + 0.15, sf.y + 0.15, sf.a, 1, 1);
       tierZeichnen(b, sf.x, sf.y, sf.a);
@@ -2188,22 +2340,28 @@ window.Karte = function (opt = {}) {
       wetterSchritt(dt);
       zeitSchritt(dt);
       tiereSchritt(dt);
-      if ($("gespraech").hidden) zeichne(); // im Gespräch verdeckt das Gesprächsbild die Karte
+      if (!$("grosskarte").hidden) grossBild(); // die große Karte verdeckt alles: nur sie (mit blinkenden Aufgaben) malen
+      else if ($("gespraech").hidden) zeichne(); // im Gespräch verdeckt das Gesprächsbild die Karte
     }
     requestAnimationFrame(bild);
   }
 
   // --- Große Karte: Ziel wählen -------------------------------------------------
-  const gross = $("gross"), gctx = gross.getContext("2d");
+  const gross = $("gross");
+  let gctx = gross.getContext("2d"), grossGrund = null;
   let grossMass = null;
+  // Grund (Wiese, Bäume, Wege, Nebel) einmal beim Öffnen vormalen; Orte, Aufgaben und Auto
+  // malt grossBild() jedes Bild neu, damit die Aufgaben-Orte blinken können
   function grossZeichnen() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const b = gross.getBoundingClientRect(), seite = Math.min(b.width, b.height);
     gross.width = Math.round(b.width * dpr); gross.height = Math.round(b.height * dpr);
     const k = seite / W, ox = (b.width - seite) / 2, oy = (b.height - seite) / 2;
-    grossMass = { k, ox, oy };
+    grossMass = { k, ox, oy, dpr, b: b.width, h: b.height };
+    grossGrund = document.createElement("canvas"); grossGrund.width = gross.width; grossGrund.height = gross.height;
+    const echt = gctx;
+    gctx = grossGrund.getContext("2d");
     gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    gctx.clearRect(0, 0, b.width, b.height);
     gctx.save(); gctx.translate(ox, oy);
     gctx.fillStyle = "#5d8a3e"; gctx.fillRect(0, 0, seite, seite);
     gctx.fillStyle = "#2c4d2a";
@@ -2216,6 +2374,28 @@ window.Karte = function (opt = {}) {
       gctx.fillStyle = "#1d1a16"; gctx.font = `800 ${Math.max(14, 16)}px Nunito, sans-serif`; gctx.textAlign = "center"; gctx.textBaseline = "middle";
       gctx.fillText("⚠", h.x * k, h.y * k);
     }
+    gctx.restore();
+    gctx = echt;
+    grossBild();
+  }
+  function grossBild() {
+    if (!grossGrund || !grossMass) return;
+    const { k, ox, oy, dpr } = grossMass, t = performance.now() / 1000;
+    gctx.setTransform(1, 0, 0, 1, 0, 0);
+    gctx.clearRect(0, 0, gross.width, gross.height);
+    gctx.drawImage(grossGrund, 0, 0);
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    gctx.save(); gctx.translate(ox, oy);
+    // Aufgaben: gelber, pulsierender Schein hinter dem Ort
+    const puls = reduce ? 0.5 : (Math.sin(t * 4) + 1) / 2;
+    for (const z of aufgabenOrte()) {
+      const x = z.x * k, y = z.y * k;
+      const g = gctx.createRadialGradient(x, y, 8, x, y, 30 + puls * 8);
+      g.addColorStop(0, "rgba(255,214,60,0.95)"); g.addColorStop(1, "rgba(255,214,60,0)");
+      gctx.fillStyle = g; gctx.beginPath(); gctx.arc(x, y, 30 + puls * 8, 0, 7); gctx.fill();
+      gctx.lineWidth = 3; gctx.strokeStyle = `rgba(255,236,120,${0.5 + puls * 0.5})`;
+      gctx.beginPath(); gctx.arc(x, y, 20 + puls * 6, 0, 7); gctx.stroke();
+    }
     // Wegweiser zuerst (klein), Orte darüber (groß); unbekannte Orte als Fragezeichen
     const sortiert = [...ZIELE].sort((a, b) => (a.art === "ort") - (b.art === "ort"));
     for (const z of sortiert) {
@@ -2225,10 +2405,28 @@ window.Karte = function (opt = {}) {
       else if (z.art === "ort" && frei) ortZeichnen(x, y, z.name);
       else if (z.art === "ort") unbekanntZeichnen(x, y);
     }
+    // Ausrufezeichen an den Orten mit Aufgabe
+    for (const z of aufgabenOrte()) {
+      const hub = reduce ? 0 : Math.abs(Math.sin(t * 3)) * 4;
+      if (ZIELE.includes(z)) { ausrufZeichnen(gctx, z.x * k + 14, z.y * k - 16 - hub, 9); continue; }
+      // Punkt ohne Ort (z. B. Kuh Berta): Symbol mit Namen obendrauf
+      gctx.font = "22px sans-serif"; gctx.textAlign = "center"; gctx.textBaseline = "middle";
+      gctx.fillText("🐄", z.x * k, z.y * k - hub);
+      beschriftung(z.name, z.x * k, z.y * k + 20, false);
+    }
     gctx.save(); gctx.translate(auto.x * k, auto.y * k); gctx.rotate(auto.a);
     gctx.fillStyle = "#e9efe6"; gctx.strokeStyle = "#12232a"; gctx.lineWidth = 2;
     gctx.beginPath(); gctx.moveTo(9, 0); gctx.lineTo(-6, -6); gctx.lineTo(-6, 6); gctx.closePath(); gctx.fill(); gctx.stroke();
     gctx.restore(); gctx.restore();
+  }
+  // gelbes Schild mit Ausrufezeichen (Aufgabe wartet)
+  function ausrufZeichnen(c, x, y, r) {
+    c.save();
+    c.beginPath(); c.arc(x, y, r, 0, 7);
+    c.fillStyle = "#ffd23c"; c.fill(); c.lineWidth = r * 0.22; c.strokeStyle = "#12232a"; c.stroke();
+    c.fillStyle = "#12232a"; c.font = `900 ${r * 1.5}px Nunito, sans-serif`; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText("!", x, y + r * 0.08);
+    c.restore();
   }
   function beschriftung(text, x, y, gross) {
     gctx.font = `800 ${gross ? 15 : 12}px Nunito, sans-serif`; gctx.textAlign = "center"; gctx.textBaseline = "middle";
@@ -2377,7 +2575,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, auto, planen, zeit, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, aufgabenOrte, BERTA, auto, planen, zeit, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen
@@ -2408,7 +2606,7 @@ window.Karte = function (opt = {}) {
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
         sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
         opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil], moosSeil: spiel.moosSeil, holzweg: spiel.holzweg,
-        rosi: spiel.rosi, zeit: { t: zeit.t, tag: zeit.tag }, rallye: spiel.rallye, opaLenkrad: Boolean(spiel.opaLenkrad), knutMoped: spiel.knutMoped,
+        rosi: spiel.rosi, zeit: { t: zeit.t, tag: zeit.tag }, rallye: spiel.rallye, opaLenkrad: Boolean(spiel.opaLenkrad), knutMoped: spiel.knutMoped, neben: { ...spiel.neben },
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -2421,6 +2619,7 @@ window.Karte = function (opt = {}) {
         moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg), rosi: st.rosi || null });
       if (st.zeit) { zeit.t = st.zeit.t; zeit.tag = st.zeit.tag; }
       spiel.rallye = st.rallye || null; spiel.opaLenkrad = Boolean(st.opaLenkrad); spiel.knutMoped = Boolean(st.knutMoped);
+      spiel.neben = { ...nebenStart(), ...st.neben }; bertaSetzen();
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);

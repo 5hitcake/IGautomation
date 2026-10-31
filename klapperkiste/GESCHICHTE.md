@@ -98,6 +98,26 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   in der Werkstatt („Den Blitz hab ich selbst draufgemalt!“) und wundert sich, wie es
   in den Wald kam (Spur zu Kauz). Erstes Gold: 20 Münzen extra.
 
+## Nebenaufträge parallel zur Rallye
+
+Die Rallye fährt man, wann man will. Sobald Rosi ihren ersten Auftrag (Fisch gegen Milch)
+bekommen hat, entstehen bei den Leuten im Tal neue Aufträge, die man vorher, nachher oder
+dazwischen erledigen kann. Die Geschichte mit Knuts Mopedmotor bleibt: Er erzählt davon
+nach der ersten Rallye-Fahrt.
+
+- **Kuh Berta ist ausgebüxt (Hilde):** Berta steht am Waldweg und frisst Pilze. Fährt man
+  nah heran, trottet sie zur Weide zurück. Belohnung bei Hilde: 30 Münzen, 1 Blech und die
+  **Milchkanne** (Tank 2.200 m statt 1.500 m).
+- **Rosis Außenbordmotor (Rosi → Knut → Rosi):** Botengang. Knut zieht Seegras aus der
+  Schraube. Belohnung: 20 Münzen und das **Schiffs-Steuerrad** (Wendigkeit 7, hilft in der Rallye).
+- **Ein Vogelhaus für Pieps (Moos):** 2 Blech und 2 Schrauben. Belohnung: 25 Münzen und der
+  erste Hinweis auf **Kauz**, den Tüftler am anderen Seeufer (führt zu G8).
+
+**Aufgaben auf der Karte:** Orte, an denen ein neuer Auftrag wartet oder ein Auftrag
+weitergeht, leuchten gelb und blinken: in der Fahransicht ein Ring am Boden mit schwebendem
+Ausrufezeichen (auch nachts und im dunklen Wald gut zu sehen), auf der Minikarte ein
+blinkender Punkt, auf der großen Karte ein pulsierender Schein mit Ausrufezeichen.
+
 ## Rennen über das Spiel verteilt
 
 Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
