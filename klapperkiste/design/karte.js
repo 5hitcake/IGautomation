@@ -451,11 +451,11 @@ window.Karte = function (opt = {}) {
         : "Die Schafe stehen immer noch auf dem Feldweg. Ohne eine richtig laute Hupe wird das nix. Frag doch mal Knut auf dem Schrottplatz."]]);
     }
     if (spiel.hilde === "frei") {
-      spiel.hilde = "erledigt"; spiel.geld += 30; spiel.teile.add("pickup_hinten"); hudNeu();
+      spiel.hilde = "erledigt"; spiel.geld += 30; spiel.teile.add("pickup_hinten"); materialGeben({ federn: 2 });
       if (opt.belohnung) opt.belohnung("pickup_hinten");
       return hilde([
         ["juhu", "Der Weg ist frei! Ich hab's bis hierher tröten hören, die Schafe sind jetzt auf der Wiese. Danke dir!"],
-        ["auftrag", "Hier, 30 Münzen. Und nimm das hier mit: das Heck von unserem alten Pick-up. Der Rest davon steht noch irgendwo herum."],
+        ["auftrag", "Hier, 30 Münzen und zwei alte Federn aus der Scheune. Und nimm das hier mit: das Heck von unserem alten Pick-up. Der Rest davon steht noch irgendwo herum."],
       ], () => toast("Pick-up hinten erhalten! Liegt in Opas Werkstatt im Regal.", 4500));
     }
     hilde([["hallo", "Schön, dich zu sehen! Die Schafe sind brav auf der Wiese geblieben. Komm ruhig wieder vorbei!"]]);
@@ -502,21 +502,21 @@ window.Karte = function (opt = {}) {
       return knut([["nachdenken", `Hm, da fehl${f === 1 ? "t noch ein Reifen" : `en noch ${f} Reifen`}. Schau mal am Feldrand, am Weg in den Wald und drüben am Weideweg.`]]);
     }
     if (spiel.auftrag === "reifen") {
-      spiel.auftrag = "batterie"; spiel.beutel = 0; spiel.geld += 40; hudNeu();
+      spiel.auftrag = "batterie"; spiel.beutel = 0; spiel.geld += 40; materialGeben({ schrauben: 2 });
       const weideZu = !GEBIETE.find((g) => g.id === "weide").offen;
       return knut([
         ["juhu", "Drei Reifen, wie bestellt! Die kommen gleich auf meinen Turm da hinten."],
-        ["auftrag", "Hier, 40 Münzen für dich. Schau dich ruhig in meinem Laden um."],
+        ["auftrag", "Hier, 40 Münzen und zwei Schrauben für dich. Schau dich ruhig in meinem Laden um."],
         ["nachdenken", "Ach, und noch was: Ich hab hier einen alten Scheinwerfer liegen. Aber ohne Strom bringt der nix."],
         ["auftrag", "Am Weideweg im Osten soll eine alte Autobatterie liegen. Bring sie mir, dann gehört der Scheinwerfer dir!" +
           (weideZu ? " Den Weg dorthin zeigt dir bestimmt ein Kartenstück am Feldrand." : "")],
       ], ladenAuf);
     }
     if (spiel.auftrag === "batterie") {
-      spiel.auftrag = "erledigt"; spiel.beutel = 0; spiel.geld += 15; spiel.teile.add("scheinwerfer"); hudNeu();
+      spiel.auftrag = "erledigt"; spiel.beutel = 0; spiel.geld += 15; spiel.teile.add("scheinwerfer"); materialGeben({ kabel: 1 });
       if (opt.belohnung) opt.belohnung("scheinwerfer");
       return knut([
-        ["juhu", "Die Batterie hat ja noch ordentlich Saft! Und 15 Münzen obendrauf, weil du so fix warst."],
+        ["juhu", "Die Batterie hat ja noch ordentlich Saft! Und 15 Münzen und ein Stück Kabel obendrauf, weil du so fix warst."],
         ["auftrag", "Hier, der Scheinwerfer gehört dir. Lass ihn dir von Opa einbauen, dann siehst du auch im dunklen Wald was."],
         ["nachdenken", "Ach, und gerade kam eine Lieferung rein: eine Spezialhupe, laut wie ein Nebelhorn. Steht jetzt im Laden."],
       ], () => { toast("Alter Scheinwerfer erhalten! Er liegt in Opas Werkstatt im Regal.", 4500); ladenAuf(); });
@@ -536,9 +536,9 @@ window.Karte = function (opt = {}) {
   function auftraege() {
     const offen = [], erledigt = [];
     const knut = { figur: "knut", wer: "Knut Kurbel" }, hilde = { figur: "hilde", wer: "Bäuerin Hilde" };
-    const reifen = { ...knut, titel: "Alte Reifen für Knut", belohnung: "40 Münzen" };
-    const batterie = { ...knut, titel: "Eine alte Autobatterie", belohnung: "Scheinwerfer und 15 Münzen" };
-    const schafe = { ...hilde, titel: "Schafe vom Feldweg scheuchen", belohnung: "30 Münzen und ein Karosserie-Teil" };
+    const reifen = { ...knut, titel: "Alte Reifen für Knut", belohnung: "40 Münzen, 2 🔩 Schrauben" };
+    const batterie = { ...knut, titel: "Eine alte Autobatterie", belohnung: "Scheinwerfer, 15 Münzen, 1 🔌 Kabel" };
+    const schafe = { ...hilde, titel: "Schafe vom Feldweg scheuchen", belohnung: "30 Münzen, ein Karosserie-Teil, 2 🌀 Federn" };
     if (spiel.auftrag === "reifen") {
       const voll = spiel.beutel >= BRAUCHT.reifen;
       offen.push({ ...reifen, stand: `${spiel.beutel}/${BRAUCHT.reifen}`,
@@ -709,6 +709,18 @@ window.Karte = function (opt = {}) {
     toast(`${m.icon} ${m.name} eingesteckt (🎒 ${beutelVoll()}/${BEUTEL_PLATZ}).`);
     if (navigator.vibrate) { try { navigator.vibrate(20); } catch { /* egal */ } }
     verbrauchAnzeigen();
+  }
+  // Materialien als Belohnung: so viele, wie in den Beutel passen, der Rest gibt Münzen
+  function materialGeben(belohnung) {
+    const teile = [];
+    for (const [art, n] of Object.entries(belohnung)) {
+      const m = MATERIAL.find((q) => q.id === art), passt = Math.min(n, BEUTEL_PLATZ - beutelVoll());
+      spiel.material[art] += passt;
+      if (passt) teile.push(`${passt} ${m.icon} ${m.name}`);
+      if (n > passt) { spiel.geld += (n - passt) * m.preis; teile.push(`🪙 ${(n - passt) * m.preis} (Beutel voll)`); }
+    }
+    if (teile.length) setTimeout(() => toast(`🎒 Dazu bekommen: ${teile.join(", ")}`, 4500), 800);
+    hudNeu(); verbrauchAnzeigen();
   }
   function beutelZeigen() {
     const liste = $("beutelListe");

@@ -52,6 +52,9 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   Beutel hat 6 Plätze (🎒 rechts auf der Karte). Knut kauft sie an, die Preise
   schwanken. Jedes Mal bei Opa beginnt ein neuer Tag: neue Funde, neue Preise.
   (Bilder dafür kommen noch, vorerst Zeichen.)
+  Abgeschlossene Aufträge geben ab und zu auch Materialien (Knuts Reifen: 2 Schrauben,
+  Batterie: 1 Kabel, Hildes Schafe: 2 Federn). Passt nicht alles in den Beutel, gibt
+  es den Rest als Münzen.
 - **Verbrauch** ✅, bei Knut immer wieder zu kaufen:
   - **Sprit:** Der Tank leert sich beim Fahren, so weit wie die Reichweite des
     Energie-Teils (Gießkanne 1500 m, Milchkanne 2200 m, Kanister 3500 m).
