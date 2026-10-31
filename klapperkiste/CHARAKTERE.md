@@ -120,7 +120,7 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Opas Werkstatt (Spielstart) | `werkstatt.png` | ✅ |
 | Bauernhof (Hilde) | `bauernhof.png` | ✅ |
 | Försterhütte (Moos) | `foersterhuette.png` | ✅ |
-| Campingplatz (Rosi) | `camping.png` | offen, bis dahin dient `foersterhuette.png` |
+| Campingplatz (Rosi) | `camping.png` | ✅ |
 | Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | ✅ (Lage der gemalten Hebebühne steht als `BUEHNE` in `design/werkstatt.js`) |
 
 ### Opas Werkstatt

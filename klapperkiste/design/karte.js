@@ -102,7 +102,7 @@ window.Karte = function (opt = {}) {
   const CAMPING = { X: 37, Y: 282, b: 30, bereich: [37, 282, 67, 302.1],
     haeuser: [[46.6, 282, 51.7, 287.4], [57.4, 285.8, 62.5, 290.2]] };
   // Waldsee: Kreise (x, y, r), Sandufer drumherum
-  const SEE = [[81, 296, 13], [93, 306, 11], [76, 309, 9]];
+  const SEE = [[81, 294, 13], [93, 302, 10], [75, 306, 8]];
   const imSee = (x, y, rand = 0) => SEE.some(([sx, sy, sr]) => Math.hypot(x - sx, y - sy) < sr + rand);
   const WEG_BREITE = 4.5;
   // Wege an den Knicken abrunden (Bogen, je Seite bis 9 m, höchstens die halbe Strecke),
@@ -229,6 +229,13 @@ window.Karte = function (opt = {}) {
     for (let i = 0, n = 0; i < 2000 && n < 150; i++) {
       const x = rnd() * 110, y = 140 + rnd() * 130;
       if (imWald(x, y, -3) && setze("nadelbaum", x, y)) n++;
+    }
+    // Tannen rund um den Waldsee, mit etwas Abstand zum Sandufer
+    for (const [sx, sy, sr] of SEE) {
+      for (let i = 0, n = 0; i < 80 && n < Math.round(sr * 0.9); i++) {
+        const w = rnd() * Math.PI * 2, d = sr + 4.5 + rnd() * 5, ty = sy + Math.sin(w) * d;
+        if (ty < W - 4 && setze("nadelbaum", sx + Math.cos(w) * d, ty)) n++;
+      }
     }
     // Helle Laubbäume und Büsche passen nicht in den dunklen Nadelwald
     for (let k = OBJEKTE.length - 1; k >= 0; k--) {
@@ -1034,7 +1041,7 @@ window.Karte = function (opt = {}) {
     { id: "wald", name: "Waldrand im Westen", x: 70, y: 196, r: 82, offen: false },
     { id: "weide", name: "Weideweg im Osten", x: 282, y: 248, r: 62, offen: false },
     { id: "felder", name: "Feldweg zu den Feldern", x: 300, y: 140, r: 70, offen: false }, // zeigt Hilde
-    { id: "camping", name: "Holzweg und Waldsee", x: 44, y: 276, r: 50, offen: false }, // zeigt Moos
+    { id: "camping", name: "Holzweg und Waldsee", x: 52, y: 282, r: 58, offen: false }, // zeigt Moos
   ];
   const STUECKE = [
     { gebiet: "nord", x: 184, y: 213 },
