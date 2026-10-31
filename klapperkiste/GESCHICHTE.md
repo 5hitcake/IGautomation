@@ -79,9 +79,17 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   offenen Aufträge mit Figur, Aufgabe, Stand und Belohnung, darunter die
   erledigten. „🚗 …“ fährt zum nächsten Schritt (Fundstück, Figur oder Hindernis).
   Mehrere Aufträge sind gleichzeitig offen, die Reihenfolge ist frei.
-- **Tag und Nacht** (geplant): Ein Tag dauert einige Minuten Spielzeit. Nachts ist
-  es überall dunkel und man braucht Licht, Knuts Laden hat zu, manche Aufträge gibt
-  es nur nachts (die Lichter im Wald). Bei Opa übernachten springt zum Morgen.
+- **Tag und Nacht** ✅: Die Uhr (oben rechts, z. B. „🕒 14:20“) läuft nur auf der
+  Karte, nicht in Gesprächen, Fenstern oder der Werkstatt. Ein Tag dauert 15 Minuten
+  Spielzeit: **10 Minuten Tag** (6–20 Uhr), 1 Minute Abenddämmerung (warm orange),
+  **3 Minuten Nacht** (21–5 Uhr, kühles Blau), 1 Minute Morgen. Nachts:
+  - leuchten Fenster, Laternen, das Lagerfeuer und der Scheinwerfer,
+  - fährt man ohne Licht nur Schritttempo, mit Licht zieht der Scheinwerfer Strom,
+  - schläft Knut, der Laden hat zu,
+  - tanzen am Ostufer des Waldsees drei blasse Lichter (Spur zu Kauz).
+  Abends und nachts kann man in der Werkstatt **bei Opa schlafen** (🛏), dann ist
+  sofort Morgen. Jeder Morgen bringt neue Materialien und Preise. Im Einstieg steht
+  die Uhr still.
 - **Materialien im Beutel** ✅: Schrauben 🔩, Kabel 🔌, Federn 🌀 und Blech 🥫 liegen
   am Wegrand (zehn zugleich, in bekannten Gegenden). Antippen wie die Reifen, der
   Beutel hat 6 Plätze (🎒 rechts auf der Karte). Knut kauft sie an, die Preise
@@ -126,7 +134,7 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G2 | Opa erzählt vom Rennen und vom Donnerkeil; Moos weiß von der Waldrallye und den Lichtern (mit Opas altem Foto an der Werkstattwand) | ✅ |
 | G3 | Holzweg hinter der Försterhütte, Campingplatz am Waldsee; Moos braucht Kabel und Federn für seinen Seilzug | ✅ (die Figur am Campingplatz fehlt noch: „Bin angeln, komme gleich!“) |
 | G4 | Moos' Aufträge (Pieps, Vogelhäuschen) | offen, braucht Bilder |
-| G5 | Tag und Nacht | offen |
+| G5 | Tag und Nacht | ✅ |
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | offen |
 | G8 | Die Lichter im Wald, erste Spur zu Kauz | offen |

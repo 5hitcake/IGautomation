@@ -155,7 +155,9 @@ body { position: fixed; inset: 0; }
             <button type="button" id="view-seite" aria-pressed="true">Seite</button>
             <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
           </div>
-          <p id="status" aria-live="polite"></p><button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
+          <p id="status" aria-live="polite"></p>
+          <button type="button" class="knopf zweit" id="schlafen" hidden title="Bei Opa übernachten">🛏 Schlafen</button>
+          <button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
       </div>
       <aside class="regal" aria-label="Teile und Info">
         <div class="tray" id="tray"></div>
@@ -284,7 +286,7 @@ body { position: fixed; inset: 0; }
         W.say("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Anmeldung zur Waldrallye.", "ok");
         fotoZeigen(); $("fotoKnopf").classList.add("tipp");
       }), 400); }
-      fotoZeigen();
+      fotoZeigen(); schlafenZeigen();
     }
   }
 
@@ -313,6 +315,13 @@ body { position: fixed; inset: 0; }
     zeige("karte");
     K.beiKnutAnkommen();
   }
+
+  // Abends und nachts kann man bei Opa übernachten: weiter geht's am nächsten Morgen
+  function schlafenZeigen() { $("schlafen").hidden = imEinstieg() || !K.zeit().abend; }
+  $("schlafen").addEventListener("click", () => {
+    K.schlafen(); schlafenZeigen();
+    W.say("Gut geschlafen! Ein neuer Morgen, und draußen liegt neues Material am Wegrand.", "ok");
+  });
 
   // Opas Foto: hängt an der Wand, sobald Opa vom Donnerkeil erzählt hat
   const FOTO = (window.KARTE_DATEN.geschichte || {}).donnerkeil_foto;

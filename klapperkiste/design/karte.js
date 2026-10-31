@@ -287,7 +287,8 @@ window.Karte = function (opt = {}) {
 
   function schritt(dt) {
     const u = untergrund(auto.x, auto.y);
-    const vmax = 6.2 * u.f * (spiel.platt ? 0.45 : 1); // 22 km/h auf dem Feldweg, mit Platten langsam
+    // 22 km/h auf dem Feldweg, mit Platten langsam, nachts ohne Licht nur Schritttempo
+    const vmax = 6.2 * u.f * (spiel.platt ? 0.45 : 1) * (istNacht() && !hatTeil("licht") ? 0.4 : 1);
     const ctl = steuerAuto(dt) || { gas: taste.gas, bremse: taste.bremse, lenk: (taste.rechts ? 1 : 0) - (taste.links ? 1 : 0) };
     if (tankLeer()) ctl.gas = false; // ohne Sprit rollt das Auto nur noch aus
     let acc = 0;
@@ -592,6 +593,7 @@ window.Karte = function (opt = {}) {
 
   function beiKnut() {
     const knut = (zeilen, danach) => gespraech("knut", "Knut Kurbel", "schrottplatz", zeilen, danach);
+    if (istNacht()) return knut([["nachdenken", "Chrrr … Hm? Was? Mitten in der Nacht? Der Laden ist zu! Komm morgen früh wieder."]]);
     const n = BRAUCHT[spiel.auftrag];
     if (n && spiel.beutel < n) {
       if (spiel.auftrag === "batterie") {
@@ -741,6 +743,97 @@ window.Karte = function (opt = {}) {
   function buchAuf() { if (!$("gespraech").hidden) return; $("buch").hidden = false; buchZeigen(); $("buchZu").focus(); }
   function buchZu() { $("buch").hidden = true; }
 
+  // --- Tag und Nacht ------------------------------------------------------------
+  // Die Uhr läuft nur auf der Karte, nicht in Gesprächen und Fenstern. Ein Tag dauert
+  // 15 Minuten Spielzeit: 10 Minuten Tag (6–20 Uhr), 1 Minute Abend, 3 Minuten Nacht
+  // (21–5 Uhr), 1 Minute Morgen. Jeder Morgen bringt neue Funde und Preise.
+  const TAG = 600, ABEND = 60, NACHT = 180, MORGEN = 60, ZYKLUS = TAG + ABEND + NACHT + MORGEN;
+  const zeit = { t: 20, tag: 1, laeuft: !opt.wetter }; // im Einstieg (festes Wetter) steht die Uhr
+  function dunkelheit(t = zeit.t) {
+    if (t < TAG) return 0;
+    if (t < TAG + ABEND) return (t - TAG) / ABEND;
+    if (t < TAG + ABEND + NACHT) return 1;
+    return 1 - (t - TAG - ABEND - NACHT) / MORGEN;
+  }
+  const istNacht = () => dunkelheit() > 0.5;
+  function stunde(t = zeit.t) {
+    if (t < TAG) return 6 + (t / TAG) * 14;
+    if (t < TAG + ABEND) return 20 + (t - TAG) / ABEND;
+    if (t < TAG + ABEND + NACHT) return (21 + ((t - TAG - ABEND) / NACHT) * 8) % 24;
+    return 5 + (t - TAG - ABEND - NACHT) / MORGEN;
+  }
+  function fensterZu() {
+    return ["gespraech", "laden", "buch", "beutel", "grosskarte", "meldung", "leer"].every((id) => !$(id) || $(id).hidden);
+  }
+  function zeitSchritt(dt) {
+    if (!zeit.laeuft || !fensterZu()) return;
+    const warNacht = istNacht(), alt = zeit.t;
+    zeit.t += dt;
+    if (alt < TAG - 60 && zeit.t >= TAG - 60) toast("🌇 Die Sonne geht bald unter.");
+    if (!warNacht && istNacht()) {
+      toast(hatTeil("licht") ? "🌙 Es wird Nacht. Der Scheinwerfer ist an." : "🌙 Es wird Nacht. Ohne Licht kommst du nur langsam voran.", 5000);
+    }
+    if (zeit.t >= ZYKLUS) morgen("🌅 Ein neuer Tag beginnt! Am Wegrand liegt neues Material.");
+    uhrAnzeigen();
+  }
+  function morgen(text) {
+    zeit.t = 0; zeit.tag++;
+    neuerTag();
+    if (text) toast(text, 4500);
+    uhrAnzeigen(); verbrauchAnzeigen();
+  }
+  function uhrAnzeigen() {
+    const u = $("uhr");
+    if (!u) return;
+    const h = stunde(), d = dunkelheit();
+    const hh = Math.floor(h), mm = Math.floor((h - hh) * 6) * 10;
+    u.textContent = `${d > 0.5 ? "🌙" : d > 0 ? "🌇" : "🕒"} ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+    u.title = `Tag ${zeit.tag}`;
+    const we = $("wetter");
+    if (we && !we.classList.contains("zeigen") && we.dataset.art) we.textContent = wetterIcon(we.dataset.art);
+  }
+  // Nacht: alles bläulich abdunkeln, dann warme Lichter hinzu (Fenster, Laternen, Feuer,
+  // Scheinwerfer) und, gut versteckt, seltsame Lichter am anderen Seeufer
+  const LICHTER = [[150, 236, 6], [244, 167, 4.5], [271, 147, 5], [283, 147, 4], [230, 44, 4], [49.6, 292.5, 6.5]];
+  function nachtZeichnen(w, h, dpr) {
+    const d = dunkelheit();
+    if (d < 0.01) return;
+    const welt = ctx.getTransform(), t = performance.now() / 1000;
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.globalCompositeOperation = "multiply";
+    // Dämmerung (halb dunkel) erst warm orange, tiefe Nacht kühl blau
+    const warm = Math.max(0, 1 - Math.abs(d - 0.4) / 0.4) * 0.5;
+    ctx.fillStyle = `rgb(${Math.round(255 - d * 195 + warm * 60)},${Math.round(255 - d * 180 - warm * 10)},${Math.round(255 - d * 125 - warm * 90)})`;
+    ctx.fillRect(0, 0, w, h);
+    ctx.setTransform(welt);
+    ctx.globalCompositeOperation = "lighter";
+    const schein = (x, y, r, farbe, a) => {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(${farbe},${a})`); g.addColorStop(1, `rgba(${farbe},0)`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    };
+    for (const [x, y, r] of LICHTER) schein(x, y, r * (1 + (reduce ? 0 : Math.sin(t * 7 + x) * 0.04)), "255,180,90", 0.45 * d);
+    const [lx, ly] = FOERSTER.laterne;
+    schein(lx, ly, 5, "255,190,100", 0.4 * d);
+    if (hatTeil("licht")) {
+      const fx = auto.x + Math.cos(auto.a) * 1.8, fy = auto.y + Math.sin(auto.a) * 1.8, weit = 15;
+      const g = ctx.createRadialGradient(fx, fy, 0.5, fx, fy, weit);
+      g.addColorStop(0, `rgba(255,226,150,${0.55 * d})`); g.addColorStop(1, "rgba(255,226,150,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.arc(fx, fy, weit, auto.a - 0.5, auto.a + 0.5); ctx.closePath(); ctx.fill();
+    }
+    schein(auto.x, auto.y, 3, "255,220,160", 0.12 * d);
+    // Spuklichter: drei blasse Lichter tanzen am Ostufer des Waldsees (Spur zu Kauz)
+    if (d > 0.6) {
+      for (let i = 0; i < 3; i++) {
+        const x = 109 + Math.sin(t * 0.4 + i * 2.1) * 3, y = 292 + i * 5 + Math.cos(t * 0.33 + i) * 2;
+        const an = reduce ? 1 : 0.6 + 0.4 * Math.sin(t * (3 + i) + i * 5);
+        schein(x, y, 2.4, "190,220,255", 0.7 * (d - 0.6) / 0.4 * an);
+      }
+    }
+    ctx.restore();
+  }
+
   // --- Verbrauch: Sprit, Strom, Platten ------------------------------------------
   // Tankgröße und Licht kommen aus der Werkstatt (Werte der eingebauten Teile)
   const tankGroesse = () => Math.max(1, (opt.werte ? opt.werte().reichweite : 3500) || 0);
@@ -756,7 +849,7 @@ window.Karte = function (opt = {}) {
       if (spiel.sprit === 0) tankIstLeer();
     }
     // Licht im dunklen Wald zieht Strom
-    if (hatTeil("licht") && imWald(auto.x, auto.y) && auto.x < WALD_EINGANG + 2) {
+    if (hatTeil("licht") && (istNacht() || (imWald(auto.x, auto.y) && auto.x < WALD_EINGANG + 2))) {
       spiel.strom = Math.max(0, spiel.strom - dt * 0.5);
       if (spiel.strom < 20 && !stromGewarnt) { stromGewarnt = true; toast("🔋 Die Batterie wird schwach. Knut lädt sie dir auf."); }
       if (spiel.strom === 0) toast("🔋 Batterie leer, das Licht ist aus!", 4000);
@@ -1589,6 +1682,7 @@ window.Karte = function (opt = {}) {
       ctx.fillText("? Unerforscht ?", g.x, g.y); ctx.fillText("Kartenstück fehlt", g.x, g.y + 3);
     }
     ctx.restore();
+    nachtZeichnen(w, h, dpr);
     wetterBildschirm(w, h, dpr);
 
     // Anzeige
@@ -1861,6 +1955,8 @@ window.Karte = function (opt = {}) {
   const FOLGE = { sonne: ["wolkig", "wind", "nebel"], wolkig: ["sonne", "regen", "wind"], regen: ["wolkig"],
     nebel: ["sonne", "wolkig"], wind: ["wolkig", "sonne"] };
   const wetter = { art: opt.wetter || "sonne", fest: Boolean(opt.wetter), dauer: 80, ist: { ...WETTER[opt.wetter || "sonne"] } };
+  // nachts zeigt das Wettersymbol den Mond statt der Sonne
+  const wetterIcon = (art) => (art === "sonne" && dunkelheit() > 0.5 ? "🌕" : WETTER[art].icon);
   function wetterSetzen(art, fest) {
     wetter.art = art; wetter.fest = fest; wetter.dauer = 70 + Math.random() * 60;
     // Symbol im runden Feld; bei einem Wechsel steht ein paar Sekunden der Name daneben
@@ -1868,10 +1964,11 @@ window.Karte = function (opt = {}) {
     if (!el) return;
     const neu = el.dataset.art && el.dataset.art !== art;
     el.dataset.art = art; el.title = `Wetter: ${WETTER[art].name}`; el.setAttribute("aria-label", el.title);
-    el.textContent = neu ? `${WETTER[art].icon} ${WETTER[art].name}` : WETTER[art].icon;
+    const icon = wetterIcon(art);
+    el.textContent = neu ? `${icon} ${WETTER[art].name}` : icon;
     el.classList.toggle("zeigen", Boolean(neu));
     clearTimeout(el.zeit);
-    if (neu) el.zeit = setTimeout(() => { el.textContent = WETTER[art].icon; el.classList.remove("zeigen"); }, 4000);
+    if (neu) el.zeit = setTimeout(() => { el.textContent = wetterIcon(art); el.classList.remove("zeigen"); }, 4000);
   }
   function wetterSchritt(dt) {
     if (!wetter.fest && (wetter.dauer -= dt) <= 0) {
@@ -2003,6 +2100,7 @@ window.Karte = function (opt = {}) {
       if (Ton) Ton.musik(imWald(auto.x, auto.y) ? "wald" : "fahren");
       if (!fertig) schritt(dt); else auto.v *= 0.9;
       wetterSchritt(dt);
+      zeitSchritt(dt);
       tiereSchritt(dt);
       if ($("gespraech").hidden) zeichne(); // im Gespräch verdeckt das Gesprächsbild die Karte
     }
@@ -2135,10 +2233,11 @@ window.Karte = function (opt = {}) {
   $("buchZu").addEventListener("click", buchZu);
   const rechts = document.createElement("div");
   rechts.className = "hud-rechts"; rechts.setAttribute("aria-live", "polite");
-  rechts.innerHTML = '<span id="wetter"></span><span id="geld" hidden></span><span id="sprit"></span><span id="strom" hidden></span>' +
+  rechts.innerHTML = '<span id="uhr"></span><span id="wetter"></span><span id="geld" hidden></span><span id="sprit"></span><span id="strom" hidden></span>' +
     '<button type="button" id="platt" hidden>🛞 Platt! Flicken</button><button type="button" id="beutelKnopf">🎒</button>';
   $("karte").parentElement.append(rechts);
   $("platt").addEventListener("click", flicken);
+  uhrAnzeigen();
   $("beutelKnopf").addEventListener("click", () => { if (!$("gespraech").hidden) return; $("beutel").hidden = false; beutelZeigen(); $("beutelZu").focus(); });
   const beutel = document.createElement("div");
   beutel.id = "beutel"; beutel.hidden = true; beutel.setAttribute("role", "dialog"); beutel.setAttribute("aria-label", "Beutel");
@@ -2184,7 +2283,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, auto, planen, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, auto, planen, zeit, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen
@@ -2206,7 +2305,7 @@ window.Karte = function (opt = {}) {
     beiKnutAnkommen() { Object.assign(auto, { x: 230, y: 62, a: Math.PI / 2, v: 0 }); route = null; fertig = false; ankunft(); },
     karteNeu() { if ($("grosskarte").hidden === false) grossZeichnen(); },
     musik(name) { if (Ton) Ton.musik(name); }, // z. B. "werkstatt" (Spielstart)
-    wetterFrei() { wetter.fest = false; wetter.dauer = 40; }, // ab jetzt wechselt das Wetter
+    wetterFrei() { wetter.fest = false; wetter.dauer = 40; zeit.laeuft = true; }, // ab jetzt wechseln Wetter und Tageszeit
     // Spielstand der Karte zum Speichern (nur einfache Daten) und wieder einlesen
     stand() {
       const nr = (liste, ja) => liste.flatMap((x, i) => (ja(x) ? [i] : []));
@@ -2215,7 +2314,7 @@ window.Karte = function (opt = {}) {
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
         sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
         opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil], moosSeil: spiel.moosSeil, holzweg: spiel.holzweg,
-        rosi: spiel.rosi,
+        rosi: spiel.rosi, zeit: { t: zeit.t, tag: zeit.tag },
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -2226,6 +2325,7 @@ window.Karte = function (opt = {}) {
       const v = verbrauchStart();
       Object.assign(spiel, { opa: st.opa || null, moosRallye: Boolean(st.moosRallye), donnerkeil: st.donnerkeil || [],
         moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg), rosi: st.rosi || null });
+      if (st.zeit) { zeit.t = st.zeit.t; zeit.tag = st.zeit.tag; }
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);
@@ -2257,7 +2357,10 @@ window.Karte = function (opt = {}) {
     // In Opas Werkstatt: Opa flickt Reifen kostenlos, und ein neuer Tag beginnt (neue Funde, Preise)
     beiOpa() {
       if (spiel.platt) { spiel.platt = false; toast("🩹 Opa hat den platten Reifen geflickt."); }
-      neuerTag(); verbrauchAnzeigen();
+      verbrauchAnzeigen();
     },
+    // Uhr: Stunde (0–24), ob es dunkel ist, und bei Opa bis zum Morgen schlafen
+    zeit: () => ({ stunde: stunde(), nacht: istNacht(), abend: dunkelheit() > 0 || stunde() >= 18, tag: zeit.tag }),
+    schlafen() { morgen(); },
   };
 };
