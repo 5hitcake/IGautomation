@@ -269,7 +269,7 @@ Stellen und schneidet den langsamer werdenden Schluss ab; dazwischen läuft das
 Stück nahtlos im Kreis (`design/musik_daten.js`). Ein Stück `figur_<name>.mp3`
 läuft deutlich leiser im Gespräch mit dieser Figur und löst die Ortsmusik so
 lange ab; ohne eigenes Stück wird die Ortsmusik nur gedämpft. Wo eine Aufnahme
-fehlt (zurzeit Wald), spielen die Noten.
+fehlt, spielen die Noten. Wald ist ein langsamer Walzer (MiniMax Music3 Demo).
 
 Längere Stücke entstehen aus mehreren kurzen Teilen im gleichen Stil und der gleichen
 Tonart, z. B. `assets/ton/musik/fahren/1.mp3 … 3.mp3`. Das Werkzeug misst das Tempo
