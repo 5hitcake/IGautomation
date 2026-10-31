@@ -1172,17 +1172,19 @@ window.Karte = function (opt = {}) {
     for (const v of ueberflug.voegel) { v.x += Math.cos(v.a) * v.v * dt; v.y += Math.sin(v.a) * v.v * dt; v.flap += dt * 8; }
     if (ueberflug.voegel.length && ueberflug.voegel.every((v) => Math.hypot(v.x - auto.x, v.y - auto.y) > 45 &&
       Math.cos(v.a) * (v.x - auto.x) + Math.sin(v.a) * (v.y - auto.y) > 0)) ueberflug.voegel = [];
-    // Hasen: Pause, dann ein paar Sprünge; ist das Auto nah, schnell davon
+    // Hasen: Pause, dann ein paar Sprünge; kommt das Auto, schnell zur Seite davon
     for (const h of HASEN) {
       const d = Math.hypot(h.x - auto.x, h.y - auto.y);
-      if (d < 8 && !h.flucht && Math.abs(auto.v) > 0.5) {
-        h.flucht = true; h.hops = 6; h.pause = 0; h.a = Math.atan2(h.y - auto.y, h.x - auto.x) + zufall(-0.5, 0.5);
+      if (d < 8 + Math.abs(auto.v) && Math.abs(auto.v) > 0.5) {
+        if (!h.flucht) { h.flucht = true; h.pause = 0; }
+        h.hops = 6;
+        if (h.phase <= 0) h.a = fluchtRichtung(h);
       }
       if (h.phase > 0) {
         h.phase -= dt;
-        const tempo = h.flucht ? 7 : 3.2;
+        const tempo = h.flucht ? 8.5 : 3.2;
         h.x += Math.cos(h.a) * tempo * dt; h.y += Math.sin(h.a) * tempo * dt;
-        if (h.phase <= 0) { h.hops--; h.pause = h.hops > 0 ? (h.flucht ? 0.08 : zufall(0.15, 0.35)) : zufall(1.5, 5); }
+        if (h.phase <= 0) { h.hops--; h.pause = h.hops > 0 ? (h.flucht ? 0.05 : zufall(0.15, 0.35)) : zufall(1.5, 5); }
       } else if ((h.pause -= dt) <= 0) {
         if (h.hops <= 0) {
           h.flucht = false; h.hops = 2 + Math.floor(Math.random() * 4);
@@ -1192,6 +1194,16 @@ window.Karte = function (opt = {}) {
         }
         h.phase = 0.22;
       }
+    }
+    // Hasen weichen seitlich aus (auf die Seite, auf der sie schon sitzen), nicht vor dem
+    // Auto her. Liegt der Hase hinter dem Auto, einfach weg davon.
+    function fluchtRichtung(h) {
+      const vx = Math.cos(auto.a) * Math.sign(auto.v), vy = Math.sin(auto.a) * Math.sign(auto.v);
+      const dx = h.x - auto.x, dy = h.y - auto.y, d = Math.hypot(dx, dy) || 1;
+      if (dx * vx + dy * vy < 0) return Math.atan2(dy, dx) + zufall(-0.4, 0.4);
+      const seite = dx * vy - dy * vx > 0 ? 1 : -1; // rechts (1) oder links (-1) der Fahrtrichtung
+      const sx = vy * seite + dx / d * 0.5, sy = -vx * seite + dy / d * 0.5;
+      return Math.atan2(sy, sx) + zufall(-0.25, 0.25);
     }
     // Schafe: langsam zu einem neuen Grasplatz laufen, dort grasen
     for (const sf of SCHAFE) {
