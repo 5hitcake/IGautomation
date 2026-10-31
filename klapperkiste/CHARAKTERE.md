@@ -167,6 +167,8 @@ Background illustration for a game dialogue scene, seen at eye level from the gr
 - **Kapitänin Kiel:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/kiel.jpg kiel --loch nachdenken:0.768,0.486`
   (Lücke zwischen Arm in der Hüfte und Körper).
 - **Opa Bolzen:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/opa.jpg opa --loch nachdenken:0.80,0.27`
+- **Anglerin Rosi:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/rosi.jpg rosi --loch hallo:0.825,0.315 --loch auftrag:0.296,0.446`
+  (Lücke zwischen erhobenem Arm und Hut, Lücke unter dem Zeigearm).
   (Lücke zwischen erhobenem Arm und Kopf).
 - **Hüttenwirt Frieder:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/frieder.jpg frieder --loch nachdenken:0.25,0.259`
   (Lücke zwischen Arm und Kopf).
