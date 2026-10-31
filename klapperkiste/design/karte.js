@@ -262,7 +262,7 @@ window.Karte = function (opt = {}) {
     route = null;
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, ...verbrauchStart() });
+      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, knutMoped: false, ...verbrauchStart() });
     hinweisGezeigt = false; angehalten = false; moosKennt = false;
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
@@ -397,8 +397,11 @@ window.Karte = function (opt = {}) {
   let hinweisGezeigt = false;
   // Teile im Laden (je einmal), kommen als Lieferung nach Aufträgen. Karosserien gibt es
   // nur als Belohnung.
+  const MOPED_PREIS = 100;
   const LADEN = [
     { id: "spezialhupe", name: "📯 Spezialhupe", preis: 25, ab: () => spiel.auftrag === "erledigt" },
+    // nach der ersten Rallye-Fahrt: schneller als der Rasenmäher, damit Bronze ohne perfekte Runde klappt
+    { id: "mopedmotor", name: "🏍️ Mopedmotor", preis: MOPED_PREIS, ab: () => Boolean(spiel.rallye) },
   ];
   // auftrag: null | "reifen" | "batterie" | "erledigt"; teile: Belohnungen (für die Kartenprobe ohne Werkstatt)
   // sprit: Meter im Tank (null: voll), strom: Ladung der Lichtbatterie in Prozent, platt: Reifen
@@ -406,7 +409,7 @@ window.Karte = function (opt = {}) {
   // opa: null | "rennen" (hat vom Rennen und vom Donnerkeil erzählt); moosRallye: Moos hat
   // von der Waldrallye erzählt; donnerkeil: gefundene Teile von Opas altem Rennwagen
   const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, ...verbrauchStart() };
+    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, knutMoped: false, ...verbrauchStart() };
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -573,7 +576,7 @@ window.Karte = function (opt = {}) {
         spiel.geld += 20;
         gespraech("rosi", "Anglerin Rosi", ort, [["juhu", "Gold! So schnell ist hier noch keiner durch den Wald gebrettert. 20 Münzen extra!"]]);
       } else {
-        toast(e.medaille ? `🏁 ${e.zeit.toLocaleString("de-DE")} s. Bestzeit: ${spiel.rallye.best.toLocaleString("de-DE")} s` : "🏁 Knapp daneben! Mit mehr Tempo klappt's.", 4000);
+        toast(e.medaille ? `🏁 ${e.zeit.toLocaleString("de-DE")} s. Bestzeit: ${spiel.rallye.best.toLocaleString("de-DE")} s` : (spiel.gekauft.has("mopedmotor") ? "🏁 Knapp daneben! Weich mehr Hindernissen aus." : "🏁 Knapp daneben! Mit einem schnelleren Motor klappt's. Frag mal Knut."), 4000);
       }
       if (e.muenzen) setTimeout(() => toast(`🪙 ${e.muenzen} Münzen auf der Strecke eingesammelt.`), 4200);
       hudNeu();
@@ -676,6 +679,16 @@ window.Karte = function (opt = {}) {
         ["nachdenken", "Ach, und gerade kam eine Lieferung rein: eine Spezialhupe, laut wie ein Nebelhorn. Steht jetzt im Laden."],
       ], () => { toast("Alter Scheinwerfer erhalten! Er liegt in Opas Werkstatt im Regal.", 4500); ladenAuf(); });
     }
+    if (spiel.rallye && !spiel.knutMoped && !spiel.gekauft.has("mopedmotor")) {
+      // nach der ersten Rallye-Fahrt erzählt Knut einmal vom Mopedmotor
+      spiel.knutMoped = true;
+      return knut([
+        ["nachdenken", spiel.rallye.medaille ? "Hab gehört, du hast bei der Waldrallye eine Medaille geholt! Mit dem ollen Rasenmäher-Motor? Respekt."
+          : "Hab gehört, du warst bei der Waldrallye. Mit dem Rasenmäher-Motor? Der zieht doch keinen Hering vom Teller!"],
+        ["juhu", "Guck mal, was ich vom Sperrmüll mitgebracht hab: einen echten Mopedmotor! Flink und sparsam, damit bist du mehr als doppelt so schnell."],
+        ["auftrag", `Für dich ${MOPED_PREIS} Münzen. Opa baut ihn dir in der Werkstatt ein, und dann zeigst du's Moos!`],
+      ], ladenAuf);
+    }
     ladenAuf();
   }
   // --- Auftragsbuch -----------------------------------------------------------
@@ -749,6 +762,17 @@ window.Karte = function (opt = {}) {
             : "Die Rallye fährt auf dem alten Holzweg hinter der Försterhütte. Erst müssen die umgestürzten Bäume weg.",
           ziel: spiel.holzweg ? zielVon("camping") : null,
           fehlt: spiel.holzweg ? null : "Erst den Seilzug für Moos reparieren." });
+      }
+    }
+    if (spiel.knutMoped) {
+      const moped = { ...knut, titel: "Ein schnellerer Motor", belohnung: "Mopedmotor: 35 statt 15 km/h" };
+      if (spiel.gekauft.has("mopedmotor")) erledigt.push(moped);
+      else {
+        const genug = spiel.geld >= MOPED_PREIS;
+        offen.push({ ...moped, stand: `🪙 ${Math.min(spiel.geld, MOPED_PREIS)}/${MOPED_PREIS}`,
+          text: genug ? "Du hast genug Münzen. Knut wartet auf dem Schrottplatz mit dem Mopedmotor."
+            : "Knut verkauft einen Mopedmotor. Münzen gibt's für Aufträge und für Material vom Wegrand, das Knut dir abkauft.",
+          ziel: genug ? zielVon("schrottplatz") : materialZiel(MATERIAL.map((m) => m.id)) });
       }
     }
     if (spiel.moosSeil === "auftrag") {
@@ -1059,14 +1083,14 @@ window.Karte = function (opt = {}) {
     liste.append(el("h4", "laden-titel", "Verbrauch"));
     if (spiel.sprit === null) spiel.sprit = tankGroesse();
     const fehlt = Math.max(0, tankGroesse() - spiel.sprit), spritPreis = Math.max(1, Math.ceil(fehlt / 150));
-    zeile(fehlt > 1 ? `⛽ Volltanken (+${Math.round(fehlt)} m)` : "⛽ Tank ist voll", spritPreis, fehlt > 1,
+    zeile(fehlt > 1 ? `⛽ Volltanken +${Math.round(fehlt)} m` : "⛽ Tank ist voll", spritPreis, fehlt > 1,
       () => { spiel.sprit = tankGroesse(); spritGewarnt = false; toast("⛽ Vollgetankt!"); });
     if (hatTeilEingebaut("licht")) {
-      zeile(spiel.strom < 100 ? `🔋 Batterie laden (${Math.round(spiel.strom)} %)` : "🔋 Batterie ist voll", 5, spiel.strom < 100,
+      zeile(spiel.strom < 100 ? `🔋 Batterie laden · ${Math.round(spiel.strom)} %` : "🔋 Batterie ist voll", 5, spiel.strom < 100,
         () => { spiel.strom = 100; stromGewarnt = false; toast("🔋 Batterie geladen!"); });
     }
-    zeile(`🩹 Flickzeug · ${spiel.vorrat.flickzeug} dabei`, 6, spiel.vorrat.flickzeug < 3, () => { spiel.vorrat.flickzeug++; });
-    zeile(`⛽ Reservekanister · ${spiel.vorrat.kanister} dabei`, 8, spiel.vorrat.kanister < 2, () => { spiel.vorrat.kanister++; });
+    zeile(`🩹 Flickzeug (${spiel.vorrat.flickzeug} dabei)`, 6, spiel.vorrat.flickzeug < 3, () => { spiel.vorrat.flickzeug++; });
+    zeile(`⛽ Kanister (${spiel.vorrat.kanister} dabei)`, 8, spiel.vorrat.kanister < 2, () => { spiel.vorrat.kanister++; });
     // Ankauf: Materialien aus dem Beutel, Preise ändern sich jeden Tag
     if (beutelVoll()) {
       liste.append(el("h4", "laden-titel", "Knut kauft an"));
@@ -1076,12 +1100,14 @@ window.Karte = function (opt = {}) {
         const z = el("div", "ware"), k = el("button", "knopf", `+🪙 ${n * tagesPreis[m.id]}`);
         k.type = "button";
         k.addEventListener("click", () => { spiel.geld += n * tagesPreis[m.id]; spiel.material[m.id] = 0; hudNeu(); verbrauchAnzeigen(); ladenAuf(); });
-        z.append(el("span", null, `${m.icon} ${n} × ${m.name} (je 🪙 ${tagesPreis[m.id]})`), k);
+        z.append(el("span", null, `${m.icon} ${n} × ${m.name}`), k);
+        z.title = `Heute zahlt Knut je ${m.name === "Federn" ? "Feder" : m.name} 🪙 ${tagesPreis[m.id]}`;
         liste.append(z);
       }
     }
     // Teile: einzelne Lieferungen nach Aufträgen
-    const teile = LADEN.filter((w) => !w.ab || w.ab());
+    // schon gekaufte Teile liegen in der Werkstatt und verschwinden aus dem Laden (spart Platz)
+    const teile = LADEN.filter((w) => (!w.ab || w.ab()) && !spiel.gekauft.has(w.id));
     if (teile.length) liste.append(el("h4", "laden-titel", "Neu reingekommen"));
     for (const w of teile) {
       const hat = spiel.gekauft.has(w.id);
@@ -1091,7 +1117,7 @@ window.Karte = function (opt = {}) {
         toast(`${w.name} gekauft! Liegt jetzt in Opas Werkstatt im Regal.`);
       }, hat ? "gekauft" : null);
     }
-    l.querySelector(".kasse").textContent = `Du hast 🪙 ${spiel.geld} Münzen.`;
+    l.querySelector(".kasse").textContent = `🪙 ${spiel.geld}`;
     l.hidden = false;
     l.querySelector(".zweit").focus({ preventScroll: true });
   }
@@ -2333,9 +2359,10 @@ window.Karte = function (opt = {}) {
   const laden = document.createElement("div");
   laden.id = "laden"; laden.hidden = true;
   laden.setAttribute("role", "dialog"); laden.setAttribute("aria-label", "Knuts Schrottladen");
-  laden.innerHTML = '<div><strong>Knuts Schrottladen</strong><p class="kasse"></p><div class="waren"></div>' +
-    '<p class="klein">Neue Teile kommen nach Aufträgen. Materialien aus deinem Beutel kauft Knut an.</p>' +
-    '<div class="knoepfe"><button type="button" class="knopf zweit">Tschüss, Knut!</button></div></div>';
+  // Kopfzeile mit Titel, Kasse und Tschüss-Knopf, damit alles ohne Scrollen auf den Schirm passt
+  laden.innerHTML = '<div><div class="laden-kopf"><strong>Knuts Schrottladen</strong><p class="kasse"></p>' +
+    '<button type="button" class="knopf zweit">Tschüss, Knut!</button></div><div class="waren"></div>' +
+    '<p class="klein">Neue Teile kommen nach Aufträgen. Materialien aus deinem Beutel kauft Knut an.</p></div>';
   laden.querySelector(".zweit").addEventListener("click", () => { laden.hidden = true; });
   const hupKnopf = document.createElement("button");
   hupKnopf.type = "button"; hupKnopf.id = "hupen"; hupKnopf.className = "knopf"; hupKnopf.hidden = true;
@@ -2381,7 +2408,7 @@ window.Karte = function (opt = {}) {
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
         sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
         opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil], moosSeil: spiel.moosSeil, holzweg: spiel.holzweg,
-        rosi: spiel.rosi, zeit: { t: zeit.t, tag: zeit.tag }, rallye: spiel.rallye, opaLenkrad: Boolean(spiel.opaLenkrad),
+        rosi: spiel.rosi, zeit: { t: zeit.t, tag: zeit.tag }, rallye: spiel.rallye, opaLenkrad: Boolean(spiel.opaLenkrad), knutMoped: spiel.knutMoped,
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -2393,7 +2420,7 @@ window.Karte = function (opt = {}) {
       Object.assign(spiel, { opa: st.opa || null, moosRallye: Boolean(st.moosRallye), donnerkeil: st.donnerkeil || [],
         moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg), rosi: st.rosi || null });
       if (st.zeit) { zeit.t = st.zeit.t; zeit.tag = st.zeit.tag; }
-      spiel.rallye = st.rallye || null; spiel.opaLenkrad = Boolean(st.opaLenkrad);
+      spiel.rallye = st.rallye || null; spiel.opaLenkrad = Boolean(st.opaLenkrad); spiel.knutMoped = Boolean(st.knutMoped);
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);

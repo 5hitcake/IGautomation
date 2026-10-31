@@ -88,6 +88,11 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   Silber braucht einen schnelleren Motor (Moped mit guter Runde ≈ 60–64 s), und Gold
   ist selbst mit der Rakete bei einer durchschnittlichen Runde knapp (≈ 36–38 s).
   Bronze reicht zur Qualifikation.
+- **Mopedmotor bei Knut (100 Münzen):** Nach der ersten Rallye-Fahrt hat Knut einen
+  Mopedmotor vom Sperrmüll („Der Rasenmäher zieht doch keinen Hering vom Teller!“).
+  Im Auftragsbuch steht „Ein schnellerer Motor“ mit Münzstand; solange das Geld fehlt,
+  führt „Hinfahren“ zum nächsten Material am Wegrand. Mit dem Mopedmotor im Startauto
+  reicht eine mittlere Runde für Bronze (≈ 66 s), Silber nur mit einer sehr guten (≈ 60 s).
 - **Erste Medaille:** 30 Münzen, 1 Feder und von Rosi ein altes **Lenkrad mit Blitz**,
   das seit Jahren an ihrer Hütte hing: das erste Donnerkeil-Teil (1/8). Opa erkennt es
   in der Werkstatt („Den Blitz hab ich selbst draufgemalt!“) und wundert sich, wie es
