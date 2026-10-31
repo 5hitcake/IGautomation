@@ -70,9 +70,9 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   nach rechts von selbst, man hält den Finger auf die Höhe, in die es lenken soll
   (oder Pfeiltasten). 320 m, immer dieselbe Strecke, damit man sie lernen kann.
 - **Start mit Countdown** wie bei Mario Kart: 3, 2, 1, GO (je eine Sekunde, die Ampel
-  zählt mit). Bis 0,35 s nach GO auf den großen **GAS**-Knopf = ⚡ Blitzstart, zu früh
-  = Motor abgewürgt (das Auto steht 1 s, die Uhr läuft).
+  zählt mit), dann fährt das Auto von selbst los.
 - **Hindernisse:** Pfützen (bremsen, weniger mit viel Grip), Wurzeln (rumpeln),
+  Schlaglöcher (bremsen stark, das Auto hüpft),
   Stämme und Steine (fast Stillstand). Münzen auf der Strecke gibt es dazu.
 - **Es geht nach Zeit**, schnellere Autos lohnen sich: Höchstgeschwindigkeit 5 m/s +
   Tempo/10 (Rasenmäher 6,5, Moped 8,5, Rakete 17). Probefahrten mit vier Beispielautos

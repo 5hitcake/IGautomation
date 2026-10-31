@@ -1,8 +1,9 @@
 // Waldrallye: erste Vorrunde zum Klappertal-Rennen. Zeitfahren auf dem alten Holzweg von
 // oben, das Auto fährt von links nach rechts von selbst, man lenkt nach oben und unten
 // (Finger auf die Bahn halten oder Pfeiltasten) und weicht Pfützen, Wurzeln, Stämmen und
-// Steinen aus. Start mit Countdown 3, 2, 1, GO: Wer genau bei GO Gas gibt, bekommt einen
-// Blitzstart; wer zu früh Gas gibt, würgt den Motor ab und startet eine Sekunde später.
+// Steinen und Schlaglöchern aus. Start mit Countdown 3, 2, 1, GO, dann fährt es von selbst los.
+// Bilder für Hindernisse (bilder.pfuetze, ast, wurzel, schlagloch) werden genutzt, wenn es sie
+// gibt; sonst sind sie einfach gezeichnet.
 // Die Werte des Autos zählen: Tempo, Gewicht (Beschleunigung), Lenkung, Grip (Pfützen).
 //
 // window.Rallye({ eltern, bilder, werte }) gibt { starten(fertig) } zurück.
@@ -21,7 +22,6 @@ window.Rallye = function (opt) {
   box.innerHTML = '<canvas aria-label="Rennstrecke. Finger auf die Bahn halten, um nach oben oder unten zu lenken."></canvas>' +
     '<div class="r-hud"><span class="r-zeit">0,0 s</span><span class="r-ziele"></span></div>' +
     '<div class="r-bar"><i></i></div><div class="r-zahl" hidden></div><div class="r-meldung" hidden></div>' +
-    '<button type="button" class="r-gas" aria-label="Gas geben">GAS</button>' +
     '<div class="r-ende" hidden><div><strong></strong><p class="r-text"></p><p class="r-tab"></p>' +
     '<div class="knoepfe"><button type="button" class="knopf r-nochmal">🔁 Nochmal</button><button type="button" class="knopf zweit r-fertig">Fertig</button></div></div></div>';
   opt.eltern.append(box);
@@ -36,8 +36,8 @@ window.Rallye = function (opt) {
   const DINGE = [], BAEUME = [];
   for (let x = 30; x < LAENGE - 15; x += 9 + zufall() * 7) {
     const r = zufall(), y = (zufall() * 2 - 1) * (BAHN - 1.3);
-    const art = r < 0.32 ? "pfuetze" : r < 0.58 ? "wurzel" : r < 0.8 ? "stamm" : "stein";
-    const d = { pfuetze: [3.2, 2], wurzel: [1, 3.4], stamm: [1.2, 4.2], stein: [1.6, 1.6] }[art];
+    const art = r < 0.26 ? "pfuetze" : r < 0.46 ? "wurzel" : r < 0.66 ? "schlagloch" : r < 0.84 ? "stamm" : "stein";
+    const d = { pfuetze: [3.2, 2], wurzel: [1, 3.4], schlagloch: [1.8, 1.5], stamm: [1.2, 4.2], stein: [1.6, 1.6] }[art];
     let oy = y;
     if (art === "stamm") oy = (zufall() < 0.5 ? -1 : 1) * (BAHN - 2.1); // liegt halb über der Bahn
     DINGE.push({ art, x, y: oy, b: d[0], h: d[1], rot: (zufall() - 0.5) * 0.4 });
@@ -55,12 +55,12 @@ window.Rallye = function (opt) {
     fertigFn = fertig;
     const w = opt.werte() || {};
     lauf = {
-      x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 3, warte: 0,
+      x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 3, lenkwinkel: 0,
       vmax: 5 + (w.tempo || 15) / 10, acc: Math.max(1.4, 4.5 - (w.gewicht || 90) / 100),
       lenk: 2.6 + (w.wendig || 4) * 0.45, grip: w.grip || 2, muenzen: 0, fehl: 0, wackel: 0, spritz: 0, gesehen: new Set(),
     };
     for (const d of DINGE) d.weg = false;
-    box.hidden = false; $(".r-ende").hidden = true; $(".r-meldung").hidden = true; $(".r-gas").hidden = false;
+    box.hidden = false; $(".r-ende").hidden = true; $(".r-meldung").hidden = true;
     zuletzt = performance.now();
     requestAnimationFrame(bild);
   }
@@ -71,15 +71,6 @@ window.Rallye = function (opt) {
     clearTimeout(m.zeit); m.zeit = setTimeout(() => { m.hidden = true; }, ms);
   }
 
-  // Gas beim Start: zu früh = Motor abgewürgt (1 s später los), höchstens 0,35 s nach GO = Blitzstart
-  function gas() {
-    const L = lauf;
-    if (!L || L.gedrueckt) return;
-    L.gedrueckt = true;
-    if (L.phase === "ampel") { L.warte = 1; meldung("Zu früh! Motor abgewürgt …", 1400); return; }
-    if (L.phase === "fahrt" && L.zeit < 0.35) { L.blitz = true; L.v = Math.max(L.v, L.vmax * 0.75); meldung("⚡ Blitzstart!"); }
-  }
-  $(".r-gas").addEventListener("pointerdown", (e) => { e.preventDefault(); gas(); });
   cv.addEventListener("pointerdown", (e) => { finger.y = e.clientY; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener("pointermove", (e) => { if (finger.y !== null) finger.y = e.clientY; });
   const los = () => { finger.y = null; };
@@ -88,7 +79,6 @@ window.Rallye = function (opt) {
     if (box.hidden) return;
     if (e.key === "ArrowUp") { tasten.hoch = true; e.preventDefault(); }
     if (e.key === "ArrowDown") { tasten.runter = true; e.preventDefault(); }
-    if (e.key === " " || e.key === "Enter") { gas(); e.preventDefault(); }
   });
   window.addEventListener("keyup", (e) => {
     if (e.key === "ArrowUp") tasten.hoch = false;
@@ -119,16 +109,17 @@ window.Rallye = function (opt) {
     }
     if (L.phase !== "fahrt") return;
     L.zeit += dt;
-    if (L.zeit > 1.2) $(".r-gas").hidden = true;
-    if (L.warte > 0) { L.warte -= dt; return; } // abgewürgt: Uhr läuft, Auto steht
     // Lenken: zum Finger hin oder mit den Pfeiltasten
     let ziel = null;
     if (finger.y !== null) ziel = Math.max(-BAHN + 0.9, Math.min(BAHN - 0.9, (finger.y - cv.getBoundingClientRect().top - mass.oy) / mass.m));
     if (tasten.hoch) ziel = L.y - 1; if (tasten.runter) ziel = L.y + 1;
+    const yAlt = L.y;
     if (ziel !== null) {
       const d = ziel - L.y, step = L.lenk * dt;
       L.y += Math.abs(d) < step ? d : Math.sign(d) * step;
     }
+    const soll = dt > 0 ? Math.max(-0.5, Math.min(0.5, (L.y - yAlt) / dt / 6)) : 0;
+    L.lenkwinkel += (soll - L.lenkwinkel) * Math.min(1, dt * 10);
     L.y = Math.max(-BAHN + 0.9, Math.min(BAHN - 0.9, L.y));
     L.v = Math.min(L.vmax, L.v + L.acc * dt);
     L.x += L.v * dt;
@@ -140,6 +131,7 @@ window.Rallye = function (opt) {
       d.weg = true; // jedes Hindernis wirkt nur einmal
       if (d.art === "pfuetze") { L.v *= 0.35 + Math.min(0.5, L.grip * 0.05); L.spritz = 0.6; meldung("Platsch!", 700); }
       if (d.art === "wurzel") { L.v *= 0.6; L.wackel = 0.25; meldung("Rumpel!", 700); }
+      if (d.art === "schlagloch") { L.v *= 0.45; L.wackel = 0.4; meldung("Bums! Ein Schlagloch!", 800); }
       if (d.art === "stamm" || d.art === "stein") {
         L.v *= 0.15; L.wackel = 0.5; meldung(d.art === "stamm" ? "Rumms! Ein Stamm!" : "Autsch, ein Stein!", 900);
         if (navigator.vibrate) { try { navigator.vibrate(60); } catch { /* egal */ } }
@@ -148,14 +140,14 @@ window.Rallye = function (opt) {
     if (L.x >= LAENGE || L.zeit > 120) ziel_(L);
   }
   function ziel_(L) {
-    L.phase = "ziel"; $(".r-gas").hidden = true;
+    L.phase = "ziel";
     const zeit = Math.round(L.zeit * 10) / 10;
     const medaille = zeit <= ZEITEN.gold ? "gold" : zeit <= ZEITEN.silber ? "silber" : zeit <= ZEITEN.bronze ? "bronze" : null;
     L.ergebnis = { zeit, medaille, muenzen: L.muenzen };
     if (opt.beiZiel) opt.beiZiel(L.ergebnis);
     const e = $(".r-ende");
     e.querySelector("strong").textContent = medaille ? { gold: "🥇 Gold!", silber: "🥈 Silber!", bronze: "🥉 Bronze!" }[medaille] : "Zu langsam …";
-    e.querySelector(".r-text").textContent = `Zeit: ${zeit.toLocaleString("de-DE")} s${L.blitz ? " (mit Blitzstart)" : ""} · 🪙 ${L.muenzen} eingesammelt`;
+    e.querySelector(".r-text").textContent = `Zeit: ${zeit.toLocaleString("de-DE")} s · 🪙 ${L.muenzen} eingesammelt`;
     e.querySelector(".r-tab").textContent = medaille ? "Damit bist du für das Klappertal-Rennen qualifiziert!"
       : `Für Bronze brauchst du höchstens ${ZEITEN.bronze} Sekunden. Ein schnellerer Motor oder ein leichteres Auto helfen.`;
     setTimeout(() => { e.hidden = false; }, 600);
@@ -196,7 +188,17 @@ window.Rallye = function (opt) {
     for (const d of DINGE) {
       if (d.x < x0 - 3 || d.x > x1 + 3 || (d.weg && d.art === "muenze")) continue;
       ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot || 0);
-      if (d.art === "pfuetze") {
+      const bild = opt.bilder[d.art === "stamm" ? "ast" : d.art];
+      if (d.art !== "stein" && d.art !== "muenze" && bild && bild.complete && bild.naturalWidth) {
+        // Bild so groß wie das Hindernis (Stamm liegt quer: Bild ist waagerecht gezeichnet)
+        if (d.art === "stamm" || d.art === "wurzel") ctx.rotate(Math.PI / 2);
+        const [bw, bh] = d.art === "stamm" || d.art === "wurzel" ? [d.h, d.b] : [d.b, d.h];
+        ctx.drawImage(bild, -bw / 2 - 0.2, -bh / 2 - 0.2, bw + 0.4, bh + 0.4);
+      } else if (d.art === "schlagloch") {
+        ctx.fillStyle = "#4a321e"; ctx.beginPath(); ctx.ellipse(0, 0, d.b / 2, d.h / 2, 0.3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#2a1a0e"; ctx.beginPath(); ctx.ellipse(0.1, 0.1, d.b / 2 - 0.25, d.h / 2 - 0.25, 0.3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(255,230,190,0.25)"; ctx.beginPath(); ctx.ellipse(-0.2, -0.25, d.b / 4, d.h / 8, 0.3, 0, Math.PI * 2); ctx.fill();
+      } else if (d.art === "pfuetze") {
         ctx.fillStyle = "rgba(60,90,110,0.85)"; ctx.beginPath(); ctx.ellipse(0, 0, d.b / 2, d.h / 2, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "rgba(200,225,240,0.5)"; ctx.beginPath(); ctx.ellipse(-0.3, -0.3, d.b / 4, d.h / 6, 0, 0, Math.PI * 2); ctx.fill();
       } else if (d.art === "wurzel") {
@@ -224,6 +226,13 @@ window.Rallye = function (opt) {
       const lang = a.laenge, breit = lang * a.img.naturalHeight / a.img.naturalWidth;
       ctx.save(); ctx.translate(L.x, L.y); ctx.rotate((reduce ? 0 : Math.sin(t * 40) * L.wackel * 0.15));
       ctx.fillStyle = "rgba(10,20,8,0.35)"; ctx.beginPath(); ctx.roundRect(-2 + 0.25, -breit / 2 + 0.25, 4, breit, 0.5); ctx.fill();
+      // Vorderachse mit den Vorderrädern ist ein eigenes Bild (dreht beim Lenken mit), darüber der Rumpf
+      const ach = a.achseImg;
+      if (ach && ach.complete && ach.naturalWidth && a.drehpunkt) {
+        const [px, py] = a.drehpunkt, hoch = 4 * ach.naturalHeight / ach.naturalWidth;
+        ctx.save(); ctx.translate(-2 + px, -hoch / 2 + py); ctx.rotate(L.lenkwinkel);
+        ctx.drawImage(ach, -px, -py, 4, hoch); ctx.restore();
+      }
       ctx.drawImage(a.img, -2, -breit / 2, lang, breit);
       ctx.restore();
     }
@@ -247,7 +256,7 @@ window.Rallye = function (opt) {
         ctx.beginPath(); ctx.arc(bx + 30 + i * 45, by + 28, 17, 0, Math.PI * 2); ctx.fill();
       }
       ctx.fillStyle = "#fffaf0"; ctx.font = "800 14px Nunito, sans-serif"; ctx.textAlign = "center";
-      ctx.fillText("Genau bei GO auf GAS drücken: Blitzstart!", w / 2, by + 78);
+      ctx.fillText("Finger auf die Bahn: dorthin lenkt das Auto", w / 2, by + 78);
     }
     $(".r-zeit").textContent = `⏱ ${L.zeit.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s · 🪙 ${L.muenzen}`;
     $(".r-bar i").style.width = `${Math.min(100, (L.x / LAENGE) * 100)}%`;

@@ -27,16 +27,25 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
 .auto .best { font-size: 13px; font-weight: 800; color: var(--mint); }
 #starten { justify-self: center; font-size: 22px; padding: 12px 40px; }
 @media (max-width: 600px) { .autos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Hochkant: bitte drehen */
+#drehen { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  #drehen { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: #10191c; text-align: center; }
+  #drehen span { font-size: 56px; display: block; animation: drehen 2s ease-in-out infinite; }
+  #drehen p { font-family: var(--font-display); font-size: 24px; color: var(--mustard); margin: 0; }
+}
+@keyframes drehen { 50% { transform: rotate(-90deg); } }
 #musikKnopf { left: auto; right: 8px; top: 8px; bottom: auto; z-index: 40; }
 </style>
 </head>
 <body>
 <div id="buehne"></div>
+<div id="drehen" aria-live="polite"><div><span aria-hidden="true">🔄</span><p>Bitte dreh dein Handy quer.</p></div></div>
 <div id="wahl">
   <div>
     <h1>🏁 Waldrallye</h1>
     <p class="lead">Such dir ein Auto aus. Schnellere Motoren bringen bessere Zeiten, leichte Autos beschleunigen schneller, gute Lenkung weicht besser aus.<br>
-      Lenken: Finger auf die Bahn halten (oder Pfeiltasten). Bei <strong>GO</strong> auf <strong>GAS</strong> drücken (oder Leertaste) für den Blitzstart.</p>
+      Lenken: Finger auf die Bahn halten (oder Pfeiltasten). Nach 3, 2, 1, GO fährt das Auto von selbst los.</p>
     <div class="autos" id="autos"></div>
     <button type="button" class="knopf" id="starten">▶ Los geht's</button>
   </div>
@@ -51,7 +60,10 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
 (function () {
   const D = window.KARTE_DATEN, TW = window.TEILWERTE, $ = (id) => document.getElementById(id);
   const lade = (src) => { const i = new Image(); i.src = src; return i; };
-  const auto = (id) => { const a = D.autos.find((q) => q.id === id) || D.autos[0]; return { img: lade(a.bild), laenge: a.laenge }; };
+  const auto = (id) => {
+    const a = D.autos.find((q) => q.id === id) || D.autos[0];
+    return { img: lade(a.bild), laenge: a.laenge, achseImg: a.achse ? lade(a.achse) : null, drehpunkt: a.drehpunkt };
+  };
   // Werte wie in der Werkstatt: Motor gibt Tempo, Räder Grip, Lenkung Wendigkeit, alles zusammen das Gewicht
   function werte(teile) {
     const w = (id, k) => (TW[id] || {})[k] || 0;
@@ -95,7 +107,8 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
   const RALLYE = window.Rallye({
     eltern: $("buehne"),
     bilder: { get auto() { return wahl.auto; }, walddach: lade(D.boden.walddach.bild), erde: lade(D.boden.erde.bild),
-      fels: lade(D.objekte.felsbrocken.bild), nadelbaum: lade(D.objekte.nadelbaum.bild) },
+      fels: lade(D.objekte.felsbrocken.bild), nadelbaum: lade(D.objekte.nadelbaum.bild),
+      ...Object.fromEntries(["pfuetze", "ast", "wurzel", "schlagloch"].filter((n) => D.objekte[n]).map((n) => [n, lade(D.objekte[n].bild)])) },
     werte: () => wahl.werte,
     beiZiel: (e) => {
       if (!bestzeiten[wahl.id] || e.zeit < bestzeiten[wahl.id]) {
@@ -106,6 +119,11 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
   });
   function starten() {
     $("wahl").hidden = true;
+    // Android: Vollbild und quer festhalten (iPhone kann das im Browser nicht)
+    try {
+      const el = document.documentElement, fs = el.requestFullscreen ? el.requestFullscreen({ navigationUI: "hide" }) : null;
+      if (fs && fs.then) fs.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
+    } catch { /* egal */ }
     if (window.Ton) { Ton.freischalten(); Ton.musik("fahren"); }
     RALLYE.starten(() => { $("wahl").hidden = false; autosZeigen(); });
   }

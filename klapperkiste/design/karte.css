@@ -167,5 +167,3 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 .r-zahl.puls { animation: rZahl 0.9s ease-out; }
 @keyframes rZahl { from { transform: translate(-50%, -50%) scale(1.8); opacity: 0.3; } 30% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .r-zahl.puls { animation: none; } }
-.r-gas { position: absolute; right: 18px; bottom: 30px; width: 96px; height: 96px; border-radius: 50%; border: 5px solid #1d1a16; background: #46b85e; color: #fffaf0; font-family: var(--font-display); font-size: 26px; box-shadow: 0 5px 0 rgba(0,0,0,0.45); cursor: pointer; touch-action: none; z-index: 2; }
-.r-gas:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.45); }
