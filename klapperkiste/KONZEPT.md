@@ -84,6 +84,10 @@ nur fahrbereit und ohne Karosserie oder mit komplettem Satz.
 - Kleine Knöpfe oben rechts (Musik, Von vorn), Opas Tipps als Sprechblase oben in
   der Mitte, auf der Karte die Knöpfe „Ziel wählen“ und „Werkstatt“ unten in der Mitte.
 - Gespräche: Figur links groß, Textfeld rechts daneben unten.
+- **Speichern automatisch** (alle paar Sekunden und beim Verlassen), sobald der
+  Einstieg geschafft ist, im Browser des Geräts. Der Startbildschirm bietet dann
+  „Weiterspielen“ (zurück in Opas Werkstatt, alles wie verlassen) oder „Neues
+  Spiel“; ↺ oben rechts fragt vor dem Löschen nach.
 
 ### Werkstatt-Bildschirm (Umbau nach dem Vorbild klassischer Tuning-Garagen)
 

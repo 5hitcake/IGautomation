@@ -981,6 +981,14 @@ window.Werkstatt = function (opt = {}) {
       if (p && !PARTS.includes(p)) PARTS.push(p);
       refresh();
     },
+    // Spielstand der Werkstatt: eingebaute Teile und was im Regal liegt
+    stand() { return { mounted: { ...state.mounted }, teile: PARTS.map((p) => p.id) }; },
+    laden(st) {
+      if (opt.teile) { PARTS.length = 0; PARTS.push(...ALLE_TEILE.filter((p) => st.teile.includes(p.id))); }
+      state.mounted = Object.fromEntries(Object.entries(st.mounted).filter(([, id]) => PARTS.some((p) => p.id === id)));
+      state.wahl = null; state.tipp = null;
+      refresh();
+    },
     // Alles Fahrnötige einbauen (zum Testen: Einstieg überspringen)
     zusammenbauen() {
       for (const slot of FAHRBEREIT) if (!state.mounted[slot]) state.mounted[slot] = PARTS.find((p) => p.kat === kat(slot)).id;

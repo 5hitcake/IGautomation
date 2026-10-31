@@ -18,7 +18,6 @@ body { position: fixed; inset: 0; }
 #s-werkstatt, #s-karte { position: fixed; inset: 0; }
 /* Gespräche über den ganzen Bildschirm */
 #gespraech { position: fixed; inset: 0; border-radius: 0; z-index: 40; }
-#testKnut { position: fixed; top: 6px; right: 96px; z-index: 50; font-size: 11px; padding: 5px 8px; background: #5a3d6b; color: #f3e6ff; box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
 /* Ecke oben rechts: Von vorn und Musik */
 #ecke { position: fixed; top: 6px; right: max(6px, env(safe-area-inset-right)); z-index: 46; display: flex; gap: 6px; }
 #ecke button, #ecke #musikKnopf { position: static; font: inherit; font-size: 16px; line-height: 1; padding: 6px 9px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.5); background: rgba(18,35,42,0.85); color: var(--chalk); cursor: pointer; }
@@ -80,7 +79,13 @@ body { position: fixed; inset: 0; }
 #start::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 55%, rgba(10,14,16,0.2), rgba(10,14,16,0.8)); }
 .start-box { position: relative; display: grid; gap: 18px; justify-items: center; }
 #start h1 { font-size: clamp(40px, 9vw, 84px); text-shadow: 0 4px 0 #1d1a16, 0 0 24px rgba(0,0,0,0.6); }
-#losGehts { font-size: 22px; padding: 14px 34px; box-shadow: 0 4px 0 rgba(0,0,0,0.4); }
+.start-knoepfe { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.start-knoepfe .knopf { font-size: 22px; padding: 14px 34px; box-shadow: 0 4px 0 rgba(0,0,0,0.4); }
+/* Neues Spiel? */
+#neuFrage { position: fixed; inset: 0; z-index: 65; display: grid; place-items: center; background: rgba(0,0,0,0.5); }
+#neuFrage > div { background: #fffaf0; color: #1d1a16; border: 4px solid #1d1a16; border-radius: 16px; padding: 16px 18px; max-width: 80%; display: grid; gap: 10px; box-shadow: 0 4px 0 rgba(0,0,0,0.35); }
+#neuFrage strong { font-family: var(--font-display); font-weight: 400; font-size: 24px; color: #a23b1c; }
+#neuFrage .knoepfe { display: flex; gap: 8px; flex-wrap: wrap; }
 /* Hochkant: Bitte drehen (nur auf Geräten mit Finger) */
 #drehen { display: none; }
 @media (orientation: portrait) and (pointer: coarse) {
@@ -96,13 +101,20 @@ body { position: fixed; inset: 0; }
 <div id="start" role="dialog" aria-label="Klapperkiste starten">
   <div class="start-box">
     <h1>Klapperkiste</h1>
-    <button type="button" class="knopf" id="losGehts">▶ Spielen</button>
+    <div class="start-knoepfe">
+      <button type="button" class="knopf" id="weiter" hidden>▶ Weiterspielen</button>
+      <button type="button" class="knopf" id="losGehts">▶ Spielen</button>
+    </div>
   </div>
 </div>
 <!-- Hochkant gehaltenes Handy -->
 <div id="drehen" aria-live="polite"><div><span aria-hidden="true">🔄</span><p>Bitte dreh dein Handy quer.</p></div></div>
 <!-- Kleine Knöpfe oben rechts (die Musiknote kommt aus karte.js dazu) -->
-<div id="ecke"><button type="button" id="vonVorn" title="Von vorn">↺</button></div>
+<div id="ecke"><button type="button" id="vonVorn" title="Neues Spiel" aria-label="Neues Spiel">↺</button></div>
+<div id="neuFrage" hidden role="alertdialog" aria-labelledby="neuTitel">
+  <div><strong id="neuTitel">Neues Spiel?</strong><p>Dein gespeicherter Fortschritt wird gelöscht.</p>
+    <div class="knoepfe"><button type="button" class="knopf" id="neuJa">Ja, neu anfangen</button><button type="button" class="knopf zweit" id="neuNein">Abbrechen</button></div></div>
+</div>
 <div id="tipp" role="status" aria-live="polite" hidden><img id="tippBild" alt=""><p id="tippText"></p></div>
 
 <div class="wrap">
@@ -159,7 +171,6 @@ body { position: fixed; inset: 0; }
   <div class="g-box"><strong id="gName"></strong><p id="gText" aria-live="polite"></p><span class="g-weiter" aria-hidden="true">▼</span></div>
 </div>
 <!-- Nur zum Testen, liegt über allem (auch über Opas Begrüßung) -->
-<button type="button" id="testKnut" class="test" title="Nur zum Testen: Einstieg überspringen (auch mit #knut in der Adresse)">🧪 Knut</button>
 <canvas id="ghost" hidden></canvas>
 
 <script src="raster.js"></script>
@@ -268,10 +279,27 @@ body { position: fixed; inset: 0; }
     K.setzeAuto(W.fahrzeug());
     zeige("karte");
     K.beiKnutAnkommen();
-    $("testKnut").hidden = true;
   }
-  $("testKnut").addEventListener("click", direktZuKnut);
-  $("vonVorn").addEventListener("click", () => location.reload());
+
+  // Speichern: automatisch alle paar Sekunden und beim Verlassen, sobald der Einstieg
+  // geschafft ist (Spielstand im Browser dieses Geräts)
+  const SPEICHER = "klapperkiste-spielstand-1";
+  const gespeichert = (() => { try { return JSON.parse(localStorage.getItem(SPEICHER)); } catch { return null; } })();
+  let neuGestartet = false;
+  function speichern() {
+    if (schritt < 6 || neuGestartet) return;
+    try { localStorage.setItem(SPEICHER, JSON.stringify({ v: 1, zeit: Date.now(), werkstatt: W.stand(), karte: K.stand() })); } catch { /* voll oder gesperrt */ }
+  }
+  setInterval(speichern, 4000);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) speichern(); });
+  window.addEventListener("pagehide", speichern);
+  $("vonVorn").addEventListener("click", () => { $("neuFrage").hidden = false; $("neuNein").focus(); });
+  $("neuNein").addEventListener("click", () => { $("neuFrage").hidden = true; });
+  $("neuJa").addEventListener("click", () => {
+    neuGestartet = true;
+    try { localStorage.removeItem(SPEICHER); } catch { /* egal */ }
+    location.reload();
+  });
 
   K.musik("werkstatt");
   const opaBild = ((window.KARTE_DATEN.figuren || {}).opa || {}).hallo;
@@ -282,7 +310,20 @@ body { position: fixed; inset: 0; }
   // (vorher erlauben Handy-Browser keinen), danach ist alles sofort hörbar.
   const HG = window.KARTE_DATEN.hintergruende || {};
   if (HG.halle) $("start").style.setProperty("--start-bild", `url(${HG.halle})`);
-  function los() {
+  if (gespeichert && gespeichert.v === 1) { $("weiter").hidden = false; $("losGehts").textContent = "Neues Spiel"; $("losGehts").classList.add("zweit"); }
+  $("weiter").addEventListener("click", () => los(true));
+  function weiterspielen() {
+    try {
+      W.laden(gespeichert.werkstatt);
+      K.laden(gespeichert.karte);
+    } catch { return false; }
+    schritt = 6; tipp(null); K.wetterFrei();
+    zeige("werkstatt");
+    W.say("Willkommen zurück in Opas Werkstatt!", "ok");
+    nachher();
+    return true;
+  }
+  function los(weiter) {
     if ($("start").hidden) return;
     $("start").hidden = true;
     if (window.Ton) Ton.freischalten();
@@ -292,6 +333,8 @@ body { position: fixed; inset: 0; }
       const fs = el.requestFullscreen ? el.requestFullscreen({ navigationUI: "hide" }) : null;
       if (fs && fs.then) fs.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
     } catch { /* geht nicht: egal */ }
+    if (weiter === true && weiterspielen()) return;
+    if (weiter !== true && gespeichert) { try { localStorage.removeItem(SPEICHER); } catch { /* egal */ } }
     if (location.hash === "#knut") return setTimeout(direktZuKnut, 200);
     // Los geht's: Opa begrüßt in der Werkstatt
     setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
@@ -305,7 +348,7 @@ body { position: fixed; inset: 0; }
       tipp("Tipp das <strong>leuchtende Rad</strong> an und dann auf <strong>„Einbauen“</strong>.");
     }), 250);
   }
-  $("losGehts").addEventListener("click", los);
+  $("losGehts").addEventListener("click", () => los(false));
   window.__ss = { W, K, get schritt() { return schritt; } }; // für automatische Tests
 })();
 </script>

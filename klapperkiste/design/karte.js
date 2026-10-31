@@ -1731,5 +1731,28 @@ window.Karte = function (opt = {}) {
     karteNeu() { if ($("grosskarte").hidden === false) grossZeichnen(); },
     musik(name) { if (Ton) Ton.musik(name); }, // z. B. "werkstatt" (Spielstart)
     wetterFrei() { wetter.fest = false; wetter.dauer = 40; }, // ab jetzt wechselt das Wetter
+    // Spielstand der Karte zum Speichern (nur einfache Daten) und wieder einlesen
+    stand() {
+      const nr = (liste, ja) => liste.flatMap((x, i) => (ja(x) ? [i] : []));
+      return {
+        auftrag: spiel.auftrag, geld: spiel.geld, beutel: spiel.beutel, hilde: spiel.hilde,
+        gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
+        offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
+        stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
+      };
+    },
+    laden(st) {
+      Object.assign(spiel, { auftrag: st.auftrag, geld: st.geld, beutel: st.beutel, hilde: st.hilde,
+        gekauft: new Set(st.gekauft), teile: new Set(st.teile) });
+      moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);
+      GEBIETE.forEach((g) => { g.offen = st.offen.includes(g.id); });
+      STUECKE.forEach((x, i) => { x.genommen = st.stuecke.includes(i); });
+      SAMMEL.forEach((r, i) => { r.weg = st.sammel.includes(i); });
+      HINDERNISSE.forEach((h, i) => { h.weg = st.hindernisse.includes(i); });
+      // Schon verscheuchte Schafe grasen gleich neben dem Weg
+      const h = HINDERNISSE.find((q) => q.id === "schafe");
+      if (h.weg) for (const sf of HERDE) Object.assign(sf, { x: h.x + (sf.x < h.x ? -1 : 1) * zufall(9, 15), flucht: false, grast: true });
+      nebelNeu(); hudNeu();
+    },
   };
 };
