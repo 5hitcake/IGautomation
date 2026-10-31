@@ -1,118 +1,146 @@
-"""Generate a Pumpkaboo-inspired cookie cutter / clay cutter as printable STL files.
+"""Generate a Pumpkaboo cookie cutter / clay cutter as printable STL files.
+
+The outline and the detail lines are traced from the official Pumpkaboo artwork
+(Pokédex #710, downloaded from the PokeAPI sprite repository at build time):
+  - outline         = the silhouette (alpha channel)
+  - detail ribs     = the inked lines inside the silhouette (cloak folds, mouth,
+                      pumpkin ridges, the rings around the pumpkin's lantern holes)
+  - filled pads     = small closed shapes (eyes, fangs) that press in as wells
 
 Outputs (in this folder):
   pumpkaboo_cutter_outline.stl  - outline-only cutter (easiest release from clay)
-  pumpkaboo_cutter_stamp.stl    - outline cutter + detail ribs that imprint the face/ridges
-  preview.png                   - 2D drawing of the outline and detail lines
+  pumpkaboo_cutter_stamp.stl    - outline cutter + detail ribs that imprint the details
+  preview.png                   - reference artwork vs. traced design
 
 All units are millimetres. Both models print flange-down on the bed, no supports.
 The shapes are mirrored in the model so the imprint reads the right way round once
 the cutter is flipped blade-down onto the clay.
 
-Requirements: pip install shapely manifold3d trimesh numpy matplotlib
+Requirements: pip install shapely manifold3d trimesh numpy matplotlib opencv-python-headless scikit-image
 """
-import math
+import tempfile
+import urllib.request
 from pathlib import Path
 
+import cv2
 import manifold3d as m3d
 import numpy as np
 import shapely.affinity as aff
 import trimesh
-from shapely.geometry import LineString, Point, Polygon
-from shapely.ops import unary_union
+from shapely.geometry import LineString, Polygon
+from shapely.ops import nearest_points, unary_union
+from skimage.morphology import skeletonize
 
 # ---------------- parameters ----------------
-SCALE = 1.0            # 1.0 -> about 84 mm wide x 98 mm tall. Remember clay shrinks ~10-15%.
+TARGET_H = 100.0       # height of the cut shape in mm (width follows, ~83 mm). Clay shrinks ~10-15%.
 HEIGHT = 25.0          # total height from flange to blade tip
 WALL = 1.6             # main wall thickness
 EDGE = 0.9             # thinner cutting edge thickness
 EDGE_H = 6.0           # height of the thin cutting edge at the tip
 FLANGE_W = 5.0         # flange width (outward) for comfortable pressing
 FLANGE_T = 2.4         # flange thickness
-RIB_W = 1.4            # detail rib width
+RIB_W = 1.3            # detail rib width
 SLAB = 6.0             # clay slab thickness you usually roll (mm)
 IMPRINT = 2.0          # how deep the details press into the slab
-BAR_W = 5.0            # bridge bars that hold the detail ribs
+BAR_W = 4.0            # bridge bars that hold the detail ribs
 BAR_T = 3.0
 
+ART_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/710.png"
 OUT = Path(__file__).resolve().parent
 
 
-def ellipse(cx, cy, w, h):
-    return aff.translate(aff.scale(Point(0, 0).buffer(1, quad_segs=64), w / 2, h / 2), cx, cy)
+# ---------------- trace the artwork ----------------
+def load_art():
+    path = Path(tempfile.gettempdir()) / "pumpkaboo_710.png"
+    if not path.exists():
+        urllib.request.urlretrieve(ART_URL, path)
+    return cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
 
 
-def bezier(p0, p1, p2, p3, n=60):
-    t = np.linspace(0, 1, n)[:, None]
-    p0, p1, p2, p3 = map(np.array, (p0, p1, p2, p3))
-    return (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3
+def mask_to_geom(mask, min_area=0.0):
+    """Raster mask -> shapely (Multi)Polygon in pixel coordinates, y pointing up."""
+    contours, hier = cv2.findContours(mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    polys = []
+    for i, c in enumerate(contours):
+        if hier[0][i][3] != -1 or len(c) < 3:
+            continue
+        holes = []
+        j = hier[0][i][2]
+        while j != -1:
+            if len(contours[j]) >= 3:
+                holes.append(contours[j][:, 0, :])
+            j = hier[0][j][0]
+        p = Polygon(c[:, 0, :], holes).buffer(0)
+        if p.area >= min_area:
+            polys.append(p)
+    return aff.scale(unary_union(polys), 1, -1, origin=(0, 0))
 
 
-def tapered_stroke(pts, r0, r1):
-    """Union of circles along a path with radius tapering r0 -> r1 (rounded ends)."""
-    n = len(pts)
-    return unary_union([Point(p).buffer(r0 + (r1 - r0) * i / (n - 1), quad_segs=24)
-                        for i, p in enumerate(pts)])
+img = load_art()
+alpha = cv2.GaussianBlur(img[:, :, 3], (0, 0), 2.5) > 128     # blur first -> smooth, non-wobbly edge
+hsv = cv2.cvtColor(img[:, :, :3], cv2.COLOR_BGR2HSV)
+ink = alpha & (hsv[..., 2] < 70)
+ink = cv2.morphologyEx(ink.astype(np.uint8), cv2.MORPH_CLOSE,         # bridge tiny gaps in the pen lines
+                       cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))).astype(bool)
+
+ys, xs = np.nonzero(alpha)
+PX = TARGET_H / (ys.max() - ys.min() + 1)          # mm per pixel
+rib_px = max(1, round(RIB_W / PX / 2))
+
+# keep only the lines inside the silhouette (drop the outer contour line)
+inner = cv2.erode((img[:, :, 3] > 128).astype(np.uint8), np.ones((11, 11), np.uint8)).astype(bool)
+inner_ink = ink & inner
+skel = skeletonize(inner_ink)
+lines = cv2.dilate(skel.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * rib_px + 1,) * 2))
+
+# small closed loops in the ink (eyes, fangs) become solid pads
+closed = cv2.morphologyEx(ink.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+n, lab, stats, _ = cv2.connectedComponentsWithStats((1 - closed) * inner.astype(np.uint8), connectivity=4)
+pads = np.isin(lab, [k for k in range(1, n) if stats[k, cv2.CC_STAT_AREA] < 600])
+pads = cv2.dilate(pads.astype(np.uint8), np.ones((3, 3), np.uint8))
+
+to_mm = lambda g: aff.scale(aff.translate(g, -xs.mean(), ys.min()), PX, PX, origin=(0, 0))
 
 
-def smooth(g, concave=3.0, convex=1.5):
+def smooth(g, concave=1.0, convex=1.0):
     g = g.buffer(concave, quad_segs=32).buffer(-concave, quad_segs=32)   # round inner notches
     return g.buffer(-convex, quad_segs=32).buffer(convex, quad_segs=32)  # round outer points
 
 
-# ---------------- 2D design ----------------
-# Pumpkin body: three overlapping lobes
-pumpkin_center = ellipse(0, 0, 54, 52)
-lobe_l = ellipse(-21, -1, 42, 47)
-lobe_r = ellipse(21, -1, 42, 47)
-pumpkin = unary_union([pumpkin_center, lobe_l, lobe_r])
+outline = to_mm(mask_to_geom(alpha, min_area=1000)).simplify(0.05)
+outline = smooth(max(getattr(outline, "geoms", [outline]), key=lambda p: p.area))
+details = to_mm(mask_to_geom(lines | pads, min_area=10)).simplify(0.05)
+details = details.intersection(outline.buffer(-0.8))
+details = unary_union([d for d in getattr(details, "geoms", [details]) if d.area > 1.0])
 
-# Ghost head peeking out of the top of the pumpkin
-head = ellipse(0, 33, 46, 40)
 
-# Curly hair tuft on top of the head, sweeping up and curling to the right
-tuft_path = np.vstack([
-    bezier((-3, 47), (-6, 58), (-2, 68), (8, 70)),
-    bezier((8, 70), (15, 71), (18, 65), (14, 61))[1:],
-])
-tuft = tapered_stroke(tuft_path, 6.0, 3.6)
+# ---------------- bridge bars ----------------
+def px_pt(x, y):
+    return ((x - xs.mean()) * PX, (ys.min() - y) * PX)
 
-outline = smooth(unary_union([pumpkin, head, tuft]))
 
-# Detail lines (become imprint ribs)
-details = []
-# rim of the pumpkin where the head comes out (top arc of the centre lobe, inside the head)
-rim = LineString([(27 * math.cos(a), 26 * math.sin(a))
-                  for a in np.linspace(math.radians(40), math.radians(140), 50)])
-details.append(rim.buffer(RIB_W / 2, quad_segs=12))
-# pumpkin ridges following the lobe seams
-for s in (-1, 1):
-    ridge = LineString(bezier((s * 7, 24), (s * 1, 10), (s * 1, -10), (s * 7, -22)))
-    details.append(ridge.buffer(RIB_W / 2, quad_segs=12))
-    outer = LineString(bezier((s * 23, 13), (s * 17, 4), (s * 17, -10), (s * 23, -20)))
-    details.append(outer.buffer(RIB_W / 2, quad_segs=12))
-# big round eyes with pupils
-EYE_Y = 39
-for s in (-1, 1):
-    ring = Point(s * 9, EYE_Y).buffer(5.5, quad_segs=32)
-    details.append(ring.difference(ring.buffer(-RIB_W)))
-    details.append(Point(s * 9.6, EYE_Y - 0.5).buffer(2.0, quad_segs=24))  # pupil (solid dot)
-# small smile
-smile = LineString([(4 * math.cos(a), 31.5 + 2.2 * math.sin(a))
-                    for a in np.linspace(math.radians(200), math.radians(340), 30)])
-details.append(smile.buffer(RIB_W / 2, quad_segs=12))
-details = unary_union(details).intersection(outline.buffer(-1.5))
+minx, miny, maxx, maxy = outline.bounds
+bar_lines = [
+    LineString([px_pt(208, 0), px_pt(208, 475)]),        # centre line, between the eyes
+    LineString([(minx - 5, px_pt(0, 205)[1]), (maxx + 5, px_pt(0, 205)[1])]),  # through the eyes
+    LineString([(minx - 5, px_pt(0, 358)[1]), (maxx + 5, px_pt(0, 358)[1])]),  # through the lantern holes
+]
+reach = outline.buffer(WALL / 2)
+bars = unary_union([b.buffer(BAR_W / 2, cap_style="flat") for b in bar_lines]).intersection(reach)
 
-# Bridge bars (sit at flange level, hold the ribs, give a flat surface to push on)
-bars = unary_union([
-    LineString([(0, -40), (0, 80)]).buffer(BAR_W / 2, cap_style="flat"),
-    LineString([(-40, EYE_Y), (40, EYE_Y)]).buffer(BAR_W / 2, cap_style="flat"),
-    LineString([(-60, 2), (60, 2)]).buffer(BAR_W / 2, cap_style="flat"),
-]).intersection(outline.buffer(WALL / 2))
+# connect any detail piece that doesn't touch a bar with a short extra bar
+anchor = unary_union([bars, outline.exterior])   # bars + the cutter wall
+for piece in getattr(details, "geoms", [details]):
+    if not piece.intersects(bars):
+        a, b = nearest_points(piece, anchor)
+        a = piece.representative_point() if piece.area < 4 else a
+        extra = LineString([a, b]).buffer(BAR_W / 2.5, cap_style="round")
+        bars = unary_union([bars, extra.intersection(reach)])
+        anchor = unary_union([anchor, extra])
 
 
 def mirror(g):
-    return aff.scale(g, xfact=-SCALE, yfact=SCALE, origin=(0, 0))
+    return aff.scale(g, xfact=-1, yfact=1, origin=(0, 0))
 
 
 outline_m, details_m, bars_m = mirror(outline), mirror(details), mirror(bars)
@@ -121,8 +149,7 @@ outline_m, details_m, bars_m = mirror(outline), mirror(details), mirror(bars)
 # ---------------- 3D ----------------
 def to_cs(g):
     contours = []
-    geoms = getattr(g, "geoms", [g])
-    for p in geoms:
+    for p in getattr(g, "geoms", [g]):
         if p.is_empty or p.geom_type != "Polygon":
             continue
         contours.append(np.asarray(p.exterior.coords)[:-1])
@@ -144,6 +171,7 @@ def body(o):
 
 
 def save(man, name):
+    assert len(man.decompose()) == 1, f"{name} is not one connected piece"
     mesh = man.to_mesh()
     tm = trimesh.Trimesh(vertices=mesh.vert_properties[:, :3], faces=mesh.tri_verts, process=False)
     assert tm.is_watertight, name
@@ -153,11 +181,8 @@ def save(man, name):
 
 
 cutter = body(outline_m)
-save(cutter, "pumpkaboo_cutter_outline.stl")
-
 rib_top = HEIGHT - (SLAB - IMPRINT)   # rib tips stop short of the blade tip
 stamp = cutter + slab(bars_m, 0, BAR_T) + slab(details_m, 0, rib_top)
-save(stamp, "pumpkaboo_cutter_stamp.stl")
 
 
 # ---------------- preview ----------------
@@ -172,21 +197,27 @@ def draw(ax, g, **kw):
 
 
 if __name__ == "__main__":
+    save(cutter, "pumpkaboo_cutter_outline.stl")
+    save(stamp, "pumpkaboo_cutter_stamp.stl")
+    print(f"cut shape: {outline.bounds[2] - outline.bounds[0]:.1f} x {outline.bounds[3] - outline.bounds[1]:.1f} mm")
+
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(1, 2, figsize=(10, 6))
-    a = axes[0]
-    draw(a, outline, color="#e8a35a")
-    draw(a, details, color="#3b2a1e")
-    a.set_title("Imprint on the clay")
-    b = axes[1]
-    draw(b, outline.buffer(WALL + FLANGE_W).difference(outline), color="#999")
-    draw(b, bars, color="#5577aa", alpha=0.6)
-    draw(b, details, color="#222")
-    b.set_title("Cutter seen from above (in use)")
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5.5))
+    axes[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA))
+    cut_px = aff.translate(aff.scale(outline, 1 / PX, -1 / PX, origin=(0, 0)), xs.mean(), ys.min())
+    axes[0].plot(*cut_px.exterior.xy, color="red", lw=1.2)
+    axes[0].set_title("Official artwork + cut line (red)")
+    draw(axes[1], outline, color="#c9875f")
+    draw(axes[1], details, color="#3b2a1e")
+    axes[1].set_title("Imprint on the clay")
+    draw(axes[2], outline.buffer(WALL + FLANGE_W).difference(outline), color="#999")
+    draw(axes[2], bars, color="#5577aa", alpha=0.6)
+    draw(axes[2], details, color="#222")
+    axes[2].set_title("Stamp cutter seen from above (in use)")
     for ax in axes:
         ax.set_aspect("equal")
         ax.axis("off")
     fig.tight_layout()
-    fig.savefig(OUT / "preview.png", dpi=110)
+    fig.savefig(OUT / "preview.png", dpi=150)
