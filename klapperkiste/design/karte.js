@@ -96,6 +96,42 @@ window.Karte = function (opt = {}) {
   const WALDPFAD = [[60, 214], [45, 212], [37.5, 205], [36, 196]]; // durchs Tor zur Försterhütte
   const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD];
   const WEG_BREITE = 4.5;
+  // Wege an den Knicken abrunden (Bogen, je Seite bis 9 m, höchstens die halbe Strecke),
+  // damit sie natürlich aussehen und das Auto die Kurven flüssig nimmt. Wege, die an einem
+  // anderen Weg beginnen oder enden (Abzweigungen), rücken danach auf den gerundeten Weg.
+  (function wegeRunden() {
+    const vorher = WEGE.map((w) => w.map((q) => q.slice()));
+    for (const w of WEGE) {
+      const neu = [w[0]];
+      for (let i = 1; i < w.length - 1; i++) {
+        const [ax, ay] = w[i - 1], [px, py] = w[i], [bx, by] = w[i + 1];
+        const la = Math.hypot(ax - px, ay - py), lb = Math.hypot(bx - px, by - py), r = Math.min(9, la / 2, lb / 2);
+        const p1 = [px + (ax - px) / la * r, py + (ay - py) / la * r], p2 = [px + (bx - px) / lb * r, py + (by - py) / lb * r];
+        for (let k = 0; k <= 6; k++) {
+          const t = k / 6, u = 1 - t;
+          neu.push([u * u * p1[0] + 2 * u * t * px + t * t * p2[0], u * u * p1[1] + 2 * u * t * py + t * t * p2[1]]);
+        }
+      }
+      neu.push(w[w.length - 1]);
+      w.length = 0; w.push(...neu);
+    }
+    const aufWeg = (q, w) => { // nächster Punkt auf dem Weg w
+      let best = q, bd = Infinity;
+      for (let i = 1; i < w.length; i++) {
+        const [ax, ay] = w[i - 1], dx = w[i][0] - ax, dy = w[i][1] - ay;
+        const t = Math.max(0, Math.min(1, ((q[0] - ax) * dx + (q[1] - ay) * dy) / (dx * dx + dy * dy)));
+        const x = ax + t * dx, y = ay + t * dy, d = Math.hypot(q[0] - x, q[1] - y);
+        if (d < bd) { bd = d; best = [x, y]; }
+      }
+      return best;
+    };
+    vorher.forEach((alt, i) => {
+      for (const ende of [0, alt.length - 1]) {
+        const j = vorher.findIndex((v, k) => k !== i && v.some((_, s) => s > 0 && abstandStrecke(alt[ende][0], alt[ende][1], v[s - 1], v[s]) < 1.5));
+        if (j >= 0) WEGE[i][ende === 0 ? 0 : WEGE[i].length - 1] = aufWeg(alt[ende], WEGE[j]);
+      }
+    });
+  })();
 
   function abstandStrecke(px, py, a, b) {
     const dx = b[0] - a[0], dy = b[1] - a[1];
@@ -269,6 +305,13 @@ window.Karte = function (opt = {}) {
         let nx = -dy / ll, ny = dx / ll;
         if ((cx - a[0]) * nx + (cy - a[1]) * ny < 0) { nx = -nx; ny = -ny; }
         schieb(nx, ny, tief);
+      }
+      // Hindernisse (Schafherde, dunkler Wald) lassen ohne das passende Teil niemanden durch,
+      // auch nicht beim Wenden oder Zurücksetzen davor
+      for (const h of HINDERNISSE) {
+        if (h.weg || (hatTeil(h.braucht) && !h.aktion)) continue;
+        const d = Math.hypot(cx - h.x, cy - h.y), tief = h.r + r - d;
+        if (tief > 0 && d > 0) schieb((cx - h.x) / d, (cy - h.y) / d, tief);
       }
       for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser]) {
         const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));

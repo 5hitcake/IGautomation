@@ -126,6 +126,12 @@ längeren und breiteren Lichtkegel. Probe: Lichtkegel auf einem Feldweg
 - **Hindernisse:** Kann das Auto ein Hindernis mit den eingebauten Teilen nicht
   überwinden (z. B. dunkler Wald ohne Licht), bleibt es davor stehen. Eine
   Meldung sagt, was fehlt, mit dem Knopf **„Zur Werkstatt“** (Schnellreise).
+  Das Hindernis ist zugleich eine feste Sperre: Auch beim Wenden, Zurücksetzen
+  oder mit den Pfeiltasten kommt man ohne das Teil nicht hindurch.
+- **Runde Wege:** Die Wege sind als Linien mit Knicken eingetragen und werden
+  beim Start an jedem Knick zu einem Bogen gerundet (bis 9 m je Seite);
+  Abzweigungen rücken auf den gerundeten Weg. Gilt für Bild, Wegenetz und
+  Untergrund gleichermaßen.
 - **Route nur auf der Minikarte:** Der Weg wird wie bei einer Navi-App als
   blaue Linie auf der Minikarte gezeigt, auf der großen Fahransicht nicht
   (dort nur ein Ring am Ziel).
