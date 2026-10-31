@@ -153,7 +153,7 @@ window.Werkstatt = function (opt = {}) {
   // Bild so groß, dass die Bühne gut 85 % der Breite füllt und unten im Bild steht
   function hallePlatz(w, h) {
     const iw = HALLE.naturalWidth, ih = HALLE.naturalHeight;
-    const k = Math.max(w / iw, h / ih, (0.86 * w) / (iw * (BUEHNE.x1 - BUEHNE.x0)));
+    const k = Math.max(w / iw, h / ih, (0.92 * w) / (iw * (BUEHNE.x1 - BUEHNE.x0)));
     const dx = Math.min(0, Math.max(w - iw * k, w / 2 - iw * k * (BUEHNE.x0 + BUEHNE.x1) / 2));
     const dy = Math.min(0, Math.max(h - ih * k, h * 0.84 - ih * k * BUEHNE.boden));
     return { k, dx, dy, iw, ih };
@@ -712,7 +712,7 @@ window.Werkstatt = function (opt = {}) {
       },
     };
   }
-  const handy = window.matchMedia("(max-width: 860px)");
+  const handy = window.matchMedia("(max-width: 860px) and (orientation: portrait)");
   const katBand = Band($("tabs"), {
     achse: () => (handy.matches ? "x" : "y"), abstandX: 112, abstandY: 62,
     beiWahl: (i) => {

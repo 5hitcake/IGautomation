@@ -160,8 +160,8 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 .wert-neu.plus { color: var(--mint); }
 .wert-neu.minus { color: var(--rust); }
 
-/* Handy hochkant: Bühne oben, Kategorien als Reihe, darunter Teile und Info */
-@media (max-width: 860px) {
+/* Schmal und hochkant: Bühne oben, Kategorien als Reihe, darunter Teile und Info */
+@media (max-width: 860px) and (orientation: portrait) {
   .halle { padding: 10px 8px; }
   .halle-mitte { grid-template-columns: minmax(0, 1fr); }
   .buehne-w { order: 1; }

@@ -10,54 +10,115 @@
 <link rel="stylesheet" href="werkstatt.css">
 <link rel="stylesheet" href="karte.css">
 <style>
-/* Spielstart: Werkstatt und Karte als zwei Bildschirme, Opa führt durch den Einstieg. */
-.kopf { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; justify-content: space-between; }
-.kopf .knoepfe { display: flex; gap: 8px; }
-.kopf .knoepfe button { font-size: 13px; padding: 6px 12px; }
-/* Gespräche über den ganzen Bildschirm, egal ob Werkstatt oder Karte */
+/* Spielstart: das ganze Spiel im Querformat auf einem Bildschirm, ohne Scrollen.
+   Werkstatt und Karte füllen jeweils den Bildschirm, Opas Tipps schweben oben. */
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { position: fixed; inset: 0; }
+.wrap { display: contents; }
+#s-werkstatt, #s-karte { position: fixed; inset: 0; }
+/* Gespräche über den ganzen Bildschirm */
 #gespraech { position: fixed; inset: 0; border-radius: 0; z-index: 40; }
-/* Opas Tipp-Zeile beim Einstieg */
-#testKnut { position: fixed; top: 8px; right: 8px; z-index: 50; font-size: 12px; padding: 6px 10px; background: #5a3d6b; color: #f3e6ff; box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
-#tipp { display: flex; gap: 10px; align-items: center; background: #fffaf0; color: #1d1a16; border: 3px solid #1d1a16; border-radius: 14px; padding: 8px 12px 8px 8px; box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
-#tipp img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: 50% 8%; background: #e8dcc2; border: 2px solid #1d1a16; flex: none; }
-#tipp p { font-weight: 700; line-height: 1.35; }
+#testKnut { position: fixed; top: 6px; right: 96px; z-index: 50; font-size: 11px; padding: 5px 8px; background: #5a3d6b; color: #f3e6ff; box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+/* Ecke oben rechts: Von vorn und Musik */
+#ecke { position: fixed; top: 6px; right: max(6px, env(safe-area-inset-right)); z-index: 46; display: flex; gap: 6px; }
+#ecke button, #ecke #musikKnopf { position: static; font: inherit; font-size: 16px; line-height: 1; padding: 6px 9px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.5); background: rgba(18,35,42,0.85); color: var(--chalk); cursor: pointer; }
+/* Opas Tipp als Sprechblase oben in der Mitte, Tippen geht hindurch */
+#tipp { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 30; width: max-content; max-width: min(56vw, 560px); pointer-events: none;
+  display: flex; gap: 8px; align-items: center; background: #fffaf0; color: #1d1a16; border: 3px solid #1d1a16; border-radius: 12px; padding: 4px 10px 4px 4px; box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
+#tipp img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: 50% 8%; background: #e8dcc2; border: 2px solid #1d1a16; flex: none; }
+#tipp p { font-weight: 700; line-height: 1.3; font-size: 13px; }
 #tipp strong { color: #a23b1c; }
 .knopf.tipp, button.tipp { box-shadow: 0 0 0 3px var(--mustard); animation: knopfTipp 1.1s ease-in-out infinite; }
 @keyframes knopfTipp { 50% { box-shadow: 0 0 0 7px rgba(242,182,50,0.25); } }
 @media (prefers-reduced-motion: reduce) { .knopf.tipp, button.tipp { animation: none; } }
 .knopf:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Werkstatt: links Kategorien, Mitte Bühne, rechts Teile und Info, alles auf einem Bild */
+.halle { border-radius: 0; padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); grid-template-rows: minmax(0, 1fr); }
+.halle-mitte { grid-template-columns: clamp(116px, 15vw, 150px) minmax(0, 1fr) clamp(220px, 27vw, 300px); gap: 8px; height: 100%; min-height: 0; align-items: stretch; }
+.halle .kats { height: 100%; min-height: 0; }
+.halle .kat { width: calc(100% - 6px); }
+.buehne-w { position: relative; grid-template-rows: minmax(0, 1fr) auto auto; gap: 6px; min-height: 0; }
+.halle #stage { height: 100%; min-height: 0; }
+.unten .views { flex: none; padding: 3px; gap: 3px; }
+.unten .views button { font-size: 12px; padding: 5px 9px; }
+.werte { gap: 4px; }
+.wert { padding: 3px 2px; font-size: 12px; line-height: 1.2; }
+.unten { display: flex; gap: 8px; align-items: center; }
+.unten #status { flex: 1; min-width: 0; font-size: 12px; line-height: 1.25; max-height: 2.5em; overflow: hidden; }
+.unten .knopf { flex: none; padding: 9px 22px; font-size: 16px; }
+.regal { grid-template-rows: auto minmax(0, 1fr); gap: 6px; padding: 40px 8px 8px; min-height: 0; }
+.halle .tray { height: 104px; }
+.info { overflow-y: auto; min-height: 0; align-content: start; gap: 5px; }
+.info-bild { display: none; }
+.info h3 { font-size: 18px; }
+.info-text { font-size: 12px; line-height: 1.3; }
+.info-werte div { grid-template-columns: 70px 1fr auto; font-size: 11px; }
+.info .knopf { padding: 8px 10px; }
+
+/* Karte: Bildschirm füllen, Knöpfe unten in der Mitte über der Karte */
+#s-karte .buehne { position: absolute; inset: 0; }
+#karte { height: 100%; border-radius: 0; }
+#mini { top: 44px; width: 96px; height: 96px; }
+.hud-rechts { top: 148px; }
+.hud { top: 8px; left: max(8px, env(safe-area-inset-left)); }
+#s-karte .fahrleiste { position: absolute; left: 50%; bottom: max(8px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; flex-wrap: nowrap; }
+#s-karte .fahrleiste .knopf { flex: none; padding: 9px 16px; font-size: 15px; box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
+#grosskarte, #meldung, #laden, #ziel { border-radius: 0; }
+#grosskarte header { padding-right: 150px; } /* Platz für die Knöpfe oben rechts */
+#meldung > div, #laden > div { max-height: 88%; overflow-y: auto; box-sizing: border-box; }
+
+/* Gespräch im Querformat: Figur links, Textfeld unten rechts daneben */
+@media (orientation: landscape) {
+  #gFigur { left: 4%; bottom: 0; height: 92%; max-width: 40%; }
+  .g-box { left: 34%; right: 12px; bottom: 12px; min-height: 0; padding: 20px 16px 12px; }
+  .g-box p { font-size: clamp(14px, 2.4vw, 18px); min-height: 2.8em; }
+}
+
+/* Startbildschirm */
+#start { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: #10191c var(--start-bild, none) center / cover no-repeat; }
+#start::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 55%, rgba(10,14,16,0.2), rgba(10,14,16,0.8)); }
+.start-box { position: relative; display: grid; gap: 18px; justify-items: center; }
+#start h1 { font-size: clamp(40px, 9vw, 84px); text-shadow: 0 4px 0 #1d1a16, 0 0 24px rgba(0,0,0,0.6); }
+#losGehts { font-size: 22px; padding: 14px 34px; box-shadow: 0 4px 0 rgba(0,0,0,0.4); }
+/* Hochkant: Bitte drehen (nur auf Geräten mit Finger) */
+#drehen { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  #drehen { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: #10191c; text-align: center; }
+  #drehen span { font-size: 56px; display: block; animation: drehen 2s ease-in-out infinite; }
+  #drehen p { font-family: var(--font-display); font-size: 24px; color: var(--mustard); }
+}
+@keyframes drehen { 50% { transform: rotate(-90deg); } }
 </style>
 </head>
 <body>
+<!-- Startbildschirm: Handy-Browser erlauben Ton erst nach dem ersten Antippen -->
+<div id="start" role="dialog" aria-label="Klapperkiste starten">
+  <div class="start-box">
+    <h1>Klapperkiste</h1>
+    <button type="button" class="knopf" id="losGehts">▶ Spielen</button>
+  </div>
+</div>
+<!-- Hochkant gehaltenes Handy -->
+<div id="drehen" aria-live="polite"><div><span aria-hidden="true">🔄</span><p>Bitte dreh dein Handy quer.</p></div></div>
+<!-- Kleine Knöpfe oben rechts (die Musiknote kommt aus karte.js dazu) -->
+<div id="ecke"><button type="button" id="vonVorn" title="Von vorn">↺</button></div>
+<div id="tipp" role="status" aria-live="polite" hidden><img id="tippBild" alt=""><p id="tippText"></p></div>
+
 <div class="wrap">
-  <header class="kopf">
-    <div style="display:grid;gap:6px">
-      <p class="eyebrow">Schritt C1 · Spielstart</p>
-      <h1>Klapperkiste</h1>
-    </div>
-    <div class="knoepfe">
-      <button type="button" id="vonVorn">Von vorn</button>
-    </div>
-  </header>
-
-  <div id="tipp" role="status" aria-live="polite" hidden><img id="tippBild" alt=""><p id="tippText"></p></div>
-
   <!-- Bildschirm 1: Opas Werkstatt -->
   <section id="s-werkstatt" class="halle" aria-label="Opas Werkstatt">
-    <div class="halle-kopf">
-      <h2>Opas Werkstatt</h2>
-      <div class="views" role="group" aria-label="Ansicht">
-        <button type="button" id="view-seite" aria-pressed="true">Seite</button>
-        <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
-      </div>
-    </div>
     <div class="halle-mitte">
       <div class="kats" id="tabs" role="tablist" aria-label="Kategorien"></div>
       <div class="buehne-w">
         <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszuwählen."></canvas>
         <div class="werte" id="werte" aria-label="Werte deines Autos"></div>
-        <p id="status" aria-live="polite"></p>
-        <div class="fahrleiste"><button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
+        <div class="unten">
+          <div class="views" role="group" aria-label="Ansicht">
+            <button type="button" id="view-seite" aria-pressed="true">Seite</button>
+            <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
+          </div>
+          <p id="status" aria-live="polite"></p><button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
       </div>
       <aside class="regal" aria-label="Teile und Info">
         <div class="tray" id="tray"></div>
@@ -67,7 +128,7 @@
   </section>
 
   <!-- Bildschirm 2: Karte -->
-  <section id="s-karte" aria-label="Karte" style="display:grid;gap:12px" hidden>
+  <section id="s-karte" aria-label="Karte" hidden>
     <div class="buehne">
       <canvas id="karte" aria-label="Karte von oben mit deinem Auto"></canvas>
       <canvas id="mini" aria-hidden="true"></canvas>
@@ -85,10 +146,10 @@
           <div class="knoepfe"><button type="button" class="knopf" id="zurWerkstatt">Zur Werkstatt</button><button type="button" class="knopf zweit" id="mZu">Stehen bleiben</button></div></div>
       </div>
       <div id="ziel" hidden><div><strong>Geschafft!</strong><p id="zielText"></p></div></div>
-    </div>
-    <div class="fahrleiste">
-      <button type="button" class="knopf" id="karteAuf">🗺 Karte · Ziel wählen</button>
-      <button type="button" class="knopf zweit" id="schnellreise">Zur Werkstatt</button>
+      <div class="fahrleiste">
+        <button type="button" class="knopf" id="karteAuf">🗺 Ziel wählen</button>
+        <button type="button" class="knopf zweit" id="schnellreise">🔧 Werkstatt</button>
+      </div>
     </div>
   </section>
 </div>
@@ -98,7 +159,7 @@
   <div class="g-box"><strong id="gName"></strong><p id="gText" aria-live="polite"></p><span class="g-weiter" aria-hidden="true">▼</span></div>
 </div>
 <!-- Nur zum Testen, liegt über allem (auch über Opas Begrüßung) -->
-<button type="button" id="testKnut" class="test" title="Nur zum Testen: Einstieg überspringen (auch mit #knut in der Adresse)">🧪 Test: direkt zu Knut</button>
+<button type="button" id="testKnut" class="test" title="Nur zum Testen: Einstieg überspringen (auch mit #knut in der Adresse)">🧪 Knut</button>
 <canvas id="ghost" hidden></canvas>
 
 <script src="raster.js"></script>
@@ -142,7 +203,7 @@
     nachKnut: () => {
       if (schritt !== 5) return;
       schritt = 6; K.wetterFrei();
-      tipp("<strong>Geschafft!</strong> Ab jetzt entscheidest du selbst, wohin es geht. Mit „Zur Werkstatt“ kommst du jederzeit zurück zu mir.");
+      tipp("<strong>Geschafft!</strong> Ab jetzt entscheidest du selbst, wohin es geht. Mit „🔧 Werkstatt“ kommst du jederzeit zurück zu mir.");
       setTimeout(() => { if (schritt === 6) tipp(null); }, 9000);
     },
   });
@@ -181,7 +242,6 @@
     $("s-werkstatt").hidden = name !== "werkstatt";
     $("s-karte").hidden = name !== "karte";
     if (name === "werkstatt") { W.refresh(); K.musik("werkstatt"); if (!imEinstieg()) W.say("Zurück in Opas Werkstatt."); }
-    window.scrollTo({ top: 0 });
   }
 
   $("losfahren").addEventListener("click", () => {
@@ -192,7 +252,7 @@
     zeige("karte");
     if (schritt === 3) {
       schritt = 4; leuchte("losfahren", false); leuchte("karteAuf", true);
-      tipp("Tipp auf <strong>„Karte · Ziel wählen“</strong> und such dir den <strong>Schrottplatz</strong> aus.");
+      tipp("Tipp auf <strong>„Ziel wählen“</strong> und such dir den <strong>Schrottplatz</strong> aus.");
     }
   });
 
@@ -213,21 +273,39 @@
   $("testKnut").addEventListener("click", direktZuKnut);
   $("vonVorn").addEventListener("click", () => location.reload());
 
-  K.musik("werkstatt"); // läuft los, sobald der Ton freigeschaltet ist (erstes Antippen)
-  // Los geht's: Opa begrüßt in der Werkstatt
+  K.musik("werkstatt");
   const opaBild = ((window.KARTE_DATEN.figuren || {}).opa || {}).hallo;
   if (opaBild) $("tippBild").src = opaBild;
-  if (location.hash === "#knut") setTimeout(direktZuKnut, 300);
-  setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
-    ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Bolzen, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
-    ["nachdenken", "Na ja, „Kiste“ ist geschmeichelt. Rahmen und Achsen sind schon dran, der Rest liegt noch hier im Regal herum."],
-    ["auftrag", "Fang mit den Rädern an: Tipp das leuchtende Rad an, schau es dir an und drück auf „Einbauen“."],
-  ], () => {
-    if (schritt !== 0) return;
-    schritt = 1;
-    W.tipp("schubkarre");
-    tipp("Tipp das <strong>leuchtende Rad</strong> an und dann auf <strong>„Einbauen“</strong>. Ziehen auf die Hebebühne geht auch.");
-  }), 300);
+  // Musiknote in die Ecke oben rechts
+  if ($("musikKnopf")) $("ecke").prepend($("musikKnopf"));
+  // Startbildschirm: Hintergrund ist die Halle. Der Tipp auf „Spielen“ gibt den Ton frei
+  // (vorher erlauben Handy-Browser keinen), danach ist alles sofort hörbar.
+  const HG = window.KARTE_DATEN.hintergruende || {};
+  if (HG.halle) $("start").style.setProperty("--start-bild", `url(${HG.halle})`);
+  function los() {
+    if ($("start").hidden) return;
+    $("start").hidden = true;
+    if (window.Ton) Ton.freischalten();
+    // Android: Vollbild und quer festhalten (iPhone kann das im Browser nicht)
+    try {
+      const el = document.documentElement;
+      const fs = el.requestFullscreen ? el.requestFullscreen({ navigationUI: "hide" }) : null;
+      if (fs && fs.then) fs.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
+    } catch { /* geht nicht: egal */ }
+    if (location.hash === "#knut") return setTimeout(direktZuKnut, 200);
+    // Los geht's: Opa begrüßt in der Werkstatt
+    setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
+      ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Bolzen, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
+      ["nachdenken", "Na ja, „Kiste“ ist geschmeichelt. Rahmen und Achsen sind schon dran, der Rest liegt noch hier im Regal herum."],
+      ["auftrag", "Fang mit den Rädern an: Tipp das leuchtende Rad an, schau es dir an und drück auf „Einbauen“."],
+    ], () => {
+      if (schritt !== 0) return;
+      schritt = 1;
+      W.tipp("schubkarre");
+      tipp("Tipp das <strong>leuchtende Rad</strong> an und dann auf <strong>„Einbauen“</strong>.");
+    }), 250);
+  }
+  $("losGehts").addEventListener("click", los);
   window.__ss = { W, K, get schritt() { return schritt; } }; // für automatische Tests
 })();
 </script>

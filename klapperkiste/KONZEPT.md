@@ -73,6 +73,18 @@ Einstiegs ist der Schrottplatz das einzige wählbare Ziel. „Zur Werkstatt“ u
 die Ankunft an Opas Schuppen führen zurück in die Werkstatt. Losfahren geht
 nur fahrbereit und ohne Karosserie oder mit komplettem Satz.
 
+### Bildschirm: Querformat, alles auf einem Bild (entschieden)
+
+- Das ganze Spiel läuft **im Querformat** und füllt den Bildschirm, **nirgends wird
+  gescrollt**. Hochkant zeigt das Handy „Bitte dreh dein Handy quer“.
+- **Startbildschirm** mit „▶ Spielen“: Handy-Browser erlauben Ton erst nach dem
+  ersten Antippen, danach sind Musik und Stimmen sofort da. Auf Android geht das
+  Spiel dabei in den Vollbildmodus und hält das Querformat; auf dem iPhone kann
+  eine Webseite das nicht (erst als echte App).
+- Kleine Knöpfe oben rechts (Musik, Von vorn), Opas Tipps als Sprechblase oben in
+  der Mitte, auf der Karte die Knöpfe „Ziel wählen“ und „Werkstatt“ unten in der Mitte.
+- Gespräche: Figur links groß, Textfeld rechts daneben unten.
+
 ### Werkstatt-Bildschirm (Umbau nach dem Vorbild klassischer Tuning-Garagen)
 
 - **Mitte:** das Auto groß auf der Hebebühne im Lichtkegel, Hintergrund ist eine
