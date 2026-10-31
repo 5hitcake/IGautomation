@@ -37,7 +37,7 @@ window.Rallye = function (opt) {
   for (let x = 30; x < LAENGE - 15; x += 9 + zufall() * 7) {
     const r = zufall(), y = (zufall() * 2 - 1) * (BAHN - 1.3);
     const art = r < 0.26 ? "pfuetze" : r < 0.46 ? "wurzel" : r < 0.66 ? "schlagloch" : r < 0.84 ? "stamm" : "stein";
-    const d = { pfuetze: [3.2, 2], wurzel: [1, 3.4], schlagloch: [1.8, 1.5], stamm: [1.2, 4.2], stein: [1.6, 1.6] }[art];
+    const d = { pfuetze: [3.2, 1.7], wurzel: [1.3, 3.6], schlagloch: [2, 1.3], stamm: [1.2, 4.4], stein: [1.6, 1.6] }[art];
     let oy = y;
     if (art === "stamm") oy = (zufall() < 0.5 ? -1 : 1) * (BAHN - 2.1); // liegt halb über der Bahn
     DINGE.push({ art, x, y: oy, b: d[0], h: d[1], rot: (zufall() - 0.5) * 0.4 });
@@ -190,10 +190,12 @@ window.Rallye = function (opt) {
       ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot || 0);
       const bild = opt.bilder[d.art === "stamm" ? "ast" : d.art];
       if (d.art !== "stein" && d.art !== "muenze" && bild && bild.complete && bild.naturalWidth) {
-        // Bild so groß wie das Hindernis (Stamm liegt quer: Bild ist waagerecht gezeichnet)
-        if (d.art === "stamm" || d.art === "wurzel") ctx.rotate(Math.PI / 2);
-        const [bw, bh] = d.art === "stamm" || d.art === "wurzel" ? [d.h, d.b] : [d.b, d.h];
-        ctx.drawImage(bild, -bw / 2 - 0.2, -bh / 2 - 0.2, bw + 0.4, bh + 0.4);
+        // Bild so lang wie das Hindernis, Seitenverhältnis bleibt (Ast und Wurzel liegen quer
+        // über dem Weg, ihre Bilder sind waagerecht gezeichnet)
+        const quer = d.art === "stamm" || d.art === "wurzel";
+        if (quer) ctx.rotate(Math.PI / 2);
+        const bw = (quer ? d.h : d.b) + 0.4, bh = bw * bild.naturalHeight / bild.naturalWidth;
+        ctx.drawImage(bild, -bw / 2, -bh / 2, bw, bh);
       } else if (d.art === "schlagloch") {
         ctx.fillStyle = "#4a321e"; ctx.beginPath(); ctx.ellipse(0, 0, d.b / 2, d.h / 2, 0.3, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#2a1a0e"; ctx.beginPath(); ctx.ellipse(0.1, 0.1, d.b / 2 - 0.25, d.h / 2 - 0.25, 0.3, 0, Math.PI * 2); ctx.fill();
