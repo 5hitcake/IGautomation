@@ -69,10 +69,14 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
 - Eigener Bildschirm (`design/rallye.js`): Holzweg von oben, das Auto fährt von links
   nach rechts von selbst, man hält den Finger auf die Höhe, in die es lenken soll
   (oder Pfeiltasten). 320 m, immer dieselbe Strecke, damit man sie lernen kann.
-- **Start mit Ampel:** drei rote Lichter, dann Grün nach zufälliger Wartezeit. Bis
-  0,4 s nach Grün tippen = ⚡ Blitzstart, vorher tippen = Fehlstart (+2 s).
+- **Start mit Countdown** wie bei Mario Kart: 3, 2, 1, GO (je eine Sekunde, die Ampel
+  zählt mit). Bis 0,35 s nach GO auf den großen **GAS**-Knopf = ⚡ Blitzstart, zu früh
+  = Motor abgewürgt (das Auto steht 1 s, die Uhr läuft).
 - **Hindernisse:** Pfützen (bremsen, weniger mit viel Grip), Wurzeln (rumpeln),
   Stämme und Steine (fast Stillstand). Münzen auf der Strecke gibt es dazu.
+- **Es geht nach Zeit**, schnellere Autos lohnen sich: Höchstgeschwindigkeit 5 m/s +
+  Tempo/10 (Rasenmäher 6,5, Moped 8,5, Rakete 17). Probefahrten mit vier Beispielautos
+  und Bestzeiten je Auto: `design/rallyeprobe.html`.
 - **Werte zählen:** Tempo (Höchstgeschwindigkeit), Gewicht (Beschleunigung),
   Lenkung (wie schnell man ausweicht), Grip (Pfützen).
 - **Medaillen:** 🥇 45 s · 🥈 51 s · 🥉 58 s. Gold schafft man erst mit einem

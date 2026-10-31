@@ -1,7 +1,8 @@
 // Waldrallye: erste Vorrunde zum Klappertal-Rennen. Zeitfahren auf dem alten Holzweg von
 // oben, das Auto fährt von links nach rechts von selbst, man lenkt nach oben und unten
 // (Finger auf die Bahn halten oder Pfeiltasten) und weicht Pfützen, Wurzeln, Stämmen und
-// Steinen aus. Start mit Ampel: Wer genau bei Grün tippt, bekommt einen Blitzstart.
+// Steinen aus. Start mit Countdown 3, 2, 1, GO: Wer genau bei GO Gas gibt, bekommt einen
+// Blitzstart; wer zu früh Gas gibt, würgt den Motor ab und startet eine Sekunde später.
 // Die Werte des Autos zählen: Tempo, Gewicht (Beschleunigung), Lenkung, Grip (Pfützen).
 //
 // window.Rallye({ eltern, bilder, werte }) gibt { starten(fertig) } zurück.
@@ -19,7 +20,8 @@ window.Rallye = function (opt) {
   box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Waldrallye");
   box.innerHTML = '<canvas aria-label="Rennstrecke. Finger auf die Bahn halten, um nach oben oder unten zu lenken."></canvas>' +
     '<div class="r-hud"><span class="r-zeit">0,0 s</span><span class="r-ziele"></span></div>' +
-    '<div class="r-bar"><i></i></div><div class="r-meldung" hidden></div>' +
+    '<div class="r-bar"><i></i></div><div class="r-zahl" hidden></div><div class="r-meldung" hidden></div>' +
+    '<button type="button" class="r-gas" aria-label="Gas geben">GAS</button>' +
     '<div class="r-ende" hidden><div><strong></strong><p class="r-text"></p><p class="r-tab"></p>' +
     '<div class="knoepfe"><button type="button" class="knopf r-nochmal">🔁 Nochmal</button><button type="button" class="knopf zweit r-fertig">Fertig</button></div></div></div>';
   opt.eltern.append(box);
@@ -53,12 +55,12 @@ window.Rallye = function (opt) {
     fertigFn = fertig;
     const w = opt.werte() || {};
     lauf = {
-      x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 2.4 + Math.random() * 1.1,
-      vmax: 6 + (w.tempo || 15) / 20, acc: Math.max(1.4, 4 - (w.gewicht || 90) / 100),
+      x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 3, warte: 0,
+      vmax: 5 + (w.tempo || 15) / 10, acc: Math.max(1.4, 4.5 - (w.gewicht || 90) / 100),
       lenk: 2.6 + (w.wendig || 4) * 0.45, grip: w.grip || 2, muenzen: 0, fehl: 0, wackel: 0, spritz: 0, gesehen: new Set(),
     };
     for (const d of DINGE) d.weg = false;
-    box.hidden = false; $(".r-ende").hidden = true; $(".r-meldung").hidden = true;
+    box.hidden = false; $(".r-ende").hidden = true; $(".r-meldung").hidden = true; $(".r-gas").hidden = false;
     zuletzt = performance.now();
     requestAnimationFrame(bild);
   }
@@ -69,15 +71,16 @@ window.Rallye = function (opt) {
     clearTimeout(m.zeit); m.zeit = setTimeout(() => { m.hidden = true; }, ms);
   }
 
-  // Tippen: während der Ampel Start (zu früh = Fehlstart), sonst lenken
-  function tippen() {
+  // Gas beim Start: zu früh = Motor abgewürgt (1 s später los), höchstens 0,35 s nach GO = Blitzstart
+  function gas() {
     const L = lauf;
-    if (!L) return;
-    if (L.phase === "ampel" && !L.fehl) { L.fehl = 2; meldung("Fehlstart! +2 Sekunden"); }
-    // höchstens 0,4 s nach Grün: Blitzstart
-    if (L.phase === "fahrt" && L.zeit < 0.4 && !L.blitz && !L.fehl) { L.blitz = true; L.v = Math.max(L.v, L.vmax * 0.7); meldung("⚡ Blitzstart!"); }
+    if (!L || L.gedrueckt) return;
+    L.gedrueckt = true;
+    if (L.phase === "ampel") { L.warte = 1; meldung("Zu früh! Motor abgewürgt …", 1400); return; }
+    if (L.phase === "fahrt" && L.zeit < 0.35) { L.blitz = true; L.v = Math.max(L.v, L.vmax * 0.75); meldung("⚡ Blitzstart!"); }
   }
-  cv.addEventListener("pointerdown", (e) => { tippen(); finger.y = e.clientY; cv.setPointerCapture(e.pointerId); });
+  $(".r-gas").addEventListener("pointerdown", (e) => { e.preventDefault(); gas(); });
+  cv.addEventListener("pointerdown", (e) => { finger.y = e.clientY; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener("pointermove", (e) => { if (finger.y !== null) finger.y = e.clientY; });
   const los = () => { finger.y = null; };
   cv.addEventListener("pointerup", los); cv.addEventListener("pointercancel", los);
@@ -85,7 +88,7 @@ window.Rallye = function (opt) {
     if (box.hidden) return;
     if (e.key === "ArrowUp") { tasten.hoch = true; e.preventDefault(); }
     if (e.key === "ArrowDown") { tasten.runter = true; e.preventDefault(); }
-    if (e.key === " ") { tippen(); e.preventDefault(); }
+    if (e.key === " " || e.key === "Enter") { gas(); e.preventDefault(); }
   });
   window.addEventListener("keyup", (e) => {
     if (e.key === "ArrowUp") tasten.hoch = false;
@@ -104,12 +107,20 @@ window.Rallye = function (opt) {
     if (L.phase === "ampel") {
       const vorher = L.ampel;
       L.ampel += dt;
-      if (vorher < L.gruen && L.ampel >= L.gruen) meldung("Los!", 500);
-      if (L.ampel >= L.gruen) L.phase = "fahrt"; // bei Grün fährt es von selbst los
+      // Countdown 3, 2, 1, GO (je eine Sekunde)
+      const zahl = L.ampel < L.gruen ? String(3 - Math.floor(L.ampel)) : "GO!";
+      const z = $(".r-zahl");
+      if (z.textContent !== zahl) { z.textContent = zahl; z.hidden = false; z.classList.remove("puls"); void z.offsetWidth; z.classList.add("puls"); }
+      if (vorher < L.gruen && L.ampel >= L.gruen) {
+        L.phase = "fahrt";
+        setTimeout(() => { z.hidden = true; }, 700);
+      }
       return;
     }
     if (L.phase !== "fahrt") return;
     L.zeit += dt;
+    if (L.zeit > 1.2) $(".r-gas").hidden = true;
+    if (L.warte > 0) { L.warte -= dt; return; } // abgewürgt: Uhr läuft, Auto steht
     // Lenken: zum Finger hin oder mit den Pfeiltasten
     let ziel = null;
     if (finger.y !== null) ziel = Math.max(-BAHN + 0.9, Math.min(BAHN - 0.9, (finger.y - cv.getBoundingClientRect().top - mass.oy) / mass.m));
@@ -137,13 +148,14 @@ window.Rallye = function (opt) {
     if (L.x >= LAENGE || L.zeit > 120) ziel_(L);
   }
   function ziel_(L) {
-    L.phase = "ziel";
-    const zeit = Math.round((L.zeit + L.fehl) * 10) / 10;
+    L.phase = "ziel"; $(".r-gas").hidden = true;
+    const zeit = Math.round(L.zeit * 10) / 10;
     const medaille = zeit <= ZEITEN.gold ? "gold" : zeit <= ZEITEN.silber ? "silber" : zeit <= ZEITEN.bronze ? "bronze" : null;
     L.ergebnis = { zeit, medaille, muenzen: L.muenzen };
+    if (opt.beiZiel) opt.beiZiel(L.ergebnis);
     const e = $(".r-ende");
     e.querySelector("strong").textContent = medaille ? { gold: "🥇 Gold!", silber: "🥈 Silber!", bronze: "🥉 Bronze!" }[medaille] : "Zu langsam …";
-    e.querySelector(".r-text").textContent = `Zeit: ${zeit.toLocaleString("de-DE")} s${L.fehl ? " (mit 2 s Fehlstart)" : ""} · 🪙 ${L.muenzen} eingesammelt`;
+    e.querySelector(".r-text").textContent = `Zeit: ${zeit.toLocaleString("de-DE")} s${L.blitz ? " (mit Blitzstart)" : ""} · 🪙 ${L.muenzen} eingesammelt`;
     e.querySelector(".r-tab").textContent = medaille ? "Damit bist du für das Klappertal-Rennen qualifiziert!"
       : `Für Bronze brauchst du höchstens ${ZEITEN.bronze} Sekunden. Ein schnellerer Motor oder ein leichteres Auto helfen.`;
     setTimeout(() => { e.hidden = false; }, 600);
@@ -227,7 +239,7 @@ window.Rallye = function (opt) {
     // Ampel
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (L.phase === "ampel" || (L.phase === "fahrt" && L.zeit < 0.8)) {
-      const n = Math.min(3, Math.floor(L.ampel / 0.8) + 1), gruen = false;
+      const n = Math.min(3, Math.floor(L.ampel) + 1), gruen = false;
       const bx = w / 2 - 75, by = h * 0.18;
       ctx.fillStyle = "rgba(20,20,20,0.9)"; ctx.beginPath(); ctx.roundRect(bx, by, 150, 56, 14); ctx.fill();
       for (let i = 0; i < 3; i++) {
@@ -235,9 +247,9 @@ window.Rallye = function (opt) {
         ctx.beginPath(); ctx.arc(bx + 30 + i * 45, by + 28, 17, 0, Math.PI * 2); ctx.fill();
       }
       ctx.fillStyle = "#fffaf0"; ctx.font = "800 14px Nunito, sans-serif"; ctx.textAlign = "center";
-      ctx.fillText("Bei Grün tippen für einen Blitzstart!", w / 2, by + 78);
+      ctx.fillText("Genau bei GO auf GAS drücken: Blitzstart!", w / 2, by + 78);
     }
-    $(".r-zeit").textContent = `⏱ ${(L.zeit + L.fehl).toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s · 🪙 ${L.muenzen}`;
+    $(".r-zeit").textContent = `⏱ ${L.zeit.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s · 🪙 ${L.muenzen}`;
     $(".r-bar i").style.width = `${Math.min(100, (L.x / LAENGE) * 100)}%`;
   }
 

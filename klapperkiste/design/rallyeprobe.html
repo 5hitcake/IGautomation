@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Klapperkiste Waldrallye</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
+<link rel="stylesheet" href="karte.css">
+<style>
+/* Waldrallye zum Ausprobieren: Auto wählen, fahren, Bestzeiten je Auto vergleichen. */
+html, body { height: 100%; overflow: hidden; }
+body { position: fixed; inset: 0; margin: 0; background: #10191c; }
+#buehne { position: fixed; inset: 0; }
+#wahl { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 10px; box-sizing: border-box;
+  background: radial-gradient(ellipse at 50% 40%, #24414a, #10191c 75%); overflow-y: auto; }
+#wahl > div { display: grid; gap: 10px; max-width: 760px; width: 100%; }
+#wahl h1 { font-family: var(--font-display); font-weight: 400; color: var(--mustard); margin: 0; font-size: clamp(30px, 6vw, 48px); text-align: center; text-shadow: 0 3px 0 #1d1a16; }
+#wahl .lead { text-align: center; color: var(--chalk-dim); font-size: 14px; }
+.autos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.auto { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 8px 6px; border-radius: 14px; border: 3px solid transparent; background: #203a42; color: var(--chalk); font: inherit; cursor: pointer; }
+.auto[aria-pressed="true"] { border-color: var(--mustard); background: #3a3a22; }
+.auto img { width: 100%; max-width: 130px; height: 50px; object-fit: contain; }
+.auto strong { font-family: var(--font-display); font-weight: 400; font-size: 17px; }
+.auto small { font-size: 12px; color: var(--chalk-dim); line-height: 1.3; }
+.auto .best { font-size: 13px; font-weight: 800; color: var(--mint); }
+#starten { justify-self: center; font-size: 22px; padding: 12px 40px; }
+@media (max-width: 600px) { .autos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+#musikKnopf { left: auto; right: 8px; top: 8px; bottom: auto; z-index: 40; }
+</style>
+</head>
+<body>
+<div id="buehne"></div>
+<div id="wahl">
+  <div>
+    <h1>🏁 Waldrallye</h1>
+    <p class="lead">Such dir ein Auto aus. Schnellere Motoren bringen bessere Zeiten, leichte Autos beschleunigen schneller, gute Lenkung weicht besser aus.<br>
+      Lenken: Finger auf die Bahn halten (oder Pfeiltasten). Bei <strong>GO</strong> auf <strong>GAS</strong> drücken (oder Leertaste) für den Blitzstart.</p>
+    <div class="autos" id="autos"></div>
+    <button type="button" class="knopf" id="starten">▶ Los geht's</button>
+  </div>
+</div>
+
+<script src="karte_daten.js"></script>
+<script src="teilwerte.js"></script>
+<script src="musik_daten.js"></script>
+<script src="ton.js"></script>
+<script src="rallye.js"></script>
+<script>
+(function () {
+  const D = window.KARTE_DATEN, TW = window.TEILWERTE, $ = (id) => document.getElementById(id);
+  const lade = (src) => { const i = new Image(); i.src = src; return i; };
+  const auto = (id) => { const a = D.autos.find((q) => q.id === id) || D.autos[0]; return { img: lade(a.bild), laenge: a.laenge }; };
+  // Werte wie in der Werkstatt: Motor gibt Tempo, Räder Grip, Lenkung Wendigkeit, alles zusammen das Gewicht
+  function werte(teile) {
+    const w = (id, k) => (TW[id] || {})[k] || 0;
+    const gewicht = w("bettgestell", "gewicht") + 2 * w("rostachse", "gewicht") + 4 * w(teile.rad, "gewicht") +
+      w(teile.motor, "gewicht") + w(teile.energie, "gewicht") + w(teile.sitz, "gewicht") + w(teile.lenkung, "gewicht") + (teile.karo || 0);
+    return { tempo: w(teile.motor, "tempo"), gewicht, wendig: w(teile.lenkung, "wendig"), grip: w(teile.rad, "grip") };
+  }
+  const AUTOS = [
+    { id: "schrott", name: "Schrottkarre", bild: "ohne", info: "Rasenmäher-Motor, Schubkarrenräder",
+      teile: { motor: "maeher", rad: "schubkarre", lenkung: "fahrradlenker", sitz: "kuechenstuhl", energie: "giesskanne" } },
+    { id: "moped", name: "Moped-Flitzer", bild: "rundling", info: "Mopedmotor, Autoreifen, Bus-Lenkrad",
+      teile: { motor: "mopedmotor", rad: "autoreifen", lenkung: "bus_lenkrad", sitz: "rennschale", energie: "kanister", karo: 45 } },
+    { id: "traktor", name: "Traktor-Kiste", bild: "pickup", info: "Traktormotor, Traktorreifen, schwer",
+      teile: { motor: "traktormotor", rad: "traktorreifen", lenkung: "steuerrad", sitz: "traktorsitz", energie: "kanister", karo: 75 } },
+    { id: "rakete", name: "Rakete", bild: "rakete", info: "Raketen-Triebwerk, Ballonreifen",
+      teile: { motor: "raketenmotor", rad: "ballonreifen", lenkung: "bus_lenkrad", sitz: "rennschale", energie: "kanister", karo: 60 } },
+  ];
+  for (const a of AUTOS) { a.werte = werte(a.teile); a.auto = auto(a.bild); }
+  const lies = (k) => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } };
+  const bestzeiten = lies("klapperkiste-rallye-bestzeiten");
+  let wahl = AUTOS[0];
+
+  function autosZeigen() {
+    const box = $("autos");
+    box.innerHTML = "";
+    for (const a of AUTOS) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "auto"; b.setAttribute("aria-pressed", String(a === wahl));
+      const best = bestzeiten[a.id];
+      b.innerHTML = `<img alt=""><strong></strong><small></small><span class="best"></span>`;
+      b.querySelector("img").src = a.auto.img.src;
+      b.querySelector("strong").textContent = a.name;
+      b.querySelector("small").textContent = `${a.info} · ${a.werte.tempo} km/h · ${a.werte.gewicht} kg`;
+      b.querySelector(".best").textContent = best ? `Bestzeit ${best.toLocaleString("de-DE")} s` : "noch keine Zeit";
+      b.addEventListener("click", () => { wahl = a; autosZeigen(); });
+      box.append(b);
+    }
+  }
+  autosZeigen();
+
+  const RALLYE = window.Rallye({
+    eltern: $("buehne"),
+    bilder: { get auto() { return wahl.auto; }, walddach: lade(D.boden.walddach.bild), erde: lade(D.boden.erde.bild),
+      fels: lade(D.objekte.felsbrocken.bild), nadelbaum: lade(D.objekte.nadelbaum.bild) },
+    werte: () => wahl.werte,
+    beiZiel: (e) => {
+      if (!bestzeiten[wahl.id] || e.zeit < bestzeiten[wahl.id]) {
+        bestzeiten[wahl.id] = e.zeit;
+        try { localStorage.setItem("klapperkiste-rallye-bestzeiten", JSON.stringify(bestzeiten)); } catch { /* egal */ }
+      }
+    },
+  });
+  function starten() {
+    $("wahl").hidden = true;
+    if (window.Ton) { Ton.freischalten(); Ton.musik("fahren"); }
+    RALLYE.starten(() => { $("wahl").hidden = false; autosZeigen(); });
+  }
+  $("starten").addEventListener("click", starten);
+  // Motorgeräusch passend zum Tempo
+  (function brumm() {
+    if (window.Ton) Ton.motor(RALLYE.offen && RALLYE.tempo ? { v: RALLYE.tempo, gas: true } : null);
+    requestAnimationFrame(brumm);
+  })();
+  // Musik an/aus
+  const mk = document.createElement("button");
+  mk.id = "musikKnopf"; mk.type = "button";
+  const zeigen = () => { mk.textContent = Ton && Ton.an.musik ? "🎵" : "🔇"; };
+  mk.addEventListener("click", () => { Ton.freischalten(); Ton.schalte("musik", !Ton.an.musik); zeigen(); });
+  zeigen(); document.body.append(mk);
+})();
+</script>
+</body>
+</html>
