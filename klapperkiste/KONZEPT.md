@@ -82,6 +82,11 @@ nur fahrbereit und ohne Karosserie oder mit komplettem Satz.
 - **Links:** Kategorien als Kästchen (Grundgestell, Achsen, Räder, Motor, Energie,
   Sitz, Lenkung, Licht, Hupe, Karosserie). Fertig = ausgegraut mit Haken, zum Fahren
   noch nötig = roter Punkt. Auf dem Handy als Reihe unter der Bühne.
+- **Durchwischen:** Kategorien und Teile liegen auf einem Band. Das vordere Kästchen
+  ist groß und hell, die anderen kleiner und dunkler dahinter. Wischen (mit Schwung),
+  Mausrad, Pfeiltasten oder ein hinteres Kästchen antippen holt es nach vorne; bei den
+  Teilen zeigt das Info-Feld dann gleich das vordere Teil. Zum Ziehen auf die Bühne
+  ein Teil kurz gedrückt halten.
 - **Rechts:** die Teile der Kategorie und das Info-Feld zum gewählten Teil: Bild,
   Beschreibung, Werte als Balken, Extras, bei Karosserie die Satz-Fähigkeit. Knöpfe
   „Einbauen“ (oder „Tauschen“), „Ausbauen“ und „Abbrechen“. Geht etwas nicht, steht

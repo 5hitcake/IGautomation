@@ -66,7 +66,7 @@ button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; }
 /* Tutorial: hervorgehobenes Teil im Regal */
 .part.tipp { outline: 3px solid var(--mustard); animation: tipp 1.1s ease-in-out infinite; }
-@keyframes tipp { 50% { outline-color: rgba(242,182,50,0.25); transform: scale(1.04); } }
+@keyframes tipp { 50% { outline-color: rgba(242,182,50,0.25); } }
 @media (prefers-reduced-motion: reduce) { .part.tipp { animation: none; } }
 
 /* --- Halle (Umbau): Auto groß in der Mitte, links Kategorien, rechts Teile und Info --- */
@@ -86,21 +86,31 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 .buehne-w { display: grid; gap: 8px; min-width: 0; }
 .halle #status { text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
 
+/* Band zum Durchwischen (Kategorien und Teile): vorne groß, dahinter kleiner und dunkler */
+.band { position: relative; overflow: hidden; touch-action: pan-y; cursor: grab; outline: none; -webkit-user-select: none; user-select: none; }
+.band.band-y { touch-action: pan-x; }
+.band:focus-visible { box-shadow: 0 0 0 3px var(--mint); border-radius: 14px; }
+.band > .band-k { position: absolute; left: 50%; top: 50%; transition: transform 0.28s cubic-bezier(.2,.8,.3,1), filter 0.28s, opacity 0.28s; will-change: transform; }
+.band.zieht > .band-k { transition: none; }
+.band.zieht { cursor: grabbing; }
+.band img { pointer-events: none; }
+.band > .empty { position: static; padding: 10px 4px; }
+.band.leer { height: auto !important; cursor: default; }
+
 /* Kategorien als Kästchen */
-.kats { display: grid; gap: 6px; }
+.kats { height: min(46vw, 470px, calc(100svh - 300px)); min-height: 300px; }
 .kat {
   display: grid; grid-template-columns: 38px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center;
-  text-align: left; padding: 6px 8px; border-radius: 12px; background: rgba(18,35,42,0.88); color: var(--chalk);
-  border: 2px solid rgba(233,239,230,0.08); position: relative; font-size: 13px; line-height: 1.15;
+  width: 132px; box-sizing: border-box; text-align: left; padding: 6px 8px; border-radius: 12px; background: rgba(18,35,42,0.92); color: var(--chalk);
+  border: 2px solid rgba(233,239,230,0.08); font-size: 13px; line-height: 1.15;
 }
 .kat img { grid-row: 1 / 3; width: 38px; height: 30px; object-fit: contain; }
 .kat-name { font-weight: 800; }
 .kat-n { font-size: 11px; color: var(--chalk-dim); }
-.kat[aria-selected="true"] { border-color: var(--mustard); background: rgba(52,44,20,0.92); }
-.kat.fertig { opacity: 0.5; }
+.kat.vorn { border-color: var(--mustard); background: rgba(52,44,20,0.96); box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 0 14px rgba(242,182,50,0.35); }
+.kat.fertig .kat-name, .kat.fertig img { opacity: 0.55; }
 .kat.fertig .kat-n { color: var(--mint); }
-.kat.fertig[aria-selected="true"] { opacity: 0.85; }
-.kat.leer { opacity: 0.35; }
+.kat.leer .kat-name, .kat.leer img, .kat.leer .kat-n { opacity: 0.4; }
 .kat.fehlt::after {
   content: ""; position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%;
   background: var(--rust); box-shadow: 0 0 0 2px rgba(18,35,42,0.9);
@@ -108,8 +118,9 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 
 /* Teile und Info rechts */
 .regal { display: grid; gap: 10px; background: rgba(18,35,42,0.9); border-radius: 14px; padding: 10px; border: 2px solid rgba(233,239,230,0.08); }
-.halle .tray { grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 6px; max-height: 236px; overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
-.halle .part { padding: 6px 4px 8px; font-size: 12px; background: var(--card); border: 2px solid transparent; }
+.halle .tray { display: block; height: 128px; margin: 0 -10px; }
+.halle .part { width: 104px; box-sizing: border-box; padding: 6px 4px 8px; font-size: 12px; background: var(--card); border: 2px solid rgba(233,239,230,0.08); }
+.halle .part.vorn { box-shadow: 0 6px 16px rgba(0,0,0,0.5); border-color: rgba(242,182,50,0.6); }
 .halle .part img { width: 64px; height: 44px; }
 .halle .part.gewaehlt { border-color: var(--mustard); background: #3a3a22; }
 .halle .part.in:not(.gewaehlt) { border-color: rgba(111,211,163,0.5); }
@@ -149,8 +160,8 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
   .halle { padding: 10px 8px; }
   .halle-mitte { grid-template-columns: minmax(0, 1fr); }
   .buehne-w { order: 1; }
-  .kats { order: 2; display: flex; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; position: relative; }
-  .kat { flex: 0 0 auto; grid-template-columns: 30px auto; }
+  .kats { order: 2; height: 62px; min-height: 0; }
+  .kat { width: 128px; grid-template-columns: 30px auto; }
   .kat img { width: 30px; height: 24px; }
   .regal { order: 3; }
   .halle #stage { height: min(60vw, 340px); min-height: 200px; }

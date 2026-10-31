@@ -513,18 +513,18 @@ window.Werkstatt = function (opt = {}) {
   let press = null;
   function beginPress(e, info) {
     if (e.button && e.button !== 0) return;
-    const touch = e.pointerType === "touch";
-    press = { ...info, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, touch, ready: !touch };
-    // Finger: erst nach kurzem Halten ziehen, damit Wischen weiter scrollt
-    if (touch) press.timer = setTimeout(() => { if (press) { press.ready = true; startDrag(press) || (press = null); } }, 220);
+    const touch = e.pointerType === "touch", halten = touch || info.halten;
+    press = { ...info, id: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, touch, halten, ready: !halten };
+    // Finger (und Teile im Band): erst nach kurzem Halten ziehen, damit Wischen weiter wischt
+    if (halten) press.timer = setTimeout(() => { if (press) { press.ready = true; startDrag(press) || (press = null); } }, 260);
   }
   window.addEventListener("pointermove", (e) => {
     if (drag) { moveDrag(e.clientX, e.clientY); return; }
     if (!press || e.pointerId !== press.id) return;
     press.x = e.clientX; press.y = e.clientY;
     const moved = Math.hypot(e.clientX - press.sx, e.clientY - press.sy);
-    if (press.touch && !press.ready && moved > 10) { clearTimeout(press.timer); press = null; return; }
-    if (!press.touch && moved > 5) { if (!startDrag(press)) press = null; }
+    if (press.halten && !press.ready && moved > 10) { clearTimeout(press.timer); press = null; return; }
+    if (!press.halten && moved > 5) { if (!startDrag(press)) press = null; }
   });
   window.addEventListener("pointerup", (e) => {
     if (press) clearTimeout(press.timer);
@@ -592,67 +592,165 @@ window.Werkstatt = function (opt = {}) {
     return FULL[key] || (G[key] && G[key].bild) || "";
   }
 
+  // Band zum Durchwischen: ein Kästchen vorne groß, die anderen kleiner und dunkler
+  // dahinter. Wischen, Mausrad, Pfeiltasten oder ein hinteres Kästchen antippen holt
+  // es nach vorne; ein Tipp auf das vordere ruft beimTipp auf.
+  function Band(box, o) {
+    let pos = 0, vorn = -1, kinder = [], schluessel = null, zug = null, rad = 0, radZeit = 0;
+    box.classList.add("band");
+    box.tabIndex = 0;
+    const achse = () => (o.achse ? o.achse() : "x");
+    const abstand = () => (achse() === "x" ? o.abstandX : o.abstandY);
+    function zeigen() {
+      const ax = achse();
+      box.classList.toggle("band-y", ax === "y");
+      kinder.forEach((k, i) => {
+        const d = i - pos, a = Math.abs(d), m = Math.min(a, 3);
+        const v = Math.sign(d) * (Math.min(a, 1) * abstand() + Math.max(0, m - 1) * abstand() * 0.62);
+        const sk = 1 - m * 0.14;
+        k.style.transform = `translate(-50%, -50%) translate${ax === "x" ? "X" : "Y"}(${v}px) scale(${sk})`;
+        k.style.zIndex = String(100 - Math.round(a * 10));
+        k.style.filter = a < 0.5 ? "none" : `brightness(${1 - m * 0.2}) saturate(${1 - m * 0.2})`;
+        k.style.opacity = a > 3.3 ? "0" : "1";
+        k.style.pointerEvents = a > 3.3 ? "none" : "";
+        k.classList.toggle("vorn", a < 0.5);
+      });
+    }
+    function gehe(i, melden = true) {
+      i = Math.max(0, Math.min(kinder.length - 1, i));
+      pos = i; zeigen();
+      if (i !== vorn) { vorn = i; if (melden && o.beiWahl) o.beiWahl(i); }
+    }
+    box.addEventListener("pointerdown", (e) => {
+      if (e.button && e.button !== 0) return;
+      const ziel = e.target.closest(".band-k");
+      zug = { start: achse() === "x" ? e.clientX : e.clientY, pos0: pos, ziel: ziel ? kinder.indexOf(ziel) : -1, weit: false,
+        spur: [[performance.now(), pos]] };
+    });
+    window.addEventListener("pointermove", (e) => {
+      if (!zug) return;
+      if (drag) { zug = null; box.classList.remove("zieht"); return; }
+      const delta = (achse() === "x" ? e.clientX : e.clientY) - zug.start;
+      if (!zug.weit && Math.abs(delta) < 8) return;
+      zug.weit = true; box.classList.add("zieht");
+      pos = Math.max(-0.4, Math.min(kinder.length - 0.6, zug.pos0 - delta / abstand()));
+      zug.spur.push([performance.now(), pos]); if (zug.spur.length > 6) zug.spur.shift();
+      zeigen();
+    });
+    window.addEventListener("pointerup", () => {
+      if (!zug) return;
+      const z = zug; zug = null;
+      box.classList.remove("zieht");
+      if (drag) return;
+      if (z.weit) {
+        // Schwung: schnelles Wischen läuft noch ein Stück weiter
+        const [t0, p0] = z.spur[0], [t1, p1] = z.spur[z.spur.length - 1];
+        const v = t1 > t0 ? (p1 - p0) / (t1 - t0) : 0;
+        suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
+        return gehe(Math.round(pos + v * 100));
+      }
+      if (z.ziel < 0) return;
+      if (z.ziel !== vorn) gehe(z.ziel);
+      else if (o.beimTipp) o.beimTipp(z.ziel);
+    });
+    window.addEventListener("pointercancel", () => { if (zug) { zug = null; box.classList.remove("zieht"); gehe(Math.round(pos)); } });
+    box.addEventListener("wheel", (e) => {
+      const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (!d || !kinder.length) return;
+      e.preventDefault();
+      rad += d;
+      const jetzt = performance.now();
+      if (Math.abs(rad) > 40 && jetzt - radZeit > 140) { gehe(vorn + Math.sign(rad)); rad = 0; radZeit = jetzt; }
+    }, { passive: false });
+    box.addEventListener("keydown", (e) => {
+      const schritt = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+      if (schritt) { e.preventDefault(); gehe(vorn + schritt); }
+      if ((e.key === "Enter" || e.key === " ") && o.beimTipp && vorn >= 0) { e.preventDefault(); o.beimTipp(vorn); }
+    });
+    window.addEventListener("resize", () => zeigen());
+    return {
+      // Neue Kästchen; wechselt der Schlüssel (andere Kategorie), springt das Band ohne Gleiten
+      setze(neu, vorne, schl) {
+        const sprung = schl !== schluessel;
+        schluessel = schl;
+        kinder = neu;
+        box.replaceChildren(...neu);
+        for (const k of neu) k.classList.add("band-k");
+        if (sprung) { box.classList.add("zieht"); vorn = -1; }
+        const i = vorne != null && vorne >= 0 ? vorne : sprung ? 0 : Math.min(Math.max(vorn, 0), neu.length - 1);
+        vorn = i; pos = i; zeigen();
+        if (sprung) requestAnimationFrame(() => box.classList.remove("zieht"));
+      },
+    };
+  }
+  const handy = window.matchMedia("(max-width: 860px)");
+  const katBand = Band($("tabs"), {
+    achse: () => (handy.matches ? "x" : "y"), abstandX: 112, abstandY: 62,
+    beiWahl: (i) => {
+      const t = TABS[i];
+      state.tab = t.id;
+      if (state.wahl && !t.kats.includes(PARTS.find((p) => p.id === state.wahl).kat)) state.wahl = null;
+      refresh();
+    },
+  });
+  let angebotJetzt = [];
+  const teilBand = Band($("tray"), {
+    abstandX: 78,
+    beiWahl: (i) => { state.wahl = angebotJetzt[i].id; state.wahlSlot = null; refresh(); },
+    beimTipp: (i) => {
+      const id = angebotJetzt[i].id;
+      state.wahl = state.wahl === id ? null : id; state.wahlSlot = null;
+      refresh();
+    },
+  });
+
   function refresh() {
     const tab = TABS.find((t) => t.id === state.tab);
     // Kategorien als Kästchen: fertig = ausgegraut mit Haken, fehlt (zum Fahren nötig) = roter Punkt
-    const tabs = $("tabs");
-    tabs.innerHTML = "";
+    const kaesten = [];
     for (const t of TABS) {
       const slotsT = SLOTS.filter((sl) => t.kats.includes(kat(sl)));
       const n = slotsT.filter((sl) => state.mounted[sl]).length;
       const teile = PARTS.filter((p) => t.kats.includes(p.kat));
       const fertig = slotsT.length && n === slotsT.length;
       const fehlt = !fertig && slotsT.some((sl) => FAHRBEREIT.includes(sl) && !state.mounted[sl]);
-      const b = el("button", "kat" + (fertig ? " fertig" : "") + (fehlt ? " fehlt" : "") + (teile.length ? "" : " leer"));
-      b.type = "button"; b.role = "tab"; b.id = "tab-" + t.id;
+      const b = el("div", "kat" + (fertig ? " fertig" : "") + (fehlt ? " fehlt" : "") + (teile.length ? "" : " leer"));
+      b.role = "tab"; b.id = "tab-" + t.id;
       b.setAttribute("aria-selected", String(t.id === state.tab));
       const drin = slotsT.map((sl) => state.mounted[sl]).find(Boolean);
-      const icon = el("img"); icon.alt = "";
+      const icon = el("img"); icon.alt = ""; icon.draggable = false;
       const quelle = bildVon(drin || (teile[0] || {}).id || "");
       if (quelle) icon.src = quelle; else icon.style.visibility = "hidden";
       const name = el("span", "kat-name", t.label);
       const zahlEl = el("span", "kat-n", fertig ? "✓ fertig" : slotsT.length ? `${n}/${slotsT.length}` : "");
       b.append(icon, name, zahlEl);
       b.setAttribute("aria-label", `${t.label}: ${fertig ? "fertig" : `${n} von ${slotsT.length} eingebaut`}${fehlt ? ", fehlt noch" : ""}`);
-      b.onclick = () => {
-        state.tab = t.id;
-        if (state.wahl && !t.kats.includes(PARTS.find((p) => p.id === state.wahl).kat)) state.wahl = null;
-        refresh();
-      };
-      tabs.append(b);
+      kaesten.push(b);
     }
-    // Gewählte Kategorie in der Reihe sichtbar halten (Handy), ohne die Seite zu verschieben
-    const aktiv = $("tab-" + state.tab);
-    if (aktiv && tabs.scrollWidth > tabs.clientWidth) {
-      const l = aktiv.offsetLeft - tabs.offsetLeft, r = l + aktiv.offsetWidth;
-      if (l < tabs.scrollLeft) tabs.scrollLeft = l - 8;
-      else if (r > tabs.scrollLeft + tabs.clientWidth) tabs.scrollLeft = r - tabs.clientWidth + 8;
-    }
+    katBand.setze(kaesten, TABS.indexOf(tab), "kategorien");
 
     // Teile der Kategorie
-    const tray = $("tray");
-    tray.innerHTML = "";
     const angebot = PARTS.filter((p) => tab.kats.includes(p.kat));
-    if (!angebot.length) tray.append(el("p", "empty", "Noch keine Teile in dieser Kategorie. Sie kommen später über die Karte und Aufträge."));
-    for (const p of angebot) {
+    angebotJetzt = angebot;
+    const karten = angebot.map((p) => {
       const slots = SLOTS.filter((sl) => kat(sl) === p.kat);
       const mine = slots.filter((sl) => state.mounted[sl] === p.id).length;
-      const b = el("button", "part" + (mine ? " in" : "") + (state.wahl === p.id ? " gewaehlt" : "") +
+      const b = el("div", "part" + (mine ? " in" : "") + (state.wahl === p.id ? " gewaehlt" : "") +
         (state.tipp === p.id && mine < slots.length ? " tipp" : ""));
-      b.type = "button";
-      b.setAttribute("aria-pressed", String(state.wahl === p.id));
-      const img = el("img"); img.src = bildVon(p.id); img.alt = "";
+      b.role = "option";
+      b.setAttribute("aria-selected", String(state.wahl === p.id));
+      const img = el("img"); img.src = bildVon(p.id); img.alt = ""; img.draggable = false;
       const badge = el("span", "badge", slots.length > 1 ? (mine ? `${mine}/${slots.length}` : "") : mine ? "drin" : "");
       if (!badge.textContent) badge.hidden = true;
       b.append(badge, img, el("span", null, p.name));
-      b.addEventListener("click", () => {
-        if (suppressClick) return;
-        state.wahl = state.wahl === p.id ? null : p.id; state.wahlSlot = null;
-        refresh();
-      });
-      b.addEventListener("pointerdown", (e) => { if (mine < slots.length) beginPress(e, { partId: p.id }); });
-      tray.append(b);
-    }
+      b.addEventListener("pointerdown", (e) => { if (mine < slots.length) beginPress(e, { partId: p.id, halten: true }); });
+      return b;
+    });
+    const gewaehlt = angebot.findIndex((p) => p.id === state.wahl);
+    const getippt = angebot.findIndex((p) => p.id === state.tipp);
+    teilBand.setze(karten, gewaehlt >= 0 ? gewaehlt : getippt >= 0 ? getippt : null, tab.id);
+    if (!angebot.length) $("tray").append(el("p", "empty", "Noch keine Teile in dieser Kategorie. Sie kommen später über die Karte und Aufträge."));
+    $("tray").classList.toggle("leer", !angebot.length);
 
     infoZeigen();
     werteZeigen();
@@ -682,7 +780,7 @@ window.Werkstatt = function (opt = {}) {
     const p = PARTS.find((q) => q.id === state.wahl);
     if (!p) {
       const tab = TABS.find((t) => t.id === state.tab);
-      box.append(el("p", "info-leer", `Tipp ein Teil an, dann siehst du hier alles darüber. Kategorie: ${tab.label}.`));
+      box.append(el("p", "info-leer", `Wisch durch die Teile und tipp das vordere an, dann siehst du hier alles darüber. Kategorie: ${tab.label}.`));
       box.classList.remove("voll");
       return;
     }
