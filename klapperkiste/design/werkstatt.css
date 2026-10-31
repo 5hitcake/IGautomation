@@ -72,7 +72,12 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 /* --- Halle (Umbau): Auto groß in der Mitte, links Kategorien, rechts Teile und Info --- */
 .halle {
   position: relative; display: grid; gap: 10px; padding: 12px; border-radius: 18px; overflow: hidden; isolation: isolate;
-  background: #10191c var(--halle-bild, none) center / cover no-repeat;
+  background: #10191c;
+}
+/* Rundherum die Halle unscharf und dunkel, scharf ist sie nur auf der Bühne */
+.halle::after {
+  content: ""; position: absolute; inset: -24px; z-index: -2; pointer-events: none;
+  background: var(--halle-bild, none) center / cover no-repeat; filter: blur(7px) brightness(0.7);
 }
 /* Halle abdunkeln, in der Mitte heller: das Auto steht im Licht */
 .halle::before {
@@ -82,7 +87,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 .halle-kopf { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
 .halle-kopf h2 { color: var(--mustard); font-size: 20px; text-shadow: 0 2px 0 rgba(0,0,0,0.5); }
 .halle-mitte { display: grid; grid-template-columns: 148px minmax(0, 1fr) 290px; gap: 12px; align-items: start; }
-.halle #stage { background: transparent; height: min(46vw, 470px, calc(100svh - 300px)); min-height: 240px; }
+.halle #stage { background: transparent; border-radius: 14px; box-shadow: 0 0 0 2px rgba(242,182,50,0.25), 0 10px 30px rgba(0,0,0,0.55); height: min(46vw, 470px, calc(100svh - 300px)); min-height: 240px; }
 .buehne-w { display: grid; gap: 8px; min-width: 0; }
 .halle #status { text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
 

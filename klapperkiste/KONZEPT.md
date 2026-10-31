@@ -76,8 +76,8 @@ nur fahrbereit und ohne Karosserie oder mit komplettem Satz.
 ### Werkstatt-Bildschirm (Umbau nach dem Vorbild klassischer Tuning-Garagen)
 
 - **Mitte:** das Auto groß auf der Hebebühne im Lichtkegel, Hintergrund ist eine
-  eigene gemalte Halle (`assets/charaktere/hintergrund/halle.png`, bis dahin Opas
-  Schuppen, abgedunkelt). Darunter die Werte des ganzen Autos (Tempo, Steigung,
+  eigene gemalte Halle (`assets/charaktere/hintergrund/halle.png`). Das Auto steht
+  auf der gemalten Hebebühne; rundherum ist die Halle unscharf und dunkel. Darunter die Werte des ganzen Autos (Tempo, Steigung,
   Reichweite, Grip, Lenkung, Gewicht).
 - **Links:** Kategorien als Kästchen (Grundgestell, Achsen, Räder, Motor, Energie,
   Sitz, Lenkung, Licht, Hupe, Karosserie). Fertig = ausgegraut mit Haken, zum Fahren

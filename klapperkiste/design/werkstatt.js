@@ -144,6 +144,20 @@ window.Werkstatt = function (opt = {}) {
   const HG = (window.KARTE_DATEN && window.KARTE_DATEN.hintergruende) || {};
   const halle = $("stage").closest(".halle");
   if (halle && (HG.halle || HG.werkstatt)) halle.style.setProperty("--halle-bild", `url(${HG.halle || HG.werkstatt})`);
+  // Das Hallenbild hat eine gemalte Hebebühne: Lage im Bild (Anteile an Breite und Höhe),
+  // links und rechts die Kante mit den Warnstreifen, boden = Höhe, auf der die Räder stehen
+  const BUEHNE = { x0: 0.264, x1: 0.730, boden: 0.792 };
+  let HALLE = null;
+  if (HG.halle) { HALLE = new Image(); HALLE.src = HG.halle; }
+  const halleBereit = () => HALLE && HALLE.complete && HALLE.naturalWidth;
+  // Bild so groß, dass die Bühne gut 85 % der Breite füllt und unten im Bild steht
+  function hallePlatz(w, h) {
+    const iw = HALLE.naturalWidth, ih = HALLE.naturalHeight;
+    const k = Math.max(w / iw, h / ih, (0.86 * w) / (iw * (BUEHNE.x1 - BUEHNE.x0)));
+    const dx = Math.min(0, Math.max(w - iw * k, w / 2 - iw * k * (BUEHNE.x0 + BUEHNE.x1) / 2));
+    const dy = Math.min(0, Math.max(h - ih * k, h * 0.84 - ih * k * BUEHNE.boden));
+    return { k, dx, dy, iw, ih };
+  }
   function say(text, kind) {
     const s = $("status"); s.textContent = text; s.className = kind || "";
   }
@@ -233,6 +247,15 @@ window.Werkstatt = function (opt = {}) {
   // --- Geometrie ------------------------------------------------------------
   function layout(w, h) {
     const g = R[state.view];
+    if (state.view === "seite" && halleBereit()) {
+      // Auto auf die gemalte Bühne stellen
+      const P = hallePlatz(w, h);
+      const pw = (BUEHNE.x1 - BUEHNE.x0) * P.iw * P.k, boden = P.dy + BUEHNE.boden * P.ih * P.k;
+      const s = Math.min((pw * 1.1) / (g.breite * CELL), (boden * 0.97) / (R.seite.boden * CELL));
+      const cell = CELL * s;
+      const mitte = P.dx + ((BUEHNE.x0 + BUEHNE.x1) / 2) * P.iw * P.k;
+      return { s, ox: mitte - (g.breite * cell) / 2, oy: boden - R.seite.boden * cell, cell };
+    }
     const s = Math.min((w * 0.94) / (g.breite * CELL), (h * (state.view === "seite" ? 0.8 : 0.84)) / (g.hoehe * CELL));
     const cw = g.breite * CELL * s, ch = g.hoehe * CELL * s;
     const ox = (w - cw) / 2;
@@ -260,6 +283,12 @@ window.Werkstatt = function (opt = {}) {
     ctx.clearRect(0, 0, w, h);
     const g = R[state.view];
     const mx = L.ox + (g.breite * L.cell) / 2;
+    if (halleBereit()) {
+      const P = hallePlatz(w, h);
+      ctx.drawImage(HALLE, P.dx, P.dy, P.iw * P.k, P.ih * P.k);
+      if (state.view === "seite") return; // Licht und Bühne sind schon im Bild
+      ctx.fillStyle = "rgba(10,14,16,0.62)"; ctx.fillRect(0, 0, w, h);
+    }
     if (state.view === "seite") {
       const floor = L.oy + R.seite.boden * L.cell, breit = g.breite * L.cell;
       // Lichtkegel
