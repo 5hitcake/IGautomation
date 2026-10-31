@@ -62,8 +62,10 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
     (+600 m) oder Opa schleppt ab (10 Münzen, mit etwas Sprit).
   - **Batterieladung:** Der Scheinwerfer zieht im dunklen Wald Strom (etwa 3 Minuten
     Licht). Leer = kein Licht. Laden bei Knut (5 Münzen).
-  - **Flickzeug:** Wer gegen Felsen kracht oder querfeldein fährt, kann einen Platten
-    bekommen (Auto langsam und wackelig). Flicken mit Flickzeug aus dem Beutel (6
+  - **Flickzeug:** Unterwegs liegt ab und zu ein Nagel, eine Scherbe oder ein spitzer
+    Stein auf dem Weg: im Schnitt etwa alle 2 km ein Platten (Auto langsam und
+    wackelig). Griffige, dicke Reifen erwischt es seltener (Traktorreifen etwa alle
+    4 km), das Schubkarrenrad öfter. Flicken mit Flickzeug aus dem Beutel (6
     Münzen) oder kostenlos bei Opa.
 - **Laden:** Knut verkauft Verbrauch und einzelne Teile als Lieferung nach Aufträgen
   (z. B. die Spezialhupe). Karosserien gibt es nur als Belohnung.

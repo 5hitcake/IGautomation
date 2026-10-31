@@ -617,8 +617,14 @@ window.Karte = function (opt = {}) {
       if (spiel.strom < 20 && !stromGewarnt) { stromGewarnt = true; toast("🔋 Die Batterie wird schwach. Knut lädt sie dir auf."); }
       if (spiel.strom === 0) toast("🔋 Batterie leer, das Licht ist aus!", 4000);
     }
-    // Querfeldein kann ein Reifen platt gehen (etwa einmal auf 400 m Wiese)
-    if (wiese && meter > 0 && Math.random() < meter / 400) plattMachen("Pfft! Da lag was Spitzes im Gras.");
+    // Auf den Wegen liegt ab und zu ein Nagel oder eine Scherbe: im Schnitt etwa alle 2 km
+    // ein Platten, mit griffigen, dicken Reifen seltener, mit dünnen öfter. Querfeldein
+    // (nur beim Testen mit den Pfeiltasten) noch häufiger.
+    const grip = opt.werte ? opt.werte().grip || 2 : 6;
+    const alle = (wiese ? 400 : 2200) / Math.max(0.4, 1.6 - grip * 0.13);
+    if (meter > 0 && Math.random() < meter / alle) {
+      plattMachen(wiese ? "Pfft! Da lag was Spitzes im Gras." : ["Pfft! Ein Nagel auf dem Weg.", "Knirsch! Eine Glasscherbe.", "Peng! Ein spitzer Stein."][Math.floor(Math.random() * 3)]);
+    }
     verbrauchAnzeigen();
   }
   function plattMachen(warum) {
