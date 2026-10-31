@@ -27,6 +27,18 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
    Am Ende versöhnen sich Opa und Kauz, beide stehen beim Finale an der Box, und
    die Klapperkiste fährt als neuer Donnerkeil.
 
+## So beginnt es (G2)
+
+- Kommt man nach Knuts erstem Auftrag (die Reifen) zurück in die Werkstatt, erzählt
+  Opa einmal vom Klappertal-Rennen, von seinem Donnerkeil und dem Streit, nach dem
+  die Teile im Tal verstreut wurden. Er schickt dich zu Förster Moos.
+- Im Auftragsbuch stehen dann „Opas Donnerkeil“ (0/8 Teile, noch ohne Spur) und
+  „Anmeldung zur Waldrallye“ (zu Moos, nur mit Licht und bekanntem Waldweg).
+- Moos erzählt von der ersten Vorrunde auf dem alten Holzweg hinter seiner Hütte,
+  der noch von umgestürzten Bäumen versperrt ist, und flüstert von den Lichtern und
+  dem Motorbrummen nachts im Wald (erste Spur zu Kauz). Danach steht „Die Waldrallye“
+  im Buch, bis der Holzweg frei ist (G3).
+
 ## Rennen über das Spiel verteilt
 
 Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
@@ -88,7 +100,7 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | Schritt | Inhalt | Stand |
 |---|---|---|
 | G1 | Auftragsbuch | ✅ |
-| G2 | Opa erzählt vom Rennen und vom Donnerkeil (altes Foto in der Werkstatt) | offen |
+| G2 | Opa erzählt vom Rennen und vom Donnerkeil; Moos weiß von der Waldrallye und den Lichtern (altes Foto in der Werkstatt folgt, braucht ein Bild) | ✅ |
 | G3 | Waldweg verlängern, Campingplatz am Waldsee mit neuer Figur | offen, braucht Bilder |
 | G4 | Moos' Aufträge (Pieps, Vogelhäuschen) | offen, braucht Bilder |
 | G5 | Tag und Nacht | offen |

@@ -244,7 +244,8 @@ window.Karte = function (opt = {}) {
     Object.assign(auto, { ...START, v: 0 });
     route = null;
     gebieteStart();
-    Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null, ...verbrauchStart() });
+    Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
+      opa: null, moosRallye: false, donnerkeil: [], ...verbrauchStart() });
     hinweisGezeigt = false; angehalten = false; moosKennt = false;
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
@@ -380,7 +381,10 @@ window.Karte = function (opt = {}) {
   // auftrag: null | "reifen" | "batterie" | "erledigt"; teile: Belohnungen (für die Kartenprobe ohne Werkstatt)
   // sprit: Meter im Tank (null: voll), strom: Ladung der Lichtbatterie in Prozent, platt: Reifen
   // platt, vorrat: Verbrauchsartikel im Beutel, material: gefundene Materialien im Beutel
-  const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null, ...verbrauchStart() };
+  // opa: null | "rennen" (hat vom Rennen und vom Donnerkeil erzählt); moosRallye: Moos hat
+  // von der Waldrallye erzählt; donnerkeil: gefundene Teile von Opas altem Rennwagen
+  const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
+    opa: null, moosRallye: false, donnerkeil: [], ...verbrauchStart() };
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -464,18 +468,32 @@ window.Karte = function (opt = {}) {
   // Förster Moos in der Försterhütte: vorerst Begrüßung, sein Auftrag kommt noch
   let moosKennt = false;
   function beiMoos() {
-    const moos = (zeilen) => gespraech("moos", "Förster Moos", "foersterhuette", zeilen);
-    if (moosKennt) {
-      return moos([["nachdenken", "Na, wieder im Wald unterwegs? Ich grüble noch, wobei du mir helfen könntest. Komm bald wieder!"]]);
+    const zeilen = [];
+    if (!moosKennt) {
+      zeilen.push(
+        ["hallo", "Na so was, Besuch mitten im dunklen Wald! Ich bin Förster Moos. Das Piepsen? Das ist Pieps, der wohnt in meinem Bart."],
+        ["nachdenken", "Ohne Licht hätte dich der Wald glatt verschluckt. Gut, dass dir einer einen Scheinwerfer eingebaut hat."]);
     }
+    if (spiel.opa === "rennen" && !spiel.moosRallye) {
+      // Opa hat vom Rennen erzählt: Moos weiß von der ersten Vorrunde, und von den Lichtern
+      zeilen.push(
+        ["nachdenken", moosKennt ? "Die Waldrallye? Ja freilich! Hat dir Opa Bolzen davon erzählt?" : "Opa Bolzen schickt dich wegen der Waldrallye? Ja freilich!"],
+        ["auftrag", "Die erste Vorrunde zum Klappertal-Rennen fährt dieses Jahr bei uns im Wald, auf dem alten Holzweg hinter meiner Hütte."],
+        ["nachdenken", "Nur liegen da noch umgestürzte Bäume drauf. Sobald der Weg frei ist, trag ich dich als Fahrer ein, versprochen."],
+        ["auftrag", "Und noch was, aber sag's nicht weiter: Nachts seh ich da hinten im Wald manchmal Lichter. Und es brummt wie ein Motor. Pieps mag das gar nicht."]);
+      spiel.moosRallye = true;
+    } else if (moosKennt) {
+      zeilen.push(["nachdenken", spiel.moosRallye
+        ? "Der Holzweg ist noch nicht frei, ich bin dran. Und die Lichter? Letzte Nacht wieder. Unheimlich, sag ich dir."
+        : "Na, wieder im Wald unterwegs? Ich grüble noch, wobei du mir helfen könntest. Komm bald wieder!"]);
+    } else {
+      zeilen.push(["auftrag", "Ich hätte da bestimmt was für dich zu tun. Aber erst muss ich in Ruhe nachdenken, was genau. Schau bald wieder vorbei!"]);
+    }
+    if (!moosKennt) zeilen.push(["juhu", "Und fahr vorsichtig, hier laufen nachts die Hasen über den Weg!"]);
     moosKennt = true;
-    moos([
-      ["hallo", "Na so was, Besuch mitten im dunklen Wald! Ich bin Förster Moos. Das Piepsen? Das ist Pieps, der wohnt in meinem Bart."],
-      ["nachdenken", "Ohne Licht hätte dich der Wald glatt verschluckt. Gut, dass dir einer einen Scheinwerfer eingebaut hat."],
-      ["auftrag", "Ich hätte da bestimmt was für dich zu tun. Aber erst muss ich in Ruhe nachdenken, was genau. Schau bald wieder vorbei!"],
-      ["juhu", "Und fahr vorsichtig, hier laufen nachts die Hasen über den Weg!"],
-    ]);
+    gespraech("moos", "Förster Moos", "foersterhuette", zeilen, () => hudNeu());
   }
+
   function hupenBei(h) {
     h.weg = true;
     $("meldung").hidden = true;
@@ -527,6 +545,7 @@ window.Karte = function (opt = {}) {
   // Alle Aufträge, abgeleitet aus dem Spielstand. Mehrere können gleichzeitig offen sein,
   // man entscheidet selbst die Reihenfolge; „Hinfahren“ plant den Weg zum nächsten Schritt.
   const zielVon = (id) => ZIELE.find((z) => z.id === id);
+  const DONNERKEIL_TEILE = 8; // so viele Teile hatte Opas Rennwagen (Motor, Lenkrad, Räder, Sitz, Karosserie …)
   // nächster noch liegender Fundgegenstand in bekanntem Gebiet
   function fundZiel(art, name) {
     const liste = SAMMEL.filter((r) => r.art === art && !r.weg && bekannt(r.x, r.y))
@@ -565,6 +584,23 @@ window.Karte = function (opt = {}) {
     }
     if (spiel.hilde === "frei") offen.push({ ...schafe, stand: "Weg ist frei", text: "Die Schafe sind auf der Wiese. Erzähl es Hilde auf dem Bauernhof.", ziel: zielVon("bauernhof") });
     if (spiel.hilde === "erledigt") erledigt.push(schafe);
+    if (spiel.opa === "rennen") {
+      const opa = { figur: "opa", wer: "Opa Bolzen" };
+      offen.push({ ...opa, titel: "Opas Donnerkeil", stand: `${spiel.donnerkeil.length}/${DONNERKEIL_TEILE} Teile`,
+        text: "Mit dem Donnerkeil hat Opa das Klappertal-Rennen dreimal gewonnen. Er ist zerlegt, die Teile sind im ganzen Tal verstreut.",
+        belohnung: "Opas Rennwagen", ziel: null, fehlt: "Noch keine Spur. Die Leute im Tal wissen bestimmt mehr." });
+      if (!spiel.moosRallye) {
+        const licht = hatTeilEingebaut("licht");
+        offen.push({ ...opa, titel: "Anmeldung zur Waldrallye", stand: licht ? "Licht dabei" : "Licht fehlt",
+          text: "Die erste Vorrunde zum Klappertal-Rennen wird im Wald gefahren. Opa meint, Förster Moos weiß mehr.",
+          belohnung: "Startplatz bei der Waldrallye", ziel: licht ? zielVon("foersterhuette") : null,
+          fehlt: licht ? null : "Ohne Licht kommst du nicht durch den dunklen Wald. Knut hat einen Scheinwerfer, wenn du ihm die Batterie bringst." });
+      } else {
+        offen.push({ figur: "moos", wer: "Förster Moos", titel: "Die Waldrallye", stand: "Weg versperrt",
+          text: "Die Rallye fährt auf dem alten Holzweg hinter der Försterhütte. Moos räumt die umgestürzten Bäume weg.",
+          belohnung: "Erste Vorrunde zum Klappertal-Rennen", ziel: null, fehlt: "Der Holzweg ist noch versperrt. Schau später wieder bei Moos vorbei." });
+      }
+    }
     return { offen, erledigt };
   }
   function buchZeigen() {
@@ -574,6 +610,10 @@ window.Karte = function (opt = {}) {
     const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
     if (!offen.length) liste.append(el("p", "buch-leer", "Gerade ist nichts offen. Schau bei den Leuten im Tal vorbei, vielleicht brauchen sie Hilfe."));
     for (const a of offen) {
+      // Ziel in einer Gegend, die man noch nicht kennt: noch nicht hinfahrbar
+      if (a.ziel && a.ziel.gebiet && !zielOffen(a.ziel)) {
+        a.fehlt = `Den Weg zu: ${a.ziel.name} kennst du noch nicht. Such ein Kartenstück.`; a.ziel = null;
+      }
       const karte = el("article", "buch-auftrag");
       const bild = el("img"); bild.alt = ""; bild.src = (FIG[a.figur] || {}).hallo || "";
       const text = el("div", "buch-text");
@@ -584,7 +624,7 @@ window.Karte = function (opt = {}) {
       hin.disabled = !a.ziel || Boolean(route && zielWahl && a.ziel && zielWahl.x === a.ziel.x && zielWahl.y === a.ziel.y);
       if (!a.ziel && a.fehlt) text.append(el("p", "buch-fehlt", a.fehlt));
       hin.addEventListener("click", () => { buchZu(); planen(a.ziel); });
-      fuss.append(hin);
+      if (a.ziel) fuss.append(hin);
       text.append(fuss);
       karte.append(bild, text);
       liste.append(karte);
@@ -2036,6 +2076,7 @@ window.Karte = function (opt = {}) {
         auftrag: spiel.auftrag, geld: spiel.geld, beutel: spiel.beutel, hilde: spiel.hilde,
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
         sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
+        opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil],
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -2044,6 +2085,7 @@ window.Karte = function (opt = {}) {
       Object.assign(spiel, { auftrag: st.auftrag, geld: st.geld, beutel: st.beutel, hilde: st.hilde,
         gekauft: new Set(st.gekauft), teile: new Set(st.teile) });
       const v = verbrauchStart();
+      Object.assign(spiel, { opa: st.opa || null, moosRallye: Boolean(st.moosRallye), donnerkeil: st.donnerkeil || [] });
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);
@@ -2055,6 +2097,21 @@ window.Karte = function (opt = {}) {
       const h = HINDERNISSE.find((q) => q.id === "schafe");
       if (h.weg) for (const sf of HERDE) Object.assign(sf, { x: h.x + (sf.x < h.x ? -1 : 1) * zufall(9, 15), flucht: false, grast: true });
       nebelNeu(); hudNeu(); verbrauchAnzeigen();
+    },
+    // Zurück in der Werkstatt nach Knuts erstem Auftrag: Opa erzählt vom Rennen und vom
+    // Donnerkeil (einmal). danach: wird nach dem Gespräch aufgerufen.
+    opaErzaehlt(danach) {
+      if (spiel.opa || !["batterie", "erledigt"].includes(spiel.auftrag)) return false;
+      gespraech("opa", "Opa Bolzen", "werkstatt", [
+        ["hallo", "Da bist du ja wieder! Knut ist zufrieden mit dir, hab ich gehört. Der lobt sonst nie jemanden."],
+        ["nachdenken", "Weißt du eigentlich, was am Ende des Sommers ist? Das Klappertal-Rennen! Das ganze Tal steht dann an der Kiesrennbahn."],
+        ["juhu", "Früher bin ich da selbst gefahren. Dreimal gewonnen, mit dem Donnerkeil! Schnell wie der Blitz und laut wie ein Gewitter."],
+        ["nachdenken", "Den gibt es leider nicht mehr. Nach einem dummen Streit haben wir ihn auseinandergenommen, und die Teile sind im ganzen Tal verstreut."],
+        ["auftrag", "Aber wer weiß … Wenn du die Augen offen hältst, findest du vielleicht das eine oder andere Teil wieder."],
+        ["auftrag", "Und fürs Rennen musst du dich erst in den Vorrunden beweisen. Die erste ist im Wald, frag mal Förster Moos danach!"],
+        ["juhu", "Ich schreib's dir ins Auftragsbuch. Ach, was freu ich mich: Endlich wieder einer aus der Bolzen-Werkstatt am Start!"],
+      ], () => { spiel.opa = "rennen"; hudNeu(); toast("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Waldrallye", 5000); if (danach) danach(); });
+      return true;
     },
     // In Opas Werkstatt: Opa flickt Reifen kostenlos, und ein neuer Tag beginnt (neue Funde, Preise)
     beiOpa() {
