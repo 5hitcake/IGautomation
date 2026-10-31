@@ -77,7 +77,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 /* Rundherum die Halle unscharf und dunkel, scharf ist sie nur auf der Bühne */
 .halle::after {
   content: ""; position: absolute; inset: -24px; z-index: -2; pointer-events: none;
-  background: var(--halle-bild, none) center / cover no-repeat; filter: blur(7px) brightness(0.7);
+  background: var(--halle-bild, none) center / cover no-repeat; opacity: 0.75;
 }
 /* Halle abdunkeln, in der Mitte heller: das Auto steht im Licht */
 .halle::before {
@@ -95,7 +95,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 .band { position: relative; overflow: hidden; touch-action: pan-y; cursor: grab; outline: none; -webkit-user-select: none; user-select: none; }
 .band.band-y { touch-action: pan-x; }
 .band:focus-visible { box-shadow: 0 0 0 3px var(--mint); border-radius: 14px; }
-.band > .band-k { position: absolute; left: 50%; top: 50%; transition: transform 0.28s cubic-bezier(.2,.8,.3,1), filter 0.28s, opacity 0.28s; will-change: transform; }
+.band > .band-k { position: absolute; left: 50%; top: 50%; transition: transform 0.28s cubic-bezier(.2,.8,.3,1), opacity 0.28s; will-change: transform, opacity; }
 .band.zieht > .band-k { transition: none; }
 .band.zieht { cursor: grabbing; }
 .band img { pointer-events: none; }

@@ -150,6 +150,28 @@ window.Werkstatt = function (opt = {}) {
   let HALLE = null;
   if (HG.halle) { HALLE = new Image(); HALLE.src = HG.halle; }
   const halleBereit = () => HALLE && HALLE.complete && HALLE.naturalWidth;
+  // Die Halle liegt als CSS-Hintergrund hinter der Bühne (der Browser malt sie nur einmal),
+  // nur bei geänderter Größe oder Ansicht neu ausrichten
+  let hgSchluessel = "";
+  function hintergrundSetzen(c, w, h) {
+    if (!halleBereit()) return;
+    const schl = `${w}x${h}`;
+    if (schl === hgSchluessel) return;
+    hgSchluessel = schl;
+    const P = hallePlatz(w, h);
+    c.style.background = `#10191c url(${HG.halle}) ${P.dx}px ${P.dy}px / ${P.iw * P.k}px ${P.ih * P.k}px no-repeat`;
+  }
+  // Rundherum: dieselbe Halle winzig verkleinert und groß gezogen wirkt unscharf,
+  // ohne teuren Weichzeichner
+  if (halle && HG.halle) {
+    const klein = new Image();
+    klein.onload = () => {
+      const cv = document.createElement("canvas"); cv.width = 64; cv.height = Math.round(64 * klein.height / klein.width);
+      cv.getContext("2d").drawImage(klein, 0, 0, cv.width, cv.height);
+      halle.style.setProperty("--halle-bild", `url(${cv.toDataURL("image/jpeg", 0.8)})`);
+    };
+    klein.src = HG.halle;
+  }
   // Bild so groß, dass die Bühne gut 85 % der Breite füllt und unten im Bild steht
   function hallePlatz(w, h) {
     const iw = HALLE.naturalWidth, ih = HALLE.naturalHeight;
@@ -284,9 +306,7 @@ window.Werkstatt = function (opt = {}) {
     const g = R[state.view];
     const mx = L.ox + (g.breite * L.cell) / 2;
     if (halleBereit()) {
-      const P = hallePlatz(w, h);
-      ctx.drawImage(HALLE, P.dx, P.dy, P.iw * P.k, P.ih * P.k);
-      if (state.view === "seite") return; // Licht und Bühne sind schon im Bild
+      if (state.view === "seite") return; // Halle, Licht und Bühne sind der Hintergrund der Bühne
       ctx.fillStyle = "rgba(10,14,16,0.62)"; ctx.fillRect(0, 0, w, h);
     }
     if (state.view === "seite") {
@@ -404,10 +424,13 @@ window.Werkstatt = function (opt = {}) {
   }
 
   function render(now) {
+    requestAnimationFrame(render);
     const c = $("stage");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = c.clientWidth, h = c.clientHeight;
-    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    if (!w || !h) return; // Werkstatt gerade nicht zu sehen
+    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(600000 / (w * h))));
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    hintergrundSetzen(c, w, h);
     const ctx = c.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const L = layout(w, h);
@@ -419,7 +442,6 @@ window.Werkstatt = function (opt = {}) {
       else drawSlotHint(ctx, slot, L, now / 1000);
     }
     drawWahl(ctx, L, now / 1000);
-    requestAnimationFrame(render);
   }
 
   // --- Antippen und Ziehen ------------------------------------------------------
@@ -639,8 +661,7 @@ window.Werkstatt = function (opt = {}) {
         const sk = 1 - m * 0.14;
         k.style.transform = `translate(-50%, -50%) translate${ax === "x" ? "X" : "Y"}(${v}px) scale(${sk})`;
         k.style.zIndex = String(100 - Math.round(a * 10));
-        k.style.filter = a < 0.5 ? "none" : `brightness(${1 - m * 0.2}) saturate(${1 - m * 0.2})`;
-        k.style.opacity = a > 3.3 ? "0" : "1";
+        k.style.opacity = a > 3.3 ? "0" : String(1 - m * 0.22);
         k.style.pointerEvents = a > 3.3 ? "none" : "";
         k.classList.toggle("vorn", a < 0.5);
       });

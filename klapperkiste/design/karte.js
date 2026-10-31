@@ -616,6 +616,18 @@ window.Karte = function (opt = {}) {
     }
     miniGrund = null;
   }
+  // Nebel nur im sichtbaren Ausschnitt zeichnen, und gar nicht, wenn dort alles erforscht ist
+  const klar = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r * 0.78);
+  function nebelZeichnen(sicht) {
+    const x0 = Math.max(0, Math.floor(sicht.x0) - 1), y0 = Math.max(0, Math.floor(sicht.y0) - 1);
+    const x1 = Math.min(W, Math.ceil(sicht.x1) + 1), y1 = Math.min(W, Math.ceil(sicht.y1) + 1);
+    if (x1 <= x0 || y1 <= y0) return;
+    let alles = true;
+    for (let i = 0; i <= 6 && alles; i++) for (let j = 0; j <= 4 && alles; j++) {
+      alles = klar(x0 + (x1 - x0) * i / 6, y0 + (y1 - y0) * j / 4);
+    }
+    if (!alles) ctx.drawImage(nebel, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
+  }
   let toastZeit = null;
   function toast(text, ms = 3200) {
     const t = $("toast");
@@ -791,34 +803,34 @@ window.Karte = function (opt = {}) {
   }
 
   // Walddach als Boden der Waldfläche, mit weichem Rand ins Gras
-  function walddachZeichnen(sicht) {
+  function walddachZeichnen(sicht, c = ctx) {
     const p = musterVon("walddach");
     if (!p) return;
-    ctx.save();
-    ctx.fillStyle = p;
+    c.save();
+    c.fillStyle = p;
     for (const [wx, wy, wr] of WALD) {
       if (wx + wr < sicht.x0 || wx - wr > sicht.x1 || wy + wr < sicht.y0 || wy - wr > sicht.y1) continue;
       for (let i = 0; i < 8; i++) { // viele dünne Ringe übereinander: weicher Übergang ins Gras
-        ctx.globalAlpha = 0.18; ctx.beginPath(); ctx.arc(wx, wy, wr * (1.08 - i * 0.02), 0, Math.PI * 2); ctx.fill();
+        c.globalAlpha = 0.18; c.beginPath(); c.arc(wx, wy, wr * (1.08 - i * 0.02), 0, Math.PI * 2); c.fill();
       }
-      ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(wx, wy, wr * 0.92, 0, Math.PI * 2); ctx.fill();
+      c.globalAlpha = 1; c.beginPath(); c.arc(wx, wy, wr * 0.92, 0, Math.PI * 2); c.fill();
     }
-    ctx.restore();
+    c.restore();
   }
 
-  function zeichneWege(name, breite, alpha) {
+  function zeichneWege(name, breite, alpha, c = ctx) {
     const p = musterVon(name);
     if (!p) return;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = p; ctx.lineWidth = breite; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    c.save();
+    c.globalAlpha = alpha;
+    c.strokeStyle = p; c.lineWidth = breite; c.lineCap = "round"; c.lineJoin = "round";
     for (const w of WEGE) {
-      ctx.beginPath();
-      ctx.moveTo(w[0][0], w[0][1]);
-      for (let i = 1; i < w.length; i++) ctx.lineTo(w[i][0], w[i][1]);
-      ctx.stroke();
+      c.beginPath();
+      c.moveTo(w[0][0], w[0][1]);
+      for (let i = 1; i < w.length; i++) c.lineTo(w[i][0], w[i][1]);
+      c.stroke();
     }
-    ctx.restore();
+    c.restore();
   }
 
   function zeichneObjekt(o, sicht) {
@@ -860,8 +872,9 @@ window.Karte = function (opt = {}) {
   // schwacher Schein drumherum. Gezeichnet auf einer eigenen Ebene, damit der Kegel
   // nur die Dunkelheit ausschneidet und nicht die Karte darunter.
   const dunkel = document.createElement("canvas"), dctx = dunkel.getContext("2d");
-  function dunklerWald(w, h) {
+  function dunklerWald(w, h, sicht) {
     const WX = 50, WY = 205, WR = 54; // Bereich, in dem der Lichtkegel gebraucht wird
+    if (sicht.x0 > WALD_EINGANG + 8 || sicht.y1 < 95 || sicht.y0 > 305) return; // nicht im Bild
     const mitLicht = hatTeil("licht") && Math.hypot(auto.x - WX, auto.y - WY) < WR + 20;
     if (dunkel.width !== cv.width || dunkel.height !== cv.height) { dunkel.width = cv.width; dunkel.height = cv.height; }
     dctx.setTransform(1, 0, 0, 1, 0, 0); dctx.clearRect(0, 0, dunkel.width, dunkel.height);
@@ -916,9 +929,76 @@ window.Karte = function (opt = {}) {
     laterne(ctx, "rgba(255,200,110,0.3)", "rgba(255,200,110,0)");
   }
 
+  // Boden: ruhiges Gras, Blumenflecken, Walddach, Wege, Kartenrand und Gebäude
+  function bodenMalen(c, sicht) {
+    const gras = musterVon("gras_ruhig");
+    c.fillStyle = gras || "#4d7a35";
+    c.fillRect(sicht.x0 - 1, sicht.y0 - 1, sicht.x1 - sicht.x0 + 2, sicht.y1 - sicht.y0 + 2);
+    const blumen = musterVon("gras");
+    if (blumen) {
+      c.fillStyle = blumen;
+      for (const [fx, fy, fr] of FLECKEN) {
+        if (fx + fr < sicht.x0 || fx - fr > sicht.x1 || fy + fr < sicht.y0 || fy - fr > sicht.y1) continue;
+        for (const [k, al] of [[1, 0.25], [0.8, 0.35], [0.6, 0.5]]) {
+          c.globalAlpha = al; c.beginPath(); c.arc(fx, fy, fr * k, 0, Math.PI * 2); c.fill();
+        }
+      }
+      c.globalAlpha = 1;
+  }
+  walddachZeichnen(sicht, c);
+  zeichneWege("erde", WEG_BREITE + 1.4, 0.35, c);
+  zeichneWege("erde", WEG_BREITE, 1, c);
+  // Rand der Karte
+  c.fillStyle = "rgba(10,20,15,0.85)";
+  c.fillRect(-60, -60, W + 120, 60); c.fillRect(-60, W, W + 120, 60); c.fillRect(-60, 0, 60, W); c.fillRect(W, 0, 60, W);
+
+  const sp = OBJ.schrottplatz;
+  if (sp.img.complete && sp.img.naturalWidth) c.drawImage(sp.img, SCHROTT.X, SCHROTT.Y, sp.b, sp.h);
+  const sch = OBJ.schuppen;
+  if (sch.img.complete && sch.img.naturalWidth) c.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
+  const hu = OBJ.huette;
+  if (hu && hu.img.complete && hu.img.naturalWidth) c.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
+  const hof = OBJ.bauernhof;
+  if (hof && hof.img.complete && hof.img.naturalWidth) c.drawImage(hof.img, HOF.X, HOF.Y, hof.b, hof.h);
+  const fh = OBJ.foersterhuette;
+  if (fh && fh.img.complete && fh.img.naturalWidth) c.drawImage(fh.img, FOERSTER.x - fh.b / 2, FOERSTER.y - fh.h / 2, fh.b, fh.h);
+  }
+  // Kacheln à 16 m in der aktuellen Auflösung; ändert sie sich, wird neu gemalt.
+  // Fertig gemalt wird erst, wenn alle Bilder geladen sind.
+  const KACHEL = 16, kacheln = new Map();
+  let kachelPx = 0;
+  function bodenBereit() {
+    if (!["gras_ruhig", "gras", "erde", "walddach"].every((n) => musterVon(n))) return false;
+    return ["schrottplatz", "schuppen", "huette", "bauernhof", "foersterhuette"].every((n) => !OBJ[n] || (OBJ[n].img.complete && OBJ[n].img.naturalWidth));
+  }
+  function bodenAusKacheln(sicht, pxProM) {
+    if (!bodenBereit()) return false;
+    const px = Math.ceil(KACHEL * pxProM);
+    if (px !== kachelPx) { kacheln.clear(); kachelPx = px; }
+    const x0 = Math.floor(sicht.x0 / KACHEL), x1 = Math.floor(sicht.x1 / KACHEL);
+    const y0 = Math.floor(sicht.y0 / KACHEL), y1 = Math.floor(sicht.y1 / KACHEL);
+    const ueber = 1 / pxProM; // ein Pixel Überlappung gegen feine Fugen
+    for (let ky = y0; ky <= y1; ky++) for (let kx = x0; kx <= x1; kx++) {
+      const key = kx + "," + ky;
+      let k = kacheln.get(key);
+      if (!k) {
+        k = document.createElement("canvas"); k.width = k.height = px;
+        const c = k.getContext("2d"), wx = kx * KACHEL, wy = ky * KACHEL, f = px / KACHEL;
+        c.setTransform(f, 0, 0, f, -wx * f, -wy * f);
+        bodenMalen(c, { x0: wx, x1: wx + KACHEL, y0: wy, y1: wy + KACHEL });
+        if (kacheln.size > 80) kacheln.delete(kacheln.keys().next().value); // älteste weg
+      } else kacheln.delete(key);
+      kacheln.set(key, k); // zuletzt benutzt ans Ende
+      ctx.drawImage(k, kx * KACHEL, ky * KACHEL, KACHEL + ueber, KACHEL + ueber);
+    }
+    return true;
+  }
+
   function zeichne() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = cv.clientWidth, h = cv.clientHeight;
+    // Schärfe begrenzen: bildschirmfüllend auf dem Handy wären es sonst weit über eine
+    // Million Pixel je Bild, das ruckelt. Höchstens 1,5-fach und rund 0,8 Mio. Pixel.
+    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(800000 / Math.max(1, w * h))));
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const m = Math.min(w, h) / 26; // Pixel pro Meter: kurze Bildseite zeigt 26 m
     const vor = Math.max(0, auto.v) * 1.2;
@@ -927,38 +1007,9 @@ window.Karte = function (opt = {}) {
     kamera = { m, kx, ky };
     const sicht = { x0: kx - w / 2 / m, x1: kx + w / 2 / m, y0: ky - h / 2 / m, y1: ky + h / 2 / m };
 
-    // Boden: ruhiges Gras, Blumenflecken, Wege
-    const gras = musterVon("gras_ruhig");
-    ctx.fillStyle = gras || "#4d7a35";
-    ctx.fillRect(sicht.x0 - 1, sicht.y0 - 1, sicht.x1 - sicht.x0 + 2, sicht.y1 - sicht.y0 + 2);
-    const blumen = musterVon("gras");
-    if (blumen) {
-      ctx.fillStyle = blumen;
-      for (const [fx, fy, fr] of FLECKEN) {
-        if (fx + fr < sicht.x0 || fx - fr > sicht.x1 || fy + fr < sicht.y0 || fy - fr > sicht.y1) continue;
-        for (const [k, al] of [[1, 0.25], [0.8, 0.35], [0.6, 0.5]]) {
-          ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(fx, fy, fr * k, 0, Math.PI * 2); ctx.fill();
-        }
-      }
-      ctx.globalAlpha = 1;
-    }
-    walddachZeichnen(sicht);
-    zeichneWege("erde", WEG_BREITE + 1.4, 0.35);
-    zeichneWege("erde", WEG_BREITE, 1);
-    // Rand der Karte
-    ctx.fillStyle = "rgba(10,20,15,0.85)";
-    ctx.fillRect(-60, -60, W + 120, 60); ctx.fillRect(-60, W, W + 120, 60); ctx.fillRect(-60, 0, 60, W); ctx.fillRect(W, 0, 60, W);
-
-    const sp = OBJ.schrottplatz;
-    if (sp.img.complete && sp.img.naturalWidth) ctx.drawImage(sp.img, SCHROTT.X, SCHROTT.Y, sp.b, sp.h);
-    const sch = OBJ.schuppen;
-    if (sch.img.complete && sch.img.naturalWidth) ctx.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
-    const hu = OBJ.huette;
-    if (hu && hu.img.complete && hu.img.naturalWidth) ctx.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
-    const hof = OBJ.bauernhof;
-    if (hof && hof.img.complete && hof.img.naturalWidth) ctx.drawImage(hof.img, HOF.X, HOF.Y, hof.b, hof.h);
-    const fh = OBJ.foersterhuette;
-    if (fh && fh.img.complete && fh.img.naturalWidth) ctx.drawImage(fh.img, FOERSTER.x - fh.b / 2, FOERSTER.y - fh.h / 2, fh.b, fh.h);
+    // Boden (Gras, Blumen, Walddach, Wege, Gebäude) ändert sich nie: einmal in Kacheln
+    // vormalen und je Bild nur die sichtbaren Kacheln hinlegen
+    if (!bodenAusKacheln(sicht, dpr * m)) bodenMalen(ctx, sicht);
 
     // Route und Ziel
     const t = performance.now() / 1000;
@@ -1025,11 +1076,11 @@ window.Karte = function (opt = {}) {
     for (const o of OBJEKTE) zeichneObjekt(o, sicht);
     tiereLuft(sicht);
     // Dunkler Wald hinter dem Hindernis
-    dunklerWald(w, h);
+    dunklerWald(w, h, sicht);
     wolkenZeichnen(sicht);
     // Nebel über unerforschten Gebieten
     ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(nebel, 0, 0, W, W);
+    nebelZeichnen(sicht);
     ctx.save();
     ctx.fillStyle = "rgba(90,70,45,0.75)"; ctx.font = "800 2.2px Nunito, sans-serif"; ctx.textAlign = "center";
     for (const g of GEBIETE) if (!g.offen && g.x > sicht.x0 - 20 && g.x < sicht.x1 + 20 && g.y > sicht.y0 - 20 && g.y < sicht.y1 + 20) {
@@ -1428,7 +1479,7 @@ window.Karte = function (opt = {}) {
       if (!fertig) schritt(dt); else auto.v *= 0.9;
       wetterSchritt(dt);
       tiereSchritt(dt);
-      zeichne();
+      if ($("gespraech").hidden) zeichne(); // im Gespräch verdeckt das Gesprächsbild die Karte
     }
     requestAnimationFrame(bild);
   }
