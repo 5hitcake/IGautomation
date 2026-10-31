@@ -130,3 +130,22 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 .buch-leer { color: #5a4a36; }
 .buch-erledigt-titel { margin: 6px 0 0; font-family: var(--font-display); font-weight: 400; color: #5a4a36; }
 .buch-erledigt { font-size: 13px; color: #5a7a4a; }
+/* Verbrauch und Beutel rechts unter der Minikarte, je zwei Anzeigen nebeneinander */
+.hud-rechts { grid-template-columns: auto auto; justify-content: end; justify-items: end; }
+.hud-rechts span, .hud-rechts button { font-size: 13px !important; }
+#sprit.wenig, #strom.wenig { background: rgba(190,60,40,0.92); color: #fffaf0; }
+#platt, #beutelKnopf { pointer-events: auto; font: inherit; font-weight: 800; border: 0; border-radius: 999px; padding: 4px 10px; cursor: pointer; background: rgba(18,35,42,0.82); color: var(--chalk); }
+#platt { background: rgba(190,60,40,0.94); color: #fffaf0; animation: blink 1.2s steps(2) infinite; }
+#beutel { position: absolute; inset: 0; z-index: 8; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; padding: 10px 12px; box-sizing: border-box; background: rgba(250,243,228,0.97); color: #1d1a16; }
+#beutel header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#beutel h2 { font-family: var(--font-display); font-weight: 400; color: #a23b1c; margin: 0; font-size: 22px; }
+#beutelListe { overflow-y: auto; display: grid; gap: 6px; align-content: start; }
+#beutelListe h3 { font-family: var(--font-display); font-weight: 400; font-size: 17px; margin: 4px 0 0; }
+.beutel-reihe { display: flex; flex-wrap: wrap; gap: 6px; }
+.beutel-ding { background: #fffaf0; border: 2px solid #1d1a16; border-radius: 10px; padding: 3px 10px; font-weight: 800; font-size: 14px; }
+.beutel-reihe .knopf:disabled { opacity: 0.5; cursor: not-allowed; }
+#leer { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; background: rgba(0,0,0,0.35); }
+#leer > div { background: #fffaf0; color: #1d1a16; border: 4px solid #1d1a16; border-radius: 16px; padding: 16px 18px; max-width: 84%; display: grid; gap: 10px; box-shadow: 0 4px 0 rgba(0,0,0,0.35); }
+#leer strong { font-family: var(--font-display); font-weight: 400; font-size: 24px; color: #a23b1c; }
+#leer .knoepfe { display: flex; gap: 8px; flex-wrap: wrap; }
+.laden-titel { margin: 6px 0 0; font-family: var(--font-display); font-weight: 400; font-size: 16px; color: #8a5a2a; }

@@ -31,10 +31,10 @@ window.TEILWERTE = (function () {
     traktormotor: { tempo: 30, kraft: 35, gewicht: 120, text: "Langsam, schwer und unglaublich stark. Zieht dich jeden Berg hinauf.", extras: ["Bergziege", "Schwer"] },
     raketenmotor: { tempo: 120, kraft: 20, gewicht: 60, text: "Fauch! Geradeaus unschlagbar schnell, in Kurven eher ein Abenteuer.", extras: ["Sehr schnell", "Durstig"] },
 
-    giesskanne: { reichweite: 400, gewicht: 3, text: "Eine Gießkanne voll Sprit. Reicht für eine kurze Runde ums Haus.", extras: [] },
-    milchkanne: { reichweite: 900, gewicht: 10, text: "Eine große Milchkanne vom Bauernhof, jetzt mit Benzin statt Milch.", extras: [] },
-    kanister: { reichweite: 1500, gewicht: 20, text: "Ein echter Benzinkanister. Damit kommst du richtig weit.", extras: ["Weite Strecken"] },
-    batterieturm: { reichweite: 1200, gewicht: 30, text: "Ein Turm aus Batterien. Liefert Strom für Elektromotoren.", extras: ["Strom"] },
+    giesskanne: { reichweite: 1500, gewicht: 3, text: "Eine Gießkanne voll Sprit. Reicht für eine kurze Runde ums Haus.", extras: [] },
+    milchkanne: { reichweite: 2200, gewicht: 10, text: "Eine große Milchkanne vom Bauernhof, jetzt mit Benzin statt Milch.", extras: [] },
+    kanister: { reichweite: 3500, gewicht: 20, text: "Ein echter Benzinkanister. Damit kommst du richtig weit.", extras: ["Weite Strecken"] },
+    batterieturm: { reichweite: 2800, gewicht: 30, text: "Ein Turm aus Batterien. Liefert Strom für Elektromotoren.", extras: ["Strom"] },
 
     kuechenstuhl: { komfort: 2, gewicht: 5, text: "Ein harter Küchenstuhl. Nach einer Weile tut der Po weh.", extras: [] },
     traktorsitz: { komfort: 5, gewicht: 12, text: "Ein gefederter Blechsitz vom Traktor. Schluckt die gröbsten Stöße.", extras: ["Gefedert"] },

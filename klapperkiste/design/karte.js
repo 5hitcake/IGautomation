@@ -244,7 +244,7 @@ window.Karte = function (opt = {}) {
     Object.assign(auto, { ...START, v: 0 });
     route = null;
     gebieteStart();
-    Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null });
+    Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null, ...verbrauchStart() });
     hinweisGezeigt = false; angehalten = false; moosKennt = false;
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
@@ -269,8 +269,9 @@ window.Karte = function (opt = {}) {
 
   function schritt(dt) {
     const u = untergrund(auto.x, auto.y);
-    const vmax = 6.2 * u.f; // 22 km/h auf dem Feldweg
+    const vmax = 6.2 * u.f * (spiel.platt ? 0.45 : 1); // 22 km/h auf dem Feldweg, mit Platten langsam
     const ctl = steuerAuto(dt) || { gas: taste.gas, bremse: taste.bremse, lenk: (taste.rechts ? 1 : 0) - (taste.links ? 1 : 0) };
+    if (tankLeer()) ctl.gas = false; // ohne Sprit rollt das Auto nur noch aus
     let acc = 0;
     auto.gas = ctl.gas; // für das Motorgeräusch
     if (ctl.gas) acc = auto.v < 0 ? 7 : 3.2;
@@ -286,6 +287,8 @@ window.Karte = function (opt = {}) {
     auto.y += Math.sin(auto.a) * auto.v * dt;
     if (u.name === "Wiese" && Math.abs(auto.v) > 0.5) auto.wackel = (Math.random() - 0.5) * 0.06;
     else auto.wackel = 0;
+    if (spiel.platt && Math.abs(auto.v) > 0.5) auto.wackel += (Math.random() - 0.5) * 0.08;
+    verbrauchen(Math.abs(auto.v) * dt, u.name === "Wiese", dt);
     stoss();
     auto.x = Math.max(2, Math.min(W - 2, auto.x));
     auto.y = Math.max(2, Math.min(W - 2, auto.y));
@@ -298,14 +301,14 @@ window.Karte = function (opt = {}) {
   // Auto als zwei Kreise (vorne, hinten) gegen Bäume, Felsen, Schuppen und Zäune
   function stoss() {
     const r = 0.85;
-    let getroffen = false;
+    let getroffen = false, fels = false;
     for (const s of [1.1, -1.1]) {
       let cx = auto.x + Math.cos(auto.a) * s, cy = auto.y + Math.sin(auto.a) * s;
       const schieb = (nx, ny, tief) => { auto.x += nx * tief; auto.y += ny * tief; cx += nx * tief; cy += ny * tief; getroffen = true; };
       for (const o of OBJEKTE) {
         if (!o.r || Math.abs(o.x - cx) > 6 || Math.abs(o.y - cy) > 6) continue;
         const d = Math.hypot(cx - o.x, cy - o.y), tief = o.r + r - d;
-        if (tief > 0 && d > 0) schieb((cx - o.x) / d, (cy - o.y) / d, tief);
+        if (tief > 0 && d > 0) { schieb((cx - o.x) / d, (cy - o.y) / d, tief); if (o.art === "felsbrocken") fels = true; }
       }
       for (const [a, b] of ZAEUNE) {
         const d = abstandStrecke(cx, cy, a, b), tief = 0.35 + r - d;
@@ -329,6 +332,7 @@ window.Karte = function (opt = {}) {
       }
     }
     if (getroffen) {
+      if (fels && Math.abs(auto.v) > 2.5 && performance.now() - rumms > 600 && Math.random() < 0.35) plattMachen("Rumms, ein Felsen!");
       if (Math.abs(auto.v) > 1.5 && performance.now() - rumms > 600) { rumms = performance.now(); if (navigator.vibrate) { try { navigator.vibrate(40); } catch { /* egal */ } } }
       auto.v *= Math.abs(auto.v) > 1 ? -0.25 : 0.5;
     }
@@ -368,15 +372,19 @@ window.Karte = function (opt = {}) {
   const REICH = 8;      // so nah muss das Auto sein (Meter)
   const LANGSAM = 3.5;  // höchstens so schnell (m/s, etwa 12 km/h)
   let hinweisGezeigt = false;
+  // Teile im Laden (je einmal), kommen als Lieferung nach Aufträgen. Karosserien gibt es
+  // nur als Belohnung.
   const LADEN = [
-    { id: "rundling_hinten", name: "Rundling hinten", preis: 25 },
-    { id: "rundling_mitte", name: "Rundling Mitte", preis: 35 },
-    { id: "rundling_vorne", name: "Rundling vorne", preis: 30 },
-    // Lieferung nach dem Batterie-Auftrag
-    { id: "spezialhupe", name: "Spezialhupe", preis: 25, ab: () => spiel.auftrag === "erledigt" },
+    { id: "spezialhupe", name: "📯 Spezialhupe", preis: 25, ab: () => spiel.auftrag === "erledigt" },
   ];
   // auftrag: null | "reifen" | "batterie" | "erledigt"; teile: Belohnungen (für die Kartenprobe ohne Werkstatt)
-  const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null };
+  // sprit: Meter im Tank (null: voll), strom: Ladung der Lichtbatterie in Prozent, platt: Reifen
+  // platt, vorrat: Verbrauchsartikel im Beutel, material: gefundene Materialien im Beutel
+  const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null, ...verbrauchStart() };
+  function verbrauchStart() {
+    return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
+      material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
+  }
   function hudNeu() {
     // Statt einer langen Liste oben links ein Knopf zum Auftragsbuch mit der Zahl offener Aufträge
     $("auftrag").hidden = true;
@@ -410,12 +418,14 @@ window.Karte = function (opt = {}) {
   }
   // Antippen auf der Karte: Bildschirm- in Kartenpunkt umrechnen, Reifen in der Nähe suchen
   function tippKarte(e) {
-    if (!kamera || !BRAUCHT[spiel.auftrag]) return;
+    if (!kamera) return;
     const b = cv.getBoundingClientRect();
     const x = kamera.kx + (e.clientX - b.left - b.width / 2) / kamera.m;
     const y = kamera.ky + (e.clientY - b.top - b.height / 2) / kamera.m;
     const r = SAMMEL.find((q) => sichtbar(q) && Math.hypot(q.x - x, q.y - y) < 2);
-    if (r) aufsammeln(r);
+    if (r) return aufsammeln(r);
+    const f = FUNDE.find((q) => Math.hypot(q.x - x, q.y - y) < 2);
+    if (f) fundAufsammeln(f);
   }
   // Wieder am Schrottplatz: Reifen abgeben oder im Laden stöbern
   // Bäuerin Hilde: Ihre Schafherde steht auf dem Feldweg hinter dem Hof. Mit der
@@ -587,33 +597,189 @@ window.Karte = function (opt = {}) {
   function buchAuf() { if (!$("gespraech").hidden) return; $("buch").hidden = false; buchZeigen(); $("buchZu").focus(); }
   function buchZu() { $("buch").hidden = true; }
 
+  // --- Verbrauch: Sprit, Strom, Platten ------------------------------------------
+  // Tankgröße und Licht kommen aus der Werkstatt (Werte der eingebauten Teile)
+  const tankGroesse = () => Math.max(1, (opt.werte ? opt.werte().reichweite : 3500) || 0);
+  const tankLeer = () => spiel.sprit !== null && spiel.sprit <= 0;
+  const spritAnteil = () => (spiel.sprit === null ? 1 : Math.max(0, Math.min(1, spiel.sprit / tankGroesse())));
+  let spritGewarnt = false, stromGewarnt = false;
+  function verbrauchen(meter, wiese, dt) {
+    if (spiel.sprit === null) spiel.sprit = tankGroesse();
+    spiel.sprit = Math.min(spiel.sprit, tankGroesse());
+    if (meter > 0 && spiel.sprit > 0) {
+      spiel.sprit = Math.max(0, spiel.sprit - meter);
+      if (spritAnteil() < 0.2 && !spritGewarnt) { spritGewarnt = true; toast("⛽ Der Tank ist fast leer! Bei Knut kannst du tanken."); }
+      if (spiel.sprit === 0) tankIstLeer();
+    }
+    // Licht im dunklen Wald zieht Strom
+    if (hatTeil("licht") && imWald(auto.x, auto.y) && auto.x < WALD_EINGANG + 2) {
+      spiel.strom = Math.max(0, spiel.strom - dt * 0.5);
+      if (spiel.strom < 20 && !stromGewarnt) { stromGewarnt = true; toast("🔋 Die Batterie wird schwach. Knut lädt sie dir auf."); }
+      if (spiel.strom === 0) toast("🔋 Batterie leer, das Licht ist aus!", 4000);
+    }
+    // Querfeldein kann ein Reifen platt gehen (etwa einmal auf 400 m Wiese)
+    if (wiese && meter > 0 && Math.random() < meter / 400) plattMachen("Pfft! Da lag was Spitzes im Gras.");
+    verbrauchAnzeigen();
+  }
+  function plattMachen(warum) {
+    if (spiel.platt) return;
+    spiel.platt = true;
+    toast(`🛞 ${warum} Ein Reifen ist platt. ${spiel.vorrat.flickzeug ? "Im Beutel ist Flickzeug." : "Opa flickt ihn in der Werkstatt."}`, 5000);
+    verbrauchAnzeigen();
+  }
+  function flicken() {
+    if (!spiel.platt) return;
+    if (!spiel.vorrat.flickzeug) return toast("Kein Flickzeug im Beutel. Knut verkauft welches, oder Opa flickt in der Werkstatt.");
+    spiel.vorrat.flickzeug--; spiel.platt = false;
+    toast("🩹 Geflickt! Weiter geht's.");
+    verbrauchAnzeigen(); if (!$("beutel").hidden) beutelZeigen();
+  }
+  function kanisterNutzen() {
+    if (!spiel.vorrat.kanister) return;
+    spiel.vorrat.kanister--;
+    spiel.sprit = Math.min(tankGroesse(), (spiel.sprit || 0) + 600); spritGewarnt = spritAnteil() < 0.2;
+    toast("⛽ Reservekanister eingefüllt (+600 m).");
+    $("leer").hidden = true; verbrauchAnzeigen(); if (!$("beutel").hidden) beutelZeigen();
+  }
+  function tankIstLeer() {
+    route = null;
+    toast("⛽ Tank leer! Die Klapperkiste rollt aus.", 4000);
+    const l = $("leer");
+    l.querySelector(".kanister").hidden = !spiel.vorrat.kanister;
+    l.querySelector(".kanister").textContent = `⛽ Reservekanister einfüllen (${spiel.vorrat.kanister})`;
+    l.hidden = false;
+  }
+  // Opa schleppt ab: zurück zur Werkstatt, kostet 10 Münzen (wenn vorhanden), mit Notvorrat im Tank
+  function abschleppen() {
+    const preis = Math.min(10, spiel.geld);
+    spiel.geld -= preis; spiel.sprit = Math.max(spiel.sprit || 0, Math.min(tankGroesse(), 400)); spritGewarnt = false;
+    $("leer").hidden = true; hudNeu();
+    toast(`🚜 Opa hat dich abgeschleppt${preis ? ` (🪙 ${preis})` : ""} und dir etwas Sprit eingefüllt.`, 5000);
+    schnellreise();
+  }
+  function verbrauchAnzeigen() {
+    const sp = $("sprit"), st = $("strom"), pl = $("platt"), bt = $("beutelKnopf");
+    if (!sp) return;
+    const a = spritAnteil();
+    sp.textContent = `⛽ ${Math.round(a * 100)} %`; sp.classList.toggle("wenig", a < 0.2);
+    st.hidden = !hatTeilEingebaut("licht"); st.textContent = `🔋 ${Math.round(spiel.strom)} %`; st.classList.toggle("wenig", spiel.strom < 20);
+    pl.hidden = !spiel.platt;
+    bt.textContent = `🎒 ${beutelVoll()}/${BEUTEL_PLATZ}`;
+  }
+
+  // --- Materialien und Beutel ----------------------------------------------------
+  // Schrauben, Kabel, Federn und Blech liegen am Wegrand. Man sammelt sie wie die Reifen,
+  // sie kommen in den Beutel (begrenzt) und Knut kauft sie an. Jeden neuen Tag (bei Opa)
+  // liegen neue herum und die Preise ändern sich etwas.
+  const MATERIAL = [
+    { id: "schrauben", name: "Schrauben", icon: "🔩", preis: 2 },
+    { id: "kabel", name: "Kabel", icon: "🔌", preis: 3 },
+    { id: "federn", name: "Federn", icon: "🌀", preis: 4 },
+    { id: "blech", name: "Blech", icon: "🥫", preis: 5 },
+  ];
+  const BEUTEL_PLATZ = 6, FUND_ZAHL = 10;
+  const FUNDE = []; // { art, x, y }
+  const tagesPreis = Object.fromEntries(MATERIAL.map((m) => [m.id, m.preis]));
+  const beutelVoll = () => Object.values(spiel.material).reduce((a, b) => a + b, 0);
+  function fundeVerteilen() {
+    const wege = WEGE.filter((w) => w.every(([x, y]) => bekannt(x, y)));
+    for (let versuch = 0; versuch < 400 && FUNDE.length < FUND_ZAHL; versuch++) {
+      const w = wege[Math.floor(Math.random() * wege.length)];
+      if (!w) break;
+      const i = 1 + Math.floor(Math.random() * (w.length - 1)), t = Math.random();
+      const [ax, ay] = w[i - 1], [bx, by] = w[i], l = Math.hypot(bx - ax, by - ay) || 1;
+      const seite = Math.random() < 0.5 ? -1 : 1, d = WEG_BREITE / 2 + 1.2 + Math.random() * 3;
+      const x = ax + (bx - ax) * t - (by - ay) / l * d * seite, y = ay + (by - ay) * t + (bx - ax) / l * d * seite;
+      if (!bekannt(x, y) || imWald(x, y, -2) || OBJEKTE.some((o) => (o.vis || o.r) && Math.hypot(o.x - x, o.y - y) < (o.vis || o.r) + 0.8)) continue;
+      if ([...FUNDE, ...SAMMEL, ...STUECKE].some((f) => Math.hypot(f.x - x, f.y - y) < 6)) continue;
+      FUNDE.push({ art: MATERIAL[Math.floor(Math.random() * MATERIAL.length)].id, x, y });
+    }
+  }
+  function neuerTag() {
+    fundeVerteilen();
+    for (const m of MATERIAL) tagesPreis[m.id] = Math.max(1, Math.round(m.preis * (0.8 + Math.random() * 0.5)));
+  }
+  function fundAufsammeln(f) {
+    if (Math.hypot(f.x - auto.x, f.y - auto.y) > REICH) return toast("Zu weit weg. Fahr näher heran.");
+    if (Math.abs(auto.v) > LANGSAM) { $("stopp").classList.add("tipp"); return toast("Zu schnell! Drück „Stopp“ oder fahr langsam vorbei."); }
+    if (beutelVoll() >= BEUTEL_PLATZ) return toast(`🎒 Der Beutel ist voll (${BEUTEL_PLATZ}). Verkauf die Sachen bei Knut.`);
+    FUNDE.splice(FUNDE.indexOf(f), 1);
+    spiel.material[f.art]++;
+    const m = MATERIAL.find((q) => q.id === f.art);
+    toast(`${m.icon} ${m.name} eingesteckt (🎒 ${beutelVoll()}/${BEUTEL_PLATZ}).`);
+    if (navigator.vibrate) { try { navigator.vibrate(20); } catch { /* egal */ } }
+    verbrauchAnzeigen();
+  }
+  function beutelZeigen() {
+    const liste = $("beutelListe");
+    liste.innerHTML = "";
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    liste.append(el("h3", null, `Materialien · ${beutelVoll()}/${BEUTEL_PLATZ} Plätze`));
+    const mat = el("div", "beutel-reihe");
+    for (const m of MATERIAL) mat.append(el("span", "beutel-ding", `${m.icon} ${m.name} × ${spiel.material[m.id]}`));
+    liste.append(mat, el("p", "buch-leer", "Materialien liegen am Wegrand. Knut kauft sie dir ab."));
+    liste.append(el("h3", null, "Vorrat"));
+    const vorrat = el("div", "beutel-reihe");
+    const flick = el("button", "knopf", `🩹 Flickzeug × ${spiel.vorrat.flickzeug}${spiel.platt ? " · jetzt flicken" : ""}`);
+    flick.type = "button"; flick.disabled = !spiel.platt || !spiel.vorrat.flickzeug; flick.addEventListener("click", flicken);
+    const kan = el("button", "knopf", `⛽ Reservekanister × ${spiel.vorrat.kanister}${spritAnteil() < 1 ? " · einfüllen" : ""}`);
+    kan.type = "button"; kan.disabled = !spiel.vorrat.kanister || spritAnteil() >= 0.99; kan.addEventListener("click", kanisterNutzen);
+    vorrat.append(flick, kan);
+    liste.append(vorrat);
+    if (BRAUCHT[spiel.auftrag]) liste.append(el("p", "buch-leer", `Für Knut: ${spiel.beutel}/${BRAUCHT[spiel.auftrag]} ${spiel.auftrag === "reifen" ? "Reifen" : "Batterie"}`));
+  }
+
   function ladenAuf() {
     const l = $("laden");
     const liste = l.querySelector(".waren");
     liste.innerHTML = "";
-    for (const w of LADEN) {
-      if (w.ab && !w.ab()) continue;
-      const zeile = document.createElement("div");
-      zeile.className = "ware";
-      const name = document.createElement("span");
-      name.textContent = w.name;
-      const knopf = document.createElement("button");
-      knopf.type = "button"; knopf.className = "knopf";
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const zeile = (name, preis, an, kauf, knopfText) => {
+      const z = el("div", "ware"), k = el("button", "knopf", knopfText || `🪙 ${preis}`);
+      k.type = "button"; k.disabled = !an || spiel.geld < preis;
+      k.addEventListener("click", () => { spiel.geld -= preis; kauf(); hudNeu(); verbrauchAnzeigen(); ladenAuf(); });
+      z.append(el("span", null, name), k);
+      liste.append(z);
+    };
+    // Verbrauch: immer wieder nötig
+    liste.append(el("h4", "laden-titel", "Verbrauch"));
+    if (spiel.sprit === null) spiel.sprit = tankGroesse();
+    const fehlt = Math.max(0, tankGroesse() - spiel.sprit), spritPreis = Math.max(1, Math.ceil(fehlt / 150));
+    zeile(fehlt > 1 ? `⛽ Volltanken (+${Math.round(fehlt)} m)` : "⛽ Tank ist voll", spritPreis, fehlt > 1,
+      () => { spiel.sprit = tankGroesse(); spritGewarnt = false; toast("⛽ Vollgetankt!"); });
+    if (hatTeilEingebaut("licht")) {
+      zeile(spiel.strom < 100 ? `🔋 Batterie laden (${Math.round(spiel.strom)} %)` : "🔋 Batterie ist voll", 5, spiel.strom < 100,
+        () => { spiel.strom = 100; stromGewarnt = false; toast("🔋 Batterie geladen!"); });
+    }
+    zeile(`🩹 Flickzeug · ${spiel.vorrat.flickzeug} dabei`, 6, spiel.vorrat.flickzeug < 3, () => { spiel.vorrat.flickzeug++; });
+    zeile(`⛽ Reservekanister · ${spiel.vorrat.kanister} dabei`, 8, spiel.vorrat.kanister < 2, () => { spiel.vorrat.kanister++; });
+    // Ankauf: Materialien aus dem Beutel, Preise ändern sich jeden Tag
+    if (beutelVoll()) {
+      liste.append(el("h4", "laden-titel", "Knut kauft an"));
+      for (const m of MATERIAL) {
+        const n = spiel.material[m.id];
+        if (!n) continue;
+        const z = el("div", "ware"), k = el("button", "knopf", `+🪙 ${n * tagesPreis[m.id]}`);
+        k.type = "button";
+        k.addEventListener("click", () => { spiel.geld += n * tagesPreis[m.id]; spiel.material[m.id] = 0; hudNeu(); verbrauchAnzeigen(); ladenAuf(); });
+        z.append(el("span", null, `${m.icon} ${n} × ${m.name} (je 🪙 ${tagesPreis[m.id]})`), k);
+        liste.append(z);
+      }
+    }
+    // Teile: einzelne Lieferungen nach Aufträgen
+    const teile = LADEN.filter((w) => !w.ab || w.ab());
+    if (teile.length) liste.append(el("h4", "laden-titel", "Neu reingekommen"));
+    for (const w of teile) {
       const hat = spiel.gekauft.has(w.id);
-      knopf.textContent = hat ? "gekauft" : `🪙 ${w.preis}`;
-      knopf.disabled = hat || spiel.geld < w.preis;
-      knopf.addEventListener("click", () => {
-        spiel.geld -= w.preis; spiel.gekauft.add(w.id); spiel.teile.add(w.id); hudNeu();
+      zeile(w.name, w.preis, !hat, () => {
+        spiel.gekauft.add(w.id); spiel.teile.add(w.id);
         if (opt.gekauft) opt.gekauft(w.id);
         toast(`${w.name} gekauft! Liegt jetzt in Opas Werkstatt im Regal.`);
-        ladenAuf();
-      });
-      zeile.append(name, knopf);
-      liste.append(zeile);
+      }, hat ? "gekauft" : null);
     }
     l.querySelector(".kasse").textContent = `Du hast 🪙 ${spiel.geld} Münzen.`;
     l.hidden = false;
-    l.querySelector(".zweit").focus();
+    l.querySelector(".zweit").focus({ preventScroll: true });
   }
 
   // --- Gespräch -------------------------------------------------------------
@@ -835,7 +1001,9 @@ window.Karte = function (opt = {}) {
   ];
   // Ohne Werkstatt (Kartenprobe) zählt eine Belohnung gleich als eingebaut
   const TEIL_FUER = { licht: "scheinwerfer", hupe: "spezialhupe" };
-  const hatTeil = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : spiel.teile.has(TEIL_FUER[teil]));
+  const hatTeilEingebaut = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : spiel.teile.has(TEIL_FUER[teil]));
+  // Licht braucht Strom: Ist die Batterie leer, bleibt der Scheinwerfer dunkel
+  const hatTeil = (teil) => hatTeilEingebaut(teil) && (teil !== "licht" || spiel.strom > 0);
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
   let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0, angehalten = false;
@@ -1174,6 +1342,16 @@ window.Karte = function (opt = {}) {
       const gb = rf.b * 1.15, gh = rf.h * 1.15; // etwas größer, damit man sie gut antippen kann
       ctx.drawImage(rf.img, r.x - gb / 2, r.y - gh / 2, gb, gh);
     }
+
+    // Materialien am Wegrand: kleiner Schimmer und ein Zeichen
+    ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "1.3px sans-serif";
+    for (const f of FUNDE) {
+      if (f.x < sicht.x0 - 2 || f.x > sicht.x1 + 2 || f.y < sicht.y0 - 2 || f.y > sicht.y1 + 2) continue;
+      ctx.fillStyle = "rgba(255,240,180,0.35)";
+      ctx.beginPath(); ctx.arc(f.x, f.y, 1 + (reduce ? 0 : Math.sin(t * 3 + f.x) * 0.12), 0, Math.PI * 2); ctx.fill();
+      ctx.fillText(MATERIAL.find((m) => m.id === f.art).icon, f.x, f.y + 0.05);
+    }
+    ctx.restore();
 
     tiereBoden(sicht);
 
@@ -1721,6 +1899,7 @@ window.Karte = function (opt = {}) {
   mini.addEventListener("click", karteAuf);
   $("karteZu").addEventListener("click", karteZu);
   function schnellreise() {
+    if (tankLeer()) return abschleppen(); // mit leerem Tank geht es nur mit Opas Abschleppwagen
     Object.assign(auto, { x: 150, y: 242.6, a: Math.PI / 2, v: 0 });
     route = null; fertig = false;
     $("meldung").hidden = true;
@@ -1760,8 +1939,23 @@ window.Karte = function (opt = {}) {
   $("buchZu").addEventListener("click", buchZu);
   const rechts = document.createElement("div");
   rechts.className = "hud-rechts"; rechts.setAttribute("aria-live", "polite");
-  rechts.innerHTML = '<span id="wetter"></span><span id="geld" hidden></span>';
+  rechts.innerHTML = '<span id="wetter"></span><span id="geld" hidden></span><span id="sprit"></span><span id="strom" hidden></span>' +
+    '<button type="button" id="platt" hidden>🛞 Platt! Flicken</button><button type="button" id="beutelKnopf">🎒</button>';
   $("karte").parentElement.append(rechts);
+  $("platt").addEventListener("click", flicken);
+  $("beutelKnopf").addEventListener("click", () => { if (!$("gespraech").hidden) return; $("beutel").hidden = false; beutelZeigen(); $("beutelZu").focus(); });
+  const beutel = document.createElement("div");
+  beutel.id = "beutel"; beutel.hidden = true; beutel.setAttribute("role", "dialog"); beutel.setAttribute("aria-label", "Beutel");
+  beutel.innerHTML = '<header><h2>🎒 Beutel</h2><button type="button" class="knopf zweit" id="beutelZu">Schließen</button></header><div id="beutelListe"></div>';
+  $("karte").parentElement.append(beutel);
+  $("beutelZu").addEventListener("click", () => { beutel.hidden = true; });
+  const leer = document.createElement("div");
+  leer.id = "leer"; leer.hidden = true; leer.setAttribute("role", "alertdialog"); leer.setAttribute("aria-label", "Tank leer");
+  leer.innerHTML = '<div><strong>Tank leer!</strong><p>Die Klapperkiste hat keinen Tropfen Sprit mehr.</p>' +
+    '<div class="knoepfe"><button type="button" class="knopf kanister"></button><button type="button" class="knopf zweit abschleppen">🚜 Opa schleppt ab (🪙 10)</button></div></div>';
+  $("karte").parentElement.append(leer);
+  leer.querySelector(".kanister").addEventListener("click", kanisterNutzen);
+  leer.querySelector(".abschleppen").addEventListener("click", abschleppen);
   const tacho = document.createElement("canvas");
   tacho.id = "tacho"; tacho.setAttribute("aria-hidden", "true");
   $("karte").parentElement.append(tacho);
@@ -1778,7 +1972,7 @@ window.Karte = function (opt = {}) {
   laden.id = "laden"; laden.hidden = true;
   laden.setAttribute("role", "dialog"); laden.setAttribute("aria-label", "Knuts Schrottladen");
   laden.innerHTML = '<div><strong>Knuts Schrottladen</strong><p class="kasse"></p><div class="waren"></div>' +
-    '<p class="klein">Neue Ware kommt nach Aufträgen. Karosserie-Teile gibt es Stück für Stück.</p>' +
+    '<p class="klein">Neue Teile kommen nach Aufträgen. Materialien aus deinem Beutel kauft Knut an.</p>' +
     '<div class="knoepfe"><button type="button" class="knopf zweit">Tschüss, Knut!</button></div></div>';
   laden.querySelector(".zweit").addEventListener("click", () => { laden.hidden = true; });
   const hupKnopf = document.createElement("button");
@@ -1794,8 +1988,9 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, auto, planen, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, auto, planen, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
+  setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen
   for (let k = OBJEKTE.length - 1; k >= 0; k--) if (OBJEKTE[k].art && [...STUECKE, ...SAMMEL].some((st) => Math.hypot(OBJEKTE[k].x - st.x, OBJEKTE[k].y - st.y) < 4)) OBJEKTE.splice(k, 1);
   netzBauen();
@@ -1822,6 +2017,7 @@ window.Karte = function (opt = {}) {
       return {
         auftrag: spiel.auftrag, geld: spiel.geld, beutel: spiel.beutel, hilde: spiel.hilde,
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
+        sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -1829,6 +2025,9 @@ window.Karte = function (opt = {}) {
     laden(st) {
       Object.assign(spiel, { auftrag: st.auftrag, geld: st.geld, beutel: st.beutel, hilde: st.hilde,
         gekauft: new Set(st.gekauft), teile: new Set(st.teile) });
+      const v = verbrauchStart();
+      Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
+        vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);
       GEBIETE.forEach((g) => { g.offen = st.offen.includes(g.id); });
       STUECKE.forEach((x, i) => { x.genommen = st.stuecke.includes(i); });
@@ -1837,7 +2036,12 @@ window.Karte = function (opt = {}) {
       // Schon verscheuchte Schafe grasen gleich neben dem Weg
       const h = HINDERNISSE.find((q) => q.id === "schafe");
       if (h.weg) for (const sf of HERDE) Object.assign(sf, { x: h.x + (sf.x < h.x ? -1 : 1) * zufall(9, 15), flucht: false, grast: true });
-      nebelNeu(); hudNeu();
+      nebelNeu(); hudNeu(); verbrauchAnzeigen();
+    },
+    // In Opas Werkstatt: Opa flickt Reifen kostenlos, und ein neuer Tag beginnt (neue Funde, Preise)
+    beiOpa() {
+      if (spiel.platt) { spiel.platt = false; toast("🩹 Opa hat den platten Reifen geflickt."); }
+      neuerTag(); verbrauchAnzeigen();
     },
   };
 };

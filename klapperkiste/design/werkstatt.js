@@ -599,7 +599,7 @@ window.Werkstatt = function (opt = {}) {
   // --- Kategorien, Teile, Info ------------------------------------------------
   const TW = window.TEILWERTE || {};
   // [Schlüssel, Name, Einheit, Wert für einen vollen Balken]
-  const WERTE = [["tempo", "Tempo", "km/h", 120], ["kraft", "Steigung", "°", 40], ["reichweite", "Reichweite", "m", 1500],
+  const WERTE = [["tempo", "Tempo", "km/h", 120], ["kraft", "Steigung", "°", 40], ["reichweite", "Reichweite", "m", 3500],
     ["grip", "Grip", "", 10], ["wendig", "Lenkung", "", 10], ["komfort", "Komfort", "", 10], ["robust", "Robustheit", "", 10],
     ["licht", "Licht", "m", 30], ["laut", "Lautstärke", "", 10], ["gewicht", "Gewicht", "kg", 300]];
   const AUTO_WERTE = ["tempo", "kraft", "reichweite", "grip", "wendig", "gewicht"];
@@ -981,6 +981,8 @@ window.Werkstatt = function (opt = {}) {
       if (p && !PARTS.includes(p)) PARTS.push(p);
       refresh();
     },
+    // Werte des Autos (z. B. Reichweite für den Tank auf der Karte)
+    werte: () => autoWerte(state.mounted),
     // Spielstand der Werkstatt: eingebaute Teile und was im Regal liegt
     stand() { return { mounted: { ...state.mounted }, teile: PARTS.map((p) => p.id) }; },
     laden(st) {

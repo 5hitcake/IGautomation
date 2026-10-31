@@ -47,10 +47,23 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 - **Tag und Nacht** (geplant): Ein Tag dauert einige Minuten Spielzeit. Nachts ist
   es überall dunkel und man braucht Licht, Knuts Laden hat zu, manche Aufträge gibt
   es nur nachts (die Lichter im Wald). Bei Opa übernachten springt zum Morgen.
-- **Materialien im Beutel** (geplant): Schrauben, Kabel, Federn, Blech liegen
-  unterwegs herum und kommen jeden Morgen neu. Der Beutel hat wenige Plätze und lässt
-  sich vergrößern. Materialien verkauft man bei Händlern, später braucht man sie
-  auch für Reparaturen.
+- **Materialien im Beutel** ✅: Schrauben 🔩, Kabel 🔌, Federn 🌀 und Blech 🥫 liegen
+  am Wegrand (zehn zugleich, in bekannten Gegenden). Antippen wie die Reifen, der
+  Beutel hat 6 Plätze (🎒 rechts auf der Karte). Knut kauft sie an, die Preise
+  schwanken. Jedes Mal bei Opa beginnt ein neuer Tag: neue Funde, neue Preise.
+  (Bilder dafür kommen noch, vorerst Zeichen.)
+- **Verbrauch** ✅, bei Knut immer wieder zu kaufen:
+  - **Sprit:** Der Tank leert sich beim Fahren, so weit wie die Reichweite des
+    Energie-Teils (Gießkanne 1500 m, Milchkanne 2200 m, Kanister 3500 m).
+    Volltanken bei Knut (1 Münze je 150 m). Leer: Reservekanister aus dem Beutel
+    (+600 m) oder Opa schleppt ab (10 Münzen, mit etwas Sprit).
+  - **Batterieladung:** Der Scheinwerfer zieht im dunklen Wald Strom (etwa 3 Minuten
+    Licht). Leer = kein Licht. Laden bei Knut (5 Münzen).
+  - **Flickzeug:** Wer gegen Felsen kracht oder querfeldein fährt, kann einen Platten
+    bekommen (Auto langsam und wackelig). Flicken mit Flickzeug aus dem Beutel (6
+    Münzen) oder kostenlos bei Opa.
+- **Laden:** Knut verkauft Verbrauch und einzelne Teile als Lieferung nach Aufträgen
+  (z. B. die Spezialhupe). Karosserien gibt es nur als Belohnung.
 
 ## Der Wald (nächste Gegend)
 
@@ -74,6 +87,6 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G3 | Waldweg verlängern, Campingplatz am Waldsee mit neuer Figur | offen, braucht Bilder |
 | G4 | Moos' Aufträge (Pieps, Vogelhäuschen) | offen, braucht Bilder |
 | G5 | Tag und Nacht | offen |
-| G6 | Materialien im Beutel | offen |
+| G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | offen |
 | G8 | Die Lichter im Wald, erste Spur zu Kauz | offen |
