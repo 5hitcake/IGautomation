@@ -13,7 +13,9 @@
 window.Rallye = function (opt) {
   const LAENGE = 480; // Meter
   const BAHN = 4.2; // halbe Breite der Fahrbahn in Metern
-  const ZEITEN = { gold: 66, silber: 78, bronze: 92 }; // Sekunden; Gold braucht einen schnelleren Motor als den Rasenmäher
+  // Sekunden. Nachgerechnet mit Fahrer-Simulation: Rasenmäher-Auto schafft Bronze nur mit fehlerfreier Runde,
+  // Silber braucht einen schnelleren Motor (Moped mit guter Runde), Gold ist selbst mit der Rakete knapp.
+  const ZEITEN = { gold: 38, silber: 62, bronze: 75 };
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const box = document.createElement("div");
@@ -71,7 +73,7 @@ window.Rallye = function (opt) {
       x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 3, lenkwinkel: 0,
       vmax: 5 + (w.tempo || 15) / 10, acc: Math.max(1.4, 4.5 - (w.gewicht || 90) / 100) + (w.schub || 1) * 0.6,
       rakete: (w.schub || 1) >= 8,
-      lenk: 5 + (w.wendig || 4) * 0.6 + (5 + (w.tempo || 15) / 10) * 0.3, grip: w.grip || 2, muenzen: 0, fehl: 0, wackel: 0, spritz: 0, gesehen: new Set(),
+      lenk: 5 + (w.wendig || 4) * 0.6 + (5 + (w.tempo || 15) / 10) * 0.3, grip: w.grip || 2, muenzen: 0, fehl: 0, steht: 0, wackel: 0, spritz: 0, gesehen: new Set(),
     };
     for (const d of DINGE) d.weg = false;
     for (const h of HASEN) Object.assign(h, { x: h.x0, y: h.seite * (BAHN + 1.5), los: false, getroffen: false, sprung: 0 });
@@ -136,7 +138,8 @@ window.Rallye = function (opt) {
     const soll = dt > 0 ? Math.max(-0.5, Math.min(0.5, (L.y - yAlt) / dt / 6)) : 0;
     L.lenkwinkel += (soll - L.lenkwinkel) * Math.min(1, dt * 10);
     L.y = Math.max(-BAHN + 0.9, Math.min(BAHN - 0.9, L.y));
-    L.v = Math.min(L.vmax, L.v + L.acc * dt);
+    // nach einem harten Zusammenstoß steht das Auto kurz, bevor es wieder anfährt
+    if (L.steht > 0) { L.steht -= dt; L.v = 0; } else L.v = Math.min(L.vmax, L.v + L.acc * dt);
     L.x += L.v * dt;
     L.wackel *= Math.pow(0.02, dt); L.spritz = Math.max(0, L.spritz - dt);
     // Zusammenstöße (Auto als Rechteck 3,4 × 1,6 m)
@@ -146,9 +149,9 @@ window.Rallye = function (opt) {
       d.weg = true; // jedes Hindernis wirkt nur einmal
       if (d.art === "pfuetze") { L.v *= 0.35 + Math.min(0.5, L.grip * 0.05); L.spritz = 0.6; meldung("Platsch!", 700); }
       if (d.art === "wurzel") { L.v *= 0.6; L.wackel = 0.25; meldung("Rumpel!", 700); }
-      if (d.art === "schlagloch") { L.v *= 0.45; L.wackel = 0.4; meldung("Bums! Ein Schlagloch!", 800); }
+      if (d.art === "schlagloch") { L.v *= 0.3; L.steht = Math.max(L.steht, 0.3); L.wackel = 0.4; meldung("Bums! Ein Schlagloch!", 800); }
       if (d.art === "stamm" || d.art === "stein") {
-        L.v *= 0.15; L.wackel = 0.5; meldung(d.art === "stamm" ? "Rumms! Ein Stamm!" : "Autsch, ein Stein!", 900);
+        L.v *= 0.15; L.steht = Math.max(L.steht, 1); L.wackel = 0.5; meldung(d.art === "stamm" ? "Rumms! Ein Stamm!" : "Autsch, ein Stein!", 900);
         if (navigator.vibrate) { try { navigator.vibrate(60); } catch { /* egal */ } }
       }
     }
@@ -159,7 +162,7 @@ window.Rallye = function (opt) {
       h.y -= h.seite * dt * 3.2; // hoppelt quer über den Weg zur anderen Seite
       h.x += dt * 0.6;
       if (!h.getroffen && Math.abs(h.x - L.x) < 2 && Math.abs(h.y - L.y) < 1.1) {
-        h.getroffen = true; L.v *= 0.25; L.wackel = 0.3; meldung("Vollbremsung! Ein Hase!", 900);
+        h.getroffen = true; L.v *= 0.25; L.steht = Math.max(L.steht, 0.6); L.wackel = 0.3; meldung("Vollbremsung! Ein Hase!", 900);
         h.y -= h.seite * 1.5; // springt erschrocken weiter
       }
     }
@@ -291,7 +294,7 @@ window.Rallye = function (opt) {
         ctx.drawImage(ach, -px, -py, 4, hoch); ctx.restore();
       }
       // Raketenantrieb: Flamme am Heck, solange er beschleunigt
-      if (L.rakete && L.phase === "fahrt" && L.v < L.vmax * 0.98) {
+      if (L.rakete && L.phase === "fahrt" && L.steht <= 0 && L.v < L.vmax * 0.98) {
         const f = 1 - L.v / L.vmax, fl = 1.2 + f * 2.2 + (reduce ? 0 : Math.random() * 0.5);
         const g = ctx.createLinearGradient(-2, 0, -2 - fl, 0);
         g.addColorStop(0, "rgba(255,240,180,0.95)"); g.addColorStop(0.4, "rgba(255,150,40,0.85)"); g.addColorStop(1, "rgba(220,60,20,0)");

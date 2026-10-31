@@ -82,8 +82,12 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
 - **Werte zählen:** Tempo (Höchstgeschwindigkeit), Schub des Motors und Gewicht
   (Beschleunigung; das Raketen-Triebwerk zieht mit Flamme am Heck davon),
   Lenkung (wie schnell man ausweicht), Grip (Pfützen).
-- **Medaillen:** 🥇 66 s · 🥈 78 s · 🥉 92 s. Gold schafft man erst mit einem
-  schnelleren Motor als dem Rasenmäher. Bronze reicht zur Qualifikation.
+- **Medaillen:** 🥇 38 s · 🥈 62 s · 🥉 75 s. Stamm und Stein bringen das Auto 1 s
+  zum Stehen, ein Hase 0,6 s, ein Schlagloch 0,3 s. Mit Fahrer-Simulation nachgerechnet:
+  Das Rasenmäher-Auto schafft Bronze nur mit einer fehlerfreien Runde (≈ 74,6 s),
+  Silber braucht einen schnelleren Motor (Moped mit guter Runde ≈ 60–64 s), und Gold
+  ist selbst mit der Rakete bei einer durchschnittlichen Runde knapp (≈ 36–38 s).
+  Bronze reicht zur Qualifikation.
 - **Erste Medaille:** 30 Münzen, 1 Feder und von Rosi ein altes **Lenkrad mit Blitz**,
   das seit Jahren an ihrer Hütte hing: das erste Donnerkeil-Teil (1/8). Opa erkennt es
   in der Werkstatt („Den Blitz hab ich selbst draufgemalt!“) und wundert sich, wie es
