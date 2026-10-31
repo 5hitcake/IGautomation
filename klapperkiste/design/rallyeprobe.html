@@ -86,6 +86,23 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
   const bestzeiten = lies("klapperkiste-rallye-bestzeiten");
   let wahl = AUTOS[0];
 
+  // Vorschaubild mit Vorderachse: Rumpf und Achse liegen als zwei Bilder vor
+  function vorschau(au, ziel) {
+    const fertig = () => {
+      const k = 80, c = document.createElement("canvas");
+      c.width = au.laenge * k; c.height = Math.round(au.laenge * k * au.img.naturalHeight / au.img.naturalWidth);
+      const g = c.getContext("2d");
+      if (au.achseImg) {
+        const [px, py] = au.drehpunkt, hoch = 4 * au.achseImg.naturalHeight / au.achseImg.naturalWidth;
+        g.drawImage(au.achseImg, 0, (c.height / k / 2 - hoch / 2) * k, 4 * k, hoch * k);
+      }
+      g.drawImage(au.img, 0, 0, c.width, c.height);
+      ziel.src = c.toDataURL();
+    };
+    const bilder = [au.img, au.achseImg].filter(Boolean);
+    if (bilder.every((i) => i.complete && i.naturalWidth)) fertig();
+    else for (const i of bilder) i.addEventListener("load", () => { if (bilder.every((q) => q.complete && q.naturalWidth)) fertig(); }, { once: true });
+  }
   function autosZeigen() {
     const box = $("autos");
     box.innerHTML = "";
@@ -94,7 +111,7 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
       b.type = "button"; b.className = "auto"; b.setAttribute("aria-pressed", String(a === wahl));
       const best = bestzeiten[a.id];
       b.innerHTML = `<img alt=""><strong></strong><small></small><span class="best"></span>`;
-      b.querySelector("img").src = a.auto.img.src;
+      vorschau(a.auto, b.querySelector("img"));
       b.querySelector("strong").textContent = a.name;
       b.querySelector("small").textContent = `${a.info} · ${a.werte.tempo} km/h · ${a.werte.gewicht} kg`;
       b.querySelector(".best").textContent = best ? `Bestzeit ${best.toLocaleString("de-DE")} s` : "noch keine Zeit";
@@ -108,6 +125,7 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
     eltern: $("buehne"),
     bilder: { get auto() { return wahl.auto; }, walddach: lade(D.boden.walddach.bild), erde: lade(D.boden.erde.bild),
       fels: lade(D.objekte.felsbrocken.bild), nadelbaum: lade(D.objekte.nadelbaum.bild),
+      hase: (D.tiere.hase || []).map((q) => ({ img: lade(q.bild), b: q.breite, h: q.hoehe })),
       ...Object.fromEntries(["pfuetze", "ast", "wurzel", "schlagloch"].filter((n) => D.objekte[n]).map((n) => [n, lade(D.objekte[n].bild)])) },
     werte: () => wahl.werte,
     beiZiel: (e) => {

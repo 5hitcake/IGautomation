@@ -535,7 +535,8 @@ window.Karte = function (opt = {}) {
     bilder: { get auto() { return autoWahl; }, get walddach() { return BODEN.walddach.img; }, get erde() { return BODEN.erde.img; },
       get fels() { return OBJ.felsbrocken.img; }, get nadelbaum() { return OBJ.nadelbaum.img; },
       get pfuetze() { return OBJ.pfuetze && OBJ.pfuetze.img; }, get ast() { return OBJ.ast && OBJ.ast.img; },
-      get wurzel() { return OBJ.wurzel && OBJ.wurzel.img; }, get schlagloch() { return OBJ.schlagloch && OBJ.schlagloch.img; } },
+      get wurzel() { return OBJ.wurzel && OBJ.wurzel.img; }, get schlagloch() { return OBJ.schlagloch && OBJ.schlagloch.img; },
+      get hase() { return TIERBILD.hase; } },
     werte: () => (opt.werte ? opt.werte() : { tempo: 15, gewicht: 87, wendig: 4, grip: 2 }),
   }) : null;
   const rallyeMoeglich = () => RALLYE && spiel.holzweg && spiel.moosRallye && spiel.rosi;

@@ -11,9 +11,9 @@
 //   werte(): Werte des Autos wie in der Werkstatt (tempo, gewicht, wendig, grip)
 //   fertig({ zeit, medaille, muenzen }) nach „Fertig“; medaille: "gold" | "silber" | "bronze" | null
 window.Rallye = function (opt) {
-  const LAENGE = 320; // Meter
+  const LAENGE = 480; // Meter
   const BAHN = 4.2; // halbe Breite der Fahrbahn in Metern
-  const ZEITEN = { gold: 45, silber: 51, bronze: 58 }; // Sekunden; Gold braucht einen schnelleren Motor als den Rasenmäher
+  const ZEITEN = { gold: 66, silber: 78, bronze: 92 }; // Sekunden; Gold braucht einen schnelleren Motor als den Rasenmäher
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const box = document.createElement("div");
@@ -43,9 +43,22 @@ window.Rallye = function (opt) {
     DINGE.push({ art, x, y: oy, b: d[0], h: d[1], rot: (zufall() - 0.5) * 0.4 });
     if (zufall() < 0.55) DINGE.push({ art: "muenze", x: x + 4.5, y: (zufall() * 2 - 1) * (BAHN - 1), b: 1, h: 1 });
   }
+  // Wegrand: weich gewellt statt schnurgerade (Summe zweier Sinuswellen je Seite)
+  const RAND = [[zufall() * 6, zufall() * 6], [zufall() * 6, zufall() * 6]];
+  const rand = (x, seite) => {
+    const [a, b] = RAND[seite > 0 ? 1 : 0];
+    return BAHN + 0.35 + Math.sin(x / 9 + a) * 0.55 + Math.sin(x / 3.7 + b) * 0.25;
+  };
   for (let x = -20; x < LAENGE + 40; x += 2.6 + zufall() * 2.4) {
-    for (const seite of [-1, 1]) BAEUME.push({ x: x + zufall() * 2, y: seite * (BAHN + 2.6 + zufall() * 4.5), s: 0.8 + zufall() * 0.4 });
+    for (const seite of [-1, 1]) {
+      // ab und zu ragt eine Krone weit über den Wegrand (wie an einem echten Waldweg)
+      const ueber = zufall() < 0.3 ? zufall() * 2.2 : 0;
+      BAEUME.push({ x: x + zufall() * 2, y: seite * (rand(x, seite) + 2.4 - ueber + zufall() * 4), s: 0.8 + zufall() * 0.45 });
+    }
   }
+  // Hasen: sitzen am Wegrand und hoppeln über die Bahn, wenn das Auto näher kommt
+  const HASEN = [];
+  for (let x = 60; x < LAENGE - 30; x += 55 + zufall() * 45) HASEN.push({ x0: x, seite: zufall() < 0.5 ? -1 : 1 });
 
   let lauf = null, fertigFn = null, zuletzt = 0;
   const finger = { y: null };
@@ -57,9 +70,10 @@ window.Rallye = function (opt) {
     lauf = {
       x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 3, lenkwinkel: 0,
       vmax: 5 + (w.tempo || 15) / 10, acc: Math.max(1.4, 4.5 - (w.gewicht || 90) / 100),
-      lenk: 2.6 + (w.wendig || 4) * 0.45, grip: w.grip || 2, muenzen: 0, fehl: 0, wackel: 0, spritz: 0, gesehen: new Set(),
+      lenk: 5 + (w.wendig || 4) * 0.6 + (5 + (w.tempo || 15) / 10) * 0.3, grip: w.grip || 2, muenzen: 0, fehl: 0, wackel: 0, spritz: 0, gesehen: new Set(),
     };
     for (const d of DINGE) d.weg = false;
+    for (const h of HASEN) Object.assign(h, { x: h.x0, y: h.seite * (BAHN + 1.5), los: false, getroffen: false, sprung: 0 });
     box.hidden = false; $(".r-ende").hidden = true; $(".r-meldung").hidden = true;
     zuletzt = performance.now();
     requestAnimationFrame(bild);
@@ -137,7 +151,18 @@ window.Rallye = function (opt) {
         if (navigator.vibrate) { try { navigator.vibrate(60); } catch { /* egal */ } }
       }
     }
-    if (L.x >= LAENGE || L.zeit > 120) ziel_(L);
+    for (const h of HASEN) {
+      if (!h.los && h.x0 - L.x < 16 + L.v * 0.6) h.los = true;
+      if (!h.los || Math.abs(h.y) > BAHN + 3) continue;
+      h.sprung += dt * 7;
+      h.y -= h.seite * dt * 3.2; // hoppelt quer über den Weg zur anderen Seite
+      h.x += dt * 0.6;
+      if (!h.getroffen && Math.abs(h.x - L.x) < 2 && Math.abs(h.y - L.y) < 1.1) {
+        h.getroffen = true; L.v *= 0.25; L.wackel = 0.3; meldung("Vollbremsung! Ein Hase!", 900);
+        h.y -= h.seite * 1.5; // springt erschrocken weiter
+      }
+    }
+    if (L.x >= LAENGE || L.zeit > 160) ziel_(L);
   }
   function ziel_(L) {
     L.phase = "ziel";
@@ -161,8 +186,42 @@ window.Rallye = function (opt) {
     if (!muster[name]) { muster[name] = ctx.createPattern(img, "repeat"); muster[name].meter = meter; }
     return muster[name];
   };
+  // Grund (Waldboden, Weg mit gewelltem Rand) ändert sich nie: in 12-m-Kacheln vormalen
+  const KACHEL = 12, kacheln = new Map();
+  let kachelPx = 0, kachelHoch = 0;
+  function grundZeichnen(x0, x1, y0, y1, pxProM) {
+    const dach = musterVon("walddach"), erde = musterVon("erde");
+    if (!dach || !erde) { ctx.fillStyle = "#1f3a26"; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.fillStyle = "#7a5434"; ctx.fillRect(x0, -BAHN, x1 - x0, BAHN * 2); return; }
+    const hoch = Math.ceil(y1 - y0) + 2, px = Math.ceil(KACHEL * pxProM);
+    if (px !== kachelPx || hoch !== kachelHoch) { kacheln.clear(); kachelPx = px; kachelHoch = hoch; }
+    const ky0 = -hoch / 2;
+    for (let k = Math.floor(x0 / KACHEL); k <= Math.floor(x1 / KACHEL); k++) {
+      let c = kacheln.get(k);
+      if (!c) {
+        c = document.createElement("canvas"); c.width = px; c.height = Math.ceil(hoch * pxProM);
+        const g = c.getContext("2d"), f = px / KACHEL, wx = k * KACHEL;
+        g.setTransform(f, 0, 0, f, -wx * f, -ky0 * f);
+        const pd = g.createPattern(opt.bilder.walddach, "repeat"), pe = g.createPattern(opt.bilder.erde, "repeat");
+        pd.setTransform(new DOMMatrix().scale(14 / opt.bilder.walddach.naturalWidth));
+        pe.setTransform(new DOMMatrix().scale(6 / opt.bilder.erde.naturalWidth));
+        g.fillStyle = pd; g.fillRect(wx - 1, ky0, KACHEL + 2, hoch);
+        const weg = (extra) => {
+          g.beginPath(); g.moveTo(wx - 1, -rand(wx - 1, -1) - extra);
+          for (let x = wx - 1; x <= wx + KACHEL + 1; x += 0.5) g.lineTo(x, -rand(x, -1) - extra);
+          for (let x = wx + KACHEL + 1; x >= wx - 1; x -= 0.5) g.lineTo(x, rand(x, 1) + extra);
+          g.closePath();
+        };
+        g.fillStyle = "rgba(0,0,0,0.28)"; weg(0.8); g.fill();
+        g.fillStyle = pe; weg(0); g.fill();
+        kacheln.set(k, c);
+        if (kacheln.size > 30) kacheln.delete(kacheln.keys().next().value);
+      }
+      ctx.drawImage(c, k * KACHEL, ky0, KACHEL + 1 / pxProM, hoch);
+    }
+  }
   function zeichnen() {
-    const L = lauf, dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const L = lauf;
+    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(700000 / Math.max(1, cv.clientWidth * cv.clientHeight))));
     const w = cv.clientWidth, h = cv.clientHeight;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     const m = h / 17, kx = L.x - (w * 0.28) / m;
@@ -170,12 +229,7 @@ window.Rallye = function (opt) {
     const wack = reduce ? 0 : Math.sin(performance.now() / 30) * L.wackel * 0.3;
     ctx.setTransform(dpr * m, 0, 0, dpr * m, dpr * (-kx * m), dpr * (h / 2 + wack * m));
     const x0 = kx - 2, x1 = kx + w / m + 2, y0 = -h / 2 / m - 1, y1 = h / 2 / m + 1;
-    const dach = musterVon("walddach"), erde = musterVon("erde");
-    const setz = (p, meter) => p && p.setTransform(new DOMMatrix().scale(meter / opt.bilder[p === dach ? "walddach" : "erde"].naturalWidth));
-    setz(dach, 14); setz(erde, 6);
-    ctx.fillStyle = dach || "#1f3a26"; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-    ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.fillRect(x0, -BAHN - 0.9, x1 - x0, BAHN * 2 + 1.8);
-    ctx.fillStyle = erde || "#7a5434"; ctx.fillRect(x0, -BAHN, x1 - x0, BAHN * 2);
+    grundZeichnen(x0, x1, y0, y1, dpr * m);
     // Start- und Ziellinie
     for (const lx of [0, LAENGE]) {
       for (let i = 0; i < 8; i++) for (let j = 0; j < 2; j++) {
@@ -241,6 +295,17 @@ window.Rallye = function (opt) {
     if (L.spritz > 0) {
       ctx.fillStyle = `rgba(150,190,215,${L.spritz})`;
       for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.arc(L.x - 1 + Math.cos(i) * (1.2 + (0.6 - L.spritz) * 3), L.y + Math.sin(i * 2.3) * 1.4, 0.18, 0, Math.PI * 2); ctx.fill(); }
+    }
+    // Hasen
+    const hb = opt.bilder.hase;
+    for (const h of HASEN) {
+      if (h.x < x0 - 2 || h.x > x1 + 2) continue;
+      const pose = hb && hb[h.los && Math.sin(h.sprung) > 0 ? 1 : 0];
+      if (!pose || !pose.img.complete || !pose.img.naturalWidth) continue;
+      const hub = h.los ? Math.max(0, Math.sin(h.sprung)) * 0.15 : 0;
+      ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.los ? -h.seite * Math.PI / 2 : 0); ctx.scale(1 + hub, 1 + hub);
+      ctx.drawImage(pose.img, -pose.b / 2, -pose.h / 2, pose.b, pose.h);
+      ctx.restore();
     }
     // Bäume am Rand (über allem, wie Kronen)
     const baum = opt.bilder.nadelbaum;
