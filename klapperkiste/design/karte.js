@@ -378,12 +378,14 @@ window.Karte = function (opt = {}) {
   // auftrag: null | "reifen" | "batterie" | "erledigt"; teile: Belohnungen (für die Kartenprobe ohne Werkstatt)
   const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null };
   function hudNeu() {
-    const a = $("auftrag"), n = BRAUCHT[spiel.auftrag], zeilen = [];
-    if (n) zeilen.push(`📋 ${spiel.auftrag === "reifen" ? "Alte Reifen" : "Alte Batterie"} für Knut · ${spiel.beutel}/${n}`);
-    if (spiel.hilde === "auftrag") zeilen.push("📋 Hildes Schafe vom Feldweg scheuchen");
-    if (spiel.hilde === "frei") zeilen.push("📋 Zurück zu Hilde");
-    a.hidden = !zeilen.length;
-    a.textContent = zeilen.join("\n");
+    // Statt einer langen Liste oben links ein Knopf zum Auftragsbuch mit der Zahl offener Aufträge
+    $("auftrag").hidden = true;
+    const { offen, erledigt } = auftraege(), knopf = $("buchKnopf");
+    if (knopf) {
+      knopf.hidden = !offen.length && !erledigt.length;
+      knopf.textContent = offen.length ? `📖 Aufträge · ${offen.length}` : "📖 Aufträge";
+      if (!$("buch").hidden) buchZeigen();
+    }
     $("geld").textContent = `🪙 ${spiel.geld}`;
     $("geld").title = `${spiel.geld} Münzen`;
     $("geld").hidden = spiel.auftrag === null;
@@ -511,6 +513,80 @@ window.Karte = function (opt = {}) {
     }
     ladenAuf();
   }
+  // --- Auftragsbuch -----------------------------------------------------------
+  // Alle Aufträge, abgeleitet aus dem Spielstand. Mehrere können gleichzeitig offen sein,
+  // man entscheidet selbst die Reihenfolge; „Hinfahren“ plant den Weg zum nächsten Schritt.
+  const zielVon = (id) => ZIELE.find((z) => z.id === id);
+  // nächster noch liegender Fundgegenstand in bekanntem Gebiet
+  function fundZiel(art, name) {
+    const liste = SAMMEL.filter((r) => r.art === art && !r.weg && bekannt(r.x, r.y))
+      .sort((a, b) => Math.hypot(a.x - auto.x, a.y - auto.y) - Math.hypot(b.x - auto.x, b.y - auto.y));
+    return liste[0] ? { id: "fund", name, x: liste[0].x, y: liste[0].y } : null;
+  }
+  function auftraege() {
+    const offen = [], erledigt = [];
+    const knut = { figur: "knut", wer: "Knut Kurbel" }, hilde = { figur: "hilde", wer: "Bäuerin Hilde" };
+    const reifen = { ...knut, titel: "Alte Reifen für Knut", belohnung: "40 Münzen" };
+    const batterie = { ...knut, titel: "Eine alte Autobatterie", belohnung: "Scheinwerfer und 15 Münzen" };
+    const schafe = { ...hilde, titel: "Schafe vom Feldweg scheuchen", belohnung: "30 Münzen und ein Karosserie-Teil" };
+    if (spiel.auftrag === "reifen") {
+      const voll = spiel.beutel >= BRAUCHT.reifen;
+      offen.push({ ...reifen, stand: `${spiel.beutel}/${BRAUCHT.reifen}`,
+        text: voll ? "Alle Reifen sind im Beutel. Bring sie zu Knut auf den Schrottplatz."
+          : "Drei alte Reifen einsammeln: am Feldrand, am Weg in den Wald und drüben am Weideweg.",
+        ziel: voll ? zielVon("schrottplatz") : fundZiel("reifen", "Alter Reifen"),
+        fehlt: voll ? null : "Die übrigen Reifen liegen in Gegenden, die du noch nicht kennst. Such ein Kartenstück." });
+    }
+    if (spiel.auftrag === "batterie") {
+      const voll = spiel.beutel >= BRAUCHT.batterie;
+      offen.push({ ...batterie, stand: `${spiel.beutel}/1`,
+        text: voll ? "Die Batterie ist im Beutel. Bring sie zu Knut." : "Am Weideweg ganz im Osten liegt eine alte Autobatterie.",
+        ziel: voll ? zielVon("schrottplatz") : fundZiel("batterie", "Alte Batterie"),
+        fehlt: voll ? null : "Den Weideweg kennst du noch nicht. Am Feldrand liegt ein Kartenstück." });
+    }
+    if (spiel.auftrag === "batterie" || spiel.auftrag === "erledigt") erledigt.push(reifen);
+    if (spiel.auftrag === "erledigt") erledigt.push(batterie);
+    if (spiel.hilde === "auftrag") {
+      const hupe = hatTeil("hupe");
+      offen.push({ ...schafe, stand: hupe ? "Hupe dabei" : "Hupe fehlt",
+        text: hupe ? "Fahr auf den Feldweg hinter dem Hof und hup die Schafe von der Straße."
+          : "Die Schafe hören nur auf eine richtig laute Hupe. Vielleicht hat Knut eine im Laden.",
+        ziel: hupe ? zielVon("felder") : zielVon("schrottplatz") });
+    }
+    if (spiel.hilde === "frei") offen.push({ ...schafe, stand: "Weg ist frei", text: "Die Schafe sind auf der Wiese. Erzähl es Hilde auf dem Bauernhof.", ziel: zielVon("bauernhof") });
+    if (spiel.hilde === "erledigt") erledigt.push(schafe);
+    return { offen, erledigt };
+  }
+  function buchZeigen() {
+    const liste = $("buchListe"), { offen, erledigt } = auftraege();
+    const FIG = (window.KARTE_DATEN && window.KARTE_DATEN.figuren) || {};
+    liste.innerHTML = "";
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    if (!offen.length) liste.append(el("p", "buch-leer", "Gerade ist nichts offen. Schau bei den Leuten im Tal vorbei, vielleicht brauchen sie Hilfe."));
+    for (const a of offen) {
+      const karte = el("article", "buch-auftrag");
+      const bild = el("img"); bild.alt = ""; bild.src = (FIG[a.figur] || {}).hallo || "";
+      const text = el("div", "buch-text");
+      text.append(el("p", "buch-wer", a.wer), el("h3", null, a.titel), el("p", null, a.text));
+      const fuss = el("div", "buch-fuss");
+      fuss.append(el("span", "buch-stand", a.stand), el("span", "buch-lohn", "🎁 " + a.belohnung));
+      const hin = el("button", "knopf", a.ziel ? `🚗 ${a.ziel.name}` : "🚗 Hinfahren"); hin.type = "button";
+      hin.disabled = !a.ziel || Boolean(route && zielWahl && a.ziel && zielWahl.x === a.ziel.x && zielWahl.y === a.ziel.y);
+      if (!a.ziel && a.fehlt) text.append(el("p", "buch-fehlt", a.fehlt));
+      hin.addEventListener("click", () => { buchZu(); planen(a.ziel); });
+      fuss.append(hin);
+      text.append(fuss);
+      karte.append(bild, text);
+      liste.append(karte);
+    }
+    if (erledigt.length) {
+      liste.append(el("h4", "buch-erledigt-titel", "Erledigt"));
+      for (const a of erledigt) liste.append(el("p", "buch-erledigt", `✓ ${a.titel} (${a.wer})`));
+    }
+  }
+  function buchAuf() { if (!$("gespraech").hidden) return; $("buch").hidden = false; buchZeigen(); $("buchZu").focus(); }
+  function buchZu() { $("buch").hidden = true; }
+
   function ladenAuf() {
     const l = $("laden");
     const liste = l.querySelector(".waren");
@@ -1673,6 +1749,15 @@ window.Karte = function (opt = {}) {
   // Geld-Anzeige und Laden-Fenster gehören zur Karte, damit beide Seiten sie haben
   // Anzeigen am Rand: oben links Ziel und Auftrag (.hud), rechts unter der Minikarte Wetter
   // und Münzen, unten rechts der Tacho
+  const buchKnopf = document.createElement("button");
+  buchKnopf.type = "button"; buchKnopf.id = "buchKnopf"; buchKnopf.hidden = true;
+  buchKnopf.addEventListener("click", buchAuf);
+  document.querySelector(".hud").append(buchKnopf);
+  const buch = document.createElement("div");
+  buch.id = "buch"; buch.hidden = true; buch.setAttribute("role", "dialog"); buch.setAttribute("aria-label", "Auftragsbuch");
+  buch.innerHTML = '<header><h2>📖 Auftragsbuch</h2><button type="button" class="knopf zweit" id="buchZu">Schließen</button></header><div id="buchListe"></div>';
+  $("karte").parentElement.append(buch);
+  $("buchZu").addEventListener("click", buchZu);
   const rechts = document.createElement("div");
   rechts.className = "hud-rechts"; rechts.setAttribute("aria-live", "polite");
   rechts.innerHTML = '<span id="wetter"></span><span id="geld" hidden></span>';

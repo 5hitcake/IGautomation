@@ -109,3 +109,24 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 /* Musik an/aus, unten links auf der Seite */
 #musikKnopf { position: fixed; left: 8px; bottom: max(8px, env(safe-area-inset-bottom)); z-index: 45; font: inherit; font-size: 18px; line-height: 1; padding: 7px 9px; border-radius: 12px; border: 2px solid rgba(0,0,0,0.5); background: rgba(18,35,42,0.85); color: var(--chalk); cursor: pointer; }
 #musikKnopf.aus { opacity: 0.55; }
+/* Auftragsbuch: Knopf oben links, Fenster über der Karte */
+#buchKnopf { pointer-events: auto; font: inherit; font-size: 14px; font-weight: 800; border: 0; border-radius: 10px; padding: 5px 11px; cursor: pointer; background: rgba(200,100,42,0.94); color: #fffaf0; box-shadow: 0 2px 0 rgba(0,0,0,0.35); width: max-content; }
+#buch { position: absolute; inset: 0; z-index: 8; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; padding: 10px 12px; box-sizing: border-box; background: rgba(250,243,228,0.97); color: #1d1a16; }
+#buch header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#buch h2 { font-family: var(--font-display); font-weight: 400; color: #a23b1c; margin: 0; font-size: 22px; }
+#buchListe { overflow-y: auto; display: grid; gap: 8px; align-content: start; }
+.buch-auftrag { display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: start; background: #fffaf0; border: 3px solid #1d1a16; border-radius: 12px; padding: 8px 10px; }
+.buch-auftrag img { width: 64px; height: 64px; object-fit: cover; object-position: 50% 6%; border-radius: 50%; background: #e8dcc2; border: 2px solid #1d1a16; }
+.buch-text { display: grid; gap: 3px; }
+.buch-text h3 { font-family: var(--font-display); font-weight: 400; font-size: 18px; margin: 0; }
+.buch-text p { font-size: 13px; line-height: 1.35; }
+.buch-wer { font-size: 11px !important; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8a5a2a; }
+.buch-fehlt { color: #a23b1c; }
+.buch-fuss { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 3px; }
+.buch-stand { font-weight: 800; background: #f3e2b8; border-radius: 8px; padding: 2px 8px; font-size: 13px; }
+.buch-lohn { font-size: 13px; font-weight: 700; }
+.buch-fuss .knopf { margin-left: auto; padding: 7px 12px; }
+.buch-fuss .knopf:disabled { opacity: 0.45; cursor: not-allowed; }
+.buch-leer { color: #5a4a36; }
+.buch-erledigt-titel { margin: 6px 0 0; font-family: var(--font-display); font-weight: 400; color: #5a4a36; }
+.buch-erledigt { font-size: 13px; color: #5a7a4a; }
