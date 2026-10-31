@@ -119,11 +119,22 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Opas Werkstatt (Spielstart) | `werkstatt.png` | ✅ |
 | Bauernhof (Hilde) | `bauernhof.png` | ✅ |
 | Försterhütte (Moos) | `foersterhuette.png` | ✅ |
+| Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | offen, bis dahin dient `werkstatt.png` |
 
 ### Opas Werkstatt
 
 ```
 Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals. Inside a small, cosy old wooden workshop shed in the afternoon: walls of weathered wooden planks, warm sunlight falling in through a dusty window on the left, a large pegboard on the back wall full of hanging tools (wrenches, hammers, saws, pliers), a long cluttered workbench on the right with a vice, tin cans with screws and an oil can, shelves with jars, coils of wire and an old radio, a hanging lamp with a metal shade, a rolled-up garden hose and a stack of old tyres in the corner. The left half and the centre of the image are calm and open: an empty wooden plank floor with a few oil stains and wood shavings, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```
+
+### Werkstatt-Halle
+
+Hintergrund des Werkstatt-Bildschirms. Das Auto steht groß in der Mitte, links
+liegen die Kategorien, rechts Teile und Info darüber. Deshalb muss die Mitte frei
+und hell sein, die Ränder dürfen voll und dunkler sein.
+
+```
+Background illustration for a car building screen in a game, seen straight from the front at eye level, perfectly centred and roughly symmetrical, no characters, no people, no animals, no car. Inside a big old wooden garage hall in the evening, a bit like a classic racing game tuning garage but cosy and hand-made: in the exact centre an empty square wooden lifting platform with yellow and black hazard stripes on its front edge, lit from above by one big hanging lamp with a metal shade that throws a warm cone of light down onto the empty platform, the light pool on the floor is bright, everything around it falls off into soft warm shadow. On the left and right walls in the shadow: tall wooden shelves full of spare parts, stacked old tyres, oil cans, a pegboard with tools, coiled hoses, a workbench with a vice, a few crates. The back wall behind the platform has big closed wooden barn doors with a small dusty window strip letting in a last bit of blue evening light. Old plank floor with oil stains. The whole centre area above and around the platform is calm and open with no objects, so a car can be placed there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, edges darker and slightly muted so the centre stands out. Wide landscape format 16:9. No text, no letters, no frames.
 ```
 
 ### Bauernhof

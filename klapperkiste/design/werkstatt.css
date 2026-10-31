@@ -68,3 +68,91 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 .part.tipp { outline: 3px solid var(--mustard); animation: tipp 1.1s ease-in-out infinite; }
 @keyframes tipp { 50% { outline-color: rgba(242,182,50,0.25); transform: scale(1.04); } }
 @media (prefers-reduced-motion: reduce) { .part.tipp { animation: none; } }
+
+/* --- Halle (Umbau): Auto groß in der Mitte, links Kategorien, rechts Teile und Info --- */
+.halle {
+  position: relative; display: grid; gap: 10px; padding: 12px; border-radius: 18px; overflow: hidden; isolation: isolate;
+  background: #10191c var(--halle-bild, none) center / cover no-repeat;
+}
+/* Halle abdunkeln, in der Mitte heller: das Auto steht im Licht */
+.halle::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 60% 70% at 50% 52%, rgba(10,14,16,0.25), rgba(10,14,16,0.72) 70%, rgba(10,14,16,0.9));
+}
+.halle-kopf { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.halle-kopf h2 { color: var(--mustard); font-size: 20px; text-shadow: 0 2px 0 rgba(0,0,0,0.5); }
+.halle-mitte { display: grid; grid-template-columns: 148px minmax(0, 1fr) 290px; gap: 12px; align-items: start; }
+.halle #stage { background: transparent; height: min(46vw, 470px, calc(100svh - 300px)); min-height: 240px; }
+.buehne-w { display: grid; gap: 8px; min-width: 0; }
+.halle #status { text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+/* Kategorien als Kästchen */
+.kats { display: grid; gap: 6px; }
+.kat {
+  display: grid; grid-template-columns: 38px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center;
+  text-align: left; padding: 6px 8px; border-radius: 12px; background: rgba(18,35,42,0.88); color: var(--chalk);
+  border: 2px solid rgba(233,239,230,0.08); position: relative; font-size: 13px; line-height: 1.15;
+}
+.kat img { grid-row: 1 / 3; width: 38px; height: 30px; object-fit: contain; }
+.kat-name { font-weight: 800; }
+.kat-n { font-size: 11px; color: var(--chalk-dim); }
+.kat[aria-selected="true"] { border-color: var(--mustard); background: rgba(52,44,20,0.92); }
+.kat.fertig { opacity: 0.5; }
+.kat.fertig .kat-n { color: var(--mint); }
+.kat.fertig[aria-selected="true"] { opacity: 0.85; }
+.kat.leer { opacity: 0.35; }
+.kat.fehlt::after {
+  content: ""; position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--rust); box-shadow: 0 0 0 2px rgba(18,35,42,0.9);
+}
+
+/* Teile und Info rechts */
+.regal { display: grid; gap: 10px; background: rgba(18,35,42,0.9); border-radius: 14px; padding: 10px; border: 2px solid rgba(233,239,230,0.08); }
+.halle .tray { grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 6px; max-height: 236px; overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
+.halle .part { padding: 6px 4px 8px; font-size: 12px; background: var(--card); border: 2px solid transparent; }
+.halle .part img { width: 64px; height: 44px; }
+.halle .part.gewaehlt { border-color: var(--mustard); background: #3a3a22; }
+.halle .part.in:not(.gewaehlt) { border-color: rgba(111,211,163,0.5); }
+.info { display: grid; gap: 8px; }
+.info-leer { color: var(--chalk-dim); font-size: 13px; }
+.info-bild { background: radial-gradient(circle, rgba(242,182,50,0.18), transparent 70%); border-radius: 12px; display: grid; place-items: center; padding: 6px; }
+.info-bild img { width: 100%; max-width: 200px; height: 110px; object-fit: contain; }
+.info h3 { font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.1; margin: 0; color: var(--chalk); }
+.info-kat { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); }
+.info-text { font-size: 13px; line-height: 1.4; color: var(--chalk-dim); }
+.info-werte { margin: 0; display: grid; gap: 5px; }
+.info-werte div { display: grid; grid-template-columns: 80px 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
+.info-werte dt { color: var(--chalk-dim); }
+.info-werte dd { margin: 0; font-weight: 800; white-space: nowrap; }
+.balken { height: 7px; background: var(--board); border-radius: 4px; overflow: hidden; }
+.balken i { display: block; height: 100%; background: var(--mustard); border-radius: 4px; }
+.info-extras { display: flex; flex-wrap: wrap; gap: 5px; }
+.info-extras span { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(111,211,163,0.16); color: var(--mint); }
+.info-satz { font-size: 12px; color: var(--mustard); }
+.info-warn { font-size: 12px; color: var(--rust); }
+.info-knoepfe { display: flex; flex-wrap: wrap; gap: 6px; }
+.info .knopf { flex: 1 1 auto; font: inherit; font-weight: 800; border: 0; border-radius: 10px; padding: 10px 12px; cursor: pointer; background: var(--mustard); color: var(--board); }
+.info .knopf.zweit { background: var(--rust); color: #1d1a16; }
+.info .knopf.leise { background: var(--line); color: var(--chalk); flex: 0 1 auto; }
+.info .knopf:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Werte des ganzen Autos unter der Bühne */
+.werte { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.wert { display: grid; gap: 1px; justify-items: center; text-align: center; padding: 6px 4px; border-radius: 10px; background: rgba(18,35,42,0.85); font-size: 13px; }
+.wert-name { font-size: 9.5px; font-weight: 800; letter-spacing: 0.03em; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; color: var(--chalk-dim); }
+.wert-neu { font-size: 11px; font-weight: 800; }
+.wert-neu.plus { color: var(--mint); }
+.wert-neu.minus { color: var(--rust); }
+
+/* Handy hochkant: Bühne oben, Kategorien als Reihe, darunter Teile und Info */
+@media (max-width: 860px) {
+  .halle { padding: 10px 8px; }
+  .halle-mitte { grid-template-columns: minmax(0, 1fr); }
+  .buehne-w { order: 1; }
+  .kats { order: 2; display: flex; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; position: relative; }
+  .kat { flex: 0 0 auto; grid-template-columns: 30px auto; }
+  .kat img { width: 30px; height: 24px; }
+  .regal { order: 3; }
+  .halle #stage { height: min(60vw, 340px); min-height: 200px; }
+  .werte { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

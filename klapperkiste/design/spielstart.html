@@ -26,7 +26,6 @@
 @keyframes knopfTipp { 50% { box-shadow: 0 0 0 7px rgba(242,182,50,0.25); } }
 @media (prefers-reduced-motion: reduce) { .knopf.tipp, button.tipp { animation: none; } }
 .knopf:disabled { opacity: 0.45; cursor: not-allowed; }
-#stage { height: min(62vw, 520px, calc(100svh - 260px)); }
 </style>
 </head>
 <body>
@@ -44,27 +43,27 @@
   <div id="tipp" role="status" aria-live="polite" hidden><img id="tippBild" alt=""><p id="tippText"></p></div>
 
   <!-- Bildschirm 1: Opas Werkstatt -->
-  <section id="s-werkstatt" aria-label="Opas Werkstatt" style="display:grid;gap:12px">
-    <div class="top">
+  <section id="s-werkstatt" class="halle" aria-label="Opas Werkstatt">
+    <div class="halle-kopf">
       <h2>Opas Werkstatt</h2>
       <div class="views" role="group" aria-label="Ansicht">
         <button type="button" id="view-seite" aria-pressed="true">Seite</button>
         <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
       </div>
     </div>
-    <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszubauen."></canvas>
-    <p id="status" aria-live="polite"></p>
-    <div class="fahrleiste"><button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
-    <section style="display:grid;gap:8px" aria-label="Teile-Regal">
-      <h2>Teile-Regal</h2>
-      <div class="tabs" id="tabs" role="tablist" aria-label="Kategorie"></div>
-      <div class="tray" id="tray"></div>
-    </section>
-    <section style="display:grid;gap:8px" aria-label="Fahrbereit">
-      <h2>Fahrbereit?</h2>
-      <div class="checks" id="checks"></div>
-    </section>
-    <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten). Ausbauen: Teil auf der Bühne antippen.</p>
+    <div class="halle-mitte">
+      <div class="kats" id="tabs" role="tablist" aria-label="Kategorien"></div>
+      <div class="buehne-w">
+        <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszuwählen."></canvas>
+        <div class="werte" id="werte" aria-label="Werte deines Autos"></div>
+        <p id="status" aria-live="polite"></p>
+        <div class="fahrleiste"><button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
+      </div>
+      <aside class="regal" aria-label="Teile und Info">
+        <div class="tray" id="tray"></div>
+        <div class="info" id="info" aria-live="polite"></div>
+      </aside>
+    </div>
   </section>
 
   <!-- Bildschirm 2: Karte -->
@@ -105,6 +104,7 @@
 <script src="raster.js"></script>
 <script src="spielstart_teile.js"></script>
 <script src="karte_daten.js"></script>
+<script src="teilwerte.js"></script>
 <script src="werkstatt.js"></script>
 <script src="stimmen_daten.js"></script>
 <script src="musik_daten.js"></script>
@@ -160,7 +160,7 @@
     $("losfahren").disabled = !W.fahrzeug() || schritt < 3;
     if (schritt === 1 && (W.state.mounted.radH || W.state.mounted.radV)) {
       schritt = 2; W.tipp(null);
-      tipp("Prima! Jetzt der Rest: <strong>das zweite Rad, Motor, Tank, Sitz und Lenkung</strong>. Unter „Fahrbereit?“ siehst du, was noch fehlt.");
+      tipp("Prima! Jetzt der Rest: <strong>das zweite Rad, Motor, Tank, Sitz und Lenkung</strong>. Die Kästchen mit rotem Punkt zeigen, was noch fehlt.");
     }
     if (schritt === 2 && W.fahrbereit()) {
       schritt = 3; tipp(null);
@@ -221,12 +221,12 @@
   setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
     ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Bolzen, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
     ["nachdenken", "Na ja, „Kiste“ ist geschmeichelt. Rahmen und Achsen sind schon dran, der Rest liegt noch hier im Regal herum."],
-    ["auftrag", "Fang mit den Rädern an: Das leuchtende Rad im Regal ziehst du einfach auf einen gelben Platz. Antippen geht auch."],
+    ["auftrag", "Fang mit den Rädern an: Tipp das leuchtende Rad an, schau es dir an und drück auf „Einbauen“."],
   ], () => {
     if (schritt !== 0) return;
     schritt = 1;
     W.tipp("schubkarre");
-    tipp("Zieh das <strong>leuchtende Rad</strong> auf einen gelben Platz auf der Hebebühne, oder tipp es an.");
+    tipp("Tipp das <strong>leuchtende Rad</strong> an und dann auf <strong>„Einbauen“</strong>. Ziehen auf die Hebebühne geht auch.");
   }), 300);
   window.__ss = { W, K, get schritt() { return schritt; } }; // für automatische Tests
 })();

@@ -73,6 +73,25 @@ Einstiegs ist der Schrottplatz das einzige wählbare Ziel. „Zur Werkstatt“ u
 die Ankunft an Opas Schuppen führen zurück in die Werkstatt. Losfahren geht
 nur fahrbereit und ohne Karosserie oder mit komplettem Satz.
 
+### Werkstatt-Bildschirm (Umbau nach dem Vorbild klassischer Tuning-Garagen)
+
+- **Mitte:** das Auto groß auf der Hebebühne im Lichtkegel, Hintergrund ist eine
+  eigene gemalte Halle (`assets/charaktere/hintergrund/halle.png`, bis dahin Opas
+  Schuppen, abgedunkelt). Darunter die Werte des ganzen Autos (Tempo, Steigung,
+  Reichweite, Grip, Lenkung, Gewicht).
+- **Links:** Kategorien als Kästchen (Grundgestell, Achsen, Räder, Motor, Energie,
+  Sitz, Lenkung, Licht, Hupe, Karosserie). Fertig = ausgegraut mit Haken, zum Fahren
+  noch nötig = roter Punkt. Auf dem Handy als Reihe unter der Bühne.
+- **Rechts:** die Teile der Kategorie und das Info-Feld zum gewählten Teil: Bild,
+  Beschreibung, Werte als Balken, Extras, bei Karosserie die Satz-Fähigkeit. Knöpfe
+  „Einbauen“ (oder „Tauschen“), „Ausbauen“ und „Abbrechen“. Geht etwas nicht, steht
+  der Grund darüber. Ist ein Teil gewählt, zeigen Pfeile unter der Bühne, wie sich
+  die Werte des Autos durch Einbauen ändern.
+- Eingebaute Teile auf der Bühne antippen wählt sie aus (dann „Ausbauen“), Ziehen
+  auf die Bühne geht weiterhin.
+- Die Werte stehen in `design/teilwerte.js` (erster Entwurf, wird beim Spielen
+  nachgestellt; auf der Karte wirken sie noch nicht).
+
 ### Teile, Geld und Händler (entschieden, wie bei Dredge)
 
 **Woher Teile kommen:**

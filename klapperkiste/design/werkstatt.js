@@ -121,7 +121,7 @@ window.Werkstatt = function (opt = {}) {
   // Was blockiert das Ausbauen?
   const BLOCKS = { achseH: ["radH"], achseV: ["radV"] };
 
-  const state = { view: "seite", mounted: { ...opt.vorbau }, anim: {}, tab: "rahmen", tipp: null };
+  const state = { view: "seite", mounted: { ...opt.vorbau }, anim: {}, tab: "rahmen", tipp: null, wahl: null, wahlSlot: null };
   let drag = null;          // laufendes Ziehen: { partId, kat, fromSlot, x, y, target, touch }
   let suppressClick = false; // nach einem Ziehen den folgenden Klick verschlucken
 
@@ -140,6 +140,10 @@ window.Werkstatt = function (opt = {}) {
   }
 
   const $ = (id) => document.getElementById(id);
+  // Hintergrund: eigenes Hallenbild, sonst Opas Schuppen
+  const HG = (window.KARTE_DATEN && window.KARTE_DATEN.hintergruende) || {};
+  const halle = $("stage").closest(".halle");
+  if (halle && (HG.halle || HG.werkstatt)) halle.style.setProperty("--halle-bild", `url(${HG.halle || HG.werkstatt})`);
   function say(text, kind) {
     const s = $("status"); s.textContent = text; s.className = kind || "";
   }
@@ -221,6 +225,7 @@ window.Werkstatt = function (opt = {}) {
     if (why) return say(why, "warn");
     const name = PARTS.find((p) => p.id === state.mounted[slot]).name;
     delete state.mounted[slot];
+    state.wahlSlot = null;
     say(`${name} ausgebaut.`);
     refresh();
   }
@@ -228,7 +233,7 @@ window.Werkstatt = function (opt = {}) {
   // --- Geometrie ------------------------------------------------------------
   function layout(w, h) {
     const g = R[state.view];
-    const s = Math.min((w * 0.86) / (g.breite * CELL), (h * (state.view === "seite" ? 0.78 : 0.82)) / (g.hoehe * CELL));
+    const s = Math.min((w * 0.94) / (g.breite * CELL), (h * (state.view === "seite" ? 0.8 : 0.84)) / (g.hoehe * CELL));
     const cw = g.breite * CELL * s, ch = g.hoehe * CELL * s;
     const ox = (w - cw) / 2;
     const oy = state.view === "seite" ? h * 0.9 - ch : (h - ch) / 2;
@@ -249,26 +254,58 @@ window.Werkstatt = function (opt = {}) {
   }
 
   // --- Zeichnen -------------------------------------------------------------
+  // Die Halle selbst ist das Hintergrundbild (CSS). Auf der Bühne: Lichtkegel von oben
+  // auf das Auto und die Hebebühne mit Warnstreifen bzw. von oben eine Drehscheibe.
   function drawWorkshop(ctx, w, h, L) {
-    ctx.fillStyle = "#1b3138"; ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
+    const g = R[state.view];
+    const mx = L.ox + (g.breite * L.cell) / 2;
     if (state.view === "seite") {
-      ctx.fillStyle = "#24414a";
-      for (let y = 14; y < h * 0.9; y += 22) for (let x = 14 + ((y / 22) % 2) * 11; x < w; x += 22) {
-        ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
-      }
-      const floor = L.oy + R.seite.boden * L.cell;
-      ctx.fillStyle = "#14252b"; ctx.fillRect(0, floor, w, h - floor);
+      const floor = L.oy + R.seite.boden * L.cell, breit = g.breite * L.cell;
+      // Lichtkegel
+      const kegel = ctx.createLinearGradient(0, 0, 0, floor);
+      kegel.addColorStop(0, "rgba(255,236,180,0.0)"); kegel.addColorStop(1, "rgba(255,236,180,0.16)");
+      ctx.fillStyle = kegel;
+      ctx.beginPath(); ctx.moveTo(mx - breit * 0.12, 0); ctx.lineTo(mx + breit * 0.12, 0);
+      ctx.lineTo(mx + breit * 0.62, floor); ctx.lineTo(mx - breit * 0.62, floor); ctx.closePath(); ctx.fill();
+      // Lichtfleck auf dem Boden
+      const fleck = ctx.createRadialGradient(mx, floor, 0, mx, floor, breit * 0.7);
+      fleck.addColorStop(0, "rgba(255,230,160,0.45)"); fleck.addColorStop(1, "rgba(255,230,160,0)");
+      ctx.fillStyle = fleck;
+      ctx.beginPath(); ctx.ellipse(mx, floor + L.cell * 0.15, breit * 0.7, L.cell * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+      // Hebebühne: Platte mit Warnstreifen
+      const px = mx - breit * 0.58, pw = breit * 1.16, ph = Math.max(8, L.cell * 0.16);
+      ctx.fillStyle = "#1d2428"; ctx.beginPath(); ctx.roundRect(px, floor, pw, ph, 3); ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.rect(px, floor, pw, ph * 0.6); ctx.clip();
       ctx.fillStyle = "#f2b632";
-      for (let x = 0; x < w; x += 40) {
-        ctx.beginPath(); ctx.moveTo(x, floor); ctx.lineTo(x + 20, floor); ctx.lineTo(x + 14, floor + 6); ctx.lineTo(x - 6, floor + 6); ctx.fill();
+      for (let x = px - ph; x < px + pw; x += ph * 2.4) {
+        ctx.beginPath(); ctx.moveTo(x, floor + ph); ctx.lineTo(x + ph, floor); ctx.lineTo(x + ph * 2.2, floor); ctx.lineTo(x + ph * 1.2, floor + ph); ctx.fill();
       }
+      ctx.restore();
+      ctx.fillStyle = "#3a464c";
+      for (const sx of [px + pw * 0.12, px + pw * 0.88]) ctx.fillRect(sx - ph * 0.4, floor + ph, ph * 0.8, h - floor - ph);
     } else {
-      // Boden von oben: Betonplatten und die zwei Fahrschienen der Hebebühne
-      ctx.strokeStyle = "rgba(233,239,230,0.06)"; ctx.lineWidth = 2;
-      for (let x = 0; x < w; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-      for (let y = 0; y < h; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-      ctx.fillStyle = "#2c4a52";
-      for (const row of [0, 3]) ctx.fillRect(L.ox - L.cell * 0.4, L.oy + row * L.cell + L.cell * 0.15, 10.8 * L.cell, L.cell * 0.7);
+      const ry = L.oy + (g.hoehe * L.cell) / 2, r = Math.max(g.breite, g.hoehe) * L.cell * 0.62;
+      const fleck = ctx.createRadialGradient(mx, ry, r * 0.2, mx, ry, r * 1.15);
+      fleck.addColorStop(0, "rgba(255,230,160,0.28)"); fleck.addColorStop(1, "rgba(255,230,160,0)");
+      ctx.fillStyle = fleck; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(20,28,32,0.75)"; ctx.strokeStyle = "#f2b632"; ctx.lineWidth = 3; ctx.setLineDash([14, 10]);
+      ctx.beginPath(); ctx.ellipse(mx, ry, r, r * 0.8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+
+  // Gewähltes Teil auf der Bühne mit einem pulsierenden Rahmen zeigen
+  function drawWahl(ctx, L, t) {
+    if (!state.wahl || drag) return;
+    const puls = 0.55 + 0.45 * Math.sin(t * 5);
+    for (const sl of SLOTS) {
+      if (state.mounted[sl] !== state.wahl || !visible(sl)) continue;
+      if (state.wahlSlot && state.mounted[state.wahlSlot] === state.wahl && sl !== state.wahlSlot) continue;
+      for (const r of rects(sl, L)) {
+        ctx.save(); ctx.lineWidth = 3; ctx.strokeStyle = `rgba(242,182,50,${puls})`;
+        ctx.shadowColor = "rgba(242,182,50,0.8)"; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.roundRect(r.x - 2, r.y - 2, r.w + 4, r.h + 4, 10); ctx.stroke(); ctx.restore();
+      }
     }
   }
 
@@ -352,6 +389,7 @@ window.Werkstatt = function (opt = {}) {
       if (state.mounted[slot] && !inHand) { if (visible(slot)) drawPart(ctx, slot, L, now); }
       else drawSlotHint(ctx, slot, L, now / 1000);
     }
+    drawWahl(ctx, L, now / 1000);
     requestAnimationFrame(render);
   }
 
@@ -373,10 +411,18 @@ window.Werkstatt = function (opt = {}) {
 
   function tapStage(clientX, clientY) {
     const slot = hitSlot(stagePoint(clientX, clientY));
-    if (!slot) return;
-    if (state.mounted[slot]) return unmount(slot);
+    if (!slot) { if (state.wahl) { state.wahl = null; refresh(); } return; }
+    state.tab = TABS.find((t) => t.kats.includes(kat(slot))).id;
+    if (state.mounted[slot]) {
+      // eingebautes Teil: auswählen, dann zeigt das Info-Feld „Ausbauen“
+      state.wahl = state.mounted[slot]; state.wahlSlot = slot;
+      return refresh();
+    }
+    state.wahl = null;
     const why = missing(slot);
-    return why ? say(why, "warn") : mountPart(PARTS.find((p) => p.kat === kat(slot)));
+    if (why) say(why, "warn");
+    else say(`${LABEL[slot]}: such dir rechts ein Teil aus.`);
+    refresh();
   }
 
   // Nächster passender Platz zum Finger (innerhalb einer knappen Zelle)
@@ -499,104 +545,237 @@ window.Werkstatt = function (opt = {}) {
     tapStage(e.clientX, e.clientY);
   });
 
-  // --- Regal, Checkliste ------------------------------------------------------
+  // --- Kategorien, Teile, Info ------------------------------------------------
+  const TW = window.TEILWERTE || {};
+  // [Schlüssel, Name, Einheit, Wert für einen vollen Balken]
+  const WERTE = [["tempo", "Tempo", "km/h", 120], ["kraft", "Steigung", "°", 40], ["reichweite", "Reichweite", "m", 1500],
+    ["grip", "Grip", "", 10], ["wendig", "Lenkung", "", 10], ["komfort", "Komfort", "", 10], ["robust", "Robustheit", "", 10],
+    ["licht", "Licht", "m", 30], ["laut", "Lautstärke", "", 10], ["gewicht", "Gewicht", "kg", 300]];
+  const AUTO_WERTE = ["tempo", "kraft", "reichweite", "grip", "wendig", "gewicht"];
+  const zahl = (v) => v.toLocaleString("de-DE");
+  const wert = (id, k) => (TW[id] || {})[k];
+
+  // Werte des ganzen Autos aus den eingebauten Teilen
+  function autoWerte(m) {
+    const w = {}, an = (sl, k) => (m[sl] ? wert(m[sl], k) || 0 : 0);
+    w.tempo = an("motor", "tempo"); w.kraft = an("motor", "kraft"); w.reichweite = an("energie", "reichweite");
+    w.grip = m.radH && m.radV ? Math.min(an("radH", "grip"), an("radV", "grip")) : 0;
+    w.wendig = an("lenkung", "wendig"); w.komfort = an("sitz", "komfort"); w.licht = an("licht", "licht"); w.laut = an("hupe", "laut");
+    const tragend = ["rahmen", "achseH", "achseV", ...KARO].filter((sl) => m[sl]);
+    w.robust = tragend.length ? Math.round(tragend.reduce((n, sl) => n + an(sl, "robust"), 0) / tragend.length) : 0;
+    // Räder sind Paare: zwei Räder je Platz
+    w.gewicht = SLOTS.reduce((n, sl) => n + an(sl, "gewicht") * (kat(sl) === "rad" ? 2 : 1), 0);
+    const karo = KARO.map((sl) => m[sl]);
+    if (karo.every(Boolean) && new Set(karo.map((id) => id.split("_")[0])).size === 1 && karo[0].startsWith("rakete")) {
+      w.tempo = Math.round(w.tempo * 1.2);
+    }
+    return w;
+  }
+
+  // Wie sähe das Auto aus, wenn dieses Teil eingebaut würde? (null: geht gerade nicht)
+  function probeEinbau(part) {
+    const slots = SLOTS.filter((sl) => kat(sl) === part.kat);
+    const frei = slots.find((sl) => !state.mounted[sl] && !missing(sl));
+    const tausch = slots.find((sl) => state.mounted[sl] && state.mounted[sl] !== part.id && !removeBlocked(sl));
+    const sl = frei || (!slots.some((x) => !state.mounted[x]) && tausch);
+    return sl ? { ...state.mounted, [sl]: part.id } : null;
+  }
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function bildVon(id) {
+    const key = `${id}_seite`;
+    return FULL[key] || (G[key] && G[key].bild) || "";
+  }
+
   function refresh() {
+    const tab = TABS.find((t) => t.id === state.tab);
+    // Kategorien als Kästchen: fertig = ausgegraut mit Haken, fehlt (zum Fahren nötig) = roter Punkt
     const tabs = $("tabs");
     tabs.innerHTML = "";
     for (const t of TABS) {
-      const tb = document.createElement("button");
-      tb.type = "button";
-      tb.role = "tab";
-      tb.id = "tab-" + t.id;
-      tb.setAttribute("aria-selected", String(t.id === state.tab));
       const slotsT = SLOTS.filter((sl) => t.kats.includes(kat(sl)));
       const n = slotsT.filter((sl) => state.mounted[sl]).length;
-      tb.textContent = t.label;
-      if (slotsT.length) {
-        const c = document.createElement("span");
-        c.className = "n";
-        c.textContent = `${n}/${slotsT.length}`;
-        tb.append(c);
-      }
-      tb.onclick = () => { state.tab = t.id; refresh(); };
-      tabs.append(tb);
+      const teile = PARTS.filter((p) => t.kats.includes(p.kat));
+      const fertig = slotsT.length && n === slotsT.length;
+      const fehlt = !fertig && slotsT.some((sl) => FAHRBEREIT.includes(sl) && !state.mounted[sl]);
+      const b = el("button", "kat" + (fertig ? " fertig" : "") + (fehlt ? " fehlt" : "") + (teile.length ? "" : " leer"));
+      b.type = "button"; b.role = "tab"; b.id = "tab-" + t.id;
+      b.setAttribute("aria-selected", String(t.id === state.tab));
+      const drin = slotsT.map((sl) => state.mounted[sl]).find(Boolean);
+      const icon = el("img"); icon.alt = "";
+      const quelle = bildVon(drin || (teile[0] || {}).id || "");
+      if (quelle) icon.src = quelle; else icon.style.visibility = "hidden";
+      const name = el("span", "kat-name", t.label);
+      const zahlEl = el("span", "kat-n", fertig ? "✓ fertig" : slotsT.length ? `${n}/${slotsT.length}` : "");
+      b.append(icon, name, zahlEl);
+      b.setAttribute("aria-label", `${t.label}: ${fertig ? "fertig" : `${n} von ${slotsT.length} eingebaut`}${fehlt ? ", fehlt noch" : ""}`);
+      b.onclick = () => {
+        state.tab = t.id;
+        if (state.wahl && !t.kats.includes(PARTS.find((p) => p.id === state.wahl).kat)) state.wahl = null;
+        refresh();
+      };
+      tabs.append(b);
     }
+    // Gewählte Kategorie in der Reihe sichtbar halten (Handy), ohne die Seite zu verschieben
+    const aktiv = $("tab-" + state.tab);
+    if (aktiv && tabs.scrollWidth > tabs.clientWidth) {
+      const l = aktiv.offsetLeft - tabs.offsetLeft, r = l + aktiv.offsetWidth;
+      if (l < tabs.scrollLeft) tabs.scrollLeft = l - 8;
+      else if (r > tabs.scrollLeft + tabs.clientWidth) tabs.scrollLeft = r - tabs.clientWidth + 8;
+    }
+
+    // Teile der Kategorie
     const tray = $("tray");
     tray.innerHTML = "";
-    const tab = TABS.find((t) => t.id === state.tab);
     const angebot = PARTS.filter((p) => tab.kats.includes(p.kat));
-    if (!angebot.length) {
-      const e = document.createElement("p");
-      e.className = "empty";
-      e.textContent = "Noch keine Teile in dieser Kategorie. Sie kommen später über die Karte und Aufträge.";
-      tray.append(e);
-    }
+    if (!angebot.length) tray.append(el("p", "empty", "Noch keine Teile in dieser Kategorie. Sie kommen später über die Karte und Aufträge."));
     for (const p of angebot) {
       const slots = SLOTS.filter((sl) => kat(sl) === p.kat);
       const mine = slots.filter((sl) => state.mounted[sl] === p.id).length;
-      const full = mine === slots.length;
-      const b = document.createElement("button");
+      const b = el("button", "part" + (mine ? " in" : "") + (state.wahl === p.id ? " gewaehlt" : "") +
+        (state.tipp === p.id && mine < slots.length ? " tipp" : ""));
       b.type = "button";
-      b.className = "part" + (mine ? " in" : "") + (full ? " full" : "") + (state.tipp === p.id && !full ? " tipp" : "");
-      const img = document.createElement("img");
-      const key = `${p.id}_${state.view}`;
-      img.src = (G[key] && G[key].bild) || "";
-      img.alt = "";
-      const badge = document.createElement("span");
-      badge.className = "badge";
-      badge.textContent = slots.length > 1 ? `${mine}/${slots.length}` : mine ? "drin" : "";
+      b.setAttribute("aria-pressed", String(state.wahl === p.id));
+      const img = el("img"); img.src = bildVon(p.id); img.alt = "";
+      const badge = el("span", "badge", slots.length > 1 ? (mine ? `${mine}/${slots.length}` : "") : mine ? "drin" : "");
       if (!badge.textContent) badge.hidden = true;
-      const name = document.createElement("span");
-      name.textContent = p.name;
-      b.append(badge, img, name);
-      if (full) {
-        const hint = document.createElement("span");
-        hint.className = "badge";
-        hint.style.cssText = "position:static;margin-top:2px";
-        hint.textContent = "Tippen zum Ausbauen";
-        b.append(hint);
-        b.setAttribute("aria-label", `${p.name} ausbauen`);
-      }
-      // Voll eingebaut: Tipp baut aus (zuletzt eingebauten Platz zuerst), sonst ein bzw. tauschen
+      b.append(badge, img, el("span", null, p.name));
       b.addEventListener("click", () => {
         if (suppressClick) return;
-        if (full) unmount([...slots].reverse()[0]);
-        else mountPart(p);
+        state.wahl = state.wahl === p.id ? null : p.id; state.wahlSlot = null;
+        refresh();
       });
-      if (!full) b.addEventListener("pointerdown", (e) => beginPress(e, { partId: p.id }));
+      b.addEventListener("pointerdown", (e) => { if (mine < slots.length) beginPress(e, { partId: p.id }); });
       tray.append(b);
     }
+
+    infoZeigen();
+    werteZeigen();
+
     const checks = $("checks");
-    checks.innerHTML = "";
-    const list = [["Rahmen", ["rahmen"]], ["Achsen", ["achseH", "achseV"]], ["Räder", ["radH", "radV"]],
-      ["Motor", ["motor"]], ["Tank", ["energie"]], ["Sitz", ["sitz"]], ["Lenkung", ["lenkung"]]];
-    let all = true;
-    for (const [label, slots] of list) {
-      const ok = slots.every((s) => state.mounted[s]);
-      all = all && ok;
-      const chip = document.createElement("span");
-      chip.className = "check" + (ok ? " ok" : "");
-      chip.textContent = (ok ? "✓ " : "") + label;
-      checks.append(chip);
+    if (checks) {
+      checks.innerHTML = "";
+      const list = [["Rahmen", ["rahmen"]], ["Achsen", ["achseH", "achseV"]], ["Räder", ["radH", "radV"]],
+        ["Motor", ["motor"]], ["Tank", ["energie"]], ["Sitz", ["sitz"]], ["Lenkung", ["lenkung"]]];
+      for (const [label, slots] of list) {
+        const ok = slots.every((s) => state.mounted[s]);
+        checks.append(el("span", "check" + (ok ? " ok" : ""), (ok ? "✓ " : "") + label));
+      }
     }
     const karo = KARO.map((sl) => state.mounted[sl]);
-    if (karo.every(Boolean)) {
-      const modelle = new Set(karo.map((id) => id.split("_")[0]));
-      const chip = document.createElement("span");
-      chip.className = "check ok";
-      chip.textContent = modelle.size === 1 ? "✓ Karosserie: kompletter Satz" : "✗ Karosserie gemischt: so nicht auf die Karte";
-      if (modelle.size !== 1) chip.className = "check";
-      checks.append(chip);
-    } else if (karo.some(Boolean)) {
-      const chip = document.createElement("span");
-      chip.className = "check";
-      chip.textContent = "✗ Karosserie unvollständig: so nicht auf die Karte";
-      checks.append(chip);
-    }
-    if (all && !KARO.some((sl) => state.mounted[sl]) && !opt.stumm) {
-      say("Fahrbereit! Jetzt kann die Karosserie drauf: im Regal unter „Karosserie“.", "ok");
+    if (FAHRBEREIT.every((s) => state.mounted[s]) && !karo.some(Boolean) && !opt.stumm && !state.wahl) {
+      say("Fahrbereit! Jetzt kann die Karosserie drauf: links unter „Karosserie“.", "ok");
     }
     if (opt.nachher) opt.nachher();
+  }
+
+  // Info über das gewählte Teil, mit Einbauen/Tauschen, Ausbauen und Abbrechen
+  function infoZeigen() {
+    const box = $("info");
+    if (!box) return;
+    box.innerHTML = "";
+    const p = PARTS.find((q) => q.id === state.wahl);
+    if (!p) {
+      const tab = TABS.find((t) => t.id === state.tab);
+      box.append(el("p", "info-leer", `Tipp ein Teil an, dann siehst du hier alles darüber. Kategorie: ${tab.label}.`));
+      box.classList.remove("voll");
+      return;
+    }
+    box.classList.add("voll");
+    const tw = TW[p.id] || {};
+    const slots = SLOTS.filter((sl) => kat(sl) === p.kat);
+    const mine = slots.filter((sl) => state.mounted[sl] === p.id);
+    const frei = slots.filter((sl) => !state.mounted[sl]);
+    const fremd = slots.filter((sl) => state.mounted[sl] && state.mounted[sl] !== p.id);
+
+    const bild = el("div", "info-bild"); const img = el("img"); img.src = bildVon(p.id); img.alt = ""; bild.append(img);
+    const ort = mine.length ? "eingebaut: " + mine.map((sl) => LABEL[sl]).join(", ") : "im Regal";
+    box.append(bild, el("p", "info-kat", `${TABS.find((t) => t.kats.includes(p.kat)).label} · ${ort}`), el("h3", null, p.name));
+    if (tw.text) box.append(el("p", "info-text", tw.text));
+    const dl = el("dl", "info-werte");
+    for (const [k, name, einheit, voll] of WERTE) {
+      if (tw[k] == null) continue;
+      const pro = k === "gewicht" && p.kat === "rad" ? " je Rad" : "";
+      const zeile = el("div");
+      const balken = el("span", "balken"); const f = el("i"); f.style.width = Math.min(100, (tw[k] / voll) * 100) + "%"; balken.append(f);
+      zeile.append(el("dt", null, name), balken, el("dd", null, `${zahl(tw[k])}${einheit ? " " + einheit : ""}${pro}`));
+      dl.append(zeile);
+    }
+    box.append(dl);
+    if (tw.extras && tw.extras.length) {
+      const ex = el("div", "info-extras");
+      for (const x of tw.extras) ex.append(el("span", null, x));
+      box.append(ex);
+    }
+    if (tw.satz) box.append(el("p", "info-satz", `Als kompletter Satz: ${tw.satz}`));
+
+    // Knöpfe
+    const knoepfe = el("div", "info-knoepfe");
+    let grund = null;
+    if (frei.length || fremd.length) {
+      const tausch = !frei.length;
+      const b = el("button", "knopf" + (state.tipp === p.id ? " tipp" : ""), tausch ? "Tauschen" : "Einbauen");
+      b.type = "button";
+      if (tausch) {
+        grund = removeBlocked(fremd[fremd.length - 1]);
+      } else if (frei.every((sl) => missing(sl))) {
+        grund = missing(frei[0]);
+      }
+      b.disabled = Boolean(grund);
+      b.onclick = () => einbauen(p);
+      knoepfe.append(b);
+    }
+    if (mine.length) {
+      const sl = mine.includes(state.wahlSlot) ? state.wahlSlot : mine[mine.length - 1];
+      const b = el("button", "knopf zweit", "Ausbauen");
+      b.type = "button";
+      const warum = removeBlocked(sl);
+      b.disabled = Boolean(warum);
+      if (warum && !grund) grund = warum;
+      b.onclick = () => { unmount(sl); };
+      knoepfe.append(b);
+    }
+    const ab = el("button", "knopf leise", "Abbrechen");
+    ab.type = "button";
+    ab.onclick = () => { state.wahl = null; state.wahlSlot = null; refresh(); };
+    knoepfe.append(ab);
+    if (grund) box.append(el("p", "info-warn", grund));
+    box.append(knoepfe);
+  }
+
+  function einbauen(p) {
+    mountPart(p);
+    // Noch ein Platz frei (z. B. das zweite Rad)? Dann bleibt das Teil gewählt.
+    const nochFrei = SLOTS.some((sl) => kat(sl) === p.kat && !state.mounted[sl]);
+    if (!nochFrei || !PARTS.some((q) => q.id === p.id)) state.wahl = null;
+    refresh();
+  }
+
+  // Werte des Autos; ist ein Teil gewählt, zeigt der Pfeil, was sich durch Einbauen ändert
+  function werteZeigen() {
+    const box = $("werte");
+    if (!box) return;
+    box.innerHTML = "";
+    const jetzt = autoWerte(state.mounted);
+    const p = PARTS.find((q) => q.id === state.wahl);
+    const mitTeil = p && probeEinbau(p);
+    const dann = mitTeil && autoWerte(mitTeil);
+    for (const k of AUTO_WERTE) {
+      const [, name, einheit] = WERTE.find((w) => w[0] === k);
+      const z = el("div", "wert");
+      z.append(el("span", "wert-name", name), el("strong", null, `${zahl(jetzt[k])}${einheit ? " " + einheit : ""}`));
+      if (dann && dann[k] !== jetzt[k]) {
+        const d = dann[k] - jetzt[k];
+        const besser = k === "gewicht" ? d < 0 : d > 0;
+        z.append(el("span", "wert-neu " + (besser ? "plus" : "minus"), `${d > 0 ? "▲" : "▼"} ${zahl(dann[k])}`));
+      }
+      box.append(z);
+    }
   }
 
   // Welches Auto darf auf die Karte? "ohne" (keine Karosserie), die Modell-ID

@@ -14,22 +14,31 @@
 <div class="wrap">
   <header class="top">
     <div style="display:grid;gap:6px">
-      <p class="eyebrow">Schritt A3 · erster Entwurf</p>
+      <p class="eyebrow">Schritt A4 · Werkstatt-Halle</p>
       <h1>Werkstatt-Probe</h1>
-    </div>
-    <div class="views" role="group" aria-label="Ansicht">
-      <button type="button" id="view-seite" aria-pressed="true">Seite</button>
-      <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
     </div>
   </header>
 
-  <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszubauen."></canvas>
-  <p id="status" aria-live="polite"></p>
-
-  <section style="display:grid;gap:8px" aria-label="Teile-Regal">
-    <h2>Teile-Regal</h2>
-    <div class="tabs" id="tabs" role="tablist" aria-label="Kategorie"></div>
-    <div class="tray" id="tray"></div>
+  <section class="halle" aria-label="Werkstatt">
+    <div class="halle-kopf">
+      <h2>Werkstatt</h2>
+      <div class="views" role="group" aria-label="Ansicht">
+        <button type="button" id="view-seite" aria-pressed="true">Seite</button>
+        <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
+      </div>
+    </div>
+    <div class="halle-mitte">
+      <div class="kats" id="tabs" role="tablist" aria-label="Kategorien"></div>
+      <div class="buehne-w">
+        <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszuwählen."></canvas>
+        <div class="werte" id="werte" aria-label="Werte deines Autos"></div>
+        <p id="status" aria-live="polite"></p>
+      </div>
+      <aside class="regal" aria-label="Teile und Info">
+        <div class="tray" id="tray"></div>
+        <div class="info" id="info" aria-live="polite"></div>
+      </aside>
+    </div>
   </section>
 
   <section style="display:grid;gap:8px" aria-label="Fahrbereit">
@@ -41,13 +50,14 @@
     <button type="button" id="btn-all">Komplett zusammenbauen</button>
     <button type="button" id="btn-clear">Alles abbauen</button>
   </div>
-  <p class="hint">Tippen: Teil im Regal antippen, es kommt auf den nächsten freien Platz. Ziehen: Teil aus dem Regal auf einen gelben Platz ziehen (auf dem Handy kurz gedrückt halten, dann ziehen). Ausbauen: Teil auf der Bühne antippen oder von der Bühne herunterziehen. Reihenfolge: Rahmen, dann Achsen, dann Räder, dann der Rest. Die Karosserie kommt ganz zum Schluss. In der Werkstatt darfst du Teile verschiedener Modelle ausprobieren, auf die Karte geht es aber nur ohne Karosserie oder mit einem kompletten Satz. Achsen baust du in der Draufsicht ein, dort sieht man sie.</p>
+  <p class="hint">Links eine Kategorie wählen, rechts ein Teil antippen: Das Info-Feld zeigt seine Werte, darunter Einbauen, Tauschen, Ausbauen oder Abbrechen. Unter der Bühne siehst du, was sich am Auto ändert. Ziehen auf die Hebebühne geht weiterhin. Eingebaute Teile auf der Bühne antippen wählt sie aus. Reihenfolge: Rahmen, dann Achsen, dann Räder, dann der Rest. Die Karosserie kommt ganz zum Schluss.</p>
 </div>
 
 <canvas id="ghost" hidden></canvas>
 <script src="raster.js"></script>
 <script src="geliefert.js"></script>
 <script src="teile.js"></script>
+<script src="teilwerte.js"></script>
 <script src="werkstatt.js"></script>
 <script>Werkstatt();</script>
 </body>
