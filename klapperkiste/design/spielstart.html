@@ -208,6 +208,7 @@ body { position: fixed; inset: 0; }
 <script src="stimmen_daten.js"></script>
 <script src="musik_daten.js"></script>
 <script src="ton.js"></script>
+<script src="rallye.js"></script>
 <script src="karte.js"></script>
 <script>
 (function () {
@@ -282,7 +283,7 @@ body { position: fixed; inset: 0; }
     $("s-karte").hidden = name !== "karte";
     if (name === "werkstatt") {
       W.refresh(); K.musik("werkstatt"); K.beiOpa();
-      if (!imEinstieg()) { W.say("Zurück in Opas Werkstatt."); setTimeout(() => K.opaErzaehlt(() => {
+      if (!imEinstieg()) { W.say("Zurück in Opas Werkstatt."); setTimeout(() => K.opaLenkrad() || K.opaErzaehlt(() => {
         W.say("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Anmeldung zur Waldrallye.", "ok");
         fotoZeigen(); $("fotoKnopf").classList.add("tipp");
       }), 400); }

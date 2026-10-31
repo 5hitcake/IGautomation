@@ -62,6 +62,26 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   anderen Teile hat „vielleicht der Sperrmüll-Händler“, Spur für später).
 - Der Start der Waldrallye am Campingplatz kommt als Nächstes (G7).
 
+## Die Waldrallye (G7)
+
+- Start am Campingplatz (nach Rosis erstem Gespräch, Holzweg frei, nur bei Tag).
+  Nach jedem Besuch bei Rosi fragt das Spiel „🏁 Starten / Später“.
+- Eigener Bildschirm (`design/rallye.js`): Holzweg von oben, das Auto fährt von links
+  nach rechts von selbst, man hält den Finger auf die Höhe, in die es lenken soll
+  (oder Pfeiltasten). 320 m, immer dieselbe Strecke, damit man sie lernen kann.
+- **Start mit Ampel:** drei rote Lichter, dann Grün nach zufälliger Wartezeit. Bis
+  0,4 s nach Grün tippen = ⚡ Blitzstart, vorher tippen = Fehlstart (+2 s).
+- **Hindernisse:** Pfützen (bremsen, weniger mit viel Grip), Wurzeln (rumpeln),
+  Stämme und Steine (fast Stillstand). Münzen auf der Strecke gibt es dazu.
+- **Werte zählen:** Tempo (Höchstgeschwindigkeit), Gewicht (Beschleunigung),
+  Lenkung (wie schnell man ausweicht), Grip (Pfützen).
+- **Medaillen:** 🥇 45 s · 🥈 51 s · 🥉 58 s. Gold schafft man erst mit einem
+  schnelleren Motor als dem Rasenmäher. Bronze reicht zur Qualifikation.
+- **Erste Medaille:** 30 Münzen, 1 Feder und von Rosi ein altes **Lenkrad mit Blitz**,
+  das seit Jahren an ihrer Hütte hing: das erste Donnerkeil-Teil (1/8). Opa erkennt es
+  in der Werkstatt („Den Blitz hab ich selbst draufgemalt!“) und wundert sich, wie es
+  in den Wald kam (Spur zu Kauz). Erstes Gold: 20 Münzen extra.
+
 ## Rennen über das Spiel verteilt
 
 Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
@@ -136,5 +156,5 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G4 | Moos' Aufträge (Pieps, Vogelhäuschen) | offen, braucht Bilder |
 | G5 | Tag und Nacht | ✅ |
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
-| G7 | Waldrallye (erstes Rennen) | offen |
+| G7 | Waldrallye (erstes Rennen) | ✅ |
 | G8 | Die Lichter im Wald, erste Spur zu Kauz | offen |

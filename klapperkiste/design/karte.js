@@ -262,7 +262,7 @@ window.Karte = function (opt = {}) {
     route = null;
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, ...verbrauchStart() });
+      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, ...verbrauchStart() });
     hinweisGezeigt = false; angehalten = false; moosKennt = false;
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
@@ -406,7 +406,7 @@ window.Karte = function (opt = {}) {
   // opa: null | "rennen" (hat vom Rennen und vom Donnerkeil erzählt); moosRallye: Moos hat
   // von der Waldrallye erzählt; donnerkeil: gefundene Teile von Opas altem Rennwagen
   const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, ...verbrauchStart() };
+    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, ...verbrauchStart() };
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -498,9 +498,9 @@ window.Karte = function (opt = {}) {
   let moosKennt = false;
   // Anglerin Rosi Rute, Platzwartin am Campingplatz. Erster Auftrag: frischen Fisch zu Hilde
   // bringen und die Milch dafür zurück. spiel.rosi: null | "fisch" | "milch" | "erledigt"
-  function beiRosi() {
+  function beiRosi(nachher) {
     const ort = D.hintergruende && D.hintergruende.camping ? "camping" : "foersterhuette";
-    const rosi = (zeilen, danach) => gespraech("rosi", "Anglerin Rosi", ort, zeilen, danach);
+    const rosi = (zeilen, danach) => gespraech("rosi", "Anglerin Rosi", ort, zeilen, () => { if (danach) danach(); if (nachher) nachher(); });
     if (!spiel.rosi) {
       return rosi([
         ["hallo", "Hallo, hallo! Entschuldige, ich war unten am Steg. Ich bin Rosi, mir gehört der Campingplatz. Und die Hälfte der Fische im See, wenn's nach mir geht!"],
@@ -522,8 +522,59 @@ window.Karte = function (opt = {}) {
       ], () => toast("Badewanne vorne erhalten! Liegt in Opas Werkstatt im Regal.", 4500));
     }
     rosi([["hallo", spiel.moosRallye && spiel.holzweg
-      ? "Schön, dich zu sehen! Moos steckt die Rallye-Strecke noch ab. Und letzte Nacht? Wieder diese Lichter überm See …"
+      ? spiel.rallye && spiel.rallye.medaille
+        ? `Na, du Rallye-Ass! Bestzeit ${spiel.rallye.best.toLocaleString("de-DE")} Sekunden. Willst du's noch schneller probieren?`
+        : "Schön, dich zu sehen! Moos hat die Rallye-Strecke fertig abgesteckt, der Start ist gleich hier am Platz. Traust du dich?"
       : "Schön, dich zu sehen! Die Fische beißen heute prima."]]);
+  }
+
+  // --- Waldrallye --------------------------------------------------------------
+  // Start am Campingplatz, sobald Moos davon erzählt hat und der Holzweg frei ist. Nur bei Tag.
+  const RALLYE = window.Rallye ? window.Rallye({
+    eltern: $("karte").parentElement,
+    bilder: { get auto() { return autoWahl; }, get walddach() { return BODEN.walddach.img; }, get erde() { return BODEN.erde.img; },
+      get fels() { return OBJ.felsbrocken.img; }, get nadelbaum() { return OBJ.nadelbaum.img; } },
+    werte: () => (opt.werte ? opt.werte() : { tempo: 15, gewicht: 87, wendig: 4, grip: 2 }),
+  }) : null;
+  const rallyeMoeglich = () => RALLYE && spiel.holzweg && spiel.moosRallye && spiel.rosi;
+  function rallyeAnbieten() {
+    if (!rallyeMoeglich()) return;
+    const f = $("rallyeFrage");
+    const nacht = istNacht();
+    f.querySelector("p").textContent = nacht ? "Nachts fährt keiner die Rallye, man sieht ja die Hand vor Augen nicht. Komm bei Tag wieder!"
+      : `Einmal den alten Holzweg entlang, so schnell du kannst. Für Bronze brauchst du höchstens ${RALLYE.ZEITEN.bronze} Sekunden.` +
+        (spiel.rallye ? ` Deine Bestzeit: ${spiel.rallye.best.toLocaleString("de-DE")} s.` : "");
+    f.querySelector(".r-los").hidden = nacht;
+    f.hidden = false;
+  }
+  function rallyeStarten() {
+    $("rallyeFrage").hidden = true;
+    RALLYE.starten((e) => {
+      if (!e) return;
+      const vorher = spiel.rallye;
+      const rang = { gold: 3, silber: 2, bronze: 1 }, alt = vorher && vorher.medaille ? rang[vorher.medaille] : 0;
+      spiel.rallye = { best: vorher ? Math.min(vorher.best, e.zeit) : e.zeit, medaille: (rang[e.medaille] || 0) > alt ? e.medaille : (vorher && vorher.medaille) || null };
+      spiel.geld += e.muenzen;
+      const ort = D.hintergruende && D.hintergruende.camping ? "camping" : "foersterhuette";
+      if (e.medaille && !alt) {
+        // erste Medaille: qualifiziert, Belohnung und das erste Donnerkeil-Teil
+        spiel.geld += 30; if (!spiel.donnerkeil.includes("lenkrad")) spiel.donnerkeil.push("lenkrad");
+        materialGeben({ federn: 1 });
+        gespraech("rosi", "Anglerin Rosi", ort, [
+          ["juhu", `Wahnsinn! ${e.zeit.toLocaleString("de-DE")} Sekunden, Moos hat's gestoppt! Damit bist du beim Klappertal-Rennen dabei!`],
+          ["auftrag", "Hier, 30 Münzen Preisgeld. Und der Sieger kriegt bei uns traditionell was aus meiner Hütte …"],
+          ["nachdenken", "Dieses alte Lenkrad mit dem Blitz drauf hing da schon, als ich den Platz übernommen hab. Sieht aus wie von einem Rennwagen."],
+          ["juhu", "Zeig's doch mal Opa Bolzen, vielleicht weiß der, wo es herkommt!"],
+        ], () => toast("⚡ Donnerkeil-Teil gefunden: das Lenkrad (1/8)! Steht im Auftragsbuch.", 5000));
+      } else if (e.medaille === "gold" && alt < 3) {
+        spiel.geld += 20;
+        gespraech("rosi", "Anglerin Rosi", ort, [["juhu", "Gold! So schnell ist hier noch keiner durch den Wald gebrettert. 20 Münzen extra!"]]);
+      } else {
+        toast(e.medaille ? `🏁 ${e.zeit.toLocaleString("de-DE")} s. Bestzeit: ${spiel.rallye.best.toLocaleString("de-DE")} s` : "🏁 Knapp daneben! Mit mehr Tempo klappt's.", 4000);
+      }
+      if (e.muenzen) setTimeout(() => toast(`🪙 ${e.muenzen} Münzen auf der Strecke eingesammelt.`), 4200);
+      hudNeu();
+    });
   }
 
   // Moos zieht die Bäume weg: Holzweg frei, Campingplatz und Waldsee auf der Karte
@@ -677,7 +728,9 @@ window.Karte = function (opt = {}) {
       const opa = { figur: "opa", wer: "Opa Bolzen" };
       offen.push({ ...opa, titel: "Opas Donnerkeil", stand: `${spiel.donnerkeil.length}/${DONNERKEIL_TEILE} Teile`,
         text: "Mit dem Donnerkeil hat Opa das Klappertal-Rennen dreimal gewonnen. Er ist zerlegt, die Teile sind im ganzen Tal verstreut.",
-        belohnung: "Opas Rennwagen", ziel: null, fehlt: "Noch keine Spur. Die Leute im Tal wissen bestimmt mehr." });
+        belohnung: "Opas Rennwagen", ziel: null,
+        fehlt: spiel.donnerkeil.length ? `Gefunden: ${spiel.donnerkeil.map((t) => ({ lenkrad: "Lenkrad mit Blitz" }[t] || t)).join(", ")}. Wo die anderen wohl sind?`
+          : "Noch keine Spur. Die Leute im Tal wissen bestimmt mehr." });
       if (!spiel.moosRallye) {
         const licht = hatTeilEingebaut("licht");
         offen.push({ ...opa, titel: "Anmeldung zur Waldrallye", stand: licht ? "Licht dabei" : "Licht fehlt",
@@ -685,10 +738,13 @@ window.Karte = function (opt = {}) {
           belohnung: "Startplatz bei der Waldrallye", ziel: licht ? zielVon("foersterhuette") : null,
           fehlt: licht ? null : "Ohne Licht kommst du nicht durch den dunklen Wald. Knut hat einen Scheinwerfer, wenn du ihm die Batterie bringst." });
       } else {
-        offen.push({ figur: "moos", wer: "Förster Moos", titel: "Die Waldrallye", stand: spiel.holzweg ? "Strecke wird abgesteckt" : "Weg versperrt",
-          text: spiel.holzweg ? "Die Rallye startet am Campingplatz am Waldsee. Moos steckt die Strecke gerade ab."
+        const r = spiel.rallye;
+        const rallye = { figur: "moos", wer: "Förster Moos", titel: "Die Waldrallye", belohnung: "Startplatz beim Klappertal-Rennen, 30 Münzen und eine Überraschung" };
+        if (r && r.medaille) erledigt.push({ ...rallye, titel: `Die Waldrallye (Bestzeit ${r.best.toLocaleString("de-DE")} s)` });
+        else offen.push({ ...rallye, stand: spiel.holzweg ? (r ? `Bestzeit ${r.best.toLocaleString("de-DE")} s` : `höchstens ${RALLYE ? RALLYE.ZEITEN.bronze : 58} s`) : "Weg versperrt",
+          text: spiel.holzweg ? "Start am Campingplatz am Waldsee, nur bei Tag. Weich Pfützen, Wurzeln und Stämmen aus, Bronze reicht."
             : "Die Rallye fährt auf dem alten Holzweg hinter der Försterhütte. Erst müssen die umgestürzten Bäume weg.",
-          belohnung: "Erste Vorrunde zum Klappertal-Rennen", ziel: spiel.holzweg ? zielVon("camping") : null,
+          ziel: spiel.holzweg ? zielVon("camping") : null,
           fehlt: spiel.holzweg ? null : "Erst den Seilzug für Moos reparieren." });
       }
     }
@@ -763,7 +819,7 @@ window.Karte = function (opt = {}) {
     return 5 + (t - TAG - ABEND - NACHT) / MORGEN;
   }
   function fensterZu() {
-    return ["gespraech", "laden", "buch", "beutel", "grosskarte", "meldung", "leer"].every((id) => !$(id) || $(id).hidden);
+    return ["gespraech", "laden", "buch", "beutel", "grosskarte", "meldung", "leer", "rallyeFrage", "rallye"].every((id) => !$(id) || $(id).hidden);
   }
   function zeitSchritt(dt) {
     if (!zeit.laeuft || !fensterZu()) return;
@@ -1325,7 +1381,7 @@ window.Karte = function (opt = {}) {
       else if (zielWahl.id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
       else if (zielWahl.id === "bauernhof") beiHilde();
       else if (zielWahl.id === "foersterhuette") beiMoos();
-      else if (zielWahl.id === "camping") beiRosi();
+      else if (zielWahl.id === "camping") beiRosi(rallyeAnbieten);
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -2095,6 +2151,7 @@ window.Karte = function (opt = {}) {
   function bild(t) {
     const dt = Math.min(0.05, (t - (zuletzt || t)) / 1000);
     zuletzt = t;
+    if (RALLYE && RALLYE.offen) { if (Ton) Ton.motor(RALLYE.tempo ? { v: RALLYE.tempo, gas: true } : null); requestAnimationFrame(bild); return; }
     if (Ton) Ton.motor(cv.clientWidth && $("gespraech").hidden ? { v: auto.v, gas: auto.gas } : null);
     if (cv.clientWidth) {
       if (Ton) Ton.musik(imWald(auto.x, auto.y) ? "wald" : "fahren");
@@ -2244,6 +2301,13 @@ window.Karte = function (opt = {}) {
   beutel.innerHTML = '<header><h2>🎒 Beutel</h2><button type="button" class="knopf zweit" id="beutelZu">Schließen</button></header><div id="beutelListe"></div>';
   $("karte").parentElement.append(beutel);
   $("beutelZu").addEventListener("click", () => { beutel.hidden = true; });
+  const frage = document.createElement("div");
+  frage.id = "rallyeFrage"; frage.hidden = true; frage.setAttribute("role", "dialog"); frage.setAttribute("aria-label", "Waldrallye");
+  frage.innerHTML = '<div><strong>🏁 Waldrallye</strong><p></p><div class="knoepfe"><button type="button" class="knopf r-los">🏁 Starten</button>' +
+    '<button type="button" class="knopf zweit r-spaeter">Später</button></div></div>';
+  $("karte").parentElement.append(frage);
+  frage.querySelector(".r-los").addEventListener("click", rallyeStarten);
+  frage.querySelector(".r-spaeter").addEventListener("click", () => { frage.hidden = true; });
   const leer = document.createElement("div");
   leer.id = "leer"; leer.hidden = true; leer.setAttribute("role", "alertdialog"); leer.setAttribute("aria-label", "Tank leer");
   leer.innerHTML = '<div><strong>Tank leer!</strong><p>Die Klapperkiste hat keinen Tropfen Sprit mehr.</p>' +
@@ -2314,7 +2378,7 @@ window.Karte = function (opt = {}) {
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
         sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
         opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil], moosSeil: spiel.moosSeil, holzweg: spiel.holzweg,
-        rosi: spiel.rosi, zeit: { t: zeit.t, tag: zeit.tag },
+        rosi: spiel.rosi, zeit: { t: zeit.t, tag: zeit.tag }, rallye: spiel.rallye, opaLenkrad: Boolean(spiel.opaLenkrad),
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -2326,6 +2390,7 @@ window.Karte = function (opt = {}) {
       Object.assign(spiel, { opa: st.opa || null, moosRallye: Boolean(st.moosRallye), donnerkeil: st.donnerkeil || [],
         moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg), rosi: st.rosi || null });
       if (st.zeit) { zeit.t = st.zeit.t; zeit.tag = st.zeit.tag; }
+      spiel.rallye = st.rallye || null; spiel.opaLenkrad = Boolean(st.opaLenkrad);
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);
@@ -2352,6 +2417,18 @@ window.Karte = function (opt = {}) {
         ["auftrag", "Und fürs Rennen musst du dich erst in den Vorrunden beweisen. Die erste ist im Wald, frag mal Förster Moos danach!"],
         ["juhu", "Ich schreib's dir ins Auftragsbuch. Ach, was freu ich mich: Endlich wieder einer aus der Bolzen-Werkstatt am Start!"],
       ], () => { spiel.opa = "rennen"; hudNeu(); toast("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Waldrallye", 5000); if (danach) danach(); });
+      return true;
+    },
+    // Opa erkennt das Lenkrad aus der Rallye (einmal)
+    opaLenkrad() {
+      if (!spiel.donnerkeil.includes("lenkrad") || spiel.opaLenkrad) return false;
+      spiel.opaLenkrad = true;
+      gespraech("opa", "Opa Bolzen", "werkstatt", [
+        ["nachdenken", "Zeig mal her, was hast du denn da? Ein Lenkrad mit einem Blitz drauf …"],
+        ["juhu", "Das gibt's ja nicht! Das ist das Lenkrad vom Donnerkeil! Den Blitz hab ich selbst draufgemalt, mit Fahrradlack!"],
+        ["nachdenken", "Bei Rosi am Campingplatz hing es? Hm. Wie kommt es denn bloß dahin … Da war doch früher nur Wald."],
+        ["auftrag", "Und gratuliere zur Qualifikation! Ich heb das Lenkrad gut auf. Wenn wir alle Teile haben, bauen wir den Donnerkeil wieder zusammen!"],
+      ], () => toast("Opa hat das Lenkrad an die Wand neben das Foto gehängt.", 4000));
       return true;
     },
     // In Opas Werkstatt: Opa flickt Reifen kostenlos, und ein neuer Tag beginnt (neue Funde, Preise)
