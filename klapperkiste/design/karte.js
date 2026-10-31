@@ -94,7 +94,16 @@ window.Karte = function (opt = {}) {
   // Feldweg: vom Weideweg nach Norden zu den Feldern. Hier steht Hildes Schafherde im Weg.
   const FELDERWEG = [[296, 215], [306, 190], [309, 160], [307, 120], [300, 85]];
   const WALDPFAD = [[60, 214], [45, 212], [37.5, 205], [36, 196]]; // durchs Tor zur Försterhütte
-  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD];
+  // Alter Holzweg: von der Försterhütte durch den dunklen Wald nach Süden zum Campingplatz
+  // am Waldsee. Versperrt von umgestürzten Bäumen, bis Moos sie wegzieht (spiel.holzweg).
+  const HOLZWEG = [[45, 212], [36, 232], [22, 252], [18, 272], [26, 287], [37, 289.4]];
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG];
+  // Campingplatz (Bild 30 m breit), Einfahrt links, Steg rechts zum Waldsee
+  const CAMPING = { X: 37, Y: 282, b: 30, bereich: [37, 282, 67, 302.1],
+    haeuser: [[46.6, 282, 51.7, 287.4], [57.4, 285.8, 62.5, 290.2]] };
+  // Waldsee: Kreise (x, y, r), Sandufer drumherum
+  const SEE = [[81, 296, 13], [93, 306, 11], [76, 309, 9]];
+  const imSee = (x, y, rand = 0) => SEE.some(([sx, sy, sr]) => Math.hypot(x - sx, y - sy) < sr + rand);
   const WEG_BREITE = 4.5;
   // Wege an den Knicken abrunden (Bogen, je Seite bis 9 m, höchstens die halbe Strecke),
   // damit sie natürlich aussehen und das Auto die Kurven flüssig nimmt. Wege, die an einem
@@ -148,7 +157,8 @@ window.Karte = function (opt = {}) {
   function frei(x, y, r, vis = r, art = null) {
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
     if (ZAEUNE.some(([a, b]) => abstandStrecke(x, y, a, b) < vis + 0.3)) return false;
-    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich]) {
+    if (imSee(x, y, vis + 1.5)) return false;
+    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich, CAMPING.bereich]) {
       if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
     }
     if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
@@ -245,7 +255,7 @@ window.Karte = function (opt = {}) {
     route = null;
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-      opa: null, moosRallye: false, donnerkeil: [], ...verbrauchStart() });
+      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, ...verbrauchStart() });
     hinweisGezeigt = false; angehalten = false; moosKennt = false;
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
@@ -326,7 +336,11 @@ window.Karte = function (opt = {}) {
         const d = Math.hypot(cx - h.x, cy - h.y), tief = h.r + r - d;
         if (tief > 0 && d > 0) schieb((cx - h.x) / d, (cy - h.y) / d, tief);
       }
-      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser]) {
+      for (const [wx, wy, wr] of SEE) { // nicht in den See
+        const d = Math.hypot(cx - wx, cy - wy), tief = wr + r - d;
+        if (tief > 0 && d > 0) schieb((cx - wx) / d, (cy - wy) / d, tief);
+      }
+      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser, ...CAMPING.haeuser]) {
         const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
         const d = Math.hypot(cx - hx, cy - hy);
         if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
@@ -384,7 +398,7 @@ window.Karte = function (opt = {}) {
   // opa: null | "rennen" (hat vom Rennen und vom Donnerkeil erzählt); moosRallye: Moos hat
   // von der Waldrallye erzählt; donnerkeil: gefundene Teile von Opas altem Rennwagen
   const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-    opa: null, moosRallye: false, donnerkeil: [], ...verbrauchStart() };
+    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, ...verbrauchStart() };
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -467,6 +481,14 @@ window.Karte = function (opt = {}) {
   // Hupen vor der Herde: Schafe stieben auseinander, danach fährt das Auto weiter zum Ziel
   // Förster Moos in der Försterhütte: vorerst Begrüßung, sein Auftrag kommt noch
   let moosKennt = false;
+  // Moos zieht die Bäume weg: Holzweg frei, Campingplatz und Waldsee auf der Karte
+  function holzwegFrei() {
+    spiel.moosSeil = "erledigt"; spiel.holzweg = true; spiel.geld += 20;
+    materialGeben({ schrauben: 2 });
+    const g = GEBIETE.find((q) => q.id === "camping");
+    if (!g.offen) { g.offen = true; nebelNeu(); }
+    setTimeout(() => toast("Neu auf der Karte: der Holzweg zum Campingplatz am Waldsee", 5000), 3000);
+  }
   function beiMoos() {
     const zeilen = [];
     if (!moosKennt) {
@@ -480,11 +502,26 @@ window.Karte = function (opt = {}) {
         ["nachdenken", moosKennt ? "Die Waldrallye? Ja freilich! Hat dir Opa Bolzen davon erzählt?" : "Opa Bolzen schickt dich wegen der Waldrallye? Ja freilich!"],
         ["auftrag", "Die erste Vorrunde zum Klappertal-Rennen fährt dieses Jahr bei uns im Wald, auf dem alten Holzweg hinter meiner Hütte."],
         ["nachdenken", "Nur liegen da noch umgestürzte Bäume drauf. Sobald der Weg frei ist, trag ich dich als Fahrer ein, versprochen."],
+        ["auftrag", "Mit meinem Seilzug könnt ich die Stämme wegziehen. Aber das Seil ist gerissen und die Feder ausgeleiert. Bringst du mir 2 Kabel und 2 Federn? Die liegen manchmal am Wegrand."],
         ["auftrag", "Und noch was, aber sag's nicht weiter: Nachts seh ich da hinten im Wald manchmal Lichter. Und es brummt wie ein Motor. Pieps mag das gar nicht."]);
-      spiel.moosRallye = true;
+      spiel.moosRallye = true; spiel.moosSeil = "auftrag";
+    } else if (spiel.moosSeil === "auftrag") {
+      const m = spiel.material;
+      if (m.kabel >= 2 && m.federn >= 2) {
+        m.kabel -= 2; m.federn -= 2;
+        zeilen.push(
+          ["juhu", "Kabel und Federn! Wunderbar, damit flick ich den Seilzug im Handumdrehen."],
+          ["juhu", "So … einhaken … und kurbeln, kurbeln, kurbeln … Rumms! Der Holzweg ist frei!"],
+          ["auftrag", "Am Ende vom Holzweg liegt der Campingplatz am Waldsee. Ich zeichne ihn dir auf die Karte. Dort startet auch die Rallye, sobald ich die Strecke abgesteckt hab."],
+          ["auftrag", "Hier, 20 Münzen für deine Mühe. Und ein paar Schrauben, die hatte ich noch übrig."]);
+        holzwegFrei();
+      } else {
+        zeilen.push(["nachdenken", `Für den Seilzug fehlen mir noch ${Math.max(0, 2 - m.kabel)} Kabel und ${Math.max(0, 2 - m.federn)} Federn. Schau mal am Wegrand, da liegt oft was herum.`]);
+      }
     } else if (moosKennt) {
-      zeilen.push(["nachdenken", spiel.moosRallye
-        ? "Der Holzweg ist noch nicht frei, ich bin dran. Und die Lichter? Letzte Nacht wieder. Unheimlich, sag ich dir."
+      zeilen.push(["nachdenken", spiel.holzweg
+        ? "Der Holzweg ist frei, die Rallye-Strecke stecke ich gerade ab. Und die Lichter? Letzte Nacht wieder. Unheimlich, sag ich dir."
+        : spiel.moosRallye ? "Der Holzweg ist noch nicht frei, ich bin dran. Und die Lichter? Letzte Nacht wieder. Unheimlich, sag ich dir."
         : "Na, wieder im Wald unterwegs? Ich grüble noch, wobei du mir helfen könntest. Komm bald wieder!"]);
     } else {
       zeilen.push(["auftrag", "Ich hätte da bestimmt was für dich zu tun. Aber erst muss ich in Ruhe nachdenken, was genau. Schau bald wieder vorbei!"]);
@@ -552,6 +589,12 @@ window.Karte = function (opt = {}) {
       .sort((a, b) => Math.hypot(a.x - auto.x, a.y - auto.y) - Math.hypot(b.x - auto.x, b.y - auto.y));
     return liste[0] ? { id: "fund", name, x: liste[0].x, y: liste[0].y } : null;
   }
+  // nächstes Material einer der gesuchten Arten am Wegrand
+  function materialZiel(arten) {
+    const f = FUNDE.filter((q) => arten.includes(q.art))
+      .sort((a, b) => Math.hypot(a.x - auto.x, a.y - auto.y) - Math.hypot(b.x - auto.x, b.y - auto.y))[0];
+    return f ? { id: "fund", name: MATERIAL.find((m) => m.id === f.art).name, x: f.x, y: f.y } : null;
+  }
   function auftraege() {
     const offen = [], erledigt = [];
     const knut = { figur: "knut", wer: "Knut Kurbel" }, hilde = { figur: "hilde", wer: "Bäuerin Hilde" };
@@ -596,11 +639,24 @@ window.Karte = function (opt = {}) {
           belohnung: "Startplatz bei der Waldrallye", ziel: licht ? zielVon("foersterhuette") : null,
           fehlt: licht ? null : "Ohne Licht kommst du nicht durch den dunklen Wald. Knut hat einen Scheinwerfer, wenn du ihm die Batterie bringst." });
       } else {
-        offen.push({ figur: "moos", wer: "Förster Moos", titel: "Die Waldrallye", stand: "Weg versperrt",
-          text: "Die Rallye fährt auf dem alten Holzweg hinter der Försterhütte. Moos räumt die umgestürzten Bäume weg.",
-          belohnung: "Erste Vorrunde zum Klappertal-Rennen", ziel: null, fehlt: "Der Holzweg ist noch versperrt. Schau später wieder bei Moos vorbei." });
+        offen.push({ figur: "moos", wer: "Förster Moos", titel: "Die Waldrallye", stand: spiel.holzweg ? "Strecke wird abgesteckt" : "Weg versperrt",
+          text: spiel.holzweg ? "Die Rallye startet am Campingplatz am Waldsee. Moos steckt die Strecke gerade ab."
+            : "Die Rallye fährt auf dem alten Holzweg hinter der Försterhütte. Erst müssen die umgestürzten Bäume weg.",
+          belohnung: "Erste Vorrunde zum Klappertal-Rennen", ziel: spiel.holzweg ? zielVon("camping") : null,
+          fehlt: spiel.holzweg ? null : "Erst den Seilzug für Moos reparieren." });
       }
     }
+    if (spiel.moosSeil === "auftrag") {
+      const m = spiel.material, genug = m.kabel >= 2 && m.federn >= 2;
+      offen.push({ figur: "moos", wer: "Förster Moos", titel: "Ein Seilzug für den Holzweg",
+        stand: `🔌 ${Math.min(2, m.kabel)}/2 · 🌀 ${Math.min(2, m.federn)}/2`,
+        text: genug ? "Kabel und Federn sind im Beutel. Bring sie Moos in die Försterhütte."
+          : "Moos braucht 2 Kabel und 2 Federn für seinen Seilzug. Die liegen am Wegrand, jeden Tag neue.",
+        belohnung: "20 Münzen, 2 🔩 Schrauben, der Weg zum Waldsee",
+        ziel: genug ? zielVon("foersterhuette") : materialZiel(["kabel", "federn"].filter((a) => m[a] < 2)),
+        fehlt: "Gerade liegt kein Kabel und keine Feder am Wegrand. Morgen (nach einem Besuch bei Opa) gibt es neue." });
+    }
+    if (spiel.moosSeil === "erledigt") erledigt.push({ figur: "moos", wer: "Förster Moos", titel: "Ein Seilzug für den Holzweg" });
     return { offen, erledigt };
   }
   function buchZeigen() {
@@ -937,6 +993,7 @@ window.Karte = function (opt = {}) {
     { id: "wald", name: "Waldrand im Westen", x: 70, y: 196, r: 82, offen: false },
     { id: "weide", name: "Weideweg im Osten", x: 282, y: 248, r: 62, offen: false },
     { id: "felder", name: "Feldweg zu den Feldern", x: 300, y: 140, r: 70, offen: false }, // zeigt Hilde
+    { id: "camping", name: "Holzweg und Waldsee", x: 44, y: 276, r: 50, offen: false }, // zeigt Moos
   ];
   const STUECKE = [
     { gebiet: "nord", x: 184, y: 213 },
@@ -999,7 +1056,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -1044,6 +1101,7 @@ window.Karte = function (opt = {}) {
     { id: "foersterhuette", name: "Försterhütte", art: "ort", x: 36, y: 197, gebiet: "wald" },
     { id: "felder", name: "Zu den Feldern", art: "weg", x: 300, y: 85, gebiet: "felder" },
     { id: "muehle", name: "Mühle", art: "ort", x: 296, y: 45, gebiet: "felder", kommt: true },
+    { id: "camping", name: "Campingplatz", art: "ort", x: 39, y: 289.4, gebiet: "camping" },
   ];
   const zielOffen = (z) => !z.kommt && GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
@@ -1056,12 +1114,16 @@ window.Karte = function (opt = {}) {
     { id: "schafe", x: 309, y: 158, r: 4, braucht: "hupe", aktion: "hupen", titel: "Mäh!",
       text: "Eine ganze Schafherde steht mitten auf dem Weg und rührt sich keinen Zentimeter.",
       fehlt: "Es fehlt: eine richtig laute Hupe (Kategorie Hupe). Vielleicht hat Knut eine." },
+    // Umgestürzte Bäume auf dem Holzweg, bis Moos sie mit dem Seilzug wegzieht
+    { id: "baeume", x: 38.7, y: 226, r: 3, braucht: "holzweg", titel: "Umgestürzte Bäume!",
+      text: "Dicke Stämme liegen quer über dem alten Holzweg. Da kommt keiner durch.",
+      fehlt: "Förster Moos zieht sie mit seinem Seilzug weg, sobald er ihn repariert hat." },
   ];
   // Ohne Werkstatt (Kartenprobe) zählt eine Belohnung gleich als eingebaut
   const TEIL_FUER = { licht: "scheinwerfer", hupe: "spezialhupe" };
   const hatTeilEingebaut = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : spiel.teile.has(TEIL_FUER[teil]));
   // Licht braucht Strom: Ist die Batterie leer, bleibt der Scheinwerfer dunkel
-  const hatTeil = (teil) => hatTeilEingebaut(teil) && (teil !== "licht" || spiel.strom > 0);
+  const hatTeil = (teil) => (teil === "holzweg" ? spiel.holzweg : hatTeilEingebaut(teil) && (teil !== "licht" || spiel.strom > 0));
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
   let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0, angehalten = false;
@@ -1122,6 +1184,7 @@ window.Karte = function (opt = {}) {
       else if (zielWahl.id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
       else if (zielWahl.id === "bauernhof") beiHilde();
       else if (zielWahl.id === "foersterhuette") beiMoos();
+      else if (zielWahl.id === "camping") toast("⛺ Campingplatz am Waldsee. An der Hütte hängt ein Zettel: „Bin angeln, komme gleich!“", 6000);
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -1236,7 +1299,7 @@ window.Karte = function (opt = {}) {
     // Dunkel nur unter dem Walddach: auf den Wegen im Wald und auf der Lichtung der Hütte
     dctx.fillStyle = dctx.strokeStyle = "rgba(4,10,8,0.93)"; dctx.lineCap = dctx.lineJoin = "round";
     dctx.lineWidth = WEG_BREITE + 3;
-    for (const w of [ABZWEIG, WALDPFAD]) {
+    for (const w of [ABZWEIG, WALDPFAD, HOLZWEG.filter(([, y]) => y < 266)]) {
       dctx.beginPath(); dctx.moveTo(w[0][0], w[0][1]);
       for (const [x, y] of w.slice(1)) dctx.lineTo(x, y);
       dctx.stroke();
@@ -1298,32 +1361,46 @@ window.Karte = function (opt = {}) {
         }
       }
       c.globalAlpha = 1;
-  }
-  walddachZeichnen(sicht, c);
-  zeichneWege("erde", WEG_BREITE + 1.4, 0.35, c);
-  zeichneWege("erde", WEG_BREITE, 1, c);
-  // Rand der Karte
-  c.fillStyle = "rgba(10,20,15,0.85)";
-  c.fillRect(-60, -60, W + 120, 60); c.fillRect(-60, W, W + 120, 60); c.fillRect(-60, 0, 60, W); c.fillRect(W, 0, 60, W);
+    }
+    walddachZeichnen(sicht, c);
+    seeMalen(c);
+    zeichneWege("erde", WEG_BREITE + 1.4, 0.35, c);
+    zeichneWege("erde", WEG_BREITE, 1, c);
+    // Rand der Karte
+    c.fillStyle = "rgba(10,20,15,0.85)";
+    c.fillRect(-60, -60, W + 120, 60); c.fillRect(-60, W, W + 120, 60); c.fillRect(-60, 0, 60, W); c.fillRect(W, 0, 60, W);
 
-  const sp = OBJ.schrottplatz;
-  if (sp.img.complete && sp.img.naturalWidth) c.drawImage(sp.img, SCHROTT.X, SCHROTT.Y, sp.b, sp.h);
-  const sch = OBJ.schuppen;
-  if (sch.img.complete && sch.img.naturalWidth) c.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
-  const hu = OBJ.huette;
-  if (hu && hu.img.complete && hu.img.naturalWidth) c.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
-  const hof = OBJ.bauernhof;
-  if (hof && hof.img.complete && hof.img.naturalWidth) c.drawImage(hof.img, HOF.X, HOF.Y, hof.b, hof.h);
-  const fh = OBJ.foersterhuette;
-  if (fh && fh.img.complete && fh.img.naturalWidth) c.drawImage(fh.img, FOERSTER.x - fh.b / 2, FOERSTER.y - fh.h / 2, fh.b, fh.h);
+    const sp = OBJ.schrottplatz;
+    if (sp.img.complete && sp.img.naturalWidth) c.drawImage(sp.img, SCHROTT.X, SCHROTT.Y, sp.b, sp.h);
+    const sch = OBJ.schuppen;
+    if (sch.img.complete && sch.img.naturalWidth) c.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
+    const hu = OBJ.huette;
+    if (hu && hu.img.complete && hu.img.naturalWidth) c.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
+    const hof = OBJ.bauernhof;
+    if (hof && hof.img.complete && hof.img.naturalWidth) c.drawImage(hof.img, HOF.X, HOF.Y, hof.b, hof.h);
+    const fh = OBJ.foersterhuette;
+    if (fh && fh.img.complete && fh.img.naturalWidth) c.drawImage(fh.img, FOERSTER.x - fh.b / 2, FOERSTER.y - fh.h / 2, fh.b, fh.h);
+    const cp = OBJ.campingplatz;
+    if (cp && cp.img.complete && cp.img.naturalWidth) c.drawImage(cp.img, CAMPING.X, CAMPING.Y, cp.b, cp.h);
+  }
+  // Waldsee: weiches Sandufer, darauf das Wasser
+  function seeMalen(c) {
+    const sand = musterVon("sand"), wasser = musterVon("wasser");
+    if (!sand || !wasser) return;
+    const kreise = (k) => { c.beginPath(); for (const [x, y, r] of SEE) { c.moveTo(x + r + k, y); c.arc(x, y, r + k, 0, Math.PI * 2); } };
+    c.save();
+    c.fillStyle = sand;
+    for (const [k, al] of [[2.6, 0.3], [1.8, 0.6], [1.1, 1]]) { c.globalAlpha = al; kreise(k); c.fill(); }
+    c.globalAlpha = 1; c.fillStyle = wasser; kreise(0); c.fill();
+    c.restore();
   }
   // Kacheln à 16 m in der aktuellen Auflösung; ändert sie sich, wird neu gemalt.
   // Fertig gemalt wird erst, wenn alle Bilder geladen sind.
   const KACHEL = 16, kacheln = new Map();
   let kachelPx = 0;
   function bodenBereit() {
-    if (!["gras_ruhig", "gras", "erde", "walddach"].every((n) => musterVon(n))) return false;
-    return ["schrottplatz", "schuppen", "huette", "bauernhof", "foersterhuette"].every((n) => !OBJ[n] || (OBJ[n].img.complete && OBJ[n].img.naturalWidth));
+    if (!["gras_ruhig", "gras", "erde", "walddach", "wasser", "sand"].every((n) => musterVon(n))) return false;
+    return ["schrottplatz", "schuppen", "huette", "bauernhof", "foersterhuette", "campingplatz"].every((n) => !OBJ[n] || (OBJ[n].img.complete && OBJ[n].img.naturalWidth));
   }
   function bodenAusKacheln(sicht, pxProM) {
     if (!bodenBereit()) return false;
@@ -1401,6 +1478,19 @@ window.Karte = function (opt = {}) {
       ctx.drawImage(rf.img, r.x - gb / 2, r.y - gh / 2, gb, gh);
     }
 
+    // Umgestürzte Stämme quer über dem Holzweg, bis Moos sie wegzieht
+    if (!spiel.holzweg) {
+      const h = HINDERNISSE.find((q) => q.id === "baeume");
+      for (const [dx, dy, rot, lang] of [[-0.6, -0.8, 0.35, 7], [0.5, 0.9, -0.5, 6.2]]) {
+        ctx.save(); ctx.translate(h.x + dx, h.y + dy); ctx.rotate(rot);
+        ctx.fillStyle = "rgba(10,20,8,0.35)"; ctx.beginPath(); ctx.roundRect(-lang / 2 + 0.3, -0.45, lang, 1.1, 0.5); ctx.fill();
+        ctx.fillStyle = "#6b4a2b"; ctx.strokeStyle = "#2a1a0e"; ctx.lineWidth = 0.12;
+        ctx.beginPath(); ctx.roundRect(-lang / 2, -0.55, lang, 1.1, 0.5); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#c79a5e"; ctx.beginPath(); ctx.ellipse(lang / 2 - 0.15, 0, 0.3, 0.52, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = "#4a3220"; ctx.beginPath(); ctx.moveTo(-lang / 2 + 0.8, -0.2); ctx.lineTo(lang / 2 - 1, -0.25); ctx.moveTo(-lang / 2 + 1.4, 0.2); ctx.lineTo(lang / 2 - 1.6, 0.18); ctx.stroke();
+        ctx.restore();
+      }
+    }
     // Materialien am Wegrand: kleiner Schimmer und ein Zeichen
     ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "1.3px sans-serif";
     for (const f of FUNDE) {
@@ -2076,7 +2166,7 @@ window.Karte = function (opt = {}) {
         auftrag: spiel.auftrag, geld: spiel.geld, beutel: spiel.beutel, hilde: spiel.hilde,
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
         sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
-        opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil],
+        opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil], moosSeil: spiel.moosSeil, holzweg: spiel.holzweg,
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -2085,7 +2175,8 @@ window.Karte = function (opt = {}) {
       Object.assign(spiel, { auftrag: st.auftrag, geld: st.geld, beutel: st.beutel, hilde: st.hilde,
         gekauft: new Set(st.gekauft), teile: new Set(st.teile) });
       const v = verbrauchStart();
-      Object.assign(spiel, { opa: st.opa || null, moosRallye: Boolean(st.moosRallye), donnerkeil: st.donnerkeil || [] });
+      Object.assign(spiel, { opa: st.opa || null, moosRallye: Boolean(st.moosRallye), donnerkeil: st.donnerkeil || [],
+        moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg) });
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);

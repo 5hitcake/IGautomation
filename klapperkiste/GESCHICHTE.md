@@ -44,6 +44,20 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   Donnerkeil. Opa: „Der Lange daneben? Ach … lassen wir das.“ Das ist Kauz, die
   Auflösung kommt viel später.
 
+## Der Holzweg (G3)
+
+- Hinter der Försterhütte führt der alte **Holzweg** durch den dunklen Wald nach
+  Süden zum **Campingplatz am Waldsee** (`objekte/campingplatz.png`, 30 m; See aus
+  Kreisen mit Sandufer, Wasser und Sand aus `boden/`). Auf dem Weg liegen anfangs
+  zwei umgestürzte Stämme (Hindernis „baeume“, man kommt nicht vorbei).
+- Moos erzählt bei der Rallye-Anmeldung von seinem kaputten Seilzug: Er braucht
+  **2 Kabel und 2 Federn** vom Wegrand (Auftrag „Ein Seilzug für den Holzweg“ im
+  Buch, der Fahrknopf führt zum nächsten passenden Fund). Bringt man sie, zieht er
+  die Stämme weg, gibt 20 Münzen und 2 Schrauben, und Holzweg, Campingplatz und See
+  erscheinen auf der Karte (Gebiet „camping“).
+- Am Campingplatz hängt vorerst ein Zettel „Bin angeln, komme gleich!“. Die Figur
+  dort und der Start der Waldrallye kommen als Nächstes.
+
 ## Rennen über das Spiel verteilt
 
 Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
@@ -106,7 +120,7 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 |---|---|---|
 | G1 | Auftragsbuch | ✅ |
 | G2 | Opa erzählt vom Rennen und vom Donnerkeil; Moos weiß von der Waldrallye und den Lichtern (mit Opas altem Foto an der Werkstattwand) | ✅ |
-| G3 | Waldweg verlängern, Campingplatz am Waldsee mit neuer Figur | offen, braucht Bilder |
+| G3 | Holzweg hinter der Försterhütte, Campingplatz am Waldsee; Moos braucht Kabel und Federn für seinen Seilzug | ✅ (die Figur am Campingplatz fehlt noch: „Bin angeln, komme gleich!“) |
 | G4 | Moos' Aufträge (Pieps, Vogelhäuschen) | offen, braucht Bilder |
 | G5 | Tag und Nacht | offen |
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |

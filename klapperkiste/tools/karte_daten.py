@@ -27,10 +27,10 @@ import teilwerk  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ZIEL = os.path.join(ROOT, "design", "karte_daten.js")
 ZIEL_TEILE = os.path.join(ROOT, "design", "spielstart_teile.js")
-BODEN = ["gras_ruhig", "gras", "erde", "schotter", "walddach"]
+BODEN = ["gras_ruhig", "gras", "erde", "schotter", "walddach", "wasser", "sand"]
 OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz",
            "reifen", "batterie", "huette",
-           "bauernhof", "foersterhuette"]
+           "bauernhof", "foersterhuette", "campingplatz"]
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
          "radV": "schubkarre", "motor": "maeher", "energie": "giesskanne", "sitz": "kuechenstuhl",
          "lenkung": "fahrradlenker"}
