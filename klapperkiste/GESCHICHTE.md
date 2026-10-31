@@ -55,8 +55,12 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   Buch, der Fahrknopf führt zum nächsten passenden Fund). Bringt man sie, zieht er
   die Stämme weg, gibt 20 Münzen und 2 Schrauben, und Holzweg, Campingplatz und See
   erscheinen auf der Karte (Gebiet „camping“).
-- Am Campingplatz hängt vorerst ein Zettel „Bin angeln, komme gleich!“. Die Figur
-  dort und der Start der Waldrallye kommen als Nächstes.
+- Am Campingplatz wohnt **Anglerin Rosi**, die Platzwartin. Beim ersten Besuch
+  erzählt sie vom Brummen und den Lichtern am anderen Seeufer (zweite Spur zu Kauz)
+  und gibt einen Lieferauftrag: **Fisch gegen Milch** (Fisch zu Hilde, Milch zurück).
+  Belohnung: 25 Münzen, 1 Blech und das Vorderteil der Badewannen-Karosserie (die
+  anderen Teile hat „vielleicht der Sperrmüll-Händler“, Spur für später).
+- Der Start der Waldrallye am Campingplatz kommt als Nächstes (G7).
 
 ## Rennen über das Spiel verteilt
 

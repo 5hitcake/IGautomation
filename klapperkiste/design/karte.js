@@ -255,7 +255,7 @@ window.Karte = function (opt = {}) {
     route = null;
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, ...verbrauchStart() });
+      opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, ...verbrauchStart() });
     hinweisGezeigt = false; angehalten = false; moosKennt = false;
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
@@ -398,7 +398,7 @@ window.Karte = function (opt = {}) {
   // opa: null | "rennen" (hat vom Rennen und vom Donnerkeil erzählt); moosRallye: Moos hat
   // von der Waldrallye erzählt; donnerkeil: gefundene Teile von Opas altem Rennwagen
   const spiel = { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
-    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, ...verbrauchStart() };
+    opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, ...verbrauchStart() };
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -451,6 +451,13 @@ window.Karte = function (opt = {}) {
   // Karosserie-Teil. spiel.hilde: null | "auftrag" | "frei" (Schafe weg) | "erledigt"
   function beiHilde() {
     const hilde = (zeilen, danach) => gespraech("hilde", "Bäuerin Hilde", "bauernhof", zeilen, danach);
+    if (spiel.rosi === "fisch") {
+      spiel.rosi = "milch"; hudNeu();
+      return hilde([
+        ["juhu", "Fisch von Rosi? Herrlich, frisch aus dem Waldsee! Den gibt's heute Abend."],
+        ["auftrag", "Hier, die Kanne Milch für sie, so wie immer. Grüß mir die Rosi schön!"],
+      ], () => toast("🥛 Milchkanne eingepackt. Zurück zu Rosi an den Waldsee!", 4000));
+    }
     if (!spiel.hilde) {
       return hilde([
         ["hallo", "Ja grüß dich! Ein Besuch auf dem Hof, wie schön. Ich bin Hilde, mir gehören die Weide, die Schafe und die Kühe da drüben."],
@@ -481,6 +488,36 @@ window.Karte = function (opt = {}) {
   // Hupen vor der Herde: Schafe stieben auseinander, danach fährt das Auto weiter zum Ziel
   // Förster Moos in der Försterhütte: vorerst Begrüßung, sein Auftrag kommt noch
   let moosKennt = false;
+  // Anglerin Rosi Rute, Platzwartin am Campingplatz. Erster Auftrag: frischen Fisch zu Hilde
+  // bringen und die Milch dafür zurück. spiel.rosi: null | "fisch" | "milch" | "erledigt"
+  function beiRosi() {
+    const ort = D.hintergruende && D.hintergruende.camping ? "camping" : "foersterhuette";
+    const rosi = (zeilen, danach) => gespraech("rosi", "Anglerin Rosi", ort, zeilen, danach);
+    if (!spiel.rosi) {
+      return rosi([
+        ["hallo", "Hallo, hallo! Entschuldige, ich war unten am Steg. Ich bin Rosi, mir gehört der Campingplatz. Und die Hälfte der Fische im See, wenn's nach mir geht!"],
+        ["nachdenken", "Du bist durch den Holzweg gekommen? Dann hat Moos die Stämme endlich weg. Gut so, hier soll ja bald die Waldrallye starten."],
+        ["nachdenken", "Und unter uns: Nachts brummt es drüben am anderen Seeufer, und Lichter flackern übers Wasser. Die Camper denken, es spukt."],
+        ["auftrag", "Aber erst mal was Handfestes: Bringst du Hilde auf dem Bauernhof diesen frischen Fisch? Sie gibt mir dafür immer eine Kanne Milch."],
+        ["juhu", "Bring mir die Milch zurück, dann hab ich was Schönes für dich. Im Schuppen steht noch eine alte Badewanne!"],
+      ], () => { spiel.rosi = "fisch"; hudNeu(); toast("🐟 Frischer Fisch eingepackt. Ab zu Hilde!", 4000); });
+    }
+    if (spiel.rosi === "fisch") return rosi([["nachdenken", "Der Fisch muss zu Hilde auf den Bauernhof, bevor er anfängt zu riechen!"]]);
+    if (spiel.rosi === "milch") {
+      spiel.rosi = "erledigt"; spiel.geld += 25; spiel.teile.add("badewanne_vorne");
+      if (opt.belohnung) opt.belohnung("badewanne_vorne");
+      materialGeben({ blech: 1 });
+      return rosi([
+        ["juhu", "Frische Milch! Herrlich, da freuen sich die Camper morgen früh."],
+        ["auftrag", "Hier, 25 Münzen und ein Stück Blech. Und das Vorderteil der alten Badewanne gehört dir, mit Gummiente vorne drauf!"],
+        ["nachdenken", "Die anderen Teile? Eins hat bestimmt der Sperrmüll-Händler … ach, das erzähl ich dir ein andermal."],
+      ], () => toast("Badewanne vorne erhalten! Liegt in Opas Werkstatt im Regal.", 4500));
+    }
+    rosi([["hallo", spiel.moosRallye && spiel.holzweg
+      ? "Schön, dich zu sehen! Moos steckt die Rallye-Strecke noch ab. Und letzte Nacht? Wieder diese Lichter überm See …"
+      : "Schön, dich zu sehen! Die Fische beißen heute prima."]]);
+  }
+
   // Moos zieht die Bäume weg: Holzweg frei, Campingplatz und Waldsee auf der Karte
   function holzwegFrei() {
     spiel.moosSeil = "erledigt"; spiel.holzweg = true; spiel.geld += 20;
@@ -657,6 +694,10 @@ window.Karte = function (opt = {}) {
         fehlt: "Gerade liegt kein Kabel und keine Feder am Wegrand. Morgen (nach einem Besuch bei Opa) gibt es neue." });
     }
     if (spiel.moosSeil === "erledigt") erledigt.push({ figur: "moos", wer: "Förster Moos", titel: "Ein Seilzug für den Holzweg" });
+    const rosiA = { figur: "rosi", wer: "Anglerin Rosi", titel: "Fisch gegen Milch", belohnung: "25 Münzen, 1 🥫 Blech, ein Karosserie-Teil" };
+    if (spiel.rosi === "fisch") offen.push({ ...rosiA, stand: "🐟 Fisch dabei", text: "Bring Hilde auf dem Bauernhof den frischen Fisch von Rosi.", ziel: zielVon("bauernhof") });
+    if (spiel.rosi === "milch") offen.push({ ...rosiA, stand: "🥛 Milch dabei", text: "Bring Rosi die Kanne Milch von Hilde zurück an den Waldsee.", ziel: zielVon("camping") });
+    if (spiel.rosi === "erledigt") erledigt.push(rosiA);
     return { offen, erledigt };
   }
   function buchZeigen() {
@@ -1184,7 +1225,7 @@ window.Karte = function (opt = {}) {
       else if (zielWahl.id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
       else if (zielWahl.id === "bauernhof") beiHilde();
       else if (zielWahl.id === "foersterhuette") beiMoos();
-      else if (zielWahl.id === "camping") toast("⛺ Campingplatz am Waldsee. An der Hütte hängt ein Zettel: „Bin angeln, komme gleich!“", 6000);
+      else if (zielWahl.id === "camping") beiRosi();
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -2167,6 +2208,7 @@ window.Karte = function (opt = {}) {
         gekauft: [...spiel.gekauft], teile: [...spiel.teile], moosKennt, besucht, hinweis: hinweisGezeigt,
         sprit: spiel.sprit, strom: spiel.strom, platt: spiel.platt, vorrat: { ...spiel.vorrat }, material: { ...spiel.material },
         opa: spiel.opa, moosRallye: spiel.moosRallye, donnerkeil: [...spiel.donnerkeil], moosSeil: spiel.moosSeil, holzweg: spiel.holzweg,
+        rosi: spiel.rosi,
         offen: GEBIETE.filter((g) => g.offen).map((g) => g.id),
         stuecke: nr(STUECKE, (st) => st.genommen), sammel: nr(SAMMEL, (r) => r.weg), hindernisse: nr(HINDERNISSE, (h) => h.weg),
       };
@@ -2176,7 +2218,7 @@ window.Karte = function (opt = {}) {
         gekauft: new Set(st.gekauft), teile: new Set(st.teile) });
       const v = verbrauchStart();
       Object.assign(spiel, { opa: st.opa || null, moosRallye: Boolean(st.moosRallye), donnerkeil: st.donnerkeil || [],
-        moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg) });
+        moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg), rosi: st.rosi || null });
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);

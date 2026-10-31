@@ -41,6 +41,7 @@ ganzer Körper, gleich groß, mit viel Weiß dazwischen. Ich schneide sie aus.
 | Zirkus | Direktorin Zylinda | Zylinder höher als sie selbst | Lila |
 | Hafen | Kapitänin Kiel | Pfeife mit Dampfwolken in Ankerform | Marineblau |
 | Frostpass | Hüttenwirt Frieder | Nase rot wie eine Tomate, dicker Schal bis zu den Knien | Eisblau |
+| Campingplatz am Waldsee | Anglerin Rosi (Rute) | riesiger Anglerhut voller Köder, Angel doppelt so lang wie sie | Seegrün |
 
 ## Prompts (je Figur, Format 1:1)
 
@@ -119,6 +120,7 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Opas Werkstatt (Spielstart) | `werkstatt.png` | ✅ |
 | Bauernhof (Hilde) | `bauernhof.png` | ✅ |
 | Försterhütte (Moos) | `foersterhuette.png` | ✅ |
+| Campingplatz (Rosi) | `camping.png` | offen, bis dahin dient `foersterhuette.png` |
 | Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | ✅ (Lage der gemalten Hebebühne steht als `BUEHNE` in `design/werkstatt.js`) |
 
 ### Opas Werkstatt
@@ -135,6 +137,12 @@ und hell sein, die Ränder dürfen voll und dunkler sein.
 
 ```
 Background illustration for a car building screen in a game, seen straight from the front at eye level, perfectly centred and roughly symmetrical, no characters, no people, no animals, no car. Inside a big old wooden garage hall in the evening, a bit like a classic racing game tuning garage but cosy and hand-made: in the exact centre an empty square wooden lifting platform with yellow and black hazard stripes on its front edge, lit from above by one big hanging lamp with a metal shade that throws a warm cone of light down onto the empty platform, the light pool on the floor is bright, everything around it falls off into soft warm shadow. On the left and right walls in the shadow: tall wooden shelves full of spare parts, stacked old tyres, oil cans, a pegboard with tools, coiled hoses, a workbench with a vice, a few crates. The back wall behind the platform has big closed wooden barn doors with a small dusty window strip letting in a last bit of blue evening light. Old plank floor with oil stains. The whole centre area above and around the platform is calm and open with no objects, so a car can be placed there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, edges darker and slightly muted so the centre stands out. Wide landscape format 16:9. No text, no letters, no frames.
+```
+
+### Campingplatz am Waldsee
+
+```
+Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals except two ducks far out on the water. A cosy campsite at the shore of a small forest lake in the late afternoon: on the right a small round vintage caravan in cream and sea-green with a striped awning, a washing line with towels, a few colourful dome tents further back, a stone ring campfire with logs, a wooden jetty reaching out into the calm lake with a fishing rod leaning against a post and a bucket, tall dark fir trees around the lake and their reflections in the water, golden evening light. The left half and the centre of the image are calm and open: trampled grass and a sandy patch at the shore, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
 ```
 
 ### Bauernhof

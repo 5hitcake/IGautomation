@@ -42,7 +42,7 @@ MODELLE = {"rundling": "Rundling", "pickup": "Pick-up", "badewanne": "Badewanne"
            "gewaechshaus": "Gewächshaus", "zirkus": "Zirkus", "schlauchboot": "Schlauchboot"}
 TIERE = ["vogel", "hase", "schaf", "kuh"]  # je zwei Posen: NAME_1.png, NAME_2.png
 LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne", "scheinwerfer", "spezialhupe",
-         "pickup_hinten"]  # Knuts Laden und Belohnungen
+         "pickup_hinten", "badewanne_vorne"]  # Knuts Laden (früher) und Belohnungen
 AUTO_PX = 320  # Breite des Autobilds (10 Zellen = 4 m)
 
 
