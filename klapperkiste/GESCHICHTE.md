@@ -38,6 +38,11 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   der noch von umgestürzten Bäumen versperrt ist, und flüstert von den Lichtern und
   dem Motorbrummen nachts im Wald (erste Spur zu Kauz). Danach steht „Die Waldrallye“
   im Buch, bis der Holzweg frei ist (G3).
+- **Opas altes Foto** (`assets/geschichte/donnerkeil_foto.jpg`) hängt danach oben
+  rechts an der Werkstattwand und leuchtet einmal auf. Antippen zeigt es groß: der
+  junge Opa und ein langer, dünner Mann mit Werkzeuggürtel mit dem Pokal neben dem
+  Donnerkeil. Opa: „Der Lange daneben? Ach … lassen wir das.“ Das ist Kauz, die
+  Auflösung kommt viel später.
 
 ## Rennen über das Spiel verteilt
 
@@ -100,7 +105,7 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | Schritt | Inhalt | Stand |
 |---|---|---|
 | G1 | Auftragsbuch | ✅ |
-| G2 | Opa erzählt vom Rennen und vom Donnerkeil; Moos weiß von der Waldrallye und den Lichtern (altes Foto in der Werkstatt folgt, braucht ein Bild) | ✅ |
+| G2 | Opa erzählt vom Rennen und vom Donnerkeil; Moos weiß von der Waldrallye und den Lichtern (mit Opas altem Foto an der Werkstattwand) | ✅ |
 | G3 | Waldweg verlängern, Campingplatz am Waldsee mit neuer Figur | offen, braucht Bilder |
 | G4 | Moos' Aufträge (Pieps, Vogelhäuschen) | offen, braucht Bilder |
 | G5 | Tag und Nacht | offen |

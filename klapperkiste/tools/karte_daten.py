@@ -87,7 +87,7 @@ def auto(raster: dict, modell: str | None) -> tuple[Image.Image, Image.Image, li
 
 
 def figuren() -> dict:
-    """Figuren (vier Gesten, Höhe 640 px) und Gesprächshintergründe (Breite 1280 px)."""
+    """Figuren (vier Gesten, Höhe 640 px), Gesprächshintergründe (Breite 1280 px), Geschichte-Bilder."""
     ch = os.path.join(ROOT, "assets", "charaktere")
     daten = {"figuren": {}, "hintergruende": {}}
     for name in sorted(os.listdir(ch)):
@@ -106,6 +106,14 @@ def figuren() -> dict:
         b = Image.open(os.path.join(hg, datei)).convert("RGB")
         b = b.resize((1280, round(b.height * 1280 / b.width)), Image.LANCZOS)
         daten["hintergruende"][datei.rsplit(".", 1)[0]] = _uri(b)
+    # Bilder zur Geschichte (z. B. Opas altes Foto vom Donnerkeil), höchstens 1000 px hoch
+    gs = os.path.join(ROOT, "assets", "geschichte")
+    daten["geschichte"] = {}
+    for datei in sorted(os.listdir(gs)) if os.path.isdir(gs) else []:
+        b = Image.open(os.path.join(gs, datei)).convert("RGB")
+        if b.height > 1000:
+            b = b.resize((round(b.width * 1000 / b.height), 1000), Image.LANCZOS)
+        daten["geschichte"][datei.rsplit(".", 1)[0]] = _uri(b)
     return daten
 
 

@@ -2107,6 +2107,7 @@ window.Karte = function (opt = {}) {
         ["nachdenken", "Weißt du eigentlich, was am Ende des Sommers ist? Das Klappertal-Rennen! Das ganze Tal steht dann an der Kiesrennbahn."],
         ["juhu", "Früher bin ich da selbst gefahren. Dreimal gewonnen, mit dem Donnerkeil! Schnell wie der Blitz und laut wie ein Gewitter."],
         ["nachdenken", "Den gibt es leider nicht mehr. Nach einem dummen Streit haben wir ihn auseinandergenommen, und die Teile sind im ganzen Tal verstreut."],
+        ["juhu", "Da an der Wand hängt noch ein Foto von damals. Schau's dir ruhig an!"],
         ["auftrag", "Aber wer weiß … Wenn du die Augen offen hältst, findest du vielleicht das eine oder andere Teil wieder."],
         ["auftrag", "Und fürs Rennen musst du dich erst in den Vorrunden beweisen. Die erste ist im Wald, frag mal Förster Moos danach!"],
         ["juhu", "Ich schreib's dir ins Auftragsbuch. Ach, was freu ich mich: Endlich wieder einer aus der Bolzen-Werkstatt am Start!"],

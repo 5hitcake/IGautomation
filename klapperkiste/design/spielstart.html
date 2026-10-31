@@ -85,6 +85,16 @@ body { position: fixed; inset: 0; }
 #start h1 { font-size: clamp(40px, 9vw, 84px); text-shadow: 0 4px 0 #1d1a16, 0 0 24px rgba(0,0,0,0.6); }
 .start-knoepfe { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .start-knoepfe .knopf { font-size: 22px; padding: 14px 34px; box-shadow: 0 4px 0 rgba(0,0,0,0.4); }
+/* Opas Foto: klein an der Wand (oben rechts auf der Bühne), groß zum Ansehen */
+#fotoKnopf { position: absolute; top: 62px; right: 12px; width: clamp(44px, 6vw, 64px); padding: 3px 3px 8px; background: #f3ead6; border: 0; border-radius: 2px; transform: rotate(5deg); box-shadow: 0 4px 8px rgba(0,0,0,0.5); cursor: pointer; z-index: 2; }
+#fotoKnopf img { display: block; width: 100%; filter: sepia(0.3); }
+#fotoKnopf.tipp { animation: knopfTipp 1.1s ease-in-out infinite; }
+#foto { position: fixed; inset: 0; z-index: 55; display: grid; place-items: center; background: rgba(10,8,6,0.82); padding: 10px; box-sizing: border-box; }
+.foto-box { display: flex; gap: 18px; align-items: center; max-height: 100%; max-width: 100%; }
+.foto-box img { max-height: calc(100svh - 24px); max-width: 48vw; object-fit: contain; transform: rotate(-2deg); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.foto-text { display: grid; gap: 8px; max-width: 320px; background: #fffaf0; color: #1d1a16; border: 4px solid #1d1a16; border-radius: 14px; padding: 14px 16px; }
+.foto-text strong { font-family: var(--font-display); font-weight: 400; font-size: 20px; color: #a23b1c; }
+.foto-text p { font-weight: 700; line-height: 1.35; }
 /* Neues Spiel? */
 #neuFrage { position: fixed; inset: 0; z-index: 65; display: grid; place-items: center; background: rgba(0,0,0,0.5); }
 #neuFrage > div { background: #fffaf0; color: #1d1a16; border: 4px solid #1d1a16; border-radius: 16px; padding: 16px 18px; max-width: 80%; display: grid; gap: 10px; box-shadow: 0 4px 0 rgba(0,0,0,0.35); }
@@ -115,6 +125,16 @@ body { position: fixed; inset: 0; }
 <div id="drehen" aria-live="polite"><div><span aria-hidden="true">🔄</span><p>Bitte dreh dein Handy quer.</p></div></div>
 <!-- Kleine Knöpfe oben rechts (die Musiknote kommt aus karte.js dazu) -->
 <div id="ecke"><button type="button" id="vonVorn" title="Neues Spiel" aria-label="Neues Spiel">↺</button></div>
+<!-- Opas altes Foto vom Donnerkeil, groß -->
+<div id="foto" hidden role="dialog" aria-label="Opas altes Foto">
+  <div class="foto-box">
+    <img alt="Altes Foto: der junge Opa Bolzen und ein großer, dünner Mann mit Werkzeuggürtel halten einen Pokal, daneben der silberne Rennwagen mit Blitz.">
+    <div class="foto-text"><strong>Opa Bolzen</strong>
+      <p>Das bin ich, mit dem Donnerkeil, nach dem dritten Sieg. Was haben wir gefeiert!</p>
+      <p>Der Lange daneben? Ach … lassen wir das. Lange her.</p>
+      <button type="button" class="knopf" id="fotoZu">Zurück in die Werkstatt</button></div>
+  </div>
+</div>
 <div id="neuFrage" hidden role="alertdialog" aria-labelledby="neuTitel">
   <div><strong id="neuTitel">Neues Spiel?</strong><p>Dein gespeicherter Fortschritt wird gelöscht.</p>
     <div class="knoepfe"><button type="button" class="knopf" id="neuJa">Ja, neu anfangen</button><button type="button" class="knopf zweit" id="neuNein">Abbrechen</button></div></div>
@@ -128,6 +148,7 @@ body { position: fixed; inset: 0; }
       <div class="kats" id="tabs" role="tablist" aria-label="Kategorien"></div>
       <div class="buehne-w">
         <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszuwählen."></canvas>
+        <button type="button" id="fotoKnopf" hidden aria-label="Opas altes Foto ansehen"><img alt=""></button>
         <div class="werte" id="werte" aria-label="Werte deines Autos"></div>
         <div class="unten">
           <div class="views" role="group" aria-label="Ansicht">
@@ -259,7 +280,11 @@ body { position: fixed; inset: 0; }
     $("s-karte").hidden = name !== "karte";
     if (name === "werkstatt") {
       W.refresh(); K.musik("werkstatt"); K.beiOpa();
-      if (!imEinstieg()) { W.say("Zurück in Opas Werkstatt."); setTimeout(() => K.opaErzaehlt(() => W.say("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Anmeldung zur Waldrallye.", "ok")), 400); }
+      if (!imEinstieg()) { W.say("Zurück in Opas Werkstatt."); setTimeout(() => K.opaErzaehlt(() => {
+        W.say("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Anmeldung zur Waldrallye.", "ok");
+        fotoZeigen(); $("fotoKnopf").classList.add("tipp");
+      }), 400); }
+      fotoZeigen();
     }
   }
 
@@ -288,6 +313,14 @@ body { position: fixed; inset: 0; }
     zeige("karte");
     K.beiKnutAnkommen();
   }
+
+  // Opas Foto: hängt an der Wand, sobald Opa vom Donnerkeil erzählt hat
+  const FOTO = (window.KARTE_DATEN.geschichte || {}).donnerkeil_foto;
+  if (FOTO) { $("fotoKnopf").querySelector("img").src = FOTO; $("foto").querySelector("img").src = FOTO; }
+  function fotoZeigen() { $("fotoKnopf").hidden = !FOTO || K.stand().opa !== "rennen"; }
+  $("fotoKnopf").addEventListener("click", () => { $("foto").hidden = false; $("fotoKnopf").classList.remove("tipp"); $("fotoZu").focus(); });
+  $("fotoZu").addEventListener("click", () => { $("foto").hidden = true; });
+  $("foto").addEventListener("click", (e) => { if (e.target.id === "foto") $("foto").hidden = true; });
 
   // Speichern: automatisch alle paar Sekunden und beim Verlassen, sobald der Einstieg
   // geschafft ist (Spielstand im Browser dieses Geräts)
