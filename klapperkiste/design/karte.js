@@ -651,7 +651,7 @@ window.Karte = function (opt = {}) {
         ["nachdenken", "Nur liegen da noch umgestürzte Bäume drauf. Sobald der Weg frei ist, trag ich dich als Fahrer ein, versprochen."],
         ["auftrag", "Mit meinem Seilzug könnt ich die Stämme wegziehen. Aber das Seil ist gerissen und die Feder ausgeleiert. Bringst du mir 2 Kabel und 2 Federn? Die liegen manchmal am Wegrand."],
         ["auftrag", "Und noch was, aber sag's nicht weiter: Nachts seh ich da hinten im Wald manchmal Lichter. Und es brummt wie ein Motor. Pieps mag das gar nicht."]);
-      spiel.moosRallye = true; spiel.moosSeil = "auftrag";
+      spiel.moosRallye = true; spiel.moosSeil = "auftrag"; fundeVerteilen();
     } else if (spiel.moosSeil === "auftrag") {
       const m = spiel.material;
       if (m.kabel >= 2 && m.federn >= 2) {
@@ -671,7 +671,7 @@ window.Karte = function (opt = {}) {
         zeilen.push(
           ["nachdenken", "Pieps ist ganz durcheinander. Seit die Lichter im Wald flackern, schläft er nicht mehr in meinem Bart."],
           ["auftrag", "Ich will ihm ein Vogelhaus bauen, ein richtiges, mit Blechdach. Bringst du mir 2 Blech und 2 Schrauben? Liegen manchmal am Wegrand."]);
-        n.vogelhaus = "auftrag";
+        n.vogelhaus = "auftrag"; fundeVerteilen();
         setTimeout(() => toast("🐦 Neuer Auftrag: Ein Vogelhaus für Pieps. Steht im Auftragsbuch.", 4000), 300);
       } else if (m.blech >= 2 && m.schrauben >= 2) {
         m.blech -= 2; m.schrauben -= 2; n.vogelhaus = "erledigt"; spiel.geld += 25;
@@ -857,7 +857,7 @@ window.Karte = function (opt = {}) {
           : "Moos braucht 2 Kabel und 2 Federn für seinen Seilzug. Die liegen am Wegrand, jeden Tag neue.",
         belohnung: "20 Münzen, 2 🔩 Schrauben, der Weg zum Waldsee",
         ziel: genug ? zielVon("foersterhuette") : materialZiel(["kabel", "federn"].filter((a) => m[a] < 2)),
-        fehlt: "Gerade liegt kein Kabel und keine Feder am Wegrand. Morgen (nach einem Besuch bei Opa) gibt es neue." });
+        fehlt: "Gerade liegt kein Kabel und keine Feder am Wegrand. Nach einem Besuch bei Opa liegen neue da, oder Knut verkauft dir welche." });
     }
     if (spiel.moosSeil === "erledigt") erledigt.push({ figur: "moos", wer: "Förster Moos", titel: "Ein Seilzug für den Holzweg" });
     const rosiA = { figur: "rosi", wer: "Anglerin Rosi", titel: "Fisch gegen Milch", belohnung: "25 Münzen, 1 🥫 Blech, ein Karosserie-Teil" };
@@ -876,7 +876,7 @@ window.Karte = function (opt = {}) {
       offen.push({ ...vogel, stand: `🥫 ${Math.min(2, m.blech)}/2 · 🔩 ${Math.min(2, m.schrauben)}/2`,
         text: genug ? "Blech und Schrauben sind im Beutel. Bring sie Moos in die Försterhütte." : "Moos braucht 2 Blech und 2 Schrauben für ein Vogelhaus. Die liegen am Wegrand.",
         ziel: genug ? zielVon("foersterhuette") : materialZiel(["blech", "schrauben"].filter((a) => m[a] < 2)),
-        fehlt: "Gerade liegt kein Blech und keine Schraube am Wegrand. Morgen gibt es neue." });
+        fehlt: "Gerade liegt kein Blech und keine Schraube am Wegrand. Nach einem Besuch bei Opa liegen neue da, oder Knut verkauft dir welche." });
     }
     if (n.vogelhaus === "erledigt") erledigt.push(vogel);
     const motor = { figur: "rosi", wer: "Anglerin Rosi", titel: "Rosis Außenbordmotor", belohnung: "20 Münzen, Schiffs-Steuerrad (lenkt besser)" };
@@ -1143,9 +1143,28 @@ window.Karte = function (opt = {}) {
   const FUNDE = []; // { art, x, y }
   const tagesPreis = Object.fromEntries(MATERIAL.map((m) => [m.id, m.preis]));
   const beutelVoll = () => Object.values(spiel.material).reduce((a, b) => a + b, 0);
+  // Was offene Aufträge noch brauchen ({ art: Anzahl }), abzüglich Beutel
+  function auftragBedarf() {
+    const b = {};
+    if (spiel.moosSeil === "auftrag") Object.assign(b, { kabel: 2, federn: 2 });
+    if (spiel.neben.vogelhaus === "auftrag") Object.assign(b, { blech: 2, schrauben: 2 });
+    return b;
+  }
+  function gesucht() {
+    const g = {};
+    for (const [art, n] of Object.entries(auftragBedarf())) if (spiel.material[art] < n) g[art] = n - spiel.material[art];
+    return g;
+  }
   function fundeVerteilen() {
     const wege = WEGE.filter((w) => w.every(([x, y]) => bekannt(x, y)));
-    for (let versuch = 0; versuch < 400 && FUNDE.length < FUND_ZAHL; versuch++) {
+    // Gesuchtes für offene Aufträge liegt sicher dabei, der Rest ist Zufall
+    const vorne = [];
+    for (const [art, n] of Object.entries(gesucht())) {
+      const liegt = FUNDE.filter((f) => f.art === art).length;
+      for (let i = liegt; i < n; i++) vorne.push(art);
+    }
+    const ziel = Math.max(FUND_ZAHL, FUNDE.length + vorne.length);
+    for (let versuch = 0; versuch < 400 && FUNDE.length < ziel; versuch++) {
       const w = wege[Math.floor(Math.random() * wege.length)];
       if (!w) break;
       const i = 1 + Math.floor(Math.random() * (w.length - 1)), t = Math.random();
@@ -1154,7 +1173,7 @@ window.Karte = function (opt = {}) {
       const x = ax + (bx - ax) * t - (by - ay) / l * d * seite, y = ay + (by - ay) * t + (bx - ax) / l * d * seite;
       if (!bekannt(x, y) || imWald(x, y, -2) || OBJEKTE.some((o) => (o.vis || o.r) && Math.hypot(o.x - x, o.y - y) < (o.vis || o.r) + 0.8)) continue;
       if ([...FUNDE, ...SAMMEL, ...STUECKE].some((f) => Math.hypot(f.x - x, f.y - y) < 6)) continue;
-      FUNDE.push({ art: MATERIAL[Math.floor(Math.random() * MATERIAL.length)].id, x, y });
+      FUNDE.push({ art: vorne.shift() || MATERIAL[Math.floor(Math.random() * MATERIAL.length)].id, x, y });
     }
   }
   function neuerTag() {
@@ -1227,15 +1246,26 @@ window.Karte = function (opt = {}) {
     }
     zeile(`🩹 Flickzeug (${spiel.vorrat.flickzeug} dabei)`, 6, spiel.vorrat.flickzeug < 3, () => { spiel.vorrat.flickzeug++; });
     zeile(`⛽ Kanister (${spiel.vorrat.kanister} dabei)`, 8, spiel.vorrat.kanister < 2, () => { spiel.vorrat.kanister++; });
+    // Für offene Aufträge verkauft Knut auch Material, aber teurer als am Wegrand
+    const fehlt2 = gesucht();
+    if (Object.keys(fehlt2).length) {
+      liste.append(el("h4", "laden-titel", "Knut verkauft"));
+      for (const m of MATERIAL) {
+        if (!fehlt2[m.id]) continue;
+        zeile(`${m.icon} ${m.name === "Federn" ? "Feder" : m.name} (noch ${fehlt2[m.id]} nötig)`, m.preis * 3, beutelVoll() < BEUTEL_PLATZ,
+          () => { spiel.material[m.id]++; toast(`${m.icon} ${m.name === "Federn" ? "Feder" : m.name} gekauft (🎒 ${beutelVoll()}/${BEUTEL_PLATZ}).`); });
+      }
+    }
     // Ankauf: Materialien aus dem Beutel, Preise ändern sich jeden Tag
-    if (beutelVoll()) {
+    if (MATERIAL.some((m) => spiel.material[m.id] > (auftragBedarf()[m.id] || 0))) {
       liste.append(el("h4", "laden-titel", "Knut kauft an"));
       for (const m of MATERIAL) {
-        const n = spiel.material[m.id];
+        // was ein offener Auftrag braucht, kauft Knut nicht an
+        const n = Math.max(0, spiel.material[m.id] - (auftragBedarf()[m.id] || 0));
         if (!n) continue;
         const z = el("div", "ware"), k = el("button", "knopf", `+🪙 ${n * tagesPreis[m.id]}`);
         k.type = "button";
-        k.addEventListener("click", () => { spiel.geld += n * tagesPreis[m.id]; spiel.material[m.id] = 0; hudNeu(); verbrauchAnzeigen(); ladenAuf(); });
+        k.addEventListener("click", () => { spiel.geld += n * tagesPreis[m.id]; spiel.material[m.id] -= n; hudNeu(); verbrauchAnzeigen(); ladenAuf(); });
         z.append(el("span", null, `${m.icon} ${n} × ${m.name}`), k);
         z.title = `Heute zahlt Knut je ${m.name === "Federn" ? "Feder" : m.name} 🪙 ${tagesPreis[m.id]}`;
         liste.append(z);
@@ -2677,7 +2707,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, aufgabenOrte, BERTA, OBJEKTE, auto, planen, zeit, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, aufgabenOrte, BERTA, OBJEKTE, auto, planen, zeit, FUNDE, neuerTag, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen

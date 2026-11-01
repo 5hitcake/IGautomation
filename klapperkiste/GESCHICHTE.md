@@ -166,6 +166,10 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   Abgeschlossene Aufträge geben ab und zu auch Materialien (Knuts Reifen: 2 Schrauben,
   Batterie: 1 Kabel, Hildes Schafe: 2 Federn). Passt nicht alles in den Beutel, gibt
   es den Rest als Münzen.
+  Braucht ein offener Auftrag Material (Moos: 2 Kabel und 2 Federn, später 2 Blech
+  und 2 Schrauben), liegt das Fehlende jeden Tag sicher am Wegrand, auch gleich nach
+  dem Annehmen des Auftrags. Knut verkauft es außerdem für den dreifachen Preis, und
+  was der Auftrag braucht, kauft er nicht an.
 - **Verbrauch** ✅, bei Knut immer wieder zu kaufen:
   - **Sprit:** Der Tank leert sich beim Fahren, so weit wie die Reichweite des
     Energie-Teils (Gießkanne 1500 m, Milchkanne 2200 m, Kanister 3500 m).
