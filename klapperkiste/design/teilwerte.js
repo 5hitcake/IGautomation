@@ -56,6 +56,7 @@ window.TEILWERTE = (function () {
 
     scheinwerfer: { licht: 25, gewicht: 4, text: "Ein alter Scheinwerfer. Damit wird der dunkle Wald befahrbar.", extras: ["Dunkler Wald", "Braucht Strom"] },
     spezialhupe: { laut: 10, gewicht: 2, text: "Laut wie ein Nebelhorn. Selbst die sturste Schafherde macht Platz.", extras: ["Verscheucht Schafe"] },
+    maehbalken: { gewicht: 18, text: "Hildes alter Mähbalken vom Traktor. Hängt vorne am Auto und schnippelt sich durch dichtes Schilf.", extras: ["Mäht Schilf"] },
   };
 
   // Karosserie: Werte je Teil (hinten, Mitte, vorne), die Fähigkeit gilt nur als kompletter Satz

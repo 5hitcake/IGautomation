@@ -143,7 +143,9 @@ sie mit **Gold** abgeschlossen hat.
 - **Auftrag „Wo steckt Kauz?“ (Opa):** Die Reifenspuren führen vom Ostufer nach Norden ins
   dichte Schilf (Schilfpfad). Ohne Mähbalken hält das Auto dort: „Dichtes Schilf!“
 - **Hildes alter Mähbalken:** Hilde kann helfen. Ihr Mähbalken ist hinüber; für 2 Schrauben und
-  1 Feder richtet sie ihn her. Er ist das erste Teil der Kategorie **Vorne** (hängt vorne am Rahmen).
+  1 Feder richtet sie ihn her. Er ist das erste Teil der Kategorie **Vorne** (hängt vorne am Rahmen;
+  in der Draufsicht über die ganze Autobreite, `tools/einmalig/maehbalken_lang.py`). Auf der Karte
+  sieht man ihn vorne am Auto.
   Kein „Hinfahren“ zu den Materialien, sie liegen aber sicher am Wegrand.
 - **Schilf mähen:** Mit dem Mähbalken vorne am Auto fährt man hinein, „Ratatatat!“, und es bleibt
   eine Schneise (dauerhaft, im Spielstand).
@@ -244,4 +246,5 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | ✅ |
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
-| G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ (Bild vom Mähbalken als Teil fehlt noch) |
+| G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ (Kauz' Werkstatt bei Tag fehlt noch, bis dahin Nachtbild) |
+| G10 | Kauz' erster Auftrag, Weg zur Versöhnung mit Opa | offen |

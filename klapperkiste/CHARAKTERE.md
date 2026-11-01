@@ -115,7 +115,10 @@ Cartoon character model sheet of ONE character: a round jolly mountain hut keepe
 
 ## Gesprächshintergründe
 
-Je Ort ein Bild im Format 16:9, auf Augenhöhe, ohne Figuren. Links und in
+Je Ort ein Bild im Format 16:9, auf Augenhöhe, ohne Figuren. Dazu je Ort ein
+**Nachtbild** `<ort>_nacht.png`: Nachts zeigt das Gespräch das Nachtbild, tagsüber das
+Tagbild; fehlt eines, springt das andere ein. Nachtbilder am besten mit dem Tagbild als
+Vorlage erzeugen (gleicher Aufbau), Prompt siehe „Nachtbilder“. Links und in
 der Mitte bleibt Platz für die Figur. Ablage:
 `assets/charaktere/hintergrund/<ort>.png`, danach
 `python klapperkiste/tools/karte_daten.py`.
@@ -128,7 +131,7 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Försterhütte (Moos) | `foersterhuette.png` | ✅ |
 | Campingplatz (Rosi) | `camping.png` | ✅ |
 | Ostufer bei Nacht (Erzähltext G8) | `ostufer.png` | ✅ |
-| Kauz' Werkstatt (G9) | `kauz.png` | ✅ |
+| Kauz' Werkstatt (G9) | `kauz.png` (Tag) / `kauz_nacht.png` | Nacht ✅, Tag offen |
 | Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | ✅ (Lage der gemalten Hebebühne steht als `BUEHNE` in `design/werkstatt.js`) |
 
 ### Opas Werkstatt
@@ -185,6 +188,27 @@ Ablage `assets/geschichte/<name>.jpg`, erscheinen groß im Gespräch.
 
 ```
 A single heavy shiny steel bolt with a hexagonal head and a nut lying in dark mud at night, lit by a bright car headlight from the left, a small lightning bolt symbol scratched into the bolt head, drops of water on the metal, a few reed stalks and a frog footprint in the mud around it. Close-up, seen slightly from above. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with flat watercolour-like colours and a light paper texture. Square format. No text, no frames.
+```
+
+### Nachtbilder
+
+Mit dem Tagbild als Referenz (Bild-zu-Bild), damit Aufbau und Gegenstände gleich bleiben:
+
+```
+Use the attached image as the reference: the exact same scene, same composition, same camera position, same buildings and objects in the same places, nothing added or removed, the left half and the centre stay calm and open for a character. Only change the time of day to a clear night: deep blue night sky with stars and a pale moon, cool blue moonlight on all surfaces, long soft shadows, and warm yellow light glowing from every window, lamp and lantern that is already in the picture, casting small warm pools of light. [ORT] Style unchanged: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```
+
+`[ORT]` je Ort ersetzen:
+- Schrottplatz: `The scrap piles are dark silhouettes against the sky, one bare bulb above the office door is on.`
+- Opas Werkstatt: `Outside the window it is dark night, the hanging workshop lamp is on and lights the workbench.`
+- Bauernhof: `The farmhouse windows glow, a lantern hangs at the barn door, the fields fade into darkness.`
+- Försterhütte: `The cabin window and the lantern by the door glow warmly, the fir trees are dark and the forest floor is in deep shadow.`
+- Campingplatz: `The campfire is burning with sparks, the caravan window glows, a string of small lanterns hangs on the awning, the moon is reflected in the lake.`
+
+Kauz' Werkstatt bei Tag (Referenz: `kauz_nacht.png`):
+
+```
+Use the attached image as the reference: the exact same scene, same composition, same camera position, same objects in the same places, nothing added or removed, the left half and the centre stay calm and open for a character. Only change the time of day to a bright summer morning: warm sunlight falls in through the gaps between the planks and through the open water door in long golden stripes with dust in the air, outside the door a sunny lake with blue sky and green fir trees, the hanging bulbs and coloured lamps are switched off. Style unchanged: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, flat watercolour-like colours and a light paper texture. Wide landscape format. No text, no letters, no frames.
 ```
 
 ## Ausschneiden, Sonderfälle

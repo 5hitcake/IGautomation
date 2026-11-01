@@ -1390,7 +1390,11 @@ window.Karte = function (opt = {}) {
   function gespraech(figur, name, ort, zeilen, ende) {
     const box = $("gespraech");
     // Fehlt der Hintergrund (noch kein Bild), steht ein warmer Holzton als Platzhalter da
-    box.style.backgroundImage = D.hintergruende && D.hintergruende[ort] ? `url(${D.hintergruende[ort]})`
+    // Je Ort ein Tag- und ein Nachtbild (ORT.png, ORT_nacht.png). Nachts das Nachtbild, tagsüber das
+    // Tagbild; fehlt eines, springt das andere ein.
+    const HG = D.hintergruende || {}, nacht = istNacht();
+    const hg = (nacht ? [`${ort}_nacht`, ort] : [ort, `${ort}_nacht`]).find((k) => HG[k]);
+    box.style.backgroundImage = hg ? `url(${HG[hg]})`
       : ort === "ostufer" ? "linear-gradient(180deg, #0d1424 0%, #1c2a44 50%, #22311f 56%, #141c12 100%)" // Nacht am See
       : "linear-gradient(180deg, #6b4a2e 0%, #8a6440 55%, #4a3220 56%, #3a2818 100%)";
     box.dataset.figur = figur;
@@ -1704,6 +1708,13 @@ window.Karte = function (opt = {}) {
       }
     }
     ctx.restore();
+  }
+  let mbBild = null;
+  function maehbalkenBild() {
+    const src = (window.TEILE || {}).maehbalken_oben;
+    if (!src) return null;
+    if (!mbBild) mbBild = lade(src);
+    return mbBild.complete && mbBild.naturalWidth ? mbBild : null;
   }
   function schilfMaehen(h) {
     h.weg = true;
@@ -2061,6 +2072,9 @@ window.Karte = function (opt = {}) {
         ctx.restore();
       }
       ctx.drawImage(img, -kurz / 2, -breit / 2, lang, breit);
+      // Mähbalken vorne (Kategorie Vorne, 1 × 4 Zellen): gehört nicht zum fertigen Autobild
+      const mb = maehbalkenBild();
+      if (mb && hatTeilEingebaut("vorne")) ctx.drawImage(mb, kurz / 2 - 0.05, -breit / 2, kurz / 10, breit);
       ctx.restore();
     }
     for (const o of OBJEKTE) zeichneObjekt(o, sicht);
