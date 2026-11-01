@@ -146,7 +146,7 @@ body.dragging { cursor: grabbing; -webkit-user-select: none; user-select: none; 
 .info-extras span { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(111,211,163,0.16); color: var(--mint); }
 .info-satz { font-size: 12px; color: var(--mustard); }
 .info-warn { font-size: 12px; color: var(--rust); }
-.info-knoepfe { display: flex; flex-wrap: wrap; gap: 6px; }
+.info-tipp { margin: 0; font-weight: 800; color: var(--mustard); }
 .info .knopf { flex: 1 1 auto; font: inherit; font-weight: 800; border: 0; border-radius: 10px; padding: 10px 12px; cursor: pointer; background: var(--mustard); color: var(--board); }
 .info .knopf.zweit { background: var(--rust); color: #1d1a16; }
 .info .knopf.leise { background: var(--line); color: var(--chalk); flex: 0 1 auto; }

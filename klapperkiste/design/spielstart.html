@@ -394,12 +394,12 @@ body { position: fixed; inset: 0; }
     setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
       ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Bolzen, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
       ["nachdenken", "Na ja, „Kiste“ ist geschmeichelt. Rahmen und Achsen sind schon dran, der Rest liegt noch hier im Regal herum."],
-      ["auftrag", "Fang mit den Rädern an: Tipp das leuchtende Rad an, schau es dir an und drück auf „Einbauen“."],
+      ["auftrag", "Fang mit den Rädern an: Tipp das leuchtende Rad an, dann baust du es ein. Noch ein Tipp, und es ist wieder ab."],
     ], () => {
       if (schritt !== 0) return;
       schritt = 1;
       W.tipp("schubkarre");
-      tipp("Tipp das <strong>leuchtende Rad</strong> an und dann auf <strong>„Einbauen“</strong>.");
+      tipp("Tipp das <strong>leuchtende Rad</strong> an, dann ist es eingebaut.");
     }), 250);
   }
   $("losGehts").addEventListener("click", () => los(false));

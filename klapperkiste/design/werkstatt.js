@@ -465,7 +465,7 @@ window.Werkstatt = function (opt = {}) {
     if (!slot) { if (state.wahl) { state.wahl = null; refresh(); } return; }
     state.tab = TABS.find((t) => t.kats.includes(kat(slot))).id;
     if (state.mounted[slot]) {
-      // eingebautes Teil: auswählen, dann zeigt das Info-Feld „Ausbauen“
+      // eingebautes Teil: auswählen und rechts nach vorn holen; ein Tipp darauf baut es aus
       state.wahl = state.mounted[slot]; state.wahlSlot = slot;
       return refresh();
     }
@@ -755,11 +755,8 @@ window.Werkstatt = function (opt = {}) {
   const teilBand = Band($("tray"), {
     abstandX: 78,
     beiWahl: (i) => { state.wahl = angebotJetzt[i].id; state.wahlSlot = null; refresh(); },
-    beimTipp: (i) => {
-      const id = angebotJetzt[i].id;
-      state.wahl = state.wahl === id ? null : id; state.wahlSlot = null;
-      refresh();
-    },
+    // Tipp auf das vordere Teil: direkt einbauen (oder tauschen); ist es schon ganz drin, ausbauen
+    beimTipp: (i) => teilAntippen(angebotJetzt[i]),
   });
 
   function refresh() {
@@ -830,7 +827,24 @@ window.Werkstatt = function (opt = {}) {
     if (opt.nachher) opt.nachher();
   }
 
-  // Info über das gewählte Teil, mit Einbauen/Tauschen, Ausbauen und Abbrechen
+  // Ein Tipp auf ein Teil im Band baut es ein, tauscht es oder baut es wieder aus
+  function teilAntippen(p) {
+    const slots = SLOTS.filter((sl) => kat(sl) === p.kat);
+    const mine = slots.filter((sl) => state.mounted[sl] === p.id);
+    state.wahl = p.id;
+    if (mine.length && mine.length === slots.length) {
+      // schon ganz eingebaut: ausbauen (bei Paaren den zuletzt gewählten Platz)
+      const sl = mine.includes(state.wahlSlot) ? state.wahlSlot : mine[mine.length - 1];
+      return unmount(sl);
+    }
+    state.wahlSlot = null;
+    const tabVorher = state.tab;
+    einbauen(p);
+    // In derselben Kategorie bleibt das Teil gewählt: Das Info-Feld zeigt es weiter („Antippen zum Ausbauen“)
+    if (state.tab === tabVorher && state.wahl !== p.id && PARTS.some((q) => q.id === p.id)) { state.wahl = p.id; refresh(); }
+  }
+
+  // Info über das gewählte Teil; ein- und ausgebaut wird per Tipp auf das Teil
   function infoZeigen() {
     const box = $("info");
     if (!box) return;
@@ -838,7 +852,7 @@ window.Werkstatt = function (opt = {}) {
     const p = PARTS.find((q) => q.id === state.wahl);
     if (!p) {
       const tab = TABS.find((t) => t.id === state.tab);
-      box.append(el("p", "info-leer", `Wisch durch die Teile und tipp das vordere an, dann siehst du hier alles darüber. Kategorie: ${tab.label}.`));
+      box.append(el("p", "info-leer", `Wisch durch die Teile, dann siehst du hier alles über das vordere. Ein Tipp darauf baut es ein, noch ein Tipp baut es wieder aus. Kategorie: ${tab.label}.`));
       box.classList.remove("voll");
       return;
     }
@@ -870,38 +884,20 @@ window.Werkstatt = function (opt = {}) {
     }
     if (tw.satz) box.append(el("p", "info-satz", `Als kompletter Satz: ${tw.satz}`));
 
-    // Knöpfe
-    const knoepfe = el("div", "info-knoepfe");
-    let grund = null;
-    if (frei.length || fremd.length) {
-      const tausch = !frei.length;
-      const b = el("button", "knopf" + (state.tipp === p.id ? " tipp" : ""), tausch ? "Tauschen" : "Einbauen");
-      b.type = "button";
-      if (tausch) {
-        grund = removeBlocked(fremd[fremd.length - 1]);
-      } else if (frei.every((sl) => missing(sl))) {
-        grund = missing(frei[0]);
-      }
-      b.disabled = Boolean(grund);
-      b.onclick = () => einbauen(p);
-      knoepfe.append(b);
-    }
-    if (mine.length) {
+    // Hinweis statt Knöpfen: was ein Tipp auf das Teil jetzt macht, oder warum es gerade nicht geht
+    let grund = null, was;
+    if (mine.length === slots.length) {
       const sl = mine.includes(state.wahlSlot) ? state.wahlSlot : mine[mine.length - 1];
-      const b = el("button", "knopf zweit", "Ausbauen");
-      b.type = "button";
-      const warum = removeBlocked(sl);
-      b.disabled = Boolean(warum);
-      if (warum && !grund) grund = warum;
-      b.onclick = () => { unmount(sl); };
-      knoepfe.append(b);
+      grund = removeBlocked(sl);
+      was = "Antippen zum Ausbauen";
+    } else if (frei.length) {
+      if (frei.every((sl) => missing(sl))) grund = missing(frei[0]);
+      was = "Antippen zum Einbauen";
+    } else {
+      grund = removeBlocked(fremd[fremd.length - 1]);
+      was = "Antippen zum Tauschen";
     }
-    const ab = el("button", "knopf leise", "Abbrechen");
-    ab.type = "button";
-    ab.onclick = () => { state.wahl = null; state.wahlSlot = null; refresh(); };
-    knoepfe.append(ab);
-    if (grund) box.append(el("p", "info-warn", grund));
-    box.append(knoepfe);
+    box.append(grund ? el("p", "info-warn", grund) : el("p", "info-tipp", `👆 ${was}`));
   }
 
   function einbauen(p) {
