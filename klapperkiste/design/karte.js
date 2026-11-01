@@ -216,15 +216,18 @@ window.Karte = function (opt = {}) {
     streue("laubbaum", 18, 100, 306, 314, 318);
     streue("laubbaum", 12, 170, 120, 250, 200);
     streue("nadelbaum", 20, 10, 255, 130, 316);
-    // Büsche und Felsen am Wegrand
+    // Ein paar Büsche und Felsen am Wegrand, die meisten verstreut über die Wiesen (siehe unten)
     for (const w of WEGE) for (let i = 1; i < w.length; i++) for (let t = 0; t < 1; t += 0.2) {
       const x = w[i - 1][0] + (w[i][0] - w[i - 1][0]) * t, y = w[i - 1][1] + (w[i][1] - w[i - 1][1]) * t;
       const seite = rnd() < 0.5 ? -1 : 1, d = 4.2 + rnd() * 4;
       const nx = -(w[i][1] - w[i - 1][1]), ny = w[i][0] - w[i - 1][0], nl = Math.hypot(nx, ny);
-      if (rnd() < 0.4) setze(rnd() < 0.7 ? "busch" : "felsbrocken", x + nx / nl * d * seite, y + ny / nl * d * seite);
+      if (rnd() < 0.07) setze(rnd() < 0.7 ? "busch" : "felsbrocken", x + nx / nl * d * seite, y + ny / nl * d * seite);
     }
-    streue("felsbrocken", 14, 180, 10, 314, 120);
-    streue("busch", 22, 130, 120, 260, 300);
+    streue("felsbrocken", 6, 180, 10, 314, 120);
+    streue("busch", 10, 130, 120, 260, 300);
+    // über die ganze Karte verteilt, damit nicht alles am Straßenrand klebt (Büsche im Wald fallen unten wieder weg)
+    streue("felsbrocken", 60, 4, 4, 316, 316);
+    streue("busch", 130, 4, 4, 316, 316);
     // Dichter dunkler Wald: viele Nadelbäume und einige Laubbäume, nur in der Waldfläche
     for (let i = 0, n = 0; i < 2000 && n < 150; i++) {
       const x = rnd() * 110, y = 140 + rnd() * 130;
@@ -799,10 +802,14 @@ window.Karte = function (opt = {}) {
     if (spiel.auftrag === "erledigt") erledigt.push(batterie);
     if (spiel.hilde === "auftrag") {
       const hupe = hatTeil("hupe");
+      // Zu Knut schickt der Auftrag erst, wenn die Hupe auch wirklich in seinem Laden liegt (nach der Batterie)
+      const imLaden = !hupe && LADEN.some((w) => w.id === "spezialhupe" && (!w.ab || w.ab()) && !spiel.gekauft.has(w.id));
       offen.push({ ...schafe, stand: hupe ? "Hupe dabei" : "Hupe fehlt",
         text: hupe ? "Fahr auf den Feldweg hinter dem Hof und hup die Schafe von der Straße."
-          : "Die Schafe hören nur auf eine richtig laute Hupe. Vielleicht hat Knut eine im Laden.",
-        ziel: hupe ? zielVon("felder") : zielVon("schrottplatz") });
+          : imLaden ? "Die Schafe hören nur auf eine richtig laute Hupe. Knut hat eine im Laden."
+          : "Die Schafe hören nur auf eine richtig laute Hupe. Knut bekommt bestimmt bald eine rein, erst mal hilfst du ihm weiter.",
+        ziel: hupe ? zielVon("felder") : imLaden ? zielVon("schrottplatz") : null,
+        fehlt: hupe || imLaden ? null : "Noch hat niemand eine Hupe. Erledige erst Knuts Aufträge." });
     }
     if (spiel.hilde === "frei") offen.push({ ...schafe, stand: "Weg ist frei", text: "Die Schafe sind auf der Wiese. Erzähl es Hilde auf dem Bauernhof.", ziel: zielVon("bauernhof") });
     if (spiel.hilde === "erledigt") erledigt.push(schafe);
@@ -2610,7 +2617,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, aufgabenOrte, BERTA, auto, planen, zeit, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, aufgabenOrte, BERTA, OBJEKTE, auto, planen, zeit, FUNDE, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen
