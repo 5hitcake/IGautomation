@@ -1886,10 +1886,10 @@ window.Karte = function (opt = {}) {
   }
 
   // Rallye-Start: Rennflagge nur auf der Minikarte, sobald die Rallye freigespielt ist und bis
-  // man sie mit einer Medaille abgeschlossen hat
+  // man sie mit Gold abgeschlossen hat
   function rallyeOrt() {
     const z = zielVon("camping");
-    return rallyeMoeglich() && zielOffen(z) && !(spiel.rallye && spiel.rallye.medaille) ? z : null;
+    return rallyeMoeglich() && zielOffen(z) && !(spiel.rallye && spiel.rallye.medaille === "gold") ? z : null;
   }
   // Zielflagge (schwarz-weiß kariert) am Mast; x, y = Fuß des Masts, s = Höhe
   function flaggeZeichnen(c, x, y, s, t) {

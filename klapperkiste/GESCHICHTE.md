@@ -119,7 +119,7 @@ Ausrufezeichen (auch nachts und im dunklen Wald gut zu sehen), auf der Minikarte
 blinkender Punkt, auf der großen Karte ein pulsierender Schein mit Ausrufezeichen.
 Die Rallye leuchtet nicht. Stattdessen zeigt nur die **Minikarte** eine Rennflagge
 (schwarz-weiß kariert) am Campingplatz, sobald die Rallye freigespielt ist und bis man
-sie mit einer Medaille abgeschlossen hat.
+sie mit **Gold** abgeschlossen hat.
 
 ## Rennen über das Spiel verteilt
 
