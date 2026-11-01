@@ -957,7 +957,7 @@ window.Karte = function (opt = {}) {
   const istNacht = () => dunkelheit() > 0.5;
   // Das Licht schaltet sich nur bei Bedarf ein: nachts (ab halber Dunkelheit) oder im dunklen Wald, und nur mit Strom
   const imDunklenWald = () => imWald(auto.x, auto.y) && auto.x < WALD_EINGANG + 2;
-  const lichtAn = () => hatTeil("licht") && spiel.strom > 0 && (istNacht() || imDunklenWald());
+  const lichtAn = () => hatTeil("licht") && (istNacht() || imDunklenWald());
   // Nachts fährt die Klapperkiste nur mit brennendem Licht (Scheinwerfer eingebaut und Strom)
   const kannFahren = () => !istNacht() || lichtAn();
   // Zwei Lichtkegel, je einer aus dem linken und rechten Scheinwerfer vorne am Auto
@@ -1069,7 +1069,7 @@ window.Karte = function (opt = {}) {
       if (spiel.sprit === 0) tankIstLeer();
     }
     // Licht im dunklen Wald zieht Strom
-    if (lichtAn()) {
+    if (lichtAn() && brauchtStrom()) {
       spiel.strom = Math.max(0, spiel.strom - dt * 0.5);
       if (spiel.strom < 20 && !stromGewarnt) { stromGewarnt = true; toast("🔋 Die Batterie wird schwach. Knut lädt sie dir auf."); }
       if (spiel.strom === 0) toast("🔋 Batterie leer, das Licht ist aus!", 4000);
@@ -1124,7 +1124,7 @@ window.Karte = function (opt = {}) {
     if (!sp) return;
     const a = spritAnteil();
     sp.textContent = `⛽ ${Math.round(a * 100)} %`; sp.classList.toggle("wenig", a < 0.2);
-    st.hidden = !hatTeilEingebaut("licht"); st.textContent = `🔋 ${Math.round(spiel.strom)} %`; st.classList.toggle("wenig", spiel.strom < 20);
+    st.hidden = !hatTeilEingebaut("licht") || !brauchtStrom(); st.textContent = `🔋 ${Math.round(spiel.strom)} %`; st.classList.toggle("wenig", spiel.strom < 20);
     pl.hidden = !spiel.platt;
     bt.textContent = `🎒 ${beutelVoll()}/${BEUTEL_PLATZ}`;
   }
@@ -1221,7 +1221,7 @@ window.Karte = function (opt = {}) {
     const fehlt = Math.max(0, tankGroesse() - spiel.sprit), spritPreis = Math.max(1, Math.ceil(fehlt / 150));
     zeile(fehlt > 1 ? `⛽ Volltanken +${Math.round(fehlt)} m` : "⛽ Tank ist voll", spritPreis, fehlt > 1,
       () => { spiel.sprit = tankGroesse(); spritGewarnt = false; toast("⛽ Vollgetankt!"); });
-    if (hatTeilEingebaut("licht")) {
+    if (hatTeilEingebaut("licht") && brauchtStrom()) {
       zeile(spiel.strom < 100 ? `🔋 Batterie laden · ${Math.round(spiel.strom)} %` : "🔋 Batterie ist voll", 5, spiel.strom < 100,
         () => { spiel.strom = 100; stromGewarnt = false; toast("🔋 Batterie geladen!"); });
     }
@@ -1488,8 +1488,11 @@ window.Karte = function (opt = {}) {
   // Ohne Werkstatt (Kartenprobe) zählt eine Belohnung gleich als eingebaut
   const TEIL_FUER = { licht: "scheinwerfer", hupe: "spezialhupe" };
   const hatTeilEingebaut = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : spiel.teile.has(TEIL_FUER[teil]));
-  // Licht braucht Strom: Ist die Batterie leer, bleibt der Scheinwerfer dunkel
-  const hatTeil = (teil) => (teil === "holzweg" ? spiel.holzweg : hatTeilEingebaut(teil) && (teil !== "licht" || spiel.strom > 0));
+  // Licht braucht Strom: Ist die Batterie leer, bleibt der Scheinwerfer dunkel.
+  // Gute Scheinwerfer (Teilwert ohneStrom) laufen ohne Batterie.
+  const brauchtStrom = () => !(opt.werte && opt.werte().ohneStrom);
+  const hatTeil = (teil) => (teil === "holzweg" ? spiel.holzweg
+    : hatTeilEingebaut(teil) && (teil !== "licht" || !brauchtStrom() || spiel.strom > 0));
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
   let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0, angehalten = false;
@@ -1659,7 +1662,7 @@ window.Karte = function (opt = {}) {
   function dunklerWald(w, h, sicht) {
     const WX = 50, WY = 205, WR = 54; // Bereich, in dem der Lichtkegel gebraucht wird
     if (sicht.x0 > WALD_EINGANG + 8 || sicht.y1 < 95 || sicht.y0 > 305) return; // nicht im Bild
-    const mitLicht = hatTeil("licht") && spiel.strom > 0 && Math.hypot(auto.x - WX, auto.y - WY) < WR + 20;
+    const mitLicht = hatTeil("licht") && Math.hypot(auto.x - WX, auto.y - WY) < WR + 20;
     if (dunkel.width !== cv.width || dunkel.height !== cv.height) { dunkel.width = cv.width; dunkel.height = cv.height; }
     dctx.setTransform(1, 0, 0, 1, 0, 0); dctx.clearRect(0, 0, dunkel.width, dunkel.height);
     dctx.setTransform(ctx.getTransform());

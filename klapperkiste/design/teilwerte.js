@@ -13,6 +13,7 @@
 //   komfort    1–10 (Sitz)
 //   robust     Robustheit 1–10 (Rahmen, Achse, Karosserie)
 //   licht      Leuchtweite in Metern (Licht)
+//   ohneStrom  true: das Licht braucht keine Batterie (bessere Scheinwerfer, z. B. mit Dynamo)
 //   laut       Lautstärke 1–10 (Hupe)
 //   gewicht    kg, bei Rädern und Achsen je Stück
 // text: ein, zwei Sätze zum Teil. extras: kurze Besonderheiten.

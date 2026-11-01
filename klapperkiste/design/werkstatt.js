@@ -622,6 +622,8 @@ window.Werkstatt = function (opt = {}) {
     }
     // Zugkraft: Ist das Auto schwerer, als der Motor gut ziehen kann, wird es langsamer,
     // schafft weniger Steigung und zieht schwächer an
+    // Gute Scheinwerfer laufen ohne Batterie
+    w.ohneStrom = Boolean(m.licht && wert(m.licht, "ohneStrom"));
     w.last = an("motor", "last");
     if (w.last && w.gewicht > w.last) {
       const f = Math.max(0.35, w.last / w.gewicht);

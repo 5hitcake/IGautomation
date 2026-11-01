@@ -173,6 +173,8 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
     (+600 m) oder Opa schleppt ab (kostenlos, mit etwas Sprit).
   - **Batterieladung:** Der Scheinwerfer zieht im dunklen Wald Strom (etwa 3 Minuten
     Licht). Leer = kein Licht. Laden bei Knut (5 Münzen).
+    Gute Scheinwerfer, die es später gibt (Teilwert `ohneStrom`, z. B. mit Dynamo),
+    laufen ohne Batterie: dann gibt es keine Batterieanzeige und kein Laden mehr.
   - **Flickzeug:** Unterwegs liegt ab und zu ein Nagel, eine Scherbe oder ein spitzer
     Stein auf dem Weg: mit dem Schubkarrenrad etwa alle 4,5 km ein Platten (Auto
     langsam und wackelig). Griffige, dicke Reifen erwischt es seltener (Autoreifen
