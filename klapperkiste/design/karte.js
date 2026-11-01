@@ -1045,11 +1045,11 @@ window.Karte = function (opt = {}) {
       if (spiel.strom < 20 && !stromGewarnt) { stromGewarnt = true; toast("🔋 Die Batterie wird schwach. Knut lädt sie dir auf."); }
       if (spiel.strom === 0) toast("🔋 Batterie leer, das Licht ist aus!", 4000);
     }
-    // Auf den Wegen liegt ab und zu ein Nagel oder eine Scherbe: im Schnitt etwa alle 2 km
-    // ein Platten, mit griffigen, dicken Reifen seltener, mit dünnen öfter. Querfeldein
+    // Auf den Wegen liegt ab und zu ein Nagel oder eine Scherbe: mit den Schubkarrenrädern
+    // etwa alle 4,5 km ein Platten, mit Autoreifen etwa alle 7 km, mit dünnen öfter. Querfeldein
     // (nur beim Testen mit den Pfeiltasten) noch häufiger.
     const grip = opt.werte ? opt.werte().grip || 2 : 6;
-    const alle = (wiese ? 400 : 2200) / Math.max(0.4, 1.6 - grip * 0.13);
+    const alle = (wiese ? 1200 : 6000) / Math.max(0.4, 1.6 - grip * 0.13);
     if (meter > 0 && Math.random() < meter / alle) {
       plattMachen(wiese ? "Pfft! Da lag was Spitzes im Gras." : ["Pfft! Ein Nagel auf dem Weg.", "Knirsch! Eine Glasscherbe.", "Peng! Ein spitzer Stein."][Math.floor(Math.random() * 3)]);
     }
@@ -1111,7 +1111,7 @@ window.Karte = function (opt = {}) {
     { id: "federn", name: "Federn", icon: "🌀", preis: 4 },
     { id: "blech", name: "Blech", icon: "🥫", preis: 5 },
   ];
-  const BEUTEL_PLATZ = 6, FUND_ZAHL = 10;
+  const BEUTEL_PLATZ = 6, FUND_ZAHL = 5; // so viele Materialien liegen pro Tag am Wegrand
   const FUNDE = []; // { art, x, y }
   const tagesPreis = Object.fromEntries(MATERIAL.map((m) => [m.id, m.preis]));
   const beutelVoll = () => Object.values(spiel.material).reduce((a, b) => a + b, 0);
@@ -2221,7 +2221,7 @@ window.Karte = function (opt = {}) {
     sonne: { name: "Sonnig", icon: "☀️", wolken: 0.3, regen: 0, nebel: 0, wind: 0.15 },
     wolkig: { name: "Wolkig", icon: "⛅", wolken: 1, regen: 0, nebel: 0, wind: 0.35 },
     regen: { name: "Regen", icon: "🌧️", wolken: 1, regen: 1, nebel: 0.15, wind: 0.45 },
-    nebel: { name: "Nebel", icon: "🌫️", wolken: 0.15, regen: 0, nebel: 1, wind: 0.05 },
+    nebel: { name: "Nebel", icon: "≋", wolken: 0.15, regen: 0, nebel: 1, wind: 0.05 },
     wind: { name: "Windig", icon: "🍃", wolken: 0.6, regen: 0, nebel: 0, wind: 1 },
   };
   const FOLGE = { sonne: ["wolkig", "wind", "nebel"], wolkig: ["sonne", "regen", "wind"], regen: ["wolkig"],

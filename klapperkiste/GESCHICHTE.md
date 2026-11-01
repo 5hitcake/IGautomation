@@ -154,7 +154,7 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   sofort Morgen. Jeder Morgen bringt neue Materialien und Preise. Im Einstieg steht
   die Uhr still.
 - **Materialien im Beutel** ✅: Schrauben 🔩, Kabel 🔌, Federn 🌀 und Blech 🥫 liegen
-  am Wegrand (zehn zugleich, in bekannten Gegenden). Antippen wie die Reifen, der
+  am Wegrand (fünf zugleich, in bekannten Gegenden). Antippen wie die Reifen, der
   Beutel hat 6 Plätze (🎒 rechts auf der Karte). Knut kauft sie an, die Preise
   schwanken. Jedes Mal bei Opa beginnt ein neuer Tag: neue Funde, neue Preise.
   (Bilder dafür kommen noch, vorerst Zeichen.)
@@ -169,9 +169,9 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   - **Batterieladung:** Der Scheinwerfer zieht im dunklen Wald Strom (etwa 3 Minuten
     Licht). Leer = kein Licht. Laden bei Knut (5 Münzen).
   - **Flickzeug:** Unterwegs liegt ab und zu ein Nagel, eine Scherbe oder ein spitzer
-    Stein auf dem Weg: im Schnitt etwa alle 2 km ein Platten (Auto langsam und
-    wackelig). Griffige, dicke Reifen erwischt es seltener (Traktorreifen etwa alle
-    4 km), das Schubkarrenrad öfter. Flicken mit Flickzeug aus dem Beutel (6
+    Stein auf dem Weg: mit dem Schubkarrenrad etwa alle 4,5 km ein Platten (Auto
+    langsam und wackelig). Griffige, dicke Reifen erwischt es seltener (Autoreifen
+    etwa alle 7 km, Traktorreifen etwa alle 11 km). Flicken mit Flickzeug aus dem Beutel (6
     Münzen) oder kostenlos bei Opa.
 - **Laden:** Knut verkauft Verbrauch und einzelne Teile als Lieferung nach Aufträgen
   (z. B. die Spezialhupe). Karosserien gibt es nur als Belohnung.
