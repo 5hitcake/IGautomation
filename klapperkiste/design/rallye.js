@@ -14,7 +14,8 @@ window.Rallye = function (opt) {
   const LAENGE = 480; // Meter
   const BAHN = 4.2; // halbe Breite der Fahrbahn in Metern
   // Sekunden. Nachgerechnet mit Fahrer-Simulation: Rasenmäher-Auto schafft Bronze nur mit fehlerfreier Runde,
-  // Silber braucht einen schnelleren Motor (Moped mit guter Runde), Gold ist selbst mit der Rakete knapp.
+  // Silber braucht einen schnelleren Motor (Moped mit guter Runde), Gold schafft man mit Opas
+  // Donnerkeil-Motor (82 km/h) nur mit perfekter Runde und mit der Rakete bei mittlerer Runde knapp.
   const ZEITEN = { gold: 38, silber: 62, bronze: 75 };
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

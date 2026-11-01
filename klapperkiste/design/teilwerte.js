@@ -30,6 +30,8 @@ window.TEILWERTE = (function () {
     mopedmotor: { schub: 3, tempo: 35, kraft: 10, gewicht: 25, text: "Flink und sparsam, aber am Berg schnell aus der Puste.", extras: ["Sparsam"] },
     waschmaschinenmotor: { schub: 2, tempo: 25, kraft: 15, gewicht: 35, text: "Läuft mit Strom und schleudert ordentlich. Ohne Batterie bewegt er sich aber keinen Millimeter.", extras: ["Braucht Strom", "Leise"] },
     traktormotor: { schub: 2, tempo: 30, kraft: 35, gewicht: 120, text: "Langsam, schwer und unglaublich stark. Zieht dich jeden Berg hinauf.", extras: ["Bergziege", "Schwer"] },
+    // Opas alter Rennmotor aus dem Donnerkeil (eines der 8 Teile): eine perfekte Rallye-Runde reicht knapp für Gold
+    donnerkeilmotor: { schub: 5, tempo: 82, kraft: 18, gewicht: 40, text: "Opas alter Rennmotor aus dem Donnerkeil. Brüllt wie ein Gewitter und zieht wie der Blitz.", extras: ["Donnerkeil", "Laut"] },
     raketenmotor: { schub: 10, tempo: 120, kraft: 20, gewicht: 60, text: "Fauch! Geradeaus unschlagbar schnell, in Kurven eher ein Abenteuer.", extras: ["Sehr schnell", "Durstig"] },
 
     giesskanne: { reichweite: 1500, gewicht: 3, text: "Eine Gießkanne voll Sprit. Reicht für eine kurze Runde ums Haus.", extras: [] },

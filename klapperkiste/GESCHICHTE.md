@@ -88,6 +88,10 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   Silber braucht einen schnelleren Motor (Moped mit guter Runde ≈ 60–64 s), und Gold
   ist selbst mit der Rakete bei einer durchschnittlichen Runde knapp (≈ 36–38 s).
   Bronze reicht zur Qualifikation.
+- **Donnerkeil-Motor (Opas Rennmotor, eines der 8 Donnerkeil-Teile):** 82 km/h, Schub 5.
+  Mit ihm schafft eine perfekte Runde knapp Gold (≈ 37,5 s), eine gute Runde Silber
+  (≈ 44 s). Gold ist damit auch ohne Rakete erreichbar. Fundort in der Geschichte und Bild
+  folgen noch; in der Probefahrt gibt es ihn schon als „Donnerkeil-Kiste“.
 - **Mopedmotor bei Knut (100 Münzen):** Nach der ersten Rallye-Fahrt hat Knut einen
   Mopedmotor vom Sperrmüll („Der Rasenmäher zieht doch keinen Hering vom Teller!“).
   Im Auftragsbuch steht „Ein schnellerer Motor“ mit Münzstand; solange das Geld fehlt,

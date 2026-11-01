@@ -18,7 +18,7 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
 #wahl > div { display: grid; gap: 10px; max-width: 760px; width: 100%; }
 #wahl h1 { font-family: var(--font-display); font-weight: 400; color: var(--mustard); margin: 0; font-size: clamp(30px, 6vw, 48px); text-align: center; text-shadow: 0 3px 0 #1d1a16; }
 #wahl .lead { text-align: center; color: var(--chalk-dim); font-size: 14px; }
-.autos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.autos { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .auto { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 8px 6px; border-radius: 14px; border: 3px solid transparent; background: #203a42; color: var(--chalk); font: inherit; cursor: pointer; }
 .auto[aria-pressed="true"] { border-color: var(--mustard); background: #3a3a22; }
 .auto img { width: 100%; max-width: 130px; height: 50px; object-fit: contain; }
@@ -27,6 +27,18 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
 .auto .best { font-size: 13px; font-weight: 800; color: var(--mint); }
 #starten { justify-self: center; font-size: 22px; padding: 12px 40px; }
 @media (max-width: 600px) { .autos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Handy quer: alles ohne Scrollen auf einen Schirm */
+@media (max-height: 500px) {
+  #wahl > div { max-width: 860px; gap: 6px; }
+  #wahl h1 { font-size: 30px; }
+  #wahl .lead { font-size: 12px; margin: 0; }
+  .auto { padding: 6px 4px; gap: 2px; }
+  .auto img { height: 40px; }
+  .auto strong { font-size: 15px; }
+  .auto small { font-size: 11px; line-height: 1.25; }
+  .auto .best { font-size: 12px; }
+  #starten { font-size: 18px; padding: 8px 32px; }
+}
 /* Hochkant: bitte drehen */
 #drehen { display: none; }
 @media (orientation: portrait) and (pointer: coarse) {
@@ -44,7 +56,7 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
 <div id="wahl">
   <div>
     <h1>🏁 Waldrallye</h1>
-    <p class="lead">Such dir ein Auto aus. Schnellere Motoren bringen bessere Zeiten, leichte Autos beschleunigen schneller, gute Lenkung weicht besser aus.<br>
+    <p class="lead">Schnelle Motoren bringen bessere Zeiten, leichte Autos ziehen schneller an, gute Lenkung weicht besser aus.<br>
       Lenken: Finger auf die Bahn halten (oder Pfeiltasten). Nach 3, 2, 1, GO fährt das Auto von selbst los.</p>
     <div class="autos" id="autos"></div>
     <button type="button" class="knopf" id="starten">▶ Los geht's</button>
@@ -78,6 +90,8 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
       teile: { motor: "mopedmotor", rad: "autoreifen", lenkung: "bus_lenkrad", sitz: "rennschale", energie: "kanister", karo: 45 } },
     { id: "traktor", name: "Traktor-Kiste", bild: "pickup", info: "Traktormotor, Traktorreifen, schwer",
       teile: { motor: "traktormotor", rad: "traktorreifen", lenkung: "steuerrad", sitz: "traktorsitz", energie: "kanister", karo: 75 } },
+    { id: "donner", name: "Donnerkeil-Kiste", bild: "rundling", info: "Opas Donnerkeil-Motor, Autoreifen",
+      teile: { motor: "donnerkeilmotor", rad: "autoreifen", lenkung: "bus_lenkrad", sitz: "rennschale", energie: "kanister", karo: 45 } },
     { id: "rakete", name: "Rakete", bild: "rakete", info: "Raketen-Triebwerk (Turbine), Ballonreifen",
       teile: { motor: "raketenmotor", rad: "ballonreifen", lenkung: "bus_lenkrad", sitz: "rennschale", energie: "kanister", karo: 60 } },
   ];
