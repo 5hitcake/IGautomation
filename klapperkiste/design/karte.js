@@ -1260,7 +1260,11 @@ window.Karte = function (opt = {}) {
   const silbe = (figur, info) => Ton && Ton.silbe(figur, info);
 
   function zeile() {
-    const [geste, text] = gZeilen[gNr];
+    const [geste, text, extra] = gZeilen[gNr];
+    // Optional ein Bild zur Zeile (z. B. Opas altes Foto), groß neben der Figur
+    let gb = $("gBild");
+    if (!gb) { gb = document.createElement("img"); gb.id = "gBild"; gb.alt = ""; $("gespraech").insertBefore(gb, $("gespraech").querySelector(".g-box")); }
+    if (extra && extra.bild) { if (gb.src !== extra.bild) gb.src = extra.bild; gb.alt = extra.alt || ""; gb.hidden = false; } else gb.hidden = true;
     const fig = $("gFigur"), figuren = (D.figuren || {})[$("gespraech").dataset.figur] || {};
     if (figuren[geste]) {
       if (fig.src !== figuren[geste]) { fig.src = figuren[geste]; fig.classList.remove("neu"); void fig.offsetWidth; fig.classList.add("neu"); }
@@ -2683,7 +2687,11 @@ window.Karte = function (opt = {}) {
         ["nachdenken", "Weißt du eigentlich, was am Ende des Sommers ist? Das Klappertal-Rennen! Das ganze Tal steht dann an der Kiesrennbahn."],
         ["juhu", "Früher bin ich da selbst gefahren. Dreimal gewonnen, mit dem Donnerkeil! Schnell wie der Blitz und laut wie ein Gewitter."],
         ["nachdenken", "Den gibt es leider nicht mehr. Nach einem dummen Streit haben wir ihn auseinandergenommen, und die Teile sind im ganzen Tal verstreut."],
-        ["juhu", "Da an der Wand hängt noch ein Foto von damals. Schau's dir ruhig an!"],
+        ...(D.geschichte && D.geschichte.donnerkeil_foto ? [
+          ["juhu", "Schau, hier hab ich noch ein Foto von damals: der Donnerkeil und der Pokal, nach dem dritten Sieg!", { bild: D.geschichte.donnerkeil_foto,
+            alt: "Altes Foto: der junge Opa Bolzen und ein großer, dünner Mann mit Werkzeuggürtel halten einen Pokal, daneben der silberne Rennwagen mit Blitz." }],
+          ["nachdenken", "Der Lange daneben? Ach … lassen wir das.", { bild: D.geschichte.donnerkeil_foto }],
+        ] : []),
         ["auftrag", "Aber wer weiß … Wenn du die Augen offen hältst, findest du vielleicht das eine oder andere Teil wieder."],
         ["auftrag", "Und fürs Rennen musst du dich erst in den Vorrunden beweisen. Die erste ist im Wald, frag mal Förster Moos danach!"],
         ["juhu", "Ich schreib's dir ins Auftragsbuch. Ach, was freu ich mich: Endlich wieder einer aus der Bolzen-Werkstatt am Start!"],
@@ -2699,7 +2707,7 @@ window.Karte = function (opt = {}) {
         ["juhu", "Das gibt's ja nicht! Das ist das Lenkrad vom Donnerkeil! Den Blitz hab ich selbst draufgemalt, mit Fahrradlack!"],
         ["nachdenken", "Bei Rosi am Campingplatz hing es? Hm. Wie kommt es denn bloß dahin … Da war doch früher nur Wald."],
         ["auftrag", "Und gratuliere zur Qualifikation! Ich heb das Lenkrad gut auf. Wenn wir alle Teile haben, bauen wir den Donnerkeil wieder zusammen!"],
-      ], () => toast("Opa hat das Lenkrad an die Wand neben das Foto gehängt.", 4000));
+      ], () => toast("Opa hat das Lenkrad an die Werkstattwand gehängt.", 4000));
       return true;
     },
     // In Opas Werkstatt: Opa flickt Reifen kostenlos, und ein neuer Tag beginnt (neue Funde, Preise)

@@ -34,6 +34,10 @@ p { margin: 0; }
 #gespraech { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; background: #e8dcc2 center / cover no-repeat; cursor: pointer; }
 #gFigur { position: absolute; left: 6%; bottom: 22%; height: 72%; width: auto; max-width: 60%; object-fit: contain; transform-origin: 50% 100%; }
 #gFigur.neu { animation: wackel 0.35s ease-out; }
+/* Bild zur Gesprächszeile (z. B. Opas Foto): wie ein Abzug schräg über dem Hintergrund */
+#gBild { position: absolute; left: 44%; top: 4%; max-height: 58%; max-width: 40%; width: auto; padding: 6px 6px 14px; background: #f3ead6; transform: rotate(-3deg); box-shadow: 0 10px 24px rgba(0,0,0,0.55); animation: fotoRein 0.4s ease-out; }
+@keyframes fotoRein { from { transform: rotate(-12deg) scale(0.6); opacity: 0; } to { transform: rotate(-3deg); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #gBild { animation: none; } }
 #gespraech.auf #gFigur { animation: rein 0.45s ease-out; }
 @keyframes wackel { 0% { transform: scale(0.96, 1.04); } 60% { transform: scale(1.03, 0.97); } 100% { transform: none; } }
 @keyframes rein { from { transform: translateX(-60%); opacity: 0; } to { transform: none; opacity: 1; } }

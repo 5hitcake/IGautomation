@@ -290,7 +290,7 @@ body { position: fixed; inset: 0; }
       W.refresh(); K.musik("werkstatt"); K.beiOpa();
       if (!imEinstieg()) { W.say("Zurück in Opas Werkstatt."); setTimeout(() => K.opaLenkrad() || K.opaErzaehlt(() => {
         W.say("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Anmeldung zur Waldrallye.", "ok");
-        fotoZeigen(); $("fotoKnopf").classList.add("tipp");
+        fotoZeigen();
       }), 400); }
       fotoZeigen(); schlafenZeigen();
     }
@@ -332,7 +332,8 @@ body { position: fixed; inset: 0; }
   // Opas Foto: hängt an der Wand, sobald Opa vom Donnerkeil erzählt hat
   const FOTO = (window.KARTE_DATEN.geschichte || {}).donnerkeil_foto;
   if (FOTO) { $("fotoKnopf").querySelector("img").src = FOTO; $("foto").querySelector("img").src = FOTO; }
-  function fotoZeigen() { $("fotoKnopf").hidden = !FOTO || K.stand().opa !== "rennen"; }
+  // Das Foto zeigt Opa jetzt im Gespräch; an der Werkstattwand hängt es nicht mehr
+  function fotoZeigen() { $("fotoKnopf").hidden = true; }
   $("fotoKnopf").addEventListener("click", () => { $("foto").hidden = false; $("fotoKnopf").classList.remove("tipp"); $("fotoZu").focus(); });
   $("fotoZu").addEventListener("click", () => { $("foto").hidden = true; });
   $("foto").addEventListener("click", (e) => { if (e.target.id === "foto") $("foto").hidden = true; });
