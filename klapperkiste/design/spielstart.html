@@ -44,7 +44,13 @@ body { position: fixed; inset: 0; }
 .werte { gap: 4px; }
 .wert { padding: 3px 2px; font-size: 12px; line-height: 1.2; }
 .unten { display: flex; gap: 8px; align-items: center; }
-.unten #status { flex: 1; min-width: 0; font-size: 12px; line-height: 1.25; max-height: 2.5em; overflow: hidden; }
+.unten-luft { flex: 1; }
+/* Meldungen der Werkstatt unten auf der Hebebühne (volle Breite), nur wenn es etwas zu sagen gibt */
+.stage-w { position: relative; min-height: 0; }
+.stage-w #stage { display: block; width: 100%; height: 100%; }
+.stage-w #status { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); max-width: calc(100% - 24px); width: max-content; margin: 0;
+  padding: 5px 12px; border-radius: 10px; background: rgba(18,35,42,0.86); font-size: 13px; line-height: 1.3; text-align: center; pointer-events: none; min-height: 0; }
+.stage-w #status:empty { display: none; }
 .unten .knopf { flex: none; padding: 9px 22px; font-size: 16px; }
 .regal { grid-template-rows: auto minmax(0, 1fr); gap: 6px; padding: 40px 8px 8px; min-height: 0; }
 .halle .tray { height: 104px; }
@@ -89,6 +95,7 @@ body { position: fixed; inset: 0; }
 .start-knoepfe { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .start-knoepfe .knopf { font-size: 22px; padding: 14px 34px; box-shadow: 0 4px 0 rgba(0,0,0,0.4); }
 /* Opas Foto: klein an der Wand (oben rechts auf der Bühne), groß zum Ansehen */
+#schlafen { flex: none; padding-left: 14px; padding-right: 14px; font-size: 22px; } /* nur Symbol, damit die Statuszeile Platz hat */
 #fotoKnopf { position: absolute; top: 62px; right: 12px; width: clamp(44px, 6vw, 64px); padding: 3px 3px 8px; background: #f3ead6; border: 0; border-radius: 2px; transform: rotate(5deg); box-shadow: 0 4px 8px rgba(0,0,0,0.5); cursor: pointer; z-index: 2; }
 #fotoKnopf img { display: block; width: 100%; filter: sepia(0.3); }
 #fotoKnopf.tipp { animation: knopfTipp 1.1s ease-in-out infinite; }
@@ -150,7 +157,8 @@ body { position: fixed; inset: 0; }
     <div class="halle-mitte">
       <div class="kats" id="tabs" role="tablist" aria-label="Kategorien"></div>
       <div class="buehne-w">
-        <canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszuwählen."></canvas>
+        <div class="stage-w"><canvas id="stage" aria-label="Hebebühne. Eingebaute Teile antippen, um sie auszuwählen."></canvas>
+          <p id="status" aria-live="polite"></p></div>
         <button type="button" id="fotoKnopf" hidden aria-label="Opas altes Foto ansehen"><img alt=""></button>
         <div class="werte" id="werte" aria-label="Werte deines Autos"></div>
         <div class="unten">
@@ -158,8 +166,8 @@ body { position: fixed; inset: 0; }
             <button type="button" id="view-seite" aria-pressed="true">Seite</button>
             <button type="button" id="view-oben" aria-pressed="false">Draufsicht</button>
           </div>
-          <p id="status" aria-live="polite"></p>
-          <button type="button" class="knopf zweit" id="schlafen" hidden title="Bei Opa übernachten">🛏 Schlafen</button>
+          <span class="unten-luft"></span>
+          <button type="button" class="knopf zweit" id="schlafen" hidden title="Bei Opa übernachten" aria-label="Schlafen: bei Opa übernachten">🛏️</button>
           <button type="button" class="knopf" id="losfahren" disabled>Losfahren</button></div>
       </div>
       <aside class="regal" aria-label="Teile und Info">
