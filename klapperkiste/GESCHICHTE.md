@@ -117,9 +117,9 @@ nach der ersten Rallye-Fahrt.
 weitergeht, leuchten gelb und blinken: in der Fahransicht ein Ring am Boden mit schwebendem
 Ausrufezeichen (auch nachts und im dunklen Wald gut zu sehen), auf der Minikarte ein
 blinkender Punkt, auf der großen Karte ein pulsierender Schein mit Ausrufezeichen.
-Die Rallye leuchtet nicht, sie bekommt stattdessen eine **Rennflagge** (schwarz-weiß
-kariert, weht im Wind) am Start beim Campingplatz, solange man sie fahren kann, auch
-nach der ersten Medaille für bessere Zeiten.
+Die Rallye leuchtet nicht. Stattdessen zeigt nur die **Minikarte** eine Rennflagge
+(schwarz-weiß kariert) am Campingplatz, sobald die Rallye freigespielt ist und bis man
+sie mit einer Medaille abgeschlossen hat.
 
 ## Rennen über das Spiel verteilt
 

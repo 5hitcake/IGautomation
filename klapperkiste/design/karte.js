@@ -1885,10 +1885,11 @@ window.Karte = function (opt = {}) {
     miniZeichnen();
   }
 
-  // Rallye-Start: Rennflagge statt Leuchten, solange man die Rallye fahren kann (auch für Bestzeiten)
+  // Rallye-Start: Rennflagge nur auf der Minikarte, sobald die Rallye freigespielt ist und bis
+  // man sie mit einer Medaille abgeschlossen hat
   function rallyeOrt() {
     const z = zielVon("camping");
-    return rallyeMoeglich() && zielOffen(z) ? z : null;
+    return rallyeMoeglich() && zielOffen(z) && !(spiel.rallye && spiel.rallye.medaille) ? z : null;
   }
   // Zielflagge (schwarz-weiß kariert) am Mast; x, y = Fuß des Masts, s = Höhe
   function flaggeZeichnen(c, x, y, s, t) {
@@ -1911,8 +1912,6 @@ window.Karte = function (opt = {}) {
   }
   // Aufgaben-Orte in der Fahransicht: gelber Ring am Boden und ein schwebendes Ausrufezeichen
   function aufgabenWelt(sicht, t) {
-    const ro = rallyeOrt();
-    if (ro && imBild(ro.x, ro.y, sicht, 8)) flaggeZeichnen(ctx, ro.x - 2.6, ro.y - 0.5, 3.2, t);
     const puls = reduce ? 0.5 : (Math.sin(t * 4) + 1) / 2;
     for (const z of aufgabenOrte()) {
       if (!imBild(z.x, z.y, sicht, 8)) continue;
@@ -2433,8 +2432,6 @@ window.Karte = function (opt = {}) {
       else if (z.art === "ort" && frei) ortZeichnen(x, y, z.name);
       else if (z.art === "ort") unbekanntZeichnen(x, y);
     }
-    const ro = rallyeOrt();
-    if (ro) flaggeZeichnen(gctx, ro.x * k - 20, ro.y * k + 2, 28, t);
     // Ausrufezeichen an den Orten mit Aufgabe
     for (const z of aufgabenOrte()) {
       const hub = reduce ? 0 : Math.abs(Math.sin(t * 3)) * 4;
