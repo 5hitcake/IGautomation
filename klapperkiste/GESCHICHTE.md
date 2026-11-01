@@ -146,7 +146,8 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   Spielzeit: **10 Minuten Tag** (6–20 Uhr), 1 Minute Abenddämmerung (warm orange),
   **3 Minuten Nacht** (21–5 Uhr, kühles Blau), 1 Minute Morgen. Nachts:
   - leuchten Fenster, Laternen, das Lagerfeuer und der Scheinwerfer,
-  - fährt man ohne Licht nur Schritttempo, mit Licht zieht der Scheinwerfer Strom,
+  - fährt man nur mit Licht (Scheinwerfer und Strom), das zieht Strom. Ohne Licht bleibt
+    das Auto stehen: im Auto schlafen bis zum Morgen oder Opa holt dich ab,
   - schläft Knut, der Laden hat zu,
   - tanzen am Ostufer des Waldsees drei blasse Lichter (Spur zu Kauz).
   - schlafen Hasen und Vögel (sie blenden in der Dämmerung aus),

@@ -290,8 +290,9 @@ window.Karte = function (opt = {}) {
 
   function schritt(dt) {
     const u = untergrund(auto.x, auto.y);
-    // 22 km/h auf dem Feldweg, mit Platten langsam, nachts ohne Licht nur Schritttempo
-    const vmax = 6.2 * u.f * (spiel.platt ? 0.45 : 1) * (istNacht() && !hatTeil("licht") ? 0.4 : 1);
+    // 22 km/h auf dem Feldweg, mit Platten langsam, nachts ohne Licht gar nicht
+    if (route && !kannFahren()) zuDunkel();
+    const vmax = 6.2 * u.f * (spiel.platt ? 0.45 : 1) * (kannFahren() ? 1 : 0);
     const ctl = steuerAuto(dt) || { gas: taste.gas, bremse: taste.bremse, lenk: (taste.rechts ? 1 : 0) - (taste.links ? 1 : 0) };
     if (tankLeer()) ctl.gas = false; // ohne Sprit rollt das Auto nur noch aus
     let acc = 0;
@@ -957,6 +958,29 @@ window.Karte = function (opt = {}) {
   // Das Licht schaltet sich nur bei Bedarf ein: nachts (ab halber Dunkelheit) oder im dunklen Wald, und nur mit Strom
   const imDunklenWald = () => imWald(auto.x, auto.y) && auto.x < WALD_EINGANG + 2;
   const lichtAn = () => hatTeil("licht") && spiel.strom > 0 && (istNacht() || imDunklenWald());
+  // Nachts fährt die Klapperkiste nur mit brennendem Licht (Scheinwerfer eingebaut und Strom)
+  const kannFahren = () => !istNacht() || lichtAn();
+  // Zwei Lichtkegel, je einer aus dem linken und rechten Scheinwerfer vorne am Auto
+  function scheinwerferKegel(c, farbe0, farbe1, weit = 15) {
+    const ca = Math.cos(auto.a), sa = Math.sin(auto.a);
+    for (const seite of [-1, 1]) {
+      const fx = auto.x + ca * 1.9 - sa * 0.55 * seite, fy = auto.y + sa * 1.9 + ca * 0.55 * seite;
+      const mitte = auto.a + seite * 0.06; // leicht nach außen gerichtet
+      const g = c.createRadialGradient(fx, fy, 0.3, fx, fy, weit);
+      g.addColorStop(0, farbe0); g.addColorStop(1, farbe1);
+      c.fillStyle = g; c.beginPath(); c.moveTo(fx, fy); c.arc(fx, fy, weit, mitte - 0.34, mitte + 0.34); c.closePath(); c.fill();
+    }
+  }
+  // Im Dunkeln ohne Licht: stehen bleiben und fragen, wie es weitergeht
+  function zuDunkel() {
+    route = null;
+    const d = $("dunkel");
+    if (!d || !d.hidden) return;
+    d.querySelector("p").textContent = hatTeilEingebaut("licht")
+      ? "Die Batterie ist leer, der Scheinwerfer bleibt aus. Im Dunkeln fährst du nirgendwohin."
+      : "Ohne Scheinwerfer siehst du nachts die Hand vor Augen nicht. Im Dunkeln fährst du nirgendwohin.";
+    d.hidden = false;
+  }
   function stunde(t = zeit.t) {
     if (t < TAG) return 6 + (t / TAG) * 14;
     if (t < TAG + ABEND) return 20 + (t - TAG) / ABEND;
@@ -964,7 +988,7 @@ window.Karte = function (opt = {}) {
     return 5 + (t - TAG - ABEND - NACHT) / MORGEN;
   }
   function fensterZu() {
-    return ["gespraech", "laden", "buch", "beutel", "grosskarte", "meldung", "leer", "rallyeFrage", "rallye"].every((id) => !$(id) || $(id).hidden);
+    return ["gespraech", "laden", "buch", "beutel", "grosskarte", "meldung", "leer", "dunkel", "rallyeFrage", "rallye"].every((id) => !$(id) || $(id).hidden);
   }
   function zeitSchritt(dt) {
     if (!zeit.laeuft || !fensterZu()) return;
@@ -1017,12 +1041,7 @@ window.Karte = function (opt = {}) {
     for (const [x, y, r] of LICHTER) schein(x, y, r * (1 + (reduce ? 0 : Math.sin(t * 7 + x) * 0.04)), "255,180,90", 0.45 * d);
     const [lx, ly] = FOERSTER.laterne;
     schein(lx, ly, 5, "255,190,100", 0.4 * d);
-    if (lichtAn()) {
-      const fx = auto.x + Math.cos(auto.a) * 1.8, fy = auto.y + Math.sin(auto.a) * 1.8, weit = 15;
-      const g = ctx.createRadialGradient(fx, fy, 0.5, fx, fy, weit);
-      g.addColorStop(0, `rgba(255,226,150,${0.55 * d})`); g.addColorStop(1, "rgba(255,226,150,0)");
-      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.arc(fx, fy, weit, auto.a - 0.5, auto.a + 0.5); ctx.closePath(); ctx.fill();
-    }
+    if (lichtAn()) scheinwerferKegel(ctx, `rgba(255,226,150,${0.45 * d})`, "rgba(255,226,150,0)");
     schein(auto.x, auto.y, 3, "255,220,160", 0.12 * d);
     // Spuklichter: drei blasse Lichter tanzen am Ostufer des Waldsees (Spur zu Kauz)
     if (d > 0.6) {
@@ -1476,6 +1495,7 @@ window.Karte = function (opt = {}) {
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
   let route = null, routeI = 0, zielWahl = null, haengt = 0, rueck = 0, angehalten = false;
   function planen(ziel) {
+    if (!kannFahren()) return zuDunkel();
     const start = naechsterKnoten(auto.x, auto.y), ende = naechsterKnoten(ziel.x, ziel.y);
     const dist = new Float64Array(KNOTEN.length).fill(Infinity), von = new Int32Array(KNOTEN.length).fill(-1);
     const offenListe = [start];
@@ -1640,7 +1660,7 @@ window.Karte = function (opt = {}) {
   function dunklerWald(w, h, sicht) {
     const WX = 50, WY = 205, WR = 54; // Bereich, in dem der Lichtkegel gebraucht wird
     if (sicht.x0 > WALD_EINGANG + 8 || sicht.y1 < 95 || sicht.y0 > 305) return; // nicht im Bild
-    const mitLicht = hatTeil("licht") && Math.hypot(auto.x - WX, auto.y - WY) < WR + 20;
+    const mitLicht = hatTeil("licht") && spiel.strom > 0 && Math.hypot(auto.x - WX, auto.y - WY) < WR + 20;
     if (dunkel.width !== cv.width || dunkel.height !== cv.height) { dunkel.width = cv.width; dunkel.height = cv.height; }
     dctx.setTransform(1, 0, 0, 1, 0, 0); dctx.clearRect(0, 0, dunkel.width, dunkel.height);
     dctx.setTransform(ctx.getTransform());
@@ -1677,12 +1697,7 @@ window.Karte = function (opt = {}) {
       laterne(ctx, "rgba(255,200,110,0.3)", "rgba(255,200,110,0)");
       return;
     }
-    const fx = auto.x + Math.cos(auto.a) * 1.8, fy = auto.y + Math.sin(auto.a) * 1.8, weit = 15, breit = 0.5;
-    const kegel = (c, farbe0, farbe1) => {
-      const g = c.createRadialGradient(fx, fy, 0.5, fx, fy, weit);
-      g.addColorStop(0, farbe0); g.addColorStop(1, farbe1);
-      c.fillStyle = g; c.beginPath(); c.moveTo(fx, fy); c.arc(fx, fy, weit, auto.a - breit, auto.a + breit); c.closePath(); c.fill();
-    };
+    const kegel = (c, farbe0, farbe1) => scheinwerferKegel(c, farbe0, farbe1);
     dctx.globalCompositeOperation = "destination-out";
     kegel(dctx, "rgba(0,0,0,1)", "rgba(0,0,0,0)");
     const schein = dctx.createRadialGradient(auto.x, auto.y, 0, auto.x, auto.y, 4.5);
@@ -2613,6 +2628,20 @@ window.Karte = function (opt = {}) {
   $("karte").parentElement.append(leer);
   leer.querySelector(".kanister").addEventListener("click", kanisterNutzen);
   leer.querySelector(".abschleppen").addEventListener("click", abschleppen);
+  const dunkelBox = document.createElement("div");
+  dunkelBox.id = "dunkel"; dunkelBox.hidden = true; dunkelBox.setAttribute("role", "alertdialog"); dunkelBox.setAttribute("aria-label", "Zu dunkel");
+  dunkelBox.innerHTML = '<div><strong>🌙 Zu dunkel!</strong><p></p>' +
+    '<div class="knoepfe"><button type="button" class="knopf warten">🌅 Im Auto schlafen bis zum Morgen</button>' +
+    '<button type="button" class="knopf zweit abholen">🚜 Opa holt dich ab</button></div></div>';
+  $("karte").parentElement.append(dunkelBox);
+  dunkelBox.querySelector(".warten").addEventListener("click", () => {
+    dunkelBox.hidden = true; morgen("🌅 Guten Morgen! Etwas steif vom Schlafen im Auto, aber jetzt ist es hell.");
+  });
+  dunkelBox.querySelector(".abholen").addEventListener("click", () => {
+    dunkelBox.hidden = true;
+    toast("🚜 Opa hat dich mit dem Traktor abgeholt. In der Werkstatt kannst du schlafen.", 5000);
+    schnellreise();
+  });
   const tacho = document.createElement("canvas");
   tacho.id = "tacho"; tacho.setAttribute("aria-hidden", "true");
   $("karte").parentElement.append(tacho);
