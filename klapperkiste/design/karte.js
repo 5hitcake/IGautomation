@@ -1884,6 +1884,10 @@ window.Karte = function (opt = {}) {
     const sk = $("stopp");
     sk.hidden = !route;
     sk.textContent = angehalten ? "▶ Weiter" : "✋ Stopp";
+    // Ein Gegenstand (Reifen, Batterie, Material) liegt in Reichweite: „Stopp“ leuchtet, solange das Auto noch rollt
+    const inReichweite = (g) => Math.hypot(g.x - auto.x, g.y - auto.y) <= REICH + 2;
+    const sammelbar = (BRAUCHT[spiel.auftrag] && SAMMEL.some((g) => sichtbar(g) && inReichweite(g))) || FUNDE.some(inReichweite);
+    sk.classList.toggle("tipp", Boolean(route) && !angehalten && sammelbar);
     $("weg").hidden = !route;
     if (route) $("weg").textContent = `📍 ${zielWahl.name} · ${Math.round((route.length - routeI) * 2)} m`;
     miniZeichnen();

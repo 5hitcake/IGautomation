@@ -94,8 +94,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 #toast { z-index: 6; bottom: 66px; } /* über dem Laden und dem Stopp-Knopf */
 /* Stopp-Knopf beim Selbstfahren, unten links auf der Karte */
 #stopp { position: absolute; left: 10px; bottom: 10px; z-index: 5; padding: 12px 16px; font-size: 16px; background: #c8642a; color: #fffaf0; box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
-#stopp.tipp { animation: stoppTipp 0.9s ease-in-out infinite; }
-@keyframes stoppTipp { 50% { box-shadow: 0 0 0 7px rgba(242,182,50,0.45); } }
+#stopp.tipp { background: #e0a02a; color: #1d1a16; box-shadow: 0 0 0 4px #ffd23c, 0 3px 0 rgba(0,0,0,0.35); animation: stoppTipp 0.7s ease-in-out infinite; }
+@keyframes stoppTipp { 50% { box-shadow: 0 0 0 10px rgba(255,210,60,0.35), 0 3px 0 rgba(0,0,0,0.35); transform: scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { #stopp.tipp { animation: none; } }
 /* Anzeigen am Rand: rechts unter der Minikarte Wetter und Münzen, unten rechts der Tacho */
 .hud-rechts { position: absolute; right: 10px; top: 132px; display: grid; gap: 6px; justify-items: end; pointer-events: none; }
