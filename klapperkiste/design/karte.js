@@ -97,7 +97,10 @@ window.Karte = function (opt = {}) {
   // Alter Holzweg: von der Försterhütte durch den dunklen Wald nach Süden zum Campingplatz
   // am Waldsee. Versperrt von umgestürzten Bäumen, bis Moos sie wegzieht (spiel.holzweg).
   const HOLZWEG = [[45, 212], [36, 232], [22, 252], [18, 272], [26, 287], [37, 289.4]];
-  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG];
+  // Alter Anglerpfad: von der Schleife südlich von Opas Schuppen nach Westen ans Ostufer des
+  // Waldsees, wo nachts die Lichter tanzen (G8, Spur zu Kauz)
+  const UFERPFAD = [[150, 290], [137, 295], [124, 299], [114, 300.5]];
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD];
   // Campingplatz (Bild 30 m breit), Einfahrt links, Steg rechts zum Waldsee
   const CAMPING = { X: 37, Y: 282, b: 30, bereich: [37, 282, 67, 302.1],
     haeuser: [[46.6, 282, 51.7, 287.4], [57.4, 285.8, 62.5, 290.2]] };
@@ -418,7 +421,9 @@ window.Karte = function (opt = {}) {
   // Nebenaufträge, die parallel zur Rallye entstehen (man kann sie vorher oder nachher machen):
   // kuh (Hilde): null | "suchen" | "heim" | "erledigt"; vogelhaus (Moos): null | "auftrag" | "erledigt";
   // motor (Rosi → Knut → Rosi): null | "zuKnut" | "zurueck" | "erledigt"
-  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null }; }
+  // lichter (Moos, G8): null | "auftrag" | "bolzen" (Bolzen gefunden, zu Opa) | "erledigt"
+  // kauz: null | "suchen" (Opa hat von Kauz erzählt, Spuren führen ins Schilf)
+  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null }; }
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -636,6 +641,33 @@ window.Karte = function (opt = {}) {
     if (!g.offen) { g.offen = true; nebelNeu(); }
     setTimeout(() => toast("Neu auf der Karte: der Holzweg zum Campingplatz am Waldsee", 5000), 3000);
   }
+  // G8: Moos schickt einen nachts ans Ostufer, wo die Lichter tanzen
+  function lichterAuftrag(zeilen) {
+    zeilen.push(
+      ["auftrag", "Pass auf: Vom Waldsee aus seh ich die Lichter jede Nacht am Ostufer. Da drüben, wo das Schilf so hoch steht."],
+      ["auftrag", "Südlich von Opas Schuppen führt ein alter Anglerpfad hin. Ich zeichne ihn dir auf die Karte. Fahr mal nachts hin und schau nach, ja? Mir ist das nicht geheuer."]);
+    spiel.neben.lichter = "auftrag";
+    const g = GEBIETE.find((q) => q.id === "ostufer");
+    if (!g.offen) { g.offen = true; nebelNeu(); }
+    setTimeout(() => toast("🌙 Neuer Auftrag: Die Lichter am Waldsee. Neu auf der Karte: das Ostufer.", 4500), 300);
+  }
+  // Am Ostufer: nachts fliehen die Lichter ins Schilf, zurück bleibt ein Bolzen mit Opas Blitz
+  function amOstufer() {
+    const n = spiel.neben;
+    if (n.lichter !== "auftrag") return toast(n.kauz ? "Die Reifenspuren verschwinden im dichten Schilf. Da kommt die Klapperkiste nicht durch." : "Angekommen: Ostufer am Waldsee");
+    if (!istNacht()) return toast("Nur Schilf, Matsch und ein paar Enten. Die Lichter tanzen nur nachts hier.", 4500);
+    const blitz = spiel.donnerkeil.includes("lenkrad") ? "Genau so einer ist auf dem Lenkrad, das du Opa gebracht hast!" : "Wie auf dem Donnerkeil auf Opas altem Foto!";
+    gespraech("erzaehler", "Am Ostufer", "ostufer", [
+      ["", "Da! Drei blasse Lichter schweben über dem Schilf. Sie flackern … und sausen plötzlich davon, übers Wasser, mitten ins Schilf hinein."],
+      ["", "Ein Motor brummt kurz auf, tief und rau. Dann ist alles still. Nur die Frösche quaken."],
+      ["", "Im Matsch am Ufer: frische Reifenspuren. Sie führen geradewegs ins Schilf, aber da ist es viel zu dicht zum Durchfahren."],
+      ["", `Und da glänzt etwas im Scheinwerferlicht: ein schwerer, blanker Bolzen mit einem eingeritzten Blitz. ${blitz}`,
+        ...(D.geschichte && D.geschichte.bolzen ? [{ bild: D.geschichte.bolzen, alt: "Ein blanker Bolzen mit eingeritztem Blitz im Matsch." }] : [])],
+    ], () => {
+      n.lichter = "bolzen"; hudNeu();
+      toast("🔩 Glänzender Bolzen eingesteckt. Zeig ihn Opa in der Werkstatt!", 5000);
+    });
+  }
   function beiMoos() {
     const zeilen = [];
     if (!moosKennt) {
@@ -679,9 +711,16 @@ window.Karte = function (opt = {}) {
           ["juhu", "Blech und Schrauben! Zack, zack … und fertig ist das Vogelhaus. Pieps zieht sofort ein, schau!"],
           ["auftrag", "Hier, 25 Münzen. Und weißt du, wer früher die schönsten Vogelhäuser im Tal gebaut hat? Der alte Kauz."],
           ["nachdenken", "Ein Tüftler, wohnt irgendwo drüben am anderen Seeufer. Keiner hat ihn lang gesehen. Ob die Lichter was mit ihm zu tun haben?"]);
+        lichterAuftrag(zeilen);
       } else {
         zeilen.push(["nachdenken", `Fürs Vogelhaus fehlen mir noch ${Math.max(0, 2 - m.blech)} Blech und ${Math.max(0, 2 - m.schrauben)} Schrauben.`]);
       }
+    } else if (spiel.neben.vogelhaus === "erledigt" && !spiel.neben.lichter) {
+      lichterAuftrag(zeilen);
+    } else if (spiel.neben.lichter === "auftrag") {
+      zeilen.push(["nachdenken", "Warst du schon nachts am Ostufer? Die Lichter tanzen nur, wenn es richtig dunkel ist. Nimm den alten Anglerpfad südlich von Opas Schuppen."]);
+    } else if (spiel.neben.lichter === "bolzen") {
+      zeilen.push(["nachdenken", "Ein Bolzen mit einem Blitz drauf? Zeig den mal Opa Bolzen. Der weiß bestimmt, wo der herkommt."]);
     } else if (moosKennt) {
       zeilen.push(["nachdenken", spiel.holzweg
         ? "Der Holzweg ist frei, die Rallye-Strecke stecke ich gerade ab. Und die Lichter? Letzte Nacht wieder. Unheimlich, sag ich dir."
@@ -872,6 +911,16 @@ window.Karte = function (opt = {}) {
         ziel: genug ? zielVon("foersterhuette") : null });
     }
     if (n.vogelhaus === "erledigt") erledigt.push(vogel);
+    const lichter = { figur: "moos", wer: "Förster Moos", titel: "Die Lichter am Waldsee", belohnung: "eine Spur" };
+    if (n.lichter === "auftrag") offen.push({ ...lichter, stand: istNacht() ? "🌙 jetzt ist Nacht" : "☀️ erst nachts",
+      text: "Moos sieht jede Nacht Lichter am Ostufer des Waldsees. Fahr nachts über den alten Anglerpfad hin und schau nach.",
+      ziel: zielVon("ostufer") });
+    if (n.lichter === "bolzen") offen.push({ ...lichter, stand: "🔩 Bolzen dabei",
+      text: "Am Ostufer lag ein Bolzen mit einem Blitz drauf. Zeig ihn Opa in der Werkstatt.", ziel: zielVon("schuppen") });
+    if (n.lichter === "erledigt") erledigt.push(lichter);
+    if (n.kauz === "suchen") offen.push({ figur: "opa", wer: "Opa Bolzen", titel: "Wo steckt Kauz?", stand: "🔍 Spur im Schilf",
+      text: "Kauz war Opas Beifahrer beim Donnerkeil. Seine Reifenspuren führen am Ostufer ins dichte Schilf.",
+      belohnung: "?", fehlt: "Durchs dichte Schilf kommt die Klapperkiste noch nicht. Bald geht es hier weiter." });
     const motor = { figur: "rosi", wer: "Anglerin Rosi", titel: "Rosis Außenbordmotor", belohnung: "20 Münzen, Schiffs-Steuerrad (lenkt besser)" };
     if (n.motor === "zuKnut") offen.push({ ...motor, stand: "⚙️ kaputt", text: "Bring Rosis stotternden Außenbordmotor zu Knut auf den Schrottplatz.", ziel: zielVon("schrottplatz") });
     if (n.motor === "zurueck") offen.push({ ...motor, stand: "⚙️ repariert", text: "Knut hat den Motor repariert. Bring ihn Rosi an den Waldsee zurück.", ziel: zielVon("camping") });
@@ -895,6 +944,7 @@ window.Karte = function (opt = {}) {
     if (!spiel.hilde || (spiel.hilde === "erledigt" && spiel.rosi === "erledigt" && !n.kuh)) orte.add("bauernhof");
     if (!spiel.rosi || (spiel.rosi === "erledigt" && !n.motor)) orte.add("camping");
     if (spiel.moosSeil === "erledigt" && !n.vogelhaus) orte.add("foersterhuette");
+    if (n.vogelhaus === "erledigt" && !n.lichter) orte.add("foersterhuette");
     if (spiel.donnerkeil.includes("lenkrad") && !spiel.opaLenkrad) orte.add("schuppen");
     if (!spiel.opa && ["batterie", "erledigt"].includes(spiel.auftrag)) orte.add("schuppen");
     const liste = ZIELE.filter((z) => orte.has(z.id) && zielOffen(z) && zielErlaubt(z));
@@ -1277,6 +1327,7 @@ window.Karte = function (opt = {}) {
     const box = $("gespraech");
     // Fehlt der Hintergrund (noch kein Bild), steht ein warmer Holzton als Platzhalter da
     box.style.backgroundImage = D.hintergruende && D.hintergruende[ort] ? `url(${D.hintergruende[ort]})`
+      : ort === "ostufer" ? "linear-gradient(180deg, #0d1424 0%, #1c2a44 50%, #22311f 56%, #141c12 100%)" // Nacht am See
       : "linear-gradient(180deg, #6b4a2e 0%, #8a6440 55%, #4a3220 56%, #3a2818 100%)";
     box.dataset.figur = figur;
     box.setAttribute("aria-label", `Gespräch mit ${name}`);
@@ -1291,7 +1342,7 @@ window.Karte = function (opt = {}) {
   }
   // --- Gebrummel und Musik: siehe ton.js (window.Ton) ---------------------------
   const Ton = window.Ton;
-  const silbe = (figur, info) => Ton && Ton.silbe(figur, info);
+  const silbe = (figur, info) => Ton && figur !== "erzaehler" && Ton.silbe(figur, info);
 
   function zeile() {
     const [geste, text, extra] = gZeilen[gNr];
@@ -1300,6 +1351,7 @@ window.Karte = function (opt = {}) {
     if (!gb) { gb = document.createElement("img"); gb.id = "gBild"; gb.alt = ""; $("gespraech").insertBefore(gb, $("gespraech").querySelector(".g-box")); }
     if (extra && extra.bild) { if (gb.src !== extra.bild) gb.src = extra.bild; gb.alt = extra.alt || ""; gb.hidden = false; } else gb.hidden = true;
     const fig = $("gFigur"), figuren = (D.figuren || {})[$("gespraech").dataset.figur] || {};
+    fig.hidden = !Object.keys(figuren).length; // Erzähltext ohne Figur (z. B. nachts am Ostufer)
     if (figuren[geste]) {
       if (fig.src !== figuren[geste]) { fig.src = figuren[geste]; fig.classList.remove("neu"); void fig.offsetWidth; fig.classList.add("neu"); }
     }
@@ -1373,6 +1425,7 @@ window.Karte = function (opt = {}) {
     { id: "weide", name: "Weideweg im Osten", x: 282, y: 248, r: 62, offen: false },
     { id: "felder", name: "Feldweg zu den Feldern", x: 300, y: 140, r: 70, offen: false }, // zeigt Hilde
     { id: "camping", name: "Holzweg und Waldsee", x: 52, y: 282, r: 58, offen: false }, // zeigt Moos
+    { id: "ostufer", name: "Ostufer am Waldsee", x: 122, y: 298, r: 22, offen: false }, // zeichnet Moos ein (G8)
   ];
   const STUECKE = [
     { gebiet: "nord", x: 184, y: 213 },
@@ -1435,7 +1488,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -1481,6 +1534,7 @@ window.Karte = function (opt = {}) {
     { id: "felder", name: "Zu den Feldern", art: "weg", x: 300, y: 85, gebiet: "felder" },
     { id: "muehle", name: "Mühle", art: "ort", x: 296, y: 45, gebiet: "felder", kommt: true },
     { id: "camping", name: "Campingplatz", art: "ort", x: 39, y: 289.4, gebiet: "camping" },
+    { id: "ostufer", name: "Ostufer am Waldsee", art: "weg", x: 114, y: 300.5, gebiet: "ostufer" },
   ];
   const zielOffen = (z) => !z.kommt && GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
@@ -1568,6 +1622,7 @@ window.Karte = function (opt = {}) {
       else if (zielWahl.id === "bauernhof") beiHilde();
       else if (zielWahl.id === "foersterhuette") beiMoos();
       else if (zielWahl.id === "camping") beiRosi(rallyeAnbieten);
+      else if (zielWahl.id === "ostufer") amOstufer();
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -2779,14 +2834,33 @@ window.Karte = function (opt = {}) {
       ], () => toast("Opa hat das Lenkrad an die Werkstattwand gehängt.", 4000));
       return true;
     },
-    // In Opas Werkstatt: Opa flickt Reifen kostenlos, und ein neuer Tag beginnt (neue Funde, Preise)
-    // In Opas Werkstatt: Reifen flicken und den Tank füllen
+    // Opa erkennt den Bolzen vom Ostufer und erzählt zum ersten Mal von Kauz (G8)
+    opaBolzen() {
+      const n = spiel.neben;
+      if (n.lichter !== "bolzen") return false;
+      const foto = D.geschichte && D.geschichte.donnerkeil_foto;
+      gespraech("opa", "Opa Bolzen", "werkstatt", [
+        ["nachdenken", "Was hast du denn da? Zeig mal her … ein Bolzen. Mit einem Blitz drauf."],
+        ["nachdenken", "Den hab ich selbst gedreht, für die Hinterachse vom Donnerkeil. Am Ostufer lag der? Nachts, bei den Lichtern?"],
+        ["nachdenken", "Dann ist er also noch da. Der alte Kauz."],
+        ["auftrag", "Kauz war mein Beifahrer. Zusammen haben wir den Donnerkeil gebaut, Schraube für Schraube. Der Lange auf dem Foto, das ist er.",
+          ...(foto ? [{ bild: foto, alt: "Altes Foto: der junge Opa Bolzen und Kauz, ein großer, dünner Mann mit Werkzeuggürtel, mit dem Pokal neben dem Donnerkeil." }] : [])],
+        ["nachdenken", "Nach dem dritten Sieg haben wir uns gestritten. Um eine dumme Kurve! Er sagt, ich hab zu spät gebremst. Ich sag, er hat sie falsch angesagt."],
+        ["nachdenken", "Seitdem haben wir kein Wort mehr geredet. Der Donnerkeil wurde zerlegt … Ich dachte, Kauz ist längst weggezogen."],
+        ["auftrag", "Wenn der nachts am See herumschraubt … Schau doch mal, ob du ihn findest. Aber sag ihm bloß nicht, dass ich dich schicke!"],
+      ], () => {
+        n.lichter = "erledigt"; n.kauz = "suchen"; hudNeu();
+        toast("📖 Neu im Auftragsbuch: Wo steckt Kauz?", 5000);
+      });
+      return true;
+    },
+    // In Opas Werkstatt: Reifen flicken, Tank füllen und Batterie laden (kostenlos)
     beiOpa() {
       if (spiel.platt) { spiel.platt = false; toast("🩹 Opa hat den platten Reifen geflickt."); }
       this.volltanken();
     },
-    // Tank voll (auch beim Losfahren aus der Werkstatt, falls ein größerer Tank eingebaut wurde)
-    volltanken() { spiel.sprit = tankGroesse(); spritGewarnt = false; verbrauchAnzeigen(); },
+    // Tank voll und Batterie geladen (auch beim Losfahren aus der Werkstatt, falls ein größerer Tank eingebaut wurde)
+    volltanken() { spiel.sprit = tankGroesse(); spiel.strom = 100; spritGewarnt = false; stromGewarnt = false; verbrauchAnzeigen(); },
     // Uhr: Stunde (0–24), ob es dunkel ist, und bei Opa bis zum Morgen schlafen
     zeit: () => ({ stunde: stunde(), nacht: istNacht(), abend: dunkelheit() > 0 || stunde() >= 18, tag: zeit.tag }),
     schlafen() { morgen(); },

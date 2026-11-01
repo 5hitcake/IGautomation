@@ -123,6 +123,21 @@ Die Rallye leuchtet nicht. Stattdessen zeigt nur die **Minikarte** eine Rennflag
 (schwarz-weiß kariert) am Campingplatz, sobald die Rallye freigespielt ist und bis man
 sie mit **Gold** abgeschlossen hat.
 
+## Die Lichter am Waldsee (G8)
+
+- **Auftrag von Moos:** Nach dem Vogelhaus erzählt Moos von Kauz und schickt einen nachts
+  ans Ostufer des Waldsees. Er zeichnet das Ostufer und den **alten Anglerpfad** ein (zweigt
+  südlich von Opas Schuppen von der Schleife nach Westen ab). Ziel „Ostufer am Waldsee“.
+- **Tagsüber** ist dort nur Schilf und Matsch („Die Lichter tanzen nur nachts hier“).
+- **Nachts** (mit Licht): Erzähltext ohne Figur („Am Ostufer“, Hintergrund `ostufer`): Die
+  drei Lichter sausen übers Wasser ins Schilf, ein Motor brummt, frische Reifenspuren führen
+  ins Schilf. Im Matsch liegt ein **Bolzen mit eingeritztem Blitz** (Bild `assets/geschichte/bolzen`,
+  erscheint im Gespräch, sobald es da ist).
+- **Zurück bei Opa** (Werkstatt): Opa erkennt den Bolzen („für die Hinterachse vom Donnerkeil“)
+  und erzählt zum ersten Mal von **Kauz**, seinem Beifahrer, und dem Streit um eine Kurve nach
+  dem dritten Sieg. „Schau doch mal, ob du ihn findest. Aber sag ihm bloß nicht, dass ich dich
+  schicke!“ Neuer Auftrag „Wo steckt Kauz?“ (G9, durchs Schilf kommt man noch nicht).
+
 ## Rennen über das Spiel verteilt
 
 Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
@@ -211,4 +226,5 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G5 | Tag und Nacht | ✅ |
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | ✅ |
-| G8 | Die Lichter im Wald, erste Spur zu Kauz | offen |
+| G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ (Bilder fehlen noch: Kauz, Ostufer bei Nacht, Bolzen) |
+| G9 | Kauz finden: Werkstatt im Schilf am Ostufer | offen |
