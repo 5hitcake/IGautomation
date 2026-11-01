@@ -2780,10 +2780,13 @@ window.Karte = function (opt = {}) {
       return true;
     },
     // In Opas Werkstatt: Opa flickt Reifen kostenlos, und ein neuer Tag beginnt (neue Funde, Preise)
+    // In Opas Werkstatt: Reifen flicken und den Tank füllen
     beiOpa() {
       if (spiel.platt) { spiel.platt = false; toast("🩹 Opa hat den platten Reifen geflickt."); }
-      verbrauchAnzeigen();
+      this.volltanken();
     },
+    // Tank voll (auch beim Losfahren aus der Werkstatt, falls ein größerer Tank eingebaut wurde)
+    volltanken() { spiel.sprit = tankGroesse(); spritGewarnt = false; verbrauchAnzeigen(); },
     // Uhr: Stunde (0–24), ob es dunkel ist, und bei Opa bis zum Morgen schlafen
     zeit: () => ({ stunde: stunde(), nacht: istNacht(), abend: dunkelheit() > 0 || stunde() >= 18, tag: zeit.tag }),
     schlafen() { morgen(); },
