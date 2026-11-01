@@ -382,6 +382,8 @@ body { position: fixed; inset: 0; }
     try {
       W.laden(gespeichert.werkstatt);
       K.laden(gespeichert.karte);
+      // Belohnungen, deren Bild beim Speichern noch fehlte (z. B. Hildes Mähbalken), ins Regal holen
+      for (const id of gespeichert.karte.teile || []) W.neuesTeil(id);
     } catch { return false; }
     schritt = 6; tipp(null); K.wetterFrei();
     zeige("werkstatt");

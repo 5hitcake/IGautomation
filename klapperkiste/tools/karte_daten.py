@@ -30,7 +30,7 @@ ZIEL_TEILE = os.path.join(ROOT, "design", "spielstart_teile.js")
 BODEN = ["gras_ruhig", "gras", "erde", "schotter", "walddach", "wasser", "sand"]
 OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz",
            "reifen", "batterie", "huette",
-           "bauernhof", "foersterhuette", "campingplatz"]
+           "bauernhof", "foersterhuette", "campingplatz", "kauzwerkstatt"]
 RALLYE = ["pfuetze", "ast", "wurzel", "schlagloch"]  # Hindernisse der Waldrallye (freiwillig)
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
          "radV": "schubkarre", "motor": "maeher", "energie": "giesskanne", "sitz": "kuechenstuhl",

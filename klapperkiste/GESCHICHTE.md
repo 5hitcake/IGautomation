@@ -138,6 +138,23 @@ sie mit **Gold** abgeschlossen hat.
   dem dritten Sieg. „Schau doch mal, ob du ihn findest. Aber sag ihm bloß nicht, dass ich dich
   schicke!“ Neuer Auftrag „Wo steckt Kauz?“ (G9, durchs Schilf kommt man noch nicht).
 
+## Kauz finden (G9)
+
+- **Auftrag „Wo steckt Kauz?“ (Opa):** Die Reifenspuren führen vom Ostufer nach Norden ins
+  dichte Schilf (Schilfpfad). Ohne Mähbalken hält das Auto dort: „Dichtes Schilf!“
+- **Hildes alter Mähbalken:** Hilde kann helfen. Ihr Mähbalken ist hinüber; für 2 Schrauben und
+  1 Feder richtet sie ihn her. Er ist das erste Teil der Kategorie **Vorne** (hängt vorne am Rahmen).
+  Kein „Hinfahren“ zu den Materialien, sie liegen aber sicher am Wegrand.
+- **Schilf mähen:** Mit dem Mähbalken vorne am Auto fährt man hinein, „Ratatatat!“, und es bleibt
+  eine Schneise (dauerhaft, im Spielstand).
+- **Kauz' Werkstatt** (Kartenobjekt `kauzwerkstatt`, 24 m) steht am Nordostufer im Schilf; sichtbar
+  und als Ziel „Hütte im Schilf“ erst, wenn Opa von Kauz erzählt hat.
+- **Kauz** (Hintergrund `kauz`): misstrauisch, dann freundlich. Den Bolzen hat er beim Testen
+  seiner Lampen verloren (das waren die Lichter). Unter der Plane steht der **Rahmen des
+  Donnerkeils**, den er gerettet hat; er baut nachts etwas Neues daraus. Zu Opa geht er erst, wenn
+  der zugibt, dass er in der Mühlenkurve zu spät gebremst hat. „Komm wieder, ich hab bestimmt bald
+  was für dich.“ (Weiter mit G10.)
+
 ## Rennen über das Spiel verteilt
 
 Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
@@ -227,4 +244,4 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | ✅ |
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
-| G9 | Kauz finden: Werkstatt im Schilf am Ostufer | offen (Bilder da: Kauz, Werkstatt von oben `kauzwerkstatt`, Hintergrund `kauz`) |
+| G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ (Bild vom Mähbalken als Teil fehlt noch) |

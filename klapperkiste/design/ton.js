@@ -77,6 +77,7 @@ window.Ton = (function () {
     kiel: { bank: "weiblich", rate: 0.86, ton: 150, groesse: 1.08, zittern: 0.015, atem: 0.45, tempo: 1 },      // rau, Seebärin
     frieder: { bank: "maennlich", rate: 1.02, ton: 128, groesse: 1, zittern: 0.02, atem: 0.3, tempo: 0.95 },
     rosi: { bank: "weiblich", rate: 0.95, ton: 185, groesse: 1.1, zittern: 0.02, atem: 0.3, tempo: 1.1 },      // fröhlich, etwas rau
+    kauz: { bank: "maennlich", rate: 1.08, ton: 135, groesse: 1.02, zittern: 0.04, atem: 0.3, tempo: 1.12 },   // hastig, kauzig
   };
   // Vokale als erste und zweite Resonanz (Hz, Erwachsenen-Mittelwerte)
   const VOKALE = [[730, 1090], [530, 1840], [300, 2250], [570, 840], [320, 870], [660, 1700], [440, 1020]];

@@ -100,10 +100,16 @@ window.Karte = function (opt = {}) {
   // Alter Anglerpfad: von der Schleife südlich von Opas Schuppen nach Westen ans Ostufer des
   // Waldsees, wo nachts die Lichter tanzen (G8, Spur zu Kauz)
   const UFERPFAD = [[150, 290], [137, 295], [124, 299], [114, 300.5]];
-  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD];
+  // Reifenspuren vom Ostufer durchs dichte Schilf nach Norden zu Kauz' versteckter Werkstatt (G9).
+  // Das Schilf geht nur mit dem Mähbalken (Kategorie Vorne) weg.
+  const SCHILFPFAD = [[114, 300.5], [119.5, 292], [119.5, 284], [114.5, 279]];
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD];
   // Campingplatz (Bild 30 m breit), Einfahrt links, Steg rechts zum Waldsee
   const CAMPING = { X: 37, Y: 282, b: 30, bereich: [37, 282, 67, 302.1],
     haeuser: [[46.6, 282, 51.7, 287.4], [57.4, 285.8, 62.5, 290.2]] };
+  // Kauz' Werkstatt (Bild 24 m breit) am Nordostufer des Waldsees, im Schilf versteckt.
+  // Sichtbar erst, wenn Opa von Kauz erzählt hat. Haus = Schuppen mit Blechdach.
+  const KAUZ = { X: 92, Y: 271, b: 24, bereich: [92, 271, 116, 287.1], haus: [95.8, 271, 108.3, 278.8] };
   // Waldsee: Kreise (x, y, r), Sandufer drumherum
   const SEE = [[81, 294, 13], [93, 302, 10], [75, 306, 8]];
   const imSee = (x, y, rand = 0) => SEE.some(([sx, sy, sr]) => Math.hypot(x - sx, y - sy) < sr + rand);
@@ -161,7 +167,7 @@ window.Karte = function (opt = {}) {
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
     if (ZAEUNE.some(([a, b]) => abstandStrecke(x, y, a, b) < vis + 0.3)) return false;
     if (imSee(x, y, vis + 1.5)) return false;
-    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich, CAMPING.bereich]) {
+    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich, CAMPING.bereich, KAUZ.bereich]) {
       if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
     }
     if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
@@ -355,7 +361,7 @@ window.Karte = function (opt = {}) {
         const d = Math.hypot(cx - wx, cy - wy), tief = wr + r - d;
         if (tief > 0 && d > 0) schieb((cx - wx) / d, (cy - wy) / d, tief);
       }
-      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser, ...CAMPING.haeuser]) {
+      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser, ...CAMPING.haeuser, ...(spiel.neben.kauz ? [KAUZ.haus] : [])]) {
         const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
         const d = Math.hypot(cx - hx, cy - hy);
         if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
@@ -422,8 +428,9 @@ window.Karte = function (opt = {}) {
   // kuh (Hilde): null | "suchen" | "heim" | "erledigt"; vogelhaus (Moos): null | "auftrag" | "erledigt";
   // motor (Rosi → Knut → Rosi): null | "zuKnut" | "zurueck" | "erledigt"
   // lichter (Moos, G8): null | "auftrag" | "bolzen" (Bolzen gefunden, zu Opa) | "erledigt"
-  // kauz: null | "suchen" (Opa hat von Kauz erzählt, Spuren führen ins Schilf)
-  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null }; }
+  // kauz: null | "suchen" (Opa hat von Kauz erzählt, Spuren führen ins Schilf) | "gefunden" (G9)
+  // maehbalken (Hilde, G9): null | "auftrag" (2 Schrauben, 1 Feder) | "erledigt"
+  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null, maehbalken: null }; }
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -511,6 +518,28 @@ window.Karte = function (opt = {}) {
       ], () => toast("Pick-up hinten erhalten! Liegt in Opas Werkstatt im Regal.", 4500));
     }
     const n = spiel.neben;
+    // G9: Hildes alter Mähbalken schneidet eine Schneise ins Schilf
+    if (n.kauz === "suchen" && !n.maehbalken) {
+      return hilde([
+        ["nachdenken", "Durchs Schilf am Waldsee willst du? Da kommt keiner durch, das steht dichter als mein Weizen."],
+        ["juhu", "Außer … mit meinem alten Mähbalken! Den hab ich früher vorne an den Traktor gehängt. Der mäht alles weg, was ihm vor die Klingen kommt."],
+        ["auftrag", "Nur ist er ziemlich hinüber: Die Klingen sind locker und eine Feder ist gebrochen. Bring mir 2 Schrauben und 1 Feder, dann richte ich ihn dir her."],
+      ], () => { n.maehbalken = "auftrag"; fundeVerteilen(); hudNeu(); toast("🌾 Neuer Auftrag: Hildes Mähbalken. Steht im Auftragsbuch.", 4000); });
+    }
+    if (n.maehbalken === "auftrag") {
+      const m = spiel.material;
+      if (m.schrauben < 2 || m.federn < 1) {
+        return hilde([["nachdenken", `Für den Mähbalken fehlen mir noch ${Math.max(0, 2 - m.schrauben)} Schrauben und ${Math.max(0, 1 - m.federn)} Feder.`]]);
+      }
+      m.schrauben -= 2; m.federn -= 1; n.maehbalken = "erledigt";
+      spiel.teile.add("maehbalken");
+      if (opt.belohnung) opt.belohnung("maehbalken");
+      return hilde([
+        ["juhu", "Schrauben rein, neue Feder dran … und die Klingen geölt. Schau, wie die wieder schnippeln!"],
+        ["auftrag", "Bau ihn in Opas Werkstatt vorne an dein Auto. Dann fährst du einfach mitten ins Schilf, und ratatata, ist der Weg frei."],
+        ["nachdenken", "Wen du da drüben wohl findest? Grüß ihn von mir, wenn's ein Netter ist."],
+      ], () => { hudNeu(); toast("🌾 Mähbalken erhalten! Liegt in Opas Werkstatt im Regal (Kategorie Vorne).", 5000); });
+    }
     if (spiel.rosi === "erledigt" && !n.kuh) {
       return hilde([
         ["nachdenken", "Ach, gut, dass du kommst! Meine Kuh Berta ist schon wieder ausgebüxt. Die Schafe sind brav, aber Berta …"],
@@ -667,6 +696,25 @@ window.Karte = function (opt = {}) {
       n.lichter = "bolzen"; hudNeu();
       toast("🔩 Glänzender Bolzen eingesteckt. Zeig ihn Opa in der Werkstatt!", 5000);
     });
+  }
+  // G9: Kauz in seiner versteckten Werkstatt im Schilf
+  function beiKauz() {
+    const n = spiel.neben;
+    const kauz = (zeilen, danach) => gespraech("kauz", "Tüftler Kauz", "kauz", zeilen, danach);
+    if (n.kauz === "suchen") {
+      return kauz([
+        ["nachdenken", "Wer da? … Ein Auto mit Mähbalken, mitten durchs Schilf? Na, du traust dich was."],
+        ["auftrag", "Ich bin Kauz. Tüftler. Und das hier ist meine Werkstatt, die eigentlich keiner finden soll. Also: Was willst du?"],
+        ["nachdenken", "Einen Bolzen mit Blitz hast du gefunden? Den hab ich neulich nachts verloren, als ich meine Lampen ausprobiert hab. Und wo ist er jetzt?"],
+        ["nachdenken", "Bei Bolzen?! Ausgerechnet. Hmpf. Dann hat dich der alte Sturkopf geschickt, was?"],
+        ["auftrag", "Na gut, ich sag dir was: Unter der Plane da steht der Rahmen vom Donnerkeil. Den hab ich damals gerettet. Ich bau daraus was Neues, nachts, damit's keiner merkt."],
+        ["nachdenken", "Ob ich mich bei Bolzen blicken lasse? Erst, wenn er zugibt, dass er in der Mühlenkurve zu spät gebremst hat!"],
+        ["juhu", "Aber du gefällst mir. Wer selbst schraubt, ist hier willkommen. Komm wieder, ich hab bestimmt bald was für dich."],
+      ], () => { n.kauz = "gefunden"; hudNeu(); toast("🦉 Kauz gefunden! Seine Hütte im Schilf steht jetzt auf der Karte.", 5000); });
+    }
+    kauz([["nachdenken", istNacht()
+      ? "Psst, nicht so laut, ich teste gerade die Lampen. Bolzen hat nicht zufällig nach mir gefragt? … Nein? Hmpf."
+      : "Na, wieder da? Ich hab die ganze Nacht geschraubt, jetzt brauch ich erst mal einen Kaffee. Komm bald wieder!"]]);
   }
   function beiMoos() {
     const zeilen = [];
@@ -918,9 +966,24 @@ window.Karte = function (opt = {}) {
     if (n.lichter === "bolzen") offen.push({ ...lichter, stand: "🔩 Bolzen dabei",
       text: "Am Ostufer lag ein Bolzen mit einem Blitz drauf. Zeig ihn Opa in der Werkstatt.", ziel: zielVon("schuppen") });
     if (n.lichter === "erledigt") erledigt.push(lichter);
-    if (n.kauz === "suchen") offen.push({ figur: "opa", wer: "Opa Bolzen", titel: "Wo steckt Kauz?", stand: "🔍 Spur im Schilf",
-      text: "Kauz war Opas Beifahrer beim Donnerkeil. Seine Reifenspuren führen am Ostufer ins dichte Schilf.",
-      belohnung: "?", fehlt: "Durchs dichte Schilf kommt die Klapperkiste noch nicht. Bald geht es hier weiter." });
+    const kauzA = { figur: "opa", wer: "Opa Bolzen", titel: "Wo steckt Kauz?", belohnung: "?" };
+    if (n.kauz === "suchen") {
+      const maeht = hatTeilEingebaut("vorne");
+      offen.push({ ...kauzA, stand: maeht ? "🌾 Mähbalken dran" : "🔍 Spur im Schilf",
+        text: maeht ? "Kauz' Reifenspuren führen am Ostufer ins Schilf. Mit dem Mähbalken vorne am Auto kommst du durch."
+          : n.maehbalken === "erledigt" ? "Bau Hildes Mähbalken in Opas Werkstatt vorne ans Auto, dann kommst du durchs Schilf."
+          : "Kauz war Opas Beifahrer beim Donnerkeil. Seine Reifenspuren führen am Ostufer ins dichte Schilf. Hilde mäht doch immer ihre Wiesen. Vielleicht weiß sie Rat?",
+        ziel: maeht ? zielVon("kauz") : n.maehbalken === "erledigt" ? zielVon("schuppen") : n.maehbalken ? null : zielVon("bauernhof") });
+    }
+    if (n.kauz === "gefunden") erledigt.push(kauzA);
+    const maehA = { figur: "hilde", wer: "Bäuerin Hilde", titel: "Hildes alter Mähbalken", belohnung: "Mähbalken (schneidet Schilf)" };
+    if (n.maehbalken === "auftrag") {
+      const genug = m.schrauben >= 2 && m.federn >= 1;
+      offen.push({ ...maehA, stand: `🔩 ${Math.min(2, m.schrauben)}/2 · 🌀 ${Math.min(1, m.federn)}/1`,
+        text: genug ? "Schrauben und Feder sind im Beutel. Bring sie Hilde auf den Bauernhof." : "Hilde braucht 2 Schrauben und 1 Feder für ihren alten Mähbalken. Die liegen am Wegrand.",
+        ziel: genug ? zielVon("bauernhof") : null });
+    }
+    if (n.maehbalken === "erledigt") erledigt.push(maehA);
     const motor = { figur: "rosi", wer: "Anglerin Rosi", titel: "Rosis Außenbordmotor", belohnung: "20 Münzen, Schiffs-Steuerrad (lenkt besser)" };
     if (n.motor === "zuKnut") offen.push({ ...motor, stand: "⚙️ kaputt", text: "Bring Rosis stotternden Außenbordmotor zu Knut auf den Schrottplatz.", ziel: zielVon("schrottplatz") });
     if (n.motor === "zurueck") offen.push({ ...motor, stand: "⚙️ repariert", text: "Knut hat den Motor repariert. Bring ihn Rosi an den Waldsee zurück.", ziel: zielVon("camping") });
@@ -1191,6 +1254,7 @@ window.Karte = function (opt = {}) {
     const b = {};
     if (spiel.moosSeil === "auftrag") Object.assign(b, { kabel: 2, federn: 2 });
     if (spiel.neben.vogelhaus === "auftrag") Object.assign(b, { blech: 2, schrauben: 2 });
+    if (spiel.neben.maehbalken === "auftrag") { b.schrauben = Math.max(b.schrauben || 0, 2); b.federn = Math.max(b.federn || 0, 1); }
     return b;
   }
   function gesucht() {
@@ -1488,7 +1552,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -1535,8 +1599,10 @@ window.Karte = function (opt = {}) {
     { id: "muehle", name: "Mühle", art: "ort", x: 296, y: 45, gebiet: "felder", kommt: true },
     { id: "camping", name: "Campingplatz", art: "ort", x: 39, y: 289.4, gebiet: "camping" },
     { id: "ostufer", name: "Ostufer am Waldsee", art: "weg", x: 114, y: 300.5, gebiet: "ostufer" },
+    // erst, wenn Opa von Kauz erzählt hat (G9)
+    { id: "kauz", name: "Hütte im Schilf", art: "ort", x: 114.5, y: 279, gebiet: "ostufer", erst: () => Boolean(spiel.neben.kauz) },
   ];
-  const zielOffen = (z) => !z.kommt && GEBIETE.find((g) => g.id === z.gebiet).offen;
+  const zielOffen = (z) => !z.kommt && (!z.erst || z.erst()) && GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
   // Hindernisse auf dem Weg: hier hält das Auto, wenn ihm ein Teil fehlt
   const HINDERNISSE = [
@@ -1551,9 +1617,13 @@ window.Karte = function (opt = {}) {
     { id: "baeume", x: 38.7, y: 226, r: 3, braucht: "holzweg", titel: "Umgestürzte Bäume!",
       text: "Dicke Stämme liegen quer über dem alten Holzweg. Da kommt keiner durch.",
       fehlt: "Förster Moos zieht sie mit seinem Seilzug weg, sobald er ihn repariert hat." },
+    // Dichtes Schilf auf den Reifenspuren zu Kauz: Der Mähbalken schneidet eine Schneise (dann weg)
+    { id: "schilf", x: 119.5, y: 291, r: 3, braucht: "vorne", titel: "Dichtes Schilf!",
+      text: "Das Schilf steht hier so dicht wie eine Wand. Die Reifenspuren führen mitten hinein.",
+      fehlt: "Es fehlt: ein Mähbalken (Kategorie Vorne). Hilde auf dem Bauernhof mäht doch immer ihre Wiesen …" },
   ];
   // Ohne Werkstatt (Kartenprobe) zählt eine Belohnung gleich als eingebaut
-  const TEIL_FUER = { licht: "scheinwerfer", hupe: "spezialhupe" };
+  const TEIL_FUER = { licht: "scheinwerfer", hupe: "spezialhupe", vorne: "maehbalken" };
   const hatTeilEingebaut = (teil) => (opt.hatTeil ? opt.hatTeil(teil) : spiel.teile.has(TEIL_FUER[teil]));
   // Licht braucht Strom: Ist die Batterie leer, bleibt der Scheinwerfer dunkel.
   // Gute Scheinwerfer (Teilwert ohneStrom) laufen ohne Batterie.
@@ -1593,6 +1663,7 @@ window.Karte = function (opt = {}) {
     for (const h of HINDERNISSE) {
       if (h.weg || Math.hypot(h.x - auto.x, h.y - auto.y) > h.r + 2) continue;
       const kann = hatTeil(h.braucht);
+      if (kann && h.id === "schilf") { schilfMaehen(h); continue; }
       if (kann && !h.aktion) continue;
       // nur anhalten, wenn die Route noch hinter das Hindernis führt
       if (!route.slice(routeI).some(([x, y]) => Math.hypot(x - h.x, y - h.y) < 1.5)) continue;
@@ -1609,6 +1680,51 @@ window.Karte = function (opt = {}) {
     }
     return false;
   }
+  // Schilf am Nordostufer des Waldsees: Büschel aus Halmen mit Rohrkolben. Es verdeckt Kauz'
+  // Hütte, bis Opa von ihm erzählt hat; nach dem Mähen bleibt auf dem Schilfpfad eine Schneise.
+  const SCHILF = (() => {
+    let s = 4242; const z = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const liste = [];
+    const amPfad = (x, y) => SCHILFPFAD.some((q, k) => k > 0 && abstandStrecke(x, y, SCHILFPFAD[k - 1], q) < 7);
+    for (let i = 0; i < 1600 && liste.length < 460; i++) {
+      const x = 90 + z() * 38, y = 269 + z() * 32;
+      if (imSee(x, y, 0.3) || !(imSee(x, y, 11) || amPfad(x, y))) continue; // am Ufer und um den Pfad, nicht im Wasser
+      if (UFERPFAD.some((q, k) => k > 0 && abstandStrecke(x, y, UFERPFAD[k - 1], q) < 3.2)) continue;
+      liste.push({ x, y, w: z() * Math.PI * 2, n: 5 + Math.floor(z() * 3), kolben: z() < 0.35 });
+    }
+    return liste;
+  })();
+  function schilfZeichnen(sicht, t) {
+    const n = spiel.neben, h = HINDERNISSE.find((q) => q.id === "schilf");
+    const hk = OBJ.kauzwerkstatt;
+    if (n.kauz && hk && hk.img.complete && hk.img.naturalWidth) ctx.drawImage(hk.img, KAUZ.X, KAUZ.Y, hk.b, hk.h);
+    const [kx0, ky0, kx1, ky1] = KAUZ.bereich;
+    ctx.save(); ctx.lineCap = "round";
+    for (const b of SCHILF) {
+      if (b.x < sicht.x0 - 2 || b.x > sicht.x1 + 2 || b.y < sicht.y0 - 2 || b.y > sicht.y1 + 2) continue;
+      if (n.kauz && b.x > kx0 + 0.5 && b.x < kx1 - 0.5 && b.y > ky0 + 0.5 && b.y < ky1 - 1) continue; // Hütte frei
+      const inSchneise = SCHILFPFAD.some((q, k) => k > 0 && abstandStrecke(b.x, b.y, SCHILFPFAD[k - 1], q) < WEG_BREITE / 2 + 0.4);
+      if (inSchneise && h.weg) continue;
+      const wiegen = reduce ? 0 : Math.sin(t * 1.3 + b.x * 0.7 + b.y) * 0.12;
+      ctx.strokeStyle = "rgba(20,40,15,0.35)"; ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.arc(b.x + 0.25, b.y + 0.3, 0.7, 0, Math.PI * 2); ctx.stroke();
+      for (let i = 0; i < b.n; i++) {
+        const a = b.w + i * (Math.PI * 2 / b.n) + wiegen, l = 1.1 + (i % 3) * 0.25;
+        ctx.strokeStyle = i % 2 ? "#5d7a2e" : "#3f5e22"; ctx.lineWidth = 0.16;
+        ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.quadraticCurveTo(b.x + Math.cos(a) * l * 0.5, b.y + Math.sin(a) * l * 0.5 - 0.2, b.x + Math.cos(a) * l, b.y + Math.sin(a) * l); ctx.stroke();
+      }
+      if (b.kolben) {
+        ctx.fillStyle = "#6b4426"; ctx.strokeStyle = "#2a1a0e"; ctx.lineWidth = 0.06;
+        for (const d of [0.35, -0.3]) { ctx.beginPath(); ctx.ellipse(b.x + d, b.y - 0.15 + d * 0.4, 0.14, 0.3, b.w, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+      }
+    }
+    ctx.restore();
+  }
+  function schilfMaehen(h) {
+    h.weg = true;
+    toast("🌾 Ratatatat! Der Mähbalken schneidet eine Schneise ins Schilf.", 4000);
+    if (navigator.vibrate) { try { navigator.vibrate([30, 30, 30, 30, 30]); } catch { /* egal */ } }
+  }
   function steuerAuto(dt) {
     if (!route) return null;
     const voraus = 1.8 + Math.max(0, auto.v) * 0.35; // langsam: kurz vorausschauen, damit Ecken nicht geschnitten werden
@@ -1623,6 +1739,7 @@ window.Karte = function (opt = {}) {
       else if (zielWahl.id === "foersterhuette") beiMoos();
       else if (zielWahl.id === "camping") beiRosi(rallyeAnbieten);
       else if (zielWahl.id === "ostufer") amOstufer();
+      else if (zielWahl.id === "kauz") beiKauz();
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -1924,6 +2041,7 @@ window.Karte = function (opt = {}) {
         ctx.restore();
       }
     }
+    schilfZeichnen(sicht, t);
     // Materialien am Wegrand: kleiner Schimmer und ein Zeichen
     ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "1.3px sans-serif";
     for (const f of FUNDE) {
