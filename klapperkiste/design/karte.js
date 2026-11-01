@@ -773,11 +773,6 @@ window.Karte = function (opt = {}) {
     return liste[0] ? { id: "fund", name, x: liste[0].x, y: liste[0].y } : null;
   }
   // nächstes Material einer der gesuchten Arten am Wegrand
-  function materialZiel(arten) {
-    const f = FUNDE.filter((q) => arten.includes(q.art))
-      .sort((a, b) => Math.hypot(a.x - auto.x, a.y - auto.y) - Math.hypot(b.x - auto.x, b.y - auto.y))[0];
-    return f ? { id: "fund", name: MATERIAL.find((m) => m.id === f.art).name, x: f.x, y: f.y } : null;
-  }
   function auftraege() {
     const offen = [], erledigt = [];
     const knut = { figur: "knut", wer: "Knut Kurbel" }, hilde = { figur: "hilde", wer: "Bäuerin Hilde" };
@@ -846,7 +841,7 @@ window.Karte = function (opt = {}) {
         offen.push({ ...moped, stand: `🪙 ${Math.min(spiel.geld, MOPED_PREIS)}/${MOPED_PREIS}`,
           text: genug ? "Du hast genug Münzen. Knut wartet auf dem Schrottplatz mit dem Mopedmotor."
             : "Knut verkauft einen Mopedmotor. Münzen gibt's für Aufträge und für Material vom Wegrand, das Knut dir abkauft.",
-          ziel: genug ? zielVon("schrottplatz") : materialZiel(MATERIAL.map((m) => m.id)) });
+          ziel: genug ? zielVon("schrottplatz") : null });
       }
     }
     if (spiel.moosSeil === "auftrag") {
@@ -856,8 +851,7 @@ window.Karte = function (opt = {}) {
         text: genug ? "Kabel und Federn sind im Beutel. Bring sie Moos in die Försterhütte."
           : "Moos braucht 2 Kabel und 2 Federn für seinen Seilzug. Die liegen am Wegrand, jeden Tag neue.",
         belohnung: "20 Münzen, 2 🔩 Schrauben, der Weg zum Waldsee",
-        ziel: genug ? zielVon("foersterhuette") : materialZiel(["kabel", "federn"].filter((a) => m[a] < 2)),
-        fehlt: "Gerade liegt kein Kabel und keine Feder am Wegrand. Nach einem Besuch bei Opa liegen neue da, oder Knut verkauft dir welche." });
+        ziel: genug ? zielVon("foersterhuette") : null });
     }
     if (spiel.moosSeil === "erledigt") erledigt.push({ figur: "moos", wer: "Förster Moos", titel: "Ein Seilzug für den Holzweg" });
     const rosiA = { figur: "rosi", wer: "Anglerin Rosi", titel: "Fisch gegen Milch", belohnung: "25 Münzen, 1 🥫 Blech, ein Karosserie-Teil" };
@@ -875,8 +869,7 @@ window.Karte = function (opt = {}) {
       const genug = m.blech >= 2 && m.schrauben >= 2;
       offen.push({ ...vogel, stand: `🥫 ${Math.min(2, m.blech)}/2 · 🔩 ${Math.min(2, m.schrauben)}/2`,
         text: genug ? "Blech und Schrauben sind im Beutel. Bring sie Moos in die Försterhütte." : "Moos braucht 2 Blech und 2 Schrauben für ein Vogelhaus. Die liegen am Wegrand.",
-        ziel: genug ? zielVon("foersterhuette") : materialZiel(["blech", "schrauben"].filter((a) => m[a] < 2)),
-        fehlt: "Gerade liegt kein Blech und keine Schraube am Wegrand. Nach einem Besuch bei Opa liegen neue da, oder Knut verkauft dir welche." });
+        ziel: genug ? zielVon("foersterhuette") : null });
     }
     if (n.vogelhaus === "erledigt") erledigt.push(vogel);
     const motor = { figur: "rosi", wer: "Anglerin Rosi", titel: "Rosis Außenbordmotor", belohnung: "20 Münzen, Schiffs-Steuerrad (lenkt besser)" };
@@ -1246,16 +1239,6 @@ window.Karte = function (opt = {}) {
     }
     zeile(`🩹 Flickzeug (${spiel.vorrat.flickzeug} dabei)`, 6, spiel.vorrat.flickzeug < 3, () => { spiel.vorrat.flickzeug++; });
     zeile(`⛽ Kanister (${spiel.vorrat.kanister} dabei)`, 8, spiel.vorrat.kanister < 2, () => { spiel.vorrat.kanister++; });
-    // Für offene Aufträge verkauft Knut auch Material, aber teurer als am Wegrand
-    const fehlt2 = gesucht();
-    if (Object.keys(fehlt2).length) {
-      liste.append(el("h4", "laden-titel", "Knut verkauft"));
-      for (const m of MATERIAL) {
-        if (!fehlt2[m.id]) continue;
-        zeile(`${m.icon} ${m.name === "Federn" ? "Feder" : m.name} (noch ${fehlt2[m.id]} nötig)`, m.preis * 3, beutelVoll() < BEUTEL_PLATZ,
-          () => { spiel.material[m.id]++; toast(`${m.icon} ${m.name === "Federn" ? "Feder" : m.name} gekauft (🎒 ${beutelVoll()}/${BEUTEL_PLATZ}).`); });
-      }
-    }
     // Ankauf: Materialien aus dem Beutel, Preise ändern sich jeden Tag
     if (MATERIAL.some((m) => spiel.material[m.id] > (auftragBedarf()[m.id] || 0))) {
       liste.append(el("h4", "laden-titel", "Knut kauft an"));

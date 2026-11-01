@@ -93,8 +93,7 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
   folgen noch; in der Probefahrt gibt es ihn schon als „Donnerkeil-Kiste“.
 - **Mopedmotor bei Knut (100 Münzen):** Nach der ersten Rallye-Fahrt hat Knut einen
   Mopedmotor vom Sperrmüll („Der Rasenmäher zieht doch keinen Hering vom Teller!“).
-  Im Auftragsbuch steht „Ein schnellerer Motor“ mit Münzstand; solange das Geld fehlt,
-  führt „Hinfahren“ zum nächsten Material am Wegrand. Mit dem Mopedmotor im Startauto
+  Im Auftragsbuch steht „Ein schnellerer Motor“ mit Münzstand. Mit dem Mopedmotor im Startauto
   reicht eine mittlere Runde für Bronze (≈ 66 s), Silber nur mit einer sehr guten (≈ 60 s).
 - **Erste Medaille:** 30 Münzen, 1 Feder und von Rosi ein altes **Lenkrad mit Blitz**,
   das seit Jahren an ihrer Hütte hing: das erste Donnerkeil-Teil (1/8). Opa erkennt es
@@ -168,8 +167,9 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   es den Rest als Münzen.
   Braucht ein offener Auftrag Material (Moos: 2 Kabel und 2 Federn, später 2 Blech
   und 2 Schrauben), liegt das Fehlende jeden Tag sicher am Wegrand, auch gleich nach
-  dem Annehmen des Auftrags. Knut verkauft es außerdem für den dreifachen Preis, und
-  was der Auftrag braucht, kauft er nicht an.
+  dem Annehmen des Auftrags. Suchen muss man es selbst: Das Auftragsbuch hat für
+  Materialien keinen „Hinfahren“-Knopf. Knut verkauft keine Materialien, er kauft sie
+  nur an, aber nicht das, was ein offener Auftrag braucht.
 - **Verbrauch** ✅, bei Knut immer wieder zu kaufen:
   - **Sprit:** Der Tank leert sich beim Fahren, so weit wie die Reichweite des
     Energie-Teils (Gießkanne 1500 m, Milchkanne 2200 m, Kanister 3500 m).
