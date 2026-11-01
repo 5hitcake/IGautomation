@@ -248,6 +248,13 @@ Q:1/4=118
 K:G
 "G"B>c dB | "G"G2 B2 | "D7"A>B cA | "D7"F2 A2 | "G"B>c dB | "C"e2 c2 | "D7"Bc AF | "G"G2 z2 |
 "C"e>f ge | "G"d2 B2 | "D7"c>d ec | "G"B2 G2 | "C"e>f ge | "G"d2 B2 | "D7"A>B cA | "G"G2 z2 |` },
+    // Nachts: langsames Schlaflied auf dem alten Klavier, darunter leise Flächen
+    nacht: { stil: "wald", instr: "klavier", abc: `M:3/4
+L:1/4
+Q:1/4=58
+K:F
+"F"c2 A | F3 | "Bb"d2 B | F3 | "F"A2 c | "C7"G2 E | "F"F3 | z3 |
+"Dm"A2 F | D3 | "Bb"B2 d | "C"c3 | "F"A2 F | "C7"G2 E | "F"F3 | z3 |` },
     wald: { stil: "wald", instr: "klarinette", abc: `M:3/4
 L:1/4
 Q:1/4=66
@@ -518,6 +525,26 @@ K:Am
     flattern.start(t); flattern.stop(t + 1.05);
   }
 
+  // Uhu im nächtlichen Wald: ein kurzes „hu“ und ein langes, leicht fallendes „huuu“, mit Hall
+  function uhu(a = ein.stimmen && bereit(), ziel = a && a.destination, ab = 0) {
+    if (!a) return;
+    const t0 = a.currentTime + 0.02 + ab, raus = a.createGain(), lp = a.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 900; raus.gain.value = 0.5;
+    // Hall: kurzes Echo mit Rückkopplung, klingt nach Wald
+    const echo = a.createDelay(1), rueck = a.createGain(); echo.delayTime.value = 0.23; rueck.gain.value = 0.32;
+    lp.connect(raus).connect(ziel); lp.connect(echo); echo.connect(rueck).connect(echo); echo.connect(raus);
+    const hoehe = 330 + Math.random() * 40; // jeder Uhu etwas anders
+    for (const [start, dauer, f0, f1] of [[0, 0.22, 1.0, 0.97], [0.42, 0.75, 1.02, 0.9]]) {
+      const t = t0 + start, o = a.createOscillator(), g = a.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(hoehe * f0, t); o.frequency.exponentialRampToValueAtTime(hoehe * f1, t + dauer);
+      const vib = a.createOscillator(), vg = a.createGain(); vib.frequency.value = 6; vg.gain.value = 3; vib.connect(vg).connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32, t + Math.min(0.08, dauer * 0.4));
+      g.gain.setValueAtTime(0.32, t + dauer * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dauer);
+      o.connect(g).connect(lp); o.start(t); o.stop(t + dauer + 0.05); vib.start(t); vib.stop(t + dauer + 0.05);
+    }
+    setTimeout(() => { try { raus.disconnect(); echo.disconnect(); } catch { /* schon weg */ } }, (ab + 4) * 1000);
+  }
+
   // Zum Testen: Ton ohne Lautsprecher berechnen (OfflineAudioContext) und als Zahlen zurückgeben
   async function probe(art, name, sekunden = 6) {
     const rate = 22050, a = new OfflineAudioContext(1, rate * sekunden, rate);
@@ -568,7 +595,7 @@ K:Am
   }
 
   return {
-    silbe, still, musik, leise, motor, hupe, freischalten, probe, STUECKE,
+    silbe, still, musik, leise, motor, hupe, uhu, freischalten, probe, STUECKE,
     get an() { return ein; }, schalte,
     // Zeitpunkt, seit dem Ton erlaubt ist (0: noch nicht)
     get seit() { return (audio && audio.wach) || 0; },

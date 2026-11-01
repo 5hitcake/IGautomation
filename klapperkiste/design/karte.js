@@ -2205,12 +2205,16 @@ window.Karte = function (opt = {}) {
       tierSchatten(b, sf.x + 0.15, sf.y + 0.15, sf.a, 1, 1);
       tierZeichnen(b, sf.x, sf.y, sf.a);
     }
+    // Hasen und Vögel gehen in der Dämmerung schlafen: sie blenden aus, nachts sind sie weg
+    const wach = tagTiere();
+    if (wach <= 0) return;
+    ctx.save(); ctx.globalAlpha = wach;
     for (const h of HASEN) if (imBild(h.x, h.y, sicht) && T.hase) {
       const b = T.hase[h.phase > 0 ? 1 : 0], hub = h.phase > 0 ? Math.sin((0.22 - h.phase) / 0.22 * Math.PI) * 0.25 : 0;
       tierSchatten(b, h.x + 0.1, h.y + 0.1, h.a, 1, 1);
       tierZeichnen(b, h.x - hub * 0.3, h.y - hub * 0.3, h.a, 1 + hub * 0.3);
     }
-    if (!T.vogel) return;
+    if (!T.vogel) { ctx.restore(); return; }
     for (const v of [...VOEGEL, ...ueberflug.voegel]) {
       if (!imBild(v.x + v.z * 0.6, v.y + v.z * 0.6, sicht, 6)) continue;
       const b = T.vogel[v.fliegt && Math.sin(v.flap * 2) > 0 ? 0 : 1];
@@ -2218,14 +2222,20 @@ window.Karte = function (opt = {}) {
       tierSchatten(b, v.x + v.z * 0.6, v.y + v.z * 0.6, v.a, 1, Math.max(0.5, 1 - v.z * 0.03));
       if (!v.fliegt) tierZeichnen(b, v.x, v.y, v.a, 0.85);
     }
+    ctx.restore();
   }
+  // 1 = tagsüber alle Hasen und Vögel da, 0 = nachts keine (dazwischen blenden sie aus)
+  const tagTiere = () => Math.max(0, Math.min(1, 1 - (dunkelheit() - 0.2) / 0.3));
   // In der Luft (über Bäumen und Auto): fliegende Vögel, mit der Höhe etwas größer
   function tiereLuft(sicht) {
-    if (!TIERBILD.vogel) return;
+    const wach = tagTiere();
+    if (!TIERBILD.vogel || wach <= 0) return;
+    ctx.save(); ctx.globalAlpha = wach;
     for (const v of [...VOEGEL, ...ueberflug.voegel]) {
       if (!v.fliegt || !imBild(v.x, v.y, sicht, 6)) continue;
       tierZeichnen(TIERBILD.vogel[Math.sin(v.flap * 2) > 0 ? 0 : 1], v.x, v.y, v.a, 1 + v.z * 0.05);
     }
+    ctx.restore();
   }
 
   // --- Wetter ----------------------------------------------------------------
@@ -2378,13 +2388,23 @@ window.Karte = function (opt = {}) {
 
   // --- Schleife --------------------------------------------------------------
   let zuletzt = 0;
+  let uhuIn = 6;
+  function uhuRufen(dt) {
+    if (!Ton || !Ton.uhu || !istNacht() || !imWald(auto.x, auto.y, 25) || !$("gespraech").hidden) return;
+    if ((uhuIn -= dt) > 0) return;
+    uhuIn = 9 + Math.random() * 12;
+    Ton.uhu();
+    if (Math.random() < 0.35) Ton.uhu(undefined, undefined, 2.2 + Math.random()); // manchmal antwortet ein zweiter
+  }
   function bild(t) {
     const dt = Math.min(0.05, (t - (zuletzt || t)) / 1000);
     zuletzt = t;
     if (RALLYE && RALLYE.offen) { if (Ton) Ton.motor(RALLYE.tempo ? { v: RALLYE.tempo, gas: true } : null); requestAnimationFrame(bild); return; }
     if (Ton) Ton.motor(cv.clientWidth && $("gespraech").hidden ? { v: auto.v, gas: auto.gas } : null);
     if (cv.clientWidth) {
-      if (Ton) Ton.musik(imWald(auto.x, auto.y) ? "wald" : "fahren");
+      // nachts ein ruhiges Schlaflied, im Wald dazu ab und zu ein Uhu
+      if (Ton) Ton.musik(istNacht() ? "nacht" : imWald(auto.x, auto.y) ? "wald" : "fahren");
+      uhuRufen(dt);
       if (!fertig) schritt(dt); else auto.v *= 0.9;
       wetterSchritt(dt);
       zeitSchritt(dt);

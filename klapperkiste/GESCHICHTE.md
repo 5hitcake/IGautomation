@@ -149,6 +149,10 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   - fährt man ohne Licht nur Schritttempo, mit Licht zieht der Scheinwerfer Strom,
   - schläft Knut, der Laden hat zu,
   - tanzen am Ostufer des Waldsees drei blasse Lichter (Spur zu Kauz).
+  - schlafen Hasen und Vögel (sie blenden in der Dämmerung aus),
+  - läuft statt der Fahrmusik ein ruhiges Schlaflied auf dem alten Klavier,
+  - ruft im Wald (und am Waldrand) ab und zu ein Uhu, manchmal antwortet ein zweiter.
+  Der Scheinwerfer schaltet sich nur bei Bedarf ein: nachts oder im dunklen Wald.
   Abends und nachts kann man in der Werkstatt **bei Opa schlafen** (🛏), dann ist
   sofort Morgen. Jeder Morgen bringt neue Materialien und Preise. Im Einstieg steht
   die Uhr still.
