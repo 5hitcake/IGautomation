@@ -261,7 +261,6 @@ body { position: fixed; inset: 0; }
 
   // Nach jeder Änderung in der Werkstatt: Knopf und Einstieg weiterschalten
   function nachher() {
-    $("losfahren").disabled = !W.fahrzeug() || schritt < 3;
     if (schritt === 1 && (W.state.mounted.radH || W.state.mounted.radV)) {
       schritt = 2; W.tipp(null);
       tipp("Prima! Jetzt der Rest: <strong>das zweite Rad, Motor, Tank, Sitz und Lenkung</strong>. Die Kästchen mit rotem Punkt zeigen, was noch fehlt.");
@@ -269,7 +268,8 @@ body { position: fixed; inset: 0; }
     if (schritt === 2 && W.fahrbereit()) {
       schritt = 3; tipp(null);
       if (location.hash === "#knut") setTimeout(direktZuKnut, 300);
-  setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
+      // Opa freut sich, dann leuchtet „Losfahren“ (bei der Test-Abkürzung #knut nicht)
+      else setTimeout(() => schritt === 3 && K.gespraech("opa", OPA, "werkstatt", [
         ["juhu", "Hörst du das? Sie knattert! Ich hab's ja immer gesagt: In der Kiste steckt noch Leben."],
         ["auftrag", "Jetzt fahr mal rüber zu Knut auf den Schrottplatz. Der hat Teile, und Arbeit für dich hat er bestimmt auch."],
       ], () => {
@@ -278,6 +278,8 @@ body { position: fixed; inset: 0; }
         tipp("Tipp auf <strong>„Losfahren“</strong>.");
       }), 500);
     }
+    // erst jetzt, nachdem der Einstieg weitergeschaltet hat: sonst bliebe der Knopf nach dem letzten Teil grau
+    $("losfahren").disabled = !W.fahrzeug() || schritt < 3;
     if (!imEinstieg() && W.fahrbereit() && !W.fahrzeug()) W.say("Mit gemischter oder halber Karosserie geht es nicht auf die Karte: ganz ohne oder ein kompletter Satz.", "warn");
   }
 
