@@ -48,11 +48,15 @@ LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne", "scheinwerfer", 
 AUTO_PX = 320  # Breite des Autobilds (10 Zellen = 4 m)
 
 
-def _uri(bild: Image.Image) -> str:
+def _uri(bild: Image.Image, qualitaet: int = 88) -> str:
     puffer = io.BytesIO()
-    bild.save(puffer, "WEBP", quality=88, method=4)
+    bild.save(puffer, "WEBP", quality=qualitaet, method=6)
     return "data:image/webp;base64," + base64.b64encode(puffer.getvalue()).decode("ascii")
 
+
+# Figuren und Gesprächshintergründe sind die größten Brocken; etwas stärker gepackt,
+# damit der gebaute Spielstart unter 16 MB bleibt (Grenze für Artifacts)
+QUALI_FIGUR, QUALI_HINTERGRUND = 80, 74
 
 LENKACHSE = ("achseV", "radV")  # dreht sich auf der Karte beim Lenken mit
 
@@ -101,13 +105,13 @@ def figuren() -> dict:
             if datei.endswith(".png"):
                 b = Image.open(os.path.join(ordner, datei)).convert("RGBA")
                 b = b.resize((round(b.width * 640 / b.height), 640), Image.LANCZOS)
-                gesten[datei[:-4]] = _uri(b)
+                gesten[datei[:-4]] = _uri(b, QUALI_FIGUR)
         daten["figuren"][name] = gesten
     hg = os.path.join(ch, "hintergrund")
     for datei in sorted(os.listdir(hg)) if os.path.isdir(hg) else []:
         b = Image.open(os.path.join(hg, datei)).convert("RGB")
         b = b.resize((1280, round(b.height * 1280 / b.width)), Image.LANCZOS)
-        daten["hintergruende"][datei.rsplit(".", 1)[0]] = _uri(b)
+        daten["hintergruende"][datei.rsplit(".", 1)[0]] = _uri(b, QUALI_HINTERGRUND)
     # Bilder zur Geschichte (z. B. Opas altes Foto vom Donnerkeil), höchstens 1000 px hoch
     gs = os.path.join(ROOT, "assets", "geschichte")
     daten["geschichte"] = {}

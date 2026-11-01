@@ -127,8 +127,8 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Bauernhof (Hilde) | `bauernhof.png` | ✅ |
 | Försterhütte (Moos) | `foersterhuette.png` | ✅ |
 | Campingplatz (Rosi) | `camping.png` | ✅ |
-| Ostufer bei Nacht (Erzähltext G8) | `ostufer.png` | offen |
-| Kauz' Werkstatt (G9) | `kauz.png` | offen |
+| Ostufer bei Nacht (Erzähltext G8) | `ostufer.png` | ✅ |
+| Kauz' Werkstatt (G9) | `kauz.png` | ✅ |
 | Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | ✅ (Lage der gemalten Hebebühne steht als `BUEHNE` in `design/werkstatt.js`) |
 
 ### Opas Werkstatt
@@ -199,6 +199,8 @@ A single heavy shiny steel bolt with a hexagonal head and a nut lying in dark mu
 - **Opa Bolzen:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/opa.jpg opa --loch nachdenken:0.80,0.27`
 - **Anglerin Rosi:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/rosi.jpg rosi --loch hallo:0.825,0.315 --loch auftrag:0.296,0.446`
   (Lücke zwischen erhobenem Arm und Hut, Lücke unter dem Zeigearm).
+  (Lücke zwischen erhobenem Arm und Kopf).
+- **Tüftler Kauz:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/kauz.jpg kauz --loch nachdenken:0.692,0.192`
   (Lücke zwischen erhobenem Arm und Kopf).
 - **Hüttenwirt Frieder:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/frieder.jpg frieder --loch nachdenken:0.25,0.259`
   (Lücke zwischen Arm und Kopf).

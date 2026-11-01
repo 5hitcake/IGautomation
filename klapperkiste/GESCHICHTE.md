@@ -226,5 +226,5 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G5 | Tag und Nacht | ✅ |
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | ✅ |
-| G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ (Bilder fehlen noch: Kauz, Ostufer bei Nacht, Bolzen) |
-| G9 | Kauz finden: Werkstatt im Schilf am Ostufer | offen |
+| G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ (Bild vom Bolzen fehlt noch) |
+| G9 | Kauz finden: Werkstatt im Schilf am Ostufer | offen (Bilder da: Kauz, Werkstatt von oben `kauzwerkstatt`, Hintergrund `kauz`) |
