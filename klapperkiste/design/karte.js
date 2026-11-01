@@ -2839,9 +2839,10 @@ window.Karte = function (opt = {}) {
       const n = spiel.neben;
       if (n.lichter !== "bolzen") return false;
       const foto = D.geschichte && D.geschichte.donnerkeil_foto;
+      const bolzen = D.geschichte && D.geschichte.bolzen ? [{ bild: D.geschichte.bolzen, alt: "Der blanke Bolzen mit dem eingeritzten Blitz." }] : [];
       gespraech("opa", "Opa Bolzen", "werkstatt", [
-        ["nachdenken", "Was hast du denn da? Zeig mal her … ein Bolzen. Mit einem Blitz drauf."],
-        ["nachdenken", "Den hab ich selbst gedreht, für die Hinterachse vom Donnerkeil. Am Ostufer lag der? Nachts, bei den Lichtern?"],
+        ["nachdenken", "Was hast du denn da? Zeig mal her … ein Bolzen. Mit einem Blitz drauf.", ...bolzen],
+        ["nachdenken", "Den hab ich selbst gedreht, für die Hinterachse vom Donnerkeil. Am Ostufer lag der? Nachts, bei den Lichtern?", ...bolzen],
         ["nachdenken", "Dann ist er also noch da. Der alte Kauz."],
         ["auftrag", "Kauz war mein Beifahrer. Zusammen haben wir den Donnerkeil gebaut, Schraube für Schraube. Der Lange auf dem Foto, das ist er.",
           ...(foto ? [{ bild: foto, alt: "Altes Foto: der junge Opa Bolzen und Kauz, ein großer, dünner Mann mit Werkzeuggürtel, mit dem Pokal neben dem Donnerkeil." }] : [])],
