@@ -170,7 +170,7 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   - **Sprit:** Der Tank leert sich beim Fahren, so weit wie die Reichweite des
     Energie-Teils (Gießkanne 1500 m, Milchkanne 2200 m, Kanister 3500 m).
     Volltanken bei Knut (1 Münze je 150 m). Leer: Reservekanister aus dem Beutel
-    (+600 m) oder Opa schleppt ab (10 Münzen, mit etwas Sprit).
+    (+600 m) oder Opa schleppt ab (kostenlos, mit etwas Sprit).
   - **Batterieladung:** Der Scheinwerfer zieht im dunklen Wald Strom (etwa 3 Minuten
     Licht). Leer = kein Licht. Laden bei Knut (5 Münzen).
   - **Flickzeug:** Unterwegs liegt ab und zu ein Nagel, eine Scherbe oder ein spitzer

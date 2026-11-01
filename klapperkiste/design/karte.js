@@ -1112,12 +1112,11 @@ window.Karte = function (opt = {}) {
     l.querySelector(".kanister").textContent = `⛽ Reservekanister einfüllen (${spiel.vorrat.kanister})`;
     l.hidden = false;
   }
-  // Opa schleppt ab: zurück zur Werkstatt, kostet 10 Münzen (wenn vorhanden), mit Notvorrat im Tank
+  // Opa schleppt ab: kostenlos zurück zur Werkstatt, mit Notvorrat im Tank
   function abschleppen() {
-    const preis = Math.min(10, spiel.geld);
-    spiel.geld -= preis; spiel.sprit = Math.max(spiel.sprit || 0, Math.min(tankGroesse(), 400)); spritGewarnt = false;
+    spiel.sprit = Math.max(spiel.sprit || 0, Math.min(tankGroesse(), 400)); spritGewarnt = false;
     $("leer").hidden = true; hudNeu();
-    toast(`🚜 Opa hat dich abgeschleppt${preis ? ` (🪙 ${preis})` : ""} und dir etwas Sprit eingefüllt.`, 5000);
+    toast("🚜 Opa hat dich abgeschleppt und dir etwas Sprit eingefüllt.", 5000);
     schnellreise();
   }
   function verbrauchAnzeigen() {
@@ -2624,7 +2623,7 @@ window.Karte = function (opt = {}) {
   const leer = document.createElement("div");
   leer.id = "leer"; leer.hidden = true; leer.setAttribute("role", "alertdialog"); leer.setAttribute("aria-label", "Tank leer");
   leer.innerHTML = '<div><strong>Tank leer!</strong><p>Die Klapperkiste hat keinen Tropfen Sprit mehr.</p>' +
-    '<div class="knoepfe"><button type="button" class="knopf kanister"></button><button type="button" class="knopf zweit abschleppen">🚜 Opa schleppt ab (🪙 10)</button></div></div>';
+    '<div class="knoepfe"><button type="button" class="knopf kanister"></button><button type="button" class="knopf zweit abschleppen">🚜 Opa schleppt ab</button></div></div>';
   $("karte").parentElement.append(leer);
   leer.querySelector(".kanister").addEventListener("click", kanisterNutzen);
   leer.querySelector(".abschleppen").addEventListener("click", abschleppen);
