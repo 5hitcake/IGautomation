@@ -545,6 +545,37 @@ K:Am
     setTimeout(() => { try { raus.disconnect(); echo.disconnect(); } catch { /* schon weg */ } }, (ab + 4) * 1000);
   }
 
+  // Grillen: ganz leises Zirpen im Hintergrund. grillen(0 … 1) setzt die Stärke, 0 = still.
+  // Drei Grillen zirpen jede in ihrem eigenen Takt: kurze Pulse eines hohen Tons.
+  let grillenStaerke = 0, grillenUhr = null, grillenBus = null;
+  const GRILLEN = [{ f: 4300, takt: 0.62, pulse: 3, naechst: 0 }, { f: 4700, takt: 0.81, pulse: 4, naechst: 0.3 }, { f: 3900, takt: 1.07, pulse: 3, naechst: 0.55 }];
+  function grillenPlanen() {
+    const a = ein.stimmen && bereit();
+    if (!a || grillenStaerke <= 0) return;
+    if (!grillenBus) { grillenBus = a.createGain(); grillenBus.gain.value = 0; grillenBus.connect(a.destination); }
+    grillenBus.gain.setTargetAtTime(0.035 * grillenStaerke, a.currentTime, 0.5);
+    for (const g of GRILLEN) {
+      if (g.naechst < a.currentTime) g.naechst = a.currentTime + Math.random() * g.takt;
+      while (g.naechst < a.currentTime + 0.4) {
+        const t = g.naechst;
+        if (Math.random() < 0.85) { // ab und zu macht eine Pause
+          for (let i = 0; i < g.pulse; i++) {
+            const o = a.createOscillator(), e = a.createGain(), ti = t + i * 0.032;
+            o.type = "sine"; o.frequency.value = g.f * (1 + (Math.random() - 0.5) * 0.01);
+            e.gain.setValueAtTime(0.0001, ti); e.gain.exponentialRampToValueAtTime(1, ti + 0.004); e.gain.exponentialRampToValueAtTime(0.0001, ti + 0.022);
+            o.connect(e).connect(grillenBus); o.start(ti); o.stop(ti + 0.03);
+          }
+        }
+        g.naechst += g.takt * (0.9 + Math.random() * 0.2);
+      }
+    }
+  }
+  function grillen(staerke) {
+    grillenStaerke = Math.max(0, Math.min(1, staerke || 0));
+    if (grillenStaerke > 0 && !grillenUhr) grillenUhr = setInterval(grillenPlanen, 150);
+    if (grillenStaerke <= 0 && grillenBus && audio) grillenBus.gain.setTargetAtTime(0, audio.currentTime, 0.4);
+  }
+
   // Zum Testen: Ton ohne Lautsprecher berechnen (OfflineAudioContext) und als Zahlen zurückgeben
   async function probe(art, name, sekunden = 6) {
     const rate = 22050, a = new OfflineAudioContext(1, rate * sekunden, rate);
@@ -595,7 +626,7 @@ K:Am
   }
 
   return {
-    silbe, still, musik, leise, motor, hupe, uhu, freischalten, probe, STUECKE,
+    silbe, still, musik, leise, motor, hupe, uhu, grillen, freischalten, probe, STUECKE,
     get an() { return ein; }, schalte,
     // Zeitpunkt, seit dem Ton erlaubt ist (0: noch nicht)
     get seit() { return (audio && audio.wach) || 0; },

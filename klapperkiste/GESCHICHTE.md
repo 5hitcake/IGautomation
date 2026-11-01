@@ -151,7 +151,8 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
   - tanzen am Ostufer des Waldsees drei blasse Lichter (Spur zu Kauz).
   - schlafen Hasen und Vögel (sie blenden in der Dämmerung aus),
   - läuft statt der Fahrmusik ein ruhiges Schlaflied auf dem alten Klavier,
-  - ruft im Wald (und am Waldrand) ab und zu ein Uhu, manchmal antwortet ein zweiter.
+  - ruft im Wald (und am Waldrand) ab und zu ein Uhu, manchmal antwortet ein zweiter,
+  - zirpen leise Grillen (drei, jede im eigenen Takt; im Wald halb so laut).
   Der Scheinwerfer schaltet sich nur bei Bedarf ein: nachts oder im dunklen Wald.
   Abends und nachts kann man in der Werkstatt **bei Opa schlafen** (🛏), dann ist
   sofort Morgen. Jeder Morgen bringt neue Materialien und Preise. Im Einstieg steht

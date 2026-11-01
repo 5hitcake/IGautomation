@@ -2399,19 +2399,21 @@ window.Karte = function (opt = {}) {
   function bild(t) {
     const dt = Math.min(0.05, (t - (zuletzt || t)) / 1000);
     zuletzt = t;
-    if (RALLYE && RALLYE.offen) { if (Ton) Ton.motor(RALLYE.tempo ? { v: RALLYE.tempo, gas: true } : null); requestAnimationFrame(bild); return; }
+    if (RALLYE && RALLYE.offen) { if (Ton && Ton.grillen) Ton.grillen(0); if (Ton) Ton.motor(RALLYE.tempo ? { v: RALLYE.tempo, gas: true } : null); requestAnimationFrame(bild); return; }
     if (Ton) Ton.motor(cv.clientWidth && $("gespraech").hidden ? { v: auto.v, gas: auto.gas } : null);
     if (cv.clientWidth) {
       // nachts ein ruhiges Schlaflied, im Wald dazu ab und zu ein Uhu
       if (Ton) Ton.musik(istNacht() ? "nacht" : imWald(auto.x, auto.y) ? "wald" : "fahren");
       uhuRufen(dt);
+      // nachts zirpen leise die Grillen, auf der Wiese etwas mehr als im Wald, im Gespräch nicht
+      if (Ton && Ton.grillen) Ton.grillen($("gespraech").hidden ? Math.max(0, dunkelheit() - 0.4) / 0.6 * (imWald(auto.x, auto.y) ? 0.5 : 1) : 0);
       if (!fertig) schritt(dt); else auto.v *= 0.9;
       wetterSchritt(dt);
       zeitSchritt(dt);
       tiereSchritt(dt);
       if (!$("grosskarte").hidden) grossBild(); // die große Karte verdeckt alles: nur sie (mit blinkenden Aufgaben) malen
       else if ($("gespraech").hidden) zeichne(); // im Gespräch verdeckt das Gesprächsbild die Karte
-    }
+    } else if (Ton && Ton.grillen) Ton.grillen(0); // Werkstatt: keine Grillen
     requestAnimationFrame(bild);
   }
 
