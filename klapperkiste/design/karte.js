@@ -954,6 +954,9 @@ window.Karte = function (opt = {}) {
     return 1 - (t - TAG - ABEND - NACHT) / MORGEN;
   }
   const istNacht = () => dunkelheit() > 0.5;
+  // Das Licht schaltet sich nur bei Bedarf ein: nachts (ab halber Dunkelheit) oder im dunklen Wald, und nur mit Strom
+  const imDunklenWald = () => imWald(auto.x, auto.y) && auto.x < WALD_EINGANG + 2;
+  const lichtAn = () => hatTeil("licht") && spiel.strom > 0 && (istNacht() || imDunklenWald());
   function stunde(t = zeit.t) {
     if (t < TAG) return 6 + (t / TAG) * 14;
     if (t < TAG + ABEND) return 20 + (t - TAG) / ABEND;
@@ -1014,7 +1017,7 @@ window.Karte = function (opt = {}) {
     for (const [x, y, r] of LICHTER) schein(x, y, r * (1 + (reduce ? 0 : Math.sin(t * 7 + x) * 0.04)), "255,180,90", 0.45 * d);
     const [lx, ly] = FOERSTER.laterne;
     schein(lx, ly, 5, "255,190,100", 0.4 * d);
-    if (hatTeil("licht")) {
+    if (lichtAn()) {
       const fx = auto.x + Math.cos(auto.a) * 1.8, fy = auto.y + Math.sin(auto.a) * 1.8, weit = 15;
       const g = ctx.createRadialGradient(fx, fy, 0.5, fx, fy, weit);
       g.addColorStop(0, `rgba(255,226,150,${0.55 * d})`); g.addColorStop(1, "rgba(255,226,150,0)");
@@ -1047,7 +1050,7 @@ window.Karte = function (opt = {}) {
       if (spiel.sprit === 0) tankIstLeer();
     }
     // Licht im dunklen Wald zieht Strom
-    if (hatTeil("licht") && (istNacht() || (imWald(auto.x, auto.y) && auto.x < WALD_EINGANG + 2))) {
+    if (lichtAn()) {
       spiel.strom = Math.max(0, spiel.strom - dt * 0.5);
       if (spiel.strom < 20 && !stromGewarnt) { stromGewarnt = true; toast("🔋 Die Batterie wird schwach. Knut lädt sie dir auf."); }
       if (spiel.strom === 0) toast("🔋 Batterie leer, das Licht ist aus!", 4000);
