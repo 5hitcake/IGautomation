@@ -246,9 +246,26 @@ abnehmen. Die Details legen wir beim Werkstatt-System fest.
   fährt man ohne Karosserie (die Schrottkarre ist nur Rahmen, Motor, Sitz).
   Ohne Karosserie hat das Auto **keine Fähigkeit**, mit komplettem Satz genau
   die Fähigkeit dieses Modells. Halbe oder gemischte Karosserien fahren nicht.
-- **Offen, später durchdenken:** Nicht jedes Bauteil passt zu jeder Karosserie
-  (z. B. braucht ein schwerer Aufbau einen stärkeren Motor). Regeln dafür
-  legen wir fest, wenn die Teile Werte bekommen.
+- **Zugkraft:** Jeder Motor hat eine Zugkraft (kg). Ist das ganze Auto schwerer,
+  sinken Tempo, Steigung und Beschleunigung im Verhältnis (höchstens auf 35 %);
+  die Werkstatt zeigt dann beim Gewicht „⚠ zu schwer“. Schwere Karosserien
+  (Geldtransporter 270 kg, Betonmischer 225 kg, Feuerwehr 165 kg) brauchen
+  deshalb einen starken Motor:
+
+  | Motor | Tempo | Steigung | Zugkraft | Gewicht |
+  |---|---|---|---|---|
+  | Rasenmäher | 15 km/h | 8° | 150 kg | 20 kg |
+  | Waschmaschine | 25 km/h | 15° | 220 kg | 35 kg |
+  | Moped | 35 km/h | 10° | 250 kg | 25 kg |
+  | Traktor | 30 km/h | 35° | 650 kg | 120 kg |
+  | Donnerkeil | 82 km/h | 18° | 320 kg | 40 kg |
+  | **Dicker V8** (neu) | 70 km/h | 32° | 700 kg | 110 kg |
+  | **Lkw-Diesel** (neu) | 45 km/h | 48° | 1.000 kg | 160 kg |
+  | Rakete | 120 km/h | 20° | 280 kg | 60 kg |
+
+  Der V8 ist der Allrounder für schwere Aufbauten, der Lkw-Diesel der
+  Bergsteiger für die steilsten Wege (Gipfelhütte ab 40°). Bilder: Prompts in
+  `design/prompts.html`; in die Werkstatt kommen sie, sobald die Bilder da sind.
 - Die Karosserie wird **als Letztes** eingebaut, wenn das Auto fahrbereit ist,
   und muss als Erstes wieder ab.
 - Jeder Satz bringt seine Fähigkeit mit (Liste in `KAROSSERIEN.md`).

@@ -5,6 +5,8 @@
 //   tempo      Höchstgeschwindigkeit in km/h (Motor)
 //   kraft      schafft Steigungen bis so viel Grad (Motor)
 //   schub      Beschleunigung 1–10 (Motor), z. B. Rakete 10
+//   last       Zugkraft (Motor): so schwer darf das ganze Auto sein, ohne dass er schwächelt.
+//              Ist das Auto schwerer, sinken Tempo, Steigung und Beschleunigung im Verhältnis.
 //   reichweite Meter mit einer Füllung (Energie)
 //   grip       Bodenhaftung 1–10 (Räder)
 //   wendig     Wendigkeit 1–10 (Lenkung)
@@ -26,13 +28,16 @@ window.TEILWERTE = (function () {
     ballonreifen: { grip: 4, gewicht: 6, text: "Dick aufgepumpt und federleicht. Sinkt im Moor nicht ein.", extras: ["Moor", "Federt weich"] },
     kutschenrad: { grip: 3, gewicht: 10, text: "Ein Holzrad mit Eisenring. Hübsch anzusehen, aber ganz schön wackelig.", extras: ["Hübsch", "Wackelt"] },
 
-    maeher: { schub: 1, tempo: 15, kraft: 8, gewicht: 20, text: "Der Motor von Opas altem Rasenmäher. Knattert laut und zieht kaum einen Hering vom Teller.", extras: ["Knattert"] },
-    mopedmotor: { schub: 3, tempo: 35, kraft: 10, gewicht: 25, text: "Flink und sparsam, aber am Berg schnell aus der Puste.", extras: ["Sparsam"] },
-    waschmaschinenmotor: { schub: 2, tempo: 25, kraft: 15, gewicht: 35, text: "Läuft mit Strom und schleudert ordentlich. Ohne Batterie bewegt er sich aber keinen Millimeter.", extras: ["Braucht Strom", "Leise"] },
-    traktormotor: { schub: 2, tempo: 30, kraft: 35, gewicht: 120, text: "Langsam, schwer und unglaublich stark. Zieht dich jeden Berg hinauf.", extras: ["Bergziege", "Schwer"] },
+    maeher: { last: 150, schub: 1, tempo: 15, kraft: 8, gewicht: 20, text: "Der Motor von Opas altem Rasenmäher. Knattert laut und zieht kaum einen Hering vom Teller.", extras: ["Knattert"] },
+    mopedmotor: { last: 250, schub: 3, tempo: 35, kraft: 10, gewicht: 25, text: "Flink und sparsam, aber am Berg schnell aus der Puste.", extras: ["Sparsam"] },
+    waschmaschinenmotor: { last: 220, schub: 2, tempo: 25, kraft: 15, gewicht: 35, text: "Läuft mit Strom und schleudert ordentlich. Ohne Batterie bewegt er sich aber keinen Millimeter.", extras: ["Braucht Strom", "Leise"] },
+    traktormotor: { last: 650, schub: 2, tempo: 30, kraft: 35, gewicht: 120, text: "Langsam, schwer und unglaublich stark. Zieht dich jeden Berg hinauf.", extras: ["Bergziege", "Schwer"] },
     // Opas alter Rennmotor aus dem Donnerkeil (eines der 8 Teile): eine perfekte Rallye-Runde reicht knapp für Gold
-    donnerkeilmotor: { schub: 5, tempo: 82, kraft: 18, gewicht: 40, text: "Opas alter Rennmotor aus dem Donnerkeil. Brüllt wie ein Gewitter und zieht wie der Blitz.", extras: ["Donnerkeil", "Laut"] },
-    raketenmotor: { schub: 10, tempo: 120, kraft: 20, gewicht: 60, text: "Fauch! Geradeaus unschlagbar schnell, in Kurven eher ein Abenteuer.", extras: ["Sehr schnell", "Durstig"] },
+    donnerkeilmotor: { last: 320, schub: 5, tempo: 82, kraft: 18, gewicht: 40, text: "Opas alter Rennmotor aus dem Donnerkeil. Brüllt wie ein Gewitter und zieht wie der Blitz.", extras: ["Donnerkeil", "Laut"] },
+    // Starke Motoren für steile Berge und schwere Karosserien (Geldtransporter, Betonmischer, Feuerwehr)
+    v8motor: { last: 700, schub: 4, tempo: 70, kraft: 32, gewicht: 110, text: "Ein dicker V8 aus einem alten Straßenkreuzer. Blubbert tief und schleppt auch schwere Aufbauten flott durchs Tal.", extras: ["Schwere Karosserien", "Durstig", "Blubbert"] },
+    lkwdiesel: { last: 1000, schub: 2, tempo: 45, kraft: 48, gewicht: 160, text: "Der Diesel aus einem ausgemusterten Lastwagen. Nicht schnell, aber er zieht dich jeden Berg hinauf, egal wie viel du geladen hast.", extras: ["Steilste Berge", "Sehr schwere Lasten", "Qualmt"] },
+    raketenmotor: { last: 280, schub: 10, tempo: 120, kraft: 20, gewicht: 60, text: "Fauch! Geradeaus unschlagbar schnell, in Kurven eher ein Abenteuer.", extras: ["Sehr schnell", "Durstig"] },
 
     giesskanne: { reichweite: 1500, gewicht: 3, text: "Eine Gießkanne voll Sprit. Reicht für eine kurze Runde ums Haus.", extras: [] },
     milchkanne: { reichweite: 2200, gewicht: 10, text: "Eine große Milchkanne vom Bauernhof, jetzt mit Benzin statt Milch.", extras: [] },
@@ -63,10 +68,10 @@ window.TEILWERTE = (function () {
     rakete: [4, 20, "Eine Rakete mit Heckflossen und Cockpit-Kuppel.", "Tempo höher"],
     kutsche: [3, 25, "Eine feine Kutsche mit Gardinen und Laterne.", "Komfort, Hochzeitsauftrag"],
     hotdog: [3, 28, "Ein hoher Kastenwagen mit Riesen-Hot-Dog auf dem Dach.", "Unterwegs verkaufen, Hunde laufen hinterher"],
-    feuerwehr: [6, 35, "Eine rote Feuerwehr mit Glocke und Schlauch.", "Brände löschen"],
-    betonmischer: [7, 45, "Ein Betonmischer mit großer Trommel.", "Kaputte Brücken und Wege reparieren"],
+    feuerwehr: [6, 55, "Eine rote Feuerwehr mit Glocke und Schlauch.", "Brände löschen"],
+    betonmischer: [7, 75, "Ein Betonmischer mit großer Trommel.", "Kaputte Brücken und Wege reparieren"],
     wohnwagen: [3, 30, "Ein runder Mini-Wohnwagen mit Küchenklappe.", "Übernachten"],
-    geldtransporter: [10, 50, "Gepanzert, mit Tresorrad. Hält einiges aus.", "Sehr robust"],
+    geldtransporter: [10, 90, "Gepanzert, mit Tresorrad. Hält einiges aus.", "Sehr robust"],
     schneeraupe: [6, 35, "Mit beheizter Kabine und großem Räumschild.", "Kälteschutz, räumt Schnee"],
     gewaechshaus: [1, 22, "Ein Glashaus voller Tomaten und Tulpen.", "Pflanzen liefern"],
     zirkus: [2, 25, "Ein Zirkuswagen mit Kuppel und Clownsnase.", "Zuschauer locken"],

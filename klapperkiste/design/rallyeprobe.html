@@ -81,7 +81,9 @@ body { position: fixed; inset: 0; margin: 0; background: #10191c; }
     const w = (id, k) => (TW[id] || {})[k] || 0;
     const gewicht = w("bettgestell", "gewicht") + 2 * w("rostachse", "gewicht") + 4 * w(teile.rad, "gewicht") +
       w(teile.motor, "gewicht") + w(teile.energie, "gewicht") + w(teile.sitz, "gewicht") + w(teile.lenkung, "gewicht") + (teile.karo || 0);
-    return { tempo: w(teile.motor, "tempo"), schub: w(teile.motor, "schub"), gewicht, wendig: w(teile.lenkung, "wendig"), grip: w(teile.rad, "grip") };
+    // Zugkraft wie in der Werkstatt: zu schwer für den Motor → langsamer und schwächer
+    const last = w(teile.motor, "last"), f = last && gewicht > last ? Math.max(0.35, last / gewicht) : 1;
+    return { tempo: Math.round(w(teile.motor, "tempo") * f), schub: w(teile.motor, "schub") * f, gewicht, wendig: w(teile.lenkung, "wendig"), grip: w(teile.rad, "grip") };
   }
   const AUTOS = [
     { id: "schrott", name: "Schrottkarre", bild: "ohne", info: "Rasenmäher-Motor, Schubkarrenräder",

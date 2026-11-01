@@ -599,7 +599,7 @@ window.Werkstatt = function (opt = {}) {
   // --- Kategorien, Teile, Info ------------------------------------------------
   const TW = window.TEILWERTE || {};
   // [Schlüssel, Name, Einheit, Wert für einen vollen Balken]
-  const WERTE = [["tempo", "Tempo", "km/h", 120], ["schub", "Beschleunigung", "", 10], ["kraft", "Steigung", "°", 40], ["reichweite", "Reichweite", "m", 3500],
+  const WERTE = [["tempo", "Tempo", "km/h", 120], ["schub", "Beschleunigung", "", 10], ["kraft", "Steigung", "°", 50], ["last", "Zugkraft", "kg", 1000], ["reichweite", "Reichweite", "m", 3500],
     ["grip", "Grip", "", 10], ["wendig", "Lenkung", "", 10], ["komfort", "Komfort", "", 10], ["robust", "Robustheit", "", 10],
     ["licht", "Licht", "m", 30], ["laut", "Lautstärke", "", 10], ["gewicht", "Gewicht", "kg", 300]];
   const AUTO_WERTE = ["tempo", "kraft", "reichweite", "grip", "wendig", "gewicht"];
@@ -619,6 +619,14 @@ window.Werkstatt = function (opt = {}) {
     const karo = KARO.map((sl) => m[sl]);
     if (karo.every(Boolean) && new Set(karo.map((id) => id.split("_")[0])).size === 1 && karo[0].startsWith("rakete")) {
       w.tempo = Math.round(w.tempo * 1.2);
+    }
+    // Zugkraft: Ist das Auto schwerer, als der Motor gut ziehen kann, wird es langsamer,
+    // schafft weniger Steigung und zieht schwächer an
+    w.last = an("motor", "last");
+    if (w.last && w.gewicht > w.last) {
+      const f = Math.max(0.35, w.last / w.gewicht);
+      w.tempo = Math.round(w.tempo * f); w.kraft = Math.round(w.kraft * f); w.schub = Math.round(w.schub * f * 10) / 10;
+      w.zuSchwer = true;
     }
     return w;
   }
@@ -921,6 +929,10 @@ window.Werkstatt = function (opt = {}) {
         const d = dann[k] - jetzt[k];
         const besser = k === "gewicht" ? d < 0 : d > 0;
         z.append(el("span", "wert-neu " + (besser ? "plus" : "minus"), `${d > 0 ? "▲" : "▼"} ${zahl(dann[k])}`));
+      } else if (k === "gewicht" && jetzt.zuSchwer) {
+        // zu schwer für den Motor: Hinweis statt Pfeil
+        z.append(el("span", "wert-neu minus", "⚠ zu schwer"));
+        z.title = `Der Motor zieht nur ${zahl(jetzt.last)} kg gut. Bei mehr Gewicht sinken Tempo, Steigung und Beschleunigung.`;
       }
       box.append(z);
     }
