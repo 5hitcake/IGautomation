@@ -208,43 +208,9 @@ A single heavy shiny steel bolt with a hexagonal head and a nut lying in dark mu
   freistehende Papierkrümel neben der Figur entfernt.
 
 
-## Gebrummel statt Sprache
+## Keine Stimmen
 
-Die Figuren sprechen keine echte Sprache, sondern brummeln beim Eintippen des
-Texts unverständliche Silben (wie bei Animal Crossing). So bleibt es in jeder
-Übersetzung gleich. Erzeugt wird es im Browser (`STIMMEN` in `design/karte.js`):
-je Figur Grundtonhöhe, Klangfarbe, Zittern und Rauheit; jede Silbe bekommt
-einen zufälligen „Vokal“, Satzzeichen machen eine kurze Pause, Großbuchstaben
-werden etwas höher betont. Förster Moos' Vogel Pieps piepst ab und zu dazwischen.
-Der Knopf 🔊/🔇 im Gesprächsfeld schaltet den Ton aus (wird im Browser gemerkt).
-
-| Figur | Stimme |
-|---|---|
-| Opa Bolzen | tief, alt und etwas zittrig |
-| Knut Kurbel | sehr tief und brummig, rau |
-| Bäuerin Hilde | warm und freundlich, mittel |
-| Förster Moos | tief und rau, mit Vogelpiepsen |
-| Direktorin Zylinda | hoch und lebhaft |
-| Kapitänin Kiel | mittel, rau (Seebärin) |
-| Hüttenwirt Frieder | gemütlich, mittel-tief |
-| Polier Brösel | ganz tief und rau |
-| Gino, Funke | heller, Gino singend, Funke zackig |
-
-Seit der zweiten Fassung (`design/ton.js`) ist das Gebrummel eine Formant-Stimme:
-summender Grundton durch zwei Resonanzfilter (Vokal), Atemrauschen, manchmal ein
-kurzer Konsonant, Satzmelodie (fällt zum Satzende, steigt bei Fragen) und weich
-ineinanderfließende Silben. Klingt nach Murmeln statt nach Piepsen.
-
-Dritte Fassung: **echte Silben**. Mit der Sprachausgabe Chatterbox (Hugging Face)
-wurden zwei Aufnahmen aus Fantasie-Silben erzeugt, eine weibliche und eine
-männliche Stimme (`assets/ton/roh/`). `python klapperkiste/tools/stimmen.py`
-schneidet sie in rund 50 Silben je Stimme (`design/stimmen_daten.js`). Jede
-Figur nutzt eine der beiden Stimmen, schneller und höher (Zylinda) oder langsamer
-und tiefer (Knut, Brösel) abgespielt, mit Satzmelodie. Die Formant-Stimme bleibt
-als Ersatz, falls die Silben nicht geladen sind.
-
-Vierte Fassung: **genuschelt am Stück**. Neue Aufnahmen aus nuschelnden Lauten
-(„Hmm nja, dömm wennem hönn brummeln …“, weniger offene Vokale, damit es nicht
-nach Italienisch klingt). `stimmen.py` kürzt nur lange Pausen und merkt sich die
-leisen Stellen; `ton.js` spielt 0,8 bis 1,8 s am Stück und hängt das nächste
-Stück nahtlos an, mit weichem Tiefpass (2,6 kHz).
+Die Figuren sprechen nicht, Gespräche gibt es nur als Text (Schreibmaschine). Die
+Stimmen (Gebrummel aus Fantasie-Silben) sind auf Wunsch komplett entfernt, samt
+Aufnahmen und `tools/stimmen.py`. Der Knopf 🔊/🔇 im Gesprächsfeld schaltet die
+Geräusche (Motor, Hupe, Uhu, Grillen) an und aus.

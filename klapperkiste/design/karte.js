@@ -1404,9 +1404,8 @@ window.Karte = function (opt = {}) {
     if (Ton) Ton.leise(true, figur);
     zeile();
   }
-  // --- Gebrummel und Musik: siehe ton.js (window.Ton) ---------------------------
+  // --- Musik und Geräusche: siehe ton.js (window.Ton) ----------------------------
   const Ton = window.Ton;
-  const silbe = (figur, info) => Ton && figur !== "erzaehler" && Ton.silbe(figur, info);
 
   function zeile() {
     const [geste, text, extra] = gZeilen[gNr];
@@ -1421,47 +1420,33 @@ window.Karte = function (opt = {}) {
     }
     const p = $("gText");
     clearInterval(gTipp);
-    if (Ton) Ton.still();
-    const figur = $("gespraech").dataset.figur;
-    if (reduce) { // ohne Animation: nur ein kurzes Gebrummel
-      p.textContent = text; gTipp = null;
-      for (let k = 0; k < 6; k++) setTimeout(() => silbe(figur, { fortschritt: k / 5, betont: k === 0 }), k * 100);
-      return;
-    }
-    let i = 0, schritt = 0, pause = 0;
+    if (reduce) { p.textContent = text; gTipp = null; return; } // ohne Animation: Text sofort
+    // Schreibmaschine: alle 30 ms zwei Buchstaben
+    let i = 0;
     p.textContent = "";
     gTipp = setInterval(() => {
       i += 2;
       p.textContent = text.slice(0, i);
-      const neu = text.slice(i - 2, i);
-      if (/[.,!?…:;]/.test(neu)) pause = 4; // Satzzeichen: kurz Luft holen
-      else if (pause > 0) pause--;
-      else if (schritt++ % 3 === 0 && /[\p{L}]/u.test(neu)) {
-        // Satzmelodie: wie weit sind wir im aktuellen Satz, und endet er mit einer Frage?
-        const vorher = text.slice(0, i).search(/[^.!?]*$/), nach = text.slice(i).search(/[.!?]/);
-        const ende = nach < 0 ? text.length : i + nach;
-        silbe(figur, { fortschritt: (i - vorher) / Math.max(1, ende - vorher), frage: text[ende] === "?", betont: /[A-ZÄÖÜ]/.test(neu) });
-      }
       if (i >= text.length) { clearInterval(gTipp); gTipp = null; }
     }, 30);
   }
   function weiter() {
-    if (gTipp) { clearInterval(gTipp); gTipp = null; $("gText").textContent = gZeilen[gNr][1]; if (Ton) Ton.still(); return; }
+    if (gTipp) { clearInterval(gTipp); gTipp = null; $("gText").textContent = gZeilen[gNr][1]; return; }
     gNr++;
     if (gNr < gZeilen.length) return zeile();
     $("gespraech").hidden = true;
-    if (Ton) { Ton.leise(false); Ton.still(); }
+    if (Ton) Ton.leise(false);
     if (gEnde) gEnde();
   }
   const tonKnopf = document.createElement("button");
   tonKnopf.type = "button"; tonKnopf.className = "g-ton";
-  const tonZeigen = () => { const an = Ton && Ton.an.stimmen; tonKnopf.textContent = an ? "🔊" : "🔇"; tonKnopf.setAttribute("aria-label", an ? "Stimmen und Geräusche aus" : "Stimmen und Geräusche an"); };
+  const tonZeigen = () => { const an = Ton && Ton.an.stimmen; tonKnopf.textContent = an ? "🔊" : "🔇"; tonKnopf.setAttribute("aria-label", an ? "Geräusche aus" : "Geräusche an"); };
   tonZeigen();
   tonKnopf.addEventListener("click", (e) => {
     e.stopPropagation();
     if (!Ton) return;
     Ton.schalte("stimmen", !Ton.an.stimmen); tonZeigen();
-    if (Ton.an.stimmen) { Ton.freischalten(); silbe($("gespraech").dataset.figur, { betont: true }); } // kurze Probe zum Hören
+    if (Ton.an.stimmen) Ton.freischalten();
   });
   // Musik an/aus: kleiner Knopf unten links auf der Seite, für Werkstatt und Karte
   const musikKnopf = document.createElement("button");
@@ -2244,7 +2229,6 @@ window.Karte = function (opt = {}) {
       if (spiel.neben.kuh === "suchen" && Math.hypot(auto.x - BERTA.x, auto.y - BERTA.y) < 8) {
         spiel.neben.kuh = "heim"; BERTA.heim = true; BERTA.grast = false; hudNeu();
         toast("🐄 Muuuh! Da ist Berta. Sie trottet gemütlich zurück zum Hof. Sag Hilde Bescheid!", 4500);
-        if (Ton && Ton.silbe) for (let i = 0; i < 3; i++) setTimeout(() => silbe("hilde", { fortschritt: i / 2, betont: i === 0 }), i * 160);
       }
       return;
     }
@@ -2863,7 +2847,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { get silben() { return Ton ? Ton.silben : 0; }, aufgabenOrte, BERTA, OBJEKTE, auto, planen, zeit, FUNDE, neuerTag, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { aufgabenOrte, BERTA, OBJEKTE, auto, planen, zeit, FUNDE, neuerTag, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen
