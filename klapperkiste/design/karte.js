@@ -817,7 +817,7 @@ window.Karte = function (opt = {}) {
           fehlt: licht ? null : "Ohne Licht kommst du nicht durch den dunklen Wald. Knut hat einen Scheinwerfer, wenn du ihm die Batterie bringst." });
       } else {
         const r = spiel.rallye;
-        const rallye = { figur: "moos", wer: "Förster Moos", titel: "Die Waldrallye", belohnung: "Startplatz beim Klappertal-Rennen, 30 Münzen und eine Überraschung" };
+        const rallye = { rallye: true, figur: "moos", wer: "Förster Moos", titel: "Die Waldrallye", belohnung: "Startplatz beim Klappertal-Rennen, 30 Münzen und eine Überraschung" };
         if (r && r.medaille) erledigt.push({ ...rallye, titel: `Die Waldrallye (Bestzeit ${r.best.toLocaleString("de-DE")} s)` });
         else offen.push({ ...rallye, stand: spiel.holzweg ? (r ? `Bestzeit ${r.best.toLocaleString("de-DE")} s` : `höchstens ${RALLYE ? RALLYE.ZEITEN.bronze : 58} s`) : "Weg versperrt",
           text: spiel.holzweg ? "Start am Campingplatz am Waldsee, nur bei Tag. Weich Pfützen, Wurzeln und Stämmen aus, Bronze reicht."
@@ -880,7 +880,7 @@ window.Karte = function (opt = {}) {
     if (aufgabenCache && jetzt - aufgabenZeit < 500) return aufgabenCache;
     const orte = new Set(), punkte = [];
     for (const a of auftraege().offen) {
-      if (!a.ziel) continue;
+      if (!a.ziel || a.rallye) continue; // die Rallye zeigt eine Rennflagge statt des Leuchtens
       if (ZIELE.includes(a.ziel)) orte.add(a.ziel.id);
       else if (a.ziel.name === "Kuh Berta") punkte.push(a.ziel);
     }
@@ -1885,8 +1885,34 @@ window.Karte = function (opt = {}) {
     miniZeichnen();
   }
 
+  // Rallye-Start: Rennflagge statt Leuchten, solange man die Rallye fahren kann (auch für Bestzeiten)
+  function rallyeOrt() {
+    const z = zielVon("camping");
+    return rallyeMoeglich() && zielOffen(z) ? z : null;
+  }
+  // Zielflagge (schwarz-weiß kariert) am Mast; x, y = Fuß des Masts, s = Höhe
+  function flaggeZeichnen(c, x, y, s, t) {
+    const b = s * 0.62, h = s * 0.42, n = 4, m = 3;
+    c.save();
+    c.lineCap = "round"; c.strokeStyle = "#12232a"; c.lineWidth = s * 0.07;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - s); c.stroke();
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) {
+      const welle = (q) => (reduce ? 0 : Math.sin(t * 6 - q * 3) * s * 0.04 * q);
+      const x0 = x + (i / n) * b, x1 = x + ((i + 1) / n) * b;
+      const y0 = y - s + (j / m) * h, y1 = y - s + ((j + 1) / m) * h;
+      c.fillStyle = (i + j) % 2 ? "#fffaf0" : "#1d1a16";
+      c.beginPath();
+      c.moveTo(x0, y0 + welle(i / n)); c.lineTo(x1, y0 + welle((i + 1) / n));
+      c.lineTo(x1, y1 + welle((i + 1) / n)); c.lineTo(x0, y1 + welle(i / n)); c.closePath(); c.fill();
+    }
+    c.lineWidth = s * 0.04; c.strokeStyle = "#12232a";
+    
+    c.restore();
+  }
   // Aufgaben-Orte in der Fahransicht: gelber Ring am Boden und ein schwebendes Ausrufezeichen
   function aufgabenWelt(sicht, t) {
+    const ro = rallyeOrt();
+    if (ro && imBild(ro.x, ro.y, sicht, 8)) flaggeZeichnen(ctx, ro.x - 2.6, ro.y - 0.5, 3.2, t);
     const puls = reduce ? 0.5 : (Math.sin(t * 4) + 1) / 2;
     for (const z of aufgabenOrte()) {
       if (!imBild(z.x, z.y, sicht, 8)) continue;
@@ -1948,6 +1974,8 @@ window.Karte = function (opt = {}) {
       mctx.fillStyle = `rgba(255,214,60,${0.35 + puls * 0.5})`; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 1.5;
       mctx.beginPath(); mctx.arc(z.x * k, z.y * k, 4 + puls * 2.5, 0, 7); mctx.fill(); mctx.stroke();
     }
+    const ro = rallyeOrt();
+    if (ro) flaggeZeichnen(mctx, ro.x * k, ro.y * k + 4, 14, performance.now() / 1000);
     mctx.save(); mctx.translate(auto.x * k, auto.y * k); mctx.rotate(auto.a);
     mctx.fillStyle = "#f2b632"; mctx.strokeStyle = "#12232a"; mctx.lineWidth = 2;
     mctx.beginPath(); mctx.moveTo(7, 0); mctx.lineTo(-5, -5); mctx.lineTo(-5, 5); mctx.closePath(); mctx.fill(); mctx.stroke();
@@ -2405,6 +2433,8 @@ window.Karte = function (opt = {}) {
       else if (z.art === "ort" && frei) ortZeichnen(x, y, z.name);
       else if (z.art === "ort") unbekanntZeichnen(x, y);
     }
+    const ro = rallyeOrt();
+    if (ro) flaggeZeichnen(gctx, ro.x * k - 20, ro.y * k + 2, 28, t);
     // Ausrufezeichen an den Orten mit Aufgabe
     for (const z of aufgabenOrte()) {
       const hub = reduce ? 0 : Math.abs(Math.sin(t * 3)) * 4;
