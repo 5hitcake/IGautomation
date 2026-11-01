@@ -370,6 +370,7 @@ window.Karte = function (opt = {}) {
       ["hallo", `Na sieh mal einer an! Mit der Klapperkiste ${wie} Ich bin Knut Kurbel, mir gehört der ganze Schrott hier.`],
       ["nachdenken", "Hm … ohne Karosserie fährst du ja praktisch im Unterhemd durch die Gegend. Und die Reifen sind auch nicht mehr die jüngsten."],
       ["auftrag", "Pass auf: Draußen am Feldrand liegen drei alte Reifen herum. Bring sie mir, dann suche ich dir was Ordentliches aus dem Schrott raus."],
+      ["nachdenken", "Und wenn der Tank leer wird oder dein Beutel voll ist: Bei mir kannst du immer tanken, und Kram vom Wegrand kauf ich dir ab."],
       ["juhu", "Abgemacht? Prima! Dann ab mit dir, der Schrott wartet nicht!"],
     ], () => {
       spiel.auftrag = "reifen";
@@ -432,9 +433,11 @@ window.Karte = function (opt = {}) {
     $("geld").hidden = spiel.auftrag === null;
   }
   // Beim ersten Reifen in Sichtweite erklären, wie das Aufsammeln geht
+  // Beim ersten Gegenstand in der Nähe (Reifen, Batterie oder Material vom Wegrand) erklären, wie das Aufsammeln geht
   function reifenPruefen() {
-    if (!BRAUCHT[spiel.auftrag] || hinweisGezeigt) return;
-    if (SAMMEL.some((g) => sichtbar(g) && Math.hypot(g.x - auto.x, g.y - auto.y) < 16)) {
+    if (hinweisGezeigt) return;
+    const nah = (g) => Math.hypot(g.x - auto.x, g.y - auto.y) < 16 && bekannt(g.x, g.y);
+    if ((BRAUCHT[spiel.auftrag] && SAMMEL.some((g) => sichtbar(g) && nah(g))) || FUNDE.some(nah)) {
       hinweisGezeigt = true;
       toast("👆 Gegenstand berühren, um ihn aufzusammeln. Fährst du zu schnell, erst „Stopp“ drücken.", 6000);
     }
@@ -708,11 +711,12 @@ window.Karte = function (opt = {}) {
     if (istNacht()) return knut([["nachdenken", "Chrrr … Hm? Was? Mitten in der Nacht? Der Laden ist zu! Komm morgen früh wieder."]]);
     const n = BRAUCHT[spiel.auftrag];
     if (n && spiel.beutel < n) {
+      // Auftrag noch offen: Knut sagt, was fehlt, danach ist sein Laden trotzdem offen (tanken, Material verkaufen)
       if (spiel.auftrag === "batterie") {
-        return knut([["nachdenken", "Die Batterie? Die liegt irgendwo drüben am Weideweg, ganz im Osten. Ohne Strom bleibt der Scheinwerfer dunkel."]]);
+        return knut([["nachdenken", "Die Batterie? Die liegt irgendwo drüben am Weideweg, ganz im Osten. Ohne Strom bleibt der Scheinwerfer dunkel. Brauchst du solange was aus dem Laden?"]], ladenAuf);
       }
       const f = n - spiel.beutel;
-      return knut([["nachdenken", `Hm, da fehl${f === 1 ? "t noch ein Reifen" : `en noch ${f} Reifen`}. Schau mal am Feldrand, am Weg in den Wald und drüben am Weideweg.`]]);
+      return knut([["nachdenken", `Hm, da fehl${f === 1 ? "t noch ein Reifen" : `en noch ${f} Reifen`}. Schau mal am Feldrand, am Weg in den Wald und drüben am Weideweg. Brauchst du solange was aus dem Laden?`]], ladenAuf);
     }
     if (spiel.auftrag === "reifen") {
       spiel.auftrag = "batterie"; spiel.beutel = 0; spiel.geld += 40; materialGeben({ schrauben: 2 });
