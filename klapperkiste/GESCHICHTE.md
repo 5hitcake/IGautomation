@@ -166,7 +166,9 @@ habe sie falsch angesagt. Zustand `spiel.neben.muehle`.
 1. **Kauz will seinen Bolzen zurück** (`opa1`): Opa: „Soll er ihn sich doch selbst holen!“ (`kauz`).
    Kauz schimpft zurück und fragt dann heimlich, wie es Opa geht (`opa2`). Opa verrät: Die
    Müllerin stand damals an der Strecke, und zeichnet die Mühle ein (`muellerin`).
-2. **Mühlbach und morsche Brücke:** Der Mühlenweg führt vom Ende des Feldwegs nach Norden über
+2. **Gatter, Mühlbach und morsche Brücke:** Bis Opa einen zur Mühle schickt, endet der Feldweg an
+   einem verschlossenen Gatter („Privatweg zur Mühle. Nur mit Einladung!“), danach steht es offen.
+   **Mühlbach und Brücke:** Der Mühlenweg führt vom Ende des Feldwegs nach Norden über
    den Mühlbach. Die Brücke trägt höchstens **120 kg** (Gewicht aus der Werkstatt); ein schweres
    Auto hält davor („Morsche Brücke!“). Erstes Rätsel, bei dem das Gewicht zählt.
 3. **Müllerin Mehlich** (Mühle, Figur `muellerin`, Hintergrund `muehle`): Ihr Mühlrad quietscht,
@@ -272,4 +274,5 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 ## Wiedervorlage (Bilder später)
 
 - **Mühle von oben** (Kartenobjekt `muehle`, 22 m): bis dahin steht neben der Brücke nur Wiese.
+  Wie auf dem Foto: Holzhaus mit Bretterwand und Schindeldach, Wasserrad rechts (kein Fachwerk).
 - **Mühle als Gesprächshintergrund** (`muehle.png`, `muehle_nacht.png`): bis dahin Holz-Platzhalter.

@@ -1367,7 +1367,26 @@ window.Karte = function (opt = {}) {
     for (const [art, n] of Object.entries(auftragBedarf())) if (spiel.material[art] < n) g[art] = n - spiel.material[art];
     return g;
   }
+  // Wegpunkte, die man von Opas Schuppen aus erreicht: durch bekanntes Gebiet und an keinem
+  // Hindernis vorbei, für das gerade etwas fehlt (Schilf, Brücke, Gatter, Bäume, Dunkelheit …)
+  function erreichbar() {
+    const sperre = HINDERNISSE.filter((h) => !h.weg && !hatTeil(h.braucht));
+    const frei = (i) => bekannt(KNOTEN[i][0], KNOTEN[i][1]) && !sperre.some((h) => Math.hypot(KNOTEN[i][0] - h.x, KNOTEN[i][1] - h.y) < h.r + 1);
+    const start = naechsterKnoten(150, 243), da = new Set([start]), stapel = [start];
+    while (stapel.length) for (const j of NACHBARN[stapel.pop()]) if (!da.has(j) && frei(j)) { da.add(j); stapel.push(j); }
+    return da;
+  }
+  // nicht in Gebäuden, im Schrottplatz oder im ungemähten Schilf
+  function fundOrtFrei(x, y) {
+    // Schrottplatz samt Zaun und Platz vor dem Tor (dort steht man bei Knut, Zaun im Weg)
+    if (imSchrottplatz(x, y) || (x > SCHROTT.X - 3 && x < SCHROTT.X + SCHROTT.b + 3 && y > SCHROTT.Y - 3 && y < SCHROTT.Y + SCHROTT.h + 14)) return false;
+    if ([SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich, CAMPING.bereich, KAUZ.bereich, MUEHLE.bereich].some(([a, b, c, d]) => x > a - 2 && x < c + 2 && y > b - 2 && y < d + 2)) return false;
+    return !SCHILF.some((s) => Math.hypot(s.x - x, s.y - y) < 2.5);
+  }
   function fundeVerteilen() {
+    const da = erreichbar();
+    // schon liegende Funde, die man nicht (mehr) erreicht, weg
+    for (let k = FUNDE.length - 1; k >= 0; k--) if (!da.has(naechsterKnoten(FUNDE[k].x, FUNDE[k].y)) || !fundOrtFrei(FUNDE[k].x, FUNDE[k].y)) FUNDE.splice(k, 1);
     const wege = WEGE.filter((w) => w.every(([x, y]) => bekannt(x, y)));
     // Gesuchtes für offene Aufträge liegt sicher dabei, der Rest ist Zufall
     const vorne = [];
@@ -1384,6 +1403,9 @@ window.Karte = function (opt = {}) {
       const seite = Math.random() < 0.5 ? -1 : 1, d = WEG_BREITE / 2 + 1.2 + Math.random() * 3;
       const x = ax + (bx - ax) * t - (by - ay) / l * d * seite, y = ay + (by - ay) * t + (bx - ax) / l * d * seite;
       if (!bekannt(x, y) || imWald(x, y, -2) || OBJEKTE.some((o) => (o.vis || o.r) && Math.hypot(o.x - x, o.y - y) < (o.vis || o.r) + 0.8)) continue;
+      if (!fundOrtFrei(x, y) || imSee(x, y, 0.5) || imBach(x, y, 0.5)) continue;
+      const kn = naechsterKnoten(x, y);
+      if (!da.has(kn) || Math.hypot(KNOTEN[kn][0] - x, KNOTEN[kn][1] - y) > WEG_BREITE / 2 + 5) continue; // am erreichbaren Weg
       if ([...FUNDE, ...SAMMEL, ...STUECKE].some((f) => Math.hypot(f.x - x, f.y - y) < 6)) continue;
       FUNDE.push({ art: vorne.shift() || MATERIAL[Math.floor(Math.random() * MATERIAL.length)].id, x, y });
     }
@@ -1712,6 +1734,10 @@ window.Karte = function (opt = {}) {
     { id: "baeume", x: 38.7, y: 226, r: 3, braucht: "holzweg", titel: "Umgestürzte Bäume!",
       text: "Dicke Stämme liegen quer über dem alten Holzweg. Da kommt keiner durch.",
       fehlt: "Förster Moos zieht sie mit seinem Seilzug weg, sobald er ihn repariert hat." },
+    // Gatter am Ende des Feldwegs: Privatweg zur Mühle, offen erst, wenn Opa einen hinschickt (G10)
+    { id: "gatter", x: 301.2, y: 80, r: 2.5, braucht: "muehlweg", titel: "Ein verschlossenes Gatter",
+      text: "Quer über dem Feldweg hängt ein altes Holzgatter. Auf dem Schild: „Privatweg zur Mühle. Nur mit Einladung!“",
+      fehlt: "Wer wohnt da wohl? Vielleicht erzählt dir jemand im Tal von der Mühle." },
     // Morsche Holzbrücke über den Mühlbach: trägt nur leichte Autos (Gewicht aus der Werkstatt)
     { id: "bruecke", x: BRUECKE.x, y: BRUECKE.y + 2.5, r: 2.5, braucht: "leicht", titel: "Morsche Brücke!",
       text: `Die Bretter knarzen schon, wenn man nur hinschaut. Mehr als ${BRUECKE.kg} kg trägt die nicht.`,
@@ -1729,6 +1755,7 @@ window.Karte = function (opt = {}) {
   const brauchtStrom = () => !(opt.werte && opt.werte().ohneStrom);
   const autoGewicht = () => Math.round((opt.werte && opt.werte().gewicht) || 0);
   const hatTeil = (teil) => (teil === "holzweg" ? spiel.holzweg : teil === "leicht" ? autoGewicht() <= BRUECKE.kg
+    : teil === "muehlweg" ? ["muellerin", "mrad", "foto", "kauzlacht", "versoehnt"].includes(spiel.neben.muehle)
     : hatTeilEingebaut(teil) && (teil !== "licht" || !brauchtStrom() || spiel.strom > 0));
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
@@ -1848,6 +1875,7 @@ window.Karte = function (opt = {}) {
       else if (zielWahl.id === "ostufer") amOstufer();
       else if (zielWahl.id === "kauz") beiKauz();
       else if (zielWahl.id === "muehle") beiMuellerin();
+      else if (zielWahl.id === "felder" && !hatTeil("muehlweg")) toast("Hier endet der Feldweg an einem verschlossenen Gatter: „Privatweg zur Mühle. Nur mit Einladung!“", 5500);
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -1898,13 +1926,14 @@ window.Karte = function (opt = {}) {
     c.restore();
   }
 
-  function zeichneWege(name, breite, alpha, c = ctx) {
+  function zeichneWege(name, breite, alpha, c = ctx, trifft = null) {
     const p = musterVon(name);
     if (!p) return;
     c.save();
     c.globalAlpha = alpha;
     c.strokeStyle = p; c.lineWidth = breite; c.lineCap = "round"; c.lineJoin = "round";
     for (const w of WEGE) {
+      if (trifft && !trifft(Math.min(...w.map((q) => q[0])), Math.min(...w.map((q) => q[1])), Math.max(...w.map((q) => q[0])), Math.max(...w.map((q) => q[1])), breite)) continue;
       c.beginPath();
       c.moveTo(w[0][0], w[0][1]);
       for (let i = 1; i < w.length; i++) c.lineTo(w[i][0], w[i][1]);
@@ -2020,30 +2049,27 @@ window.Karte = function (opt = {}) {
       }
       c.globalAlpha = 1;
     }
+    // Nur malen, was die Kachel berührt (spart beim Vormalen viel Zeit, sonst ruckelt es)
+    const trifft = (x0, y0, x1, y1, rand = 2) => x1 + rand > sicht.x0 && x0 - rand < sicht.x1 && y1 + rand > sicht.y0 && y0 - rand < sicht.y1;
+    const bild = (o, x, y) => { if (o && o.img.complete && o.img.naturalWidth && trifft(x, y, x + o.b, y + o.h)) c.drawImage(o.img, x, y, o.b, o.h); };
+    const mitte = (o, x, y) => o && bild(o, x - o.b / 2, y - o.h / 2);
     walddachZeichnen(sicht, c);
-    seeMalen(c);
-    bachMalen(c);
-    zeichneWege("erde", WEG_BREITE + 1.4, 0.35, c);
-    zeichneWege("erde", WEG_BREITE, 1, c);
-    brueckeMalen(c);
+    if (SEE.some(([x, y, r]) => trifft(x - r, y - r, x + r, y + r, 4))) seeMalen(c);
+    if (BACH.some((q, k) => k > 0 && trifft(Math.min(q[0], BACH[k - 1][0]), Math.min(q[1], BACH[k - 1][1]), Math.max(q[0], BACH[k - 1][0]), Math.max(q[1], BACH[k - 1][1]), 4))) bachMalen(c);
+    zeichneWege("erde", WEG_BREITE + 1.4, 0.35, c, trifft);
+    zeichneWege("erde", WEG_BREITE, 1, c, trifft);
+    if (trifft(BRUECKE.x - 2, BRUECKE.y - 3, BRUECKE.x + 2, BRUECKE.y + 3)) brueckeMalen(c);
     // Rand der Karte
     c.fillStyle = "rgba(10,20,15,0.85)";
     c.fillRect(-60, -60, W + 120, 60); c.fillRect(-60, W, W + 120, 60); c.fillRect(-60, 0, 60, W); c.fillRect(W, 0, 60, W);
 
-    const sp = OBJ.schrottplatz;
-    if (sp.img.complete && sp.img.naturalWidth) c.drawImage(sp.img, SCHROTT.X, SCHROTT.Y, sp.b, sp.h);
-    const sch = OBJ.schuppen;
-    if (sch.img.complete && sch.img.naturalWidth) c.drawImage(sch.img, SCHUPPEN.X, SCHUPPEN.Y, sch.b, sch.h);
-    const hu = OBJ.huette;
-    if (hu && hu.img.complete && hu.img.naturalWidth) c.drawImage(hu.img, HUETTE.x - hu.b / 2, HUETTE.y - hu.h / 2, hu.b, hu.h);
-    const hof = OBJ.bauernhof;
-    if (hof && hof.img.complete && hof.img.naturalWidth) c.drawImage(hof.img, HOF.X, HOF.Y, hof.b, hof.h);
-    const fh = OBJ.foersterhuette;
-    if (fh && fh.img.complete && fh.img.naturalWidth) c.drawImage(fh.img, FOERSTER.x - fh.b / 2, FOERSTER.y - fh.h / 2, fh.b, fh.h);
-    const cp = OBJ.campingplatz;
-    if (cp && cp.img.complete && cp.img.naturalWidth) c.drawImage(cp.img, CAMPING.X, CAMPING.Y, cp.b, cp.h);
-    const mu = OBJ.muehle; // Bild fehlt noch: dann bleibt die Wiese leer
-    if (mu && mu.img.complete && mu.img.naturalWidth) c.drawImage(mu.img, MUEHLE.x - mu.b / 2, MUEHLE.y - mu.h / 2, mu.b, mu.h);
+    bild(OBJ.schrottplatz, SCHROTT.X, SCHROTT.Y);
+    bild(OBJ.schuppen, SCHUPPEN.X, SCHUPPEN.Y);
+    mitte(OBJ.huette, HUETTE.x, HUETTE.y);
+    bild(OBJ.bauernhof, HOF.X, HOF.Y);
+    mitte(OBJ.foersterhuette, FOERSTER.x, FOERSTER.y);
+    bild(OBJ.campingplatz, CAMPING.X, CAMPING.Y);
+    mitte(OBJ.muehle, MUEHLE.x, MUEHLE.y); // Bild fehlt noch: dann bleibt die Wiese leer
   }
   // Mühlbach: Sandufer, darauf das Wasser als breite Linie
   function bachMalen(c) {
@@ -2089,6 +2115,15 @@ window.Karte = function (opt = {}) {
     if (!["gras_ruhig", "gras", "erde", "walddach", "wasser", "sand"].every((n) => musterVon(n))) return false;
     return ["schrottplatz", "schuppen", "huette", "bauernhof", "foersterhuette", "campingplatz", "muehle"].every((n) => !OBJ[n] || (OBJ[n].img.complete && OBJ[n].img.naturalWidth));
   }
+  function kachelMalen(kx, ky, px) {
+    const k = document.createElement("canvas"); k.width = k.height = px;
+    const c = k.getContext("2d"), wx = kx * KACHEL, wy = ky * KACHEL, f = px / KACHEL;
+    c.setTransform(f, 0, 0, f, -wx * f, -wy * f);
+    bodenMalen(c, { x0: wx, x1: wx + KACHEL, y0: wy, y1: wy + KACHEL });
+    if (kacheln.size > 72) kacheln.delete(kacheln.keys().next().value); // älteste weg (Speicher auf dem Handy)
+    return k;
+  }
+  const kachelWeg = (k) => k.getContext("2d").isContextLost && k.getContext("2d").isContextLost();
   function bodenAusKacheln(sicht, pxProM) {
     if (!bodenBereit()) return false;
     const px = Math.ceil(KACHEL * pxProM);
@@ -2096,20 +2131,29 @@ window.Karte = function (opt = {}) {
     const x0 = Math.floor(sicht.x0 / KACHEL), x1 = Math.floor(sicht.x1 / KACHEL);
     const y0 = Math.floor(sicht.y0 / KACHEL), y1 = Math.floor(sicht.y1 / KACHEL);
     const ueber = 1 / pxProM; // ein Pixel Überlappung gegen feine Fugen
+    let gemalt = 0;
     for (let ky = y0; ky <= y1; ky++) for (let kx = x0; kx <= x1; kx++) {
       const key = kx + "," + ky;
       let k = kacheln.get(key);
       // Auf dem Handy kann der Browser bei Speichernot einzelne Zeichenflächen verwerfen: dann neu malen
-      if (k && k.getContext("2d").isContextLost && k.getContext("2d").isContextLost()) { kacheln.delete(key); k = null; }
-      if (!k) {
-        k = document.createElement("canvas"); k.width = k.height = px;
-        const c = k.getContext("2d"), wx = kx * KACHEL, wy = ky * KACHEL, f = px / KACHEL;
-        c.setTransform(f, 0, 0, f, -wx * f, -wy * f);
-        bodenMalen(c, { x0: wx, x1: wx + KACHEL, y0: wy, y1: wy + KACHEL });
-        if (kacheln.size > 48) kacheln.delete(kacheln.keys().next().value); // älteste weg (Speicher auf dem Handy)
-      } else kacheln.delete(key);
+      if (k && kachelWeg(k)) { kacheln.delete(key); k = null; }
+      if (!k) { k = kachelMalen(kx, ky, px); gemalt++; } else kacheln.delete(key);
       kacheln.set(key, k); // zuletzt benutzt ans Ende
       ctx.drawImage(k, kx * KACHEL, ky * KACHEL, KACHEL + ueber, KACHEL + ueber);
+    }
+    // Vorausmalen gegen Ruckler: Ist in diesem Bild nichts Neues gemalt worden, eine fehlende
+    // Kachel direkt neben dem Bildrand malen, die in Fahrtrichtung zuerst
+    if (!gemalt) {
+      const vx = Math.cos(auto.a) * Math.sign(auto.v || 1), vy = Math.sin(auto.a) * Math.sign(auto.v || 1);
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      let beste = null, bestWert = -Infinity;
+      for (let ky = y0 - 1; ky <= y1 + 1; ky++) for (let kx = x0 - 1; kx <= x1 + 1; kx++) {
+        if (kx >= x0 && kx <= x1 && ky >= y0 && ky <= y1) continue;
+        if (kx < 0 || ky < 0 || kx * KACHEL >= W || ky * KACHEL >= W || kacheln.has(kx + "," + ky)) continue;
+        const wert = (kx - cx) * vx + (ky - cy) * vy;
+        if (wert > bestWert) { bestWert = wert; beste = [kx, ky]; }
+      }
+      if (beste) kacheln.set(beste[0] + "," + beste[1], kachelMalen(beste[0], beste[1], px));
     }
     return true;
   }
@@ -2167,6 +2211,19 @@ window.Karte = function (opt = {}) {
       ctx.drawImage(rf.img, r.x - gb / 2, r.y - gh / 2, gb, gh);
     }
 
+    // Holzgatter am Ende des Feldwegs (offen, sobald man zur Mühle darf: dann zur Seite geschwenkt)
+    {
+      const g = HINDERNISSE.find((q) => q.id === "gatter"), auf = hatTeil("muehlweg");
+      ctx.save(); ctx.translate(g.x, g.y);
+      ctx.fillStyle = "#4a3220"; ctx.strokeStyle = "#1d140a"; ctx.lineWidth = 0.08;
+      for (const dx of [-3.1, 3.1]) { ctx.beginPath(); ctx.arc(dx, 0, 0.35, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+      ctx.translate(-3.1, 0); ctx.rotate(auf ? -1.35 : 0);
+      ctx.fillStyle = "#8a6440";
+      for (const dy of [-0.32, 0.18]) { ctx.fillRect(0.2, dy, 5.8, 0.28); ctx.strokeRect(0.2, dy, 5.8, 0.28); }
+      ctx.beginPath(); ctx.moveTo(0.4, 0.4); ctx.lineTo(5.8, -0.35); ctx.lineWidth = 0.18; ctx.strokeStyle = "#6b4a2b"; ctx.stroke();
+      if (!auf) { ctx.fillStyle = "#f3ead6"; ctx.strokeStyle = "#1d140a"; ctx.lineWidth = 0.06; ctx.fillRect(2.4, -0.9, 1.4, 0.75); ctx.strokeRect(2.4, -0.9, 1.4, 0.75); }
+      ctx.restore();
+    }
     // Umgestürzte Stämme quer über dem Holzweg, bis Moos sie wegzieht
     if (!spiel.holzweg) {
       const h = HINDERNISSE.find((q) => q.id === "baeume");
