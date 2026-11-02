@@ -158,6 +158,25 @@ sie mit **Gold** abgeschlossen hat.
   der zugibt, dass er in der Mühlenkurve zu spät gebremst hat. „Komm wieder, ich hab bestimmt bald
   was für dich.“ (Weiter mit G10.)
 
+## Die Mühlenkurve (G10)
+
+Opa und Kauz streiten seit vierzig Jahren: Opa habe in der Mühlenkurve zu spät gebremst, Kauz
+habe sie falsch angesagt. Zustand `spiel.neben.muehle`.
+
+1. **Kauz will seinen Bolzen zurück** (`opa1`): Opa: „Soll er ihn sich doch selbst holen!“ (`kauz`).
+   Kauz schimpft zurück und fragt dann heimlich, wie es Opa geht (`opa2`). Opa verrät: Die
+   Müllerin stand damals an der Strecke, und zeichnet die Mühle ein (`muellerin`).
+2. **Mühlbach und morsche Brücke:** Der Mühlenweg führt vom Ende des Feldwegs nach Norden über
+   den Mühlbach. Die Brücke trägt höchstens **120 kg** (Gewicht aus der Werkstatt); ein schweres
+   Auto hält davor („Morsche Brücke!“). Erstes Rätsel, bei dem das Gewicht zählt.
+3. **Müllerin Mehlich** (Mühle, Figur `muellerin`, Hintergrund `muehle`): Ihr Mühlrad quietscht,
+   2 Federn und 2 Schrauben (`mrad`). Dafür gibt sie das **alte Foto von der Mühlenkurve**
+   (Bild `assets/geschichte/muehlenkurve.jpg`): Mitten auf der Strecke steht eine Kuh (`foto`).
+4. **Kauz** lacht Tränen („Eine KUH!“, `kauzlacht`), **Opa** auch. Dann steht Kauz in Opas
+   Werkstatt: „Na, Fahrer?“ – „Na, Beifahrer!“ Kauz schenkt den **Donnerkeil-Rahmen**, den er
+   nachts aus dem alten Rahmen neu gebaut hat (Donnerkeil-Teil 2/8, Teil `donnerkeilrahmen`).
+   Den Bolzen behalten beide, abwechselnd (`versoehnt`).
+
 ## Rennen über das Spiel verteilt
 
 Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
@@ -248,4 +267,4 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G7 | Waldrallye (erstes Rennen) | ✅ |
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
 | G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ |
-| G10 | Kauz' erster Auftrag, Weg zur Versöhnung mit Opa | offen |
+| G10 | Die Mühlenkurve: Botengänge, Mühle mit Brücke (Gewicht), Foto, Versöhnung, Donnerkeil-Rahmen | ✅ (Bilder fehlen noch) |

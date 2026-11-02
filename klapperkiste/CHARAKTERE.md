@@ -107,6 +107,12 @@ Cartoon character model sheet of ONE character: an old sea captain woman, drawn 
 Cartoon character model sheet of ONE character: a very tall, very thin old tinkerer and inventor, drawn four times in a 2x2 grid with wide empty white space between the four drawings. Every drawing shows the full body from the top of the head to the shoes, all four at exactly the same size, facing the viewer. Top left: waving hello with one raised hand, shy crooked smile. Top right: scratching his head with one hand, puzzled face, one eyebrow raised. Bottom left: pointing firmly to the left side with a long outstretched arm, giving an order. Bottom right: laughing with mouth open and a big thumbs up. Appearance: a long thin face with a long pointy nose, huge round brass goggles pushed up on the forehead that look like big owl eyes, two wild grey eyebrow tufts sticking up like owl ear feathers, a thin grey stubbly beard, a battered brown leather aviator cap, a long faded mustard-yellow work coat with many patched pockets full of screwdrivers and wires, a heavy leather tool belt with a big wrench and a small oil can, striped grey trousers, big worn brown boots, a small headlamp on the cap. It must look exactly the same in all four drawings, same clothes, same colours, same face, nothing missing. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, rubbery bendy limbs, big expressive hands with four fingers, exaggerated cartoon proportions with a large head, fully coloured with warm flat watercolour-like colours and a light paper texture. Plain white background, no text, no speech bubbles, no frames, no ground except a small solid black scribbled shadow under the feet.
 ```
 
+### Müllerin Mehlich (Mühle, G10)
+
+```
+Cartoon character model sheet of ONE character: a plump cheerful old miller woman, drawn four times in a 2x2 grid with wide empty white space between the four drawings. Every drawing shows the full body from the top of the head to the shoes, all four at exactly the same size, facing the viewer. Top left: waving hello with one raised hand, friendly smile. Top right: scratching her head with one hand, puzzled face, one eyebrow raised. Bottom left: pointing firmly to the left side with a long outstretched arm, giving an order. Bottom right: laughing with mouth open and a big thumbs up. Appearance: dusted all over with white flour, a small cloud of flour puffs around her, rosy round cheeks, small round spectacles, grey hair in a bun under a white headscarf with tiny red dots, a wooden spoon tucked behind one ear, a long blue apron with a big front pocket over a brown dress, sturdy wooden clogs. Important: the flour dust, the white headscarf and the wooden spoon behind the ear are clearly visible in every drawing. It must look exactly the same in all four drawings, same clothes, same colours, same face, nothing missing. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, rubbery bendy limbs, big expressive hands with four fingers, exaggerated cartoon proportions with a large head, fully coloured with warm flat watercolour-like colours and a light paper texture. Plain white background, no text, no speech bubbles, no frames, no ground except a small solid black scribbled shadow under the feet.
+```
+
 ### Hüttenwirt Frieder (Frostpass)
 
 ```
@@ -131,6 +137,7 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Försterhütte (Moos) | `foersterhuette.png` | ✅ |
 | Campingplatz (Rosi) | `camping.png` | ✅ |
 | Ostufer bei Nacht (Erzähltext G8) | `ostufer.png` | ✅ |
+| Mühle (Müllerin, G10) | `muehle.png` / `muehle_nacht.png` | offen |
 | Kauz' Werkstatt (G9) | `kauz.png` (Tag) / `kauz_nacht.png` | ✅ Tag und Nacht |
 | Nachtbilder | `schrottplatz_nacht.png`, `werkstatt_nacht.png`, `bauernhof_nacht.png`, `foersterhuette_nacht.png`, `camping_nacht.png` | ✅ alle |
 | Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | ✅ (Lage der gemalten Hebebühne steht als `BUEHNE` in `design/werkstatt.js`) |
@@ -181,6 +188,14 @@ Background illustration for a game dialogue scene, seen at eye level from the gr
 Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals. Inside a cluttered old wooden boathouse workshop at night, lit by warm hanging bulbs and a few small round coloured lamps: on the right a long shape under a dusty tarpaulin with one old spoked racing wheel and a chrome exhaust pipe peeking out, a workbench full of tools, gears, springs and blueprints pinned to the wooden wall, shelves with jars of screws, an old radio, coils of cable hanging from hooks, moonlight shining through gaps in the planks, dark lake water visible through the open water door at the back. The left half and the centre of the image are calm and open: a plain wooden plank floor, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture. Wide landscape format. No text, no frames.
 ```
 
+### Mühle (G10)
+
+```
+Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals except two chickens. The yard of an old watermill on a sunny afternoon: on the right a half-timbered mill house with a red tile roof and a big wooden water wheel turning in a narrow mill stream, water splashing, flour sacks stacked by the open door, a wooden hand cart, a millstone leaning against the wall, golden wheat fields and a few poplars in the background. The left half and the centre of the image are calm and open: a sandy yard with a few flour dust spots, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```
+
+Nachtbild mit der Vorlage „Nachtbilder“, `[ORT]`: `The mill house windows glow warmly, a lantern hangs by the door, the water wheel glitters in the moonlight.`
+
 ## Bilder zur Geschichte
 
 Ablage `assets/geschichte/<name>.jpg`, erscheinen groß im Gespräch.
@@ -210,6 +225,12 @@ Kauz' Werkstatt bei Tag (Referenz: `kauz_nacht.png`):
 
 ```
 Use the attached image as the reference: the exact same scene, same composition, same camera position, same objects in the same places, nothing added or removed, the left half and the centre stay calm and open for a character. Only change the time of day to a bright summer morning: warm sunlight falls in through the gaps between the planks and through the open water door in long golden stripes with dust in the air, outside the door a sunny lake with blue sky and green fir trees, the hanging bulbs and coloured lamps are switched off. Style unchanged: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, flat watercolour-like colours and a light paper texture. Wide landscape format. No text, no letters, no frames.
+```
+
+### Altes Foto von der Mühlenkurve (`muehlenkurve`, G10)
+
+```
+An old faded sepia photograph from the 1960s with a white border and one bent corner: a sleek silver racing car with a painted lightning bolt on its side brakes hard in a dusty gravel curve next to an old watermill, a big cloud of dust and gravel behind the wheels, a short round driver with goggles and a very tall thin co-driver with a leather cap leaning forward and shouting, and right in the middle of the track in front of the car a calm brown and white cow stands chewing grass and looking at the camera, spectators behind straw bales at the edge of the curve. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, sepia and brown tones only, light paper texture, slightly blurred like an old photo. Landscape format. No text, no frames except the photo border.
 ```
 
 ## Ausschneiden, Sonderfälle

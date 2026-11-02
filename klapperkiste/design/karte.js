@@ -103,13 +103,21 @@ window.Karte = function (opt = {}) {
   // Reifenspuren vom Ostufer durchs dichte Schilf nach Norden zu Kauz' versteckter Werkstatt (G9).
   // Das Schilf geht nur mit dem Mähbalken (Kategorie Vorne) weg.
   const SCHILFPFAD = [[114, 300.5], [119.5, 292], [119.5, 284], [114.5, 279]];
-  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD];
+  // Mühlenweg (G10): vom Ende des Feldwegs nach Norden über die morsche Brücke am Mühlbach zur Mühle
+  const MUEHLENWEG = [[300, 85], [302, 74], [300.5, 62], [296, 53]];
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG];
   // Campingplatz (Bild 30 m breit), Einfahrt links, Steg rechts zum Waldsee
   const CAMPING = { X: 37, Y: 282, b: 30, bereich: [37, 282, 67, 302.1],
     haeuser: [[46.6, 282, 51.7, 287.4], [57.4, 285.8, 62.5, 290.2]] };
   // Kauz' Werkstatt (Bild 24 m breit) am Nordostufer des Waldsees, im Schilf versteckt.
   // Sichtbar erst, wenn Opa von Kauz erzählt hat. Haus = Schuppen mit Blechdach.
   const KAUZ = { X: 92, Y: 271, b: 24, bereich: [92, 271, 116, 287.1], haus: [95.8, 271, 108.3, 278.8] };
+  // Mühle der Müllerin (Bild 22 m breit) hinter den Feldern im Norden, Mitte bei (x, y)
+  const MUEHLE = { x: 296, y: 40, b: 22, bereich: [285, 29, 307, 51], haus: [289, 31, 303, 46] };
+  // Mühlbach: Linie, an der morschen Holzbrücke (BRUECKE) quert der Mühlenweg
+  const BACH = [[246, 60], [262, 63.5], [278, 66], [292, 67.5], [301.2, 68], [310, 66.5], [322, 63]];
+  const BACH_BREITE = 3.2, BRUECKE = { x: 301.2, y: 68, kg: 120 };
+  const imBach = (x, y, rand = 0) => BACH.some((q, k) => k > 0 && abstandStrecke(x, y, BACH[k - 1], q) < BACH_BREITE / 2 + rand);
   // Waldsee: Kreise (x, y, r), Sandufer drumherum
   const SEE = [[81, 294, 13], [93, 302, 10], [75, 306, 8]];
   const imSee = (x, y, rand = 0) => SEE.some(([sx, sy, sr]) => Math.hypot(x - sx, y - sy) < sr + rand);
@@ -166,8 +174,8 @@ window.Karte = function (opt = {}) {
   function frei(x, y, r, vis = r, art = null) {
     if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
     if (ZAEUNE.some(([a, b]) => abstandStrecke(x, y, a, b) < vis + 0.3)) return false;
-    if (imSee(x, y, vis + 1.5)) return false;
-    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich, CAMPING.bereich, KAUZ.bereich]) {
+    if (imSee(x, y, vis + 1.5) || imBach(x, y, vis + 1)) return false;
+    for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich, CAMPING.bereich, KAUZ.bereich, MUEHLE.bereich]) {
       if (x > bx0 - r - 3 && x < bx1 + r + 3 && y > by0 - r - 3 && y < by1 + r + 3) return false;
     }
     if (x > SCHROTT.X - r - 3 && x < SCHROTT.X + SCHROTT.b + r + 3 && y > SCHROTT.Y - r - 3 && y < SCHROTT.Y + SCHROTT.h + r) return false;
@@ -357,11 +365,19 @@ window.Karte = function (opt = {}) {
         const d = Math.hypot(cx - h.x, cy - h.y), tief = h.r + r - d;
         if (tief > 0 && d > 0) schieb((cx - h.x) / d, (cy - h.y) / d, tief);
       }
+      // nicht in den Mühlbach (nur über die Brücke)
+      for (let k = 1; k < BACH.length; k++) {
+        if (Math.hypot(cx - BRUECKE.x, cy - BRUECKE.y) < 3) break;
+        const [ax, ay] = BACH[k - 1], [bx, by] = BACH[k], dx = bx - ax, dy = by - ay;
+        const tt = Math.max(0, Math.min(1, ((cx - ax) * dx + (cy - ay) * dy) / (dx * dx + dy * dy)));
+        const nx = cx - (ax + tt * dx), ny = cy - (ay + tt * dy), d = Math.hypot(nx, ny), tief = BACH_BREITE / 2 + r - d;
+        if (tief > 0 && d > 0) schieb(nx / d, ny / d, tief);
+      }
       for (const [wx, wy, wr] of SEE) { // nicht in den See
         const d = Math.hypot(cx - wx, cy - wy), tief = wr + r - d;
         if (tief > 0 && d > 0) schieb((cx - wx) / d, (cy - wy) / d, tief);
       }
-      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser, ...CAMPING.haeuser, ...(spiel.neben.kauz ? [KAUZ.haus] : [])]) {
+      for (const [sx0, sy0, sx1, sy1] of [SCHUPPEN.haus, HUETTE.haus, FOERSTER.haus, ...HOF.haeuser, ...CAMPING.haeuser, ...(spiel.neben.kauz ? [KAUZ.haus] : []), MUEHLE.haus]) {
         const hx = Math.max(sx0, Math.min(cx, sx1)), hy = Math.max(sy0, Math.min(cy, sy1));
         const d = Math.hypot(cx - hx, cy - hy);
         if (d < r && d > 0) schieb((cx - hx) / d, (cy - hy) / d, r - d);
@@ -430,7 +446,10 @@ window.Karte = function (opt = {}) {
   // lichter (Moos, G8): null | "auftrag" | "bolzen" (Bolzen gefunden, zu Opa) | "erledigt"
   // kauz: null | "suchen" (Opa hat von Kauz erzählt, Spuren führen ins Schilf) | "gefunden" (G9)
   // maehbalken (Hilde, G9): null | "auftrag" (2 Schrauben, 1 Feder) | "erledigt"
-  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null, maehbalken: null }; }
+  // muehle (G10, Die Mühlenkurve): null | "opa1" (Kauz will den Bolzen, zu Opa) | "kauz" (Opa weigert sich)
+  //   | "opa2" (Kauz fragt heimlich nach Opa) | "muellerin" (Opa schickt zur Mühle) | "mrad" (Mühlrad: 2 Federn,
+  //   2 Schrauben) | "foto" (Foto von der Mühlenkurve, zu Kauz) | "kauzlacht" (zu Opa) | "versoehnt"
+  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null, maehbalken: null, muehle: null }; }
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -703,6 +722,36 @@ window.Karte = function (opt = {}) {
       toast("🔩 Glänzender Bolzen eingesteckt. Zeig ihn Opa in der Werkstatt!", 5000);
     });
   }
+  // Altes Foto von der Mühlenkurve (G10): Mitten auf der Strecke steht eine Kuh
+  const fotoBild = () => (D.geschichte && D.geschichte.muehlenkurve
+    ? [{ bild: D.geschichte.muehlenkurve, alt: "Altes Foto: Der Donnerkeil bremst in der Mühlenkurve, mitten auf der Strecke steht eine Kuh." }] : []);
+  // G10: Müllerin Mehlich an der Mühle hinter den Feldern
+  function beiMuellerin() {
+    const n = spiel.neben, m = spiel.material;
+    const muellerin = (zeilen, danach) => gespraech("muellerin", "Müllerin Mehlich", "muehle", zeilen, danach);
+    if (n.muehle === "muellerin") {
+      return muellerin([
+        ["hallo", "Besuch! Und das über meine wacklige Brücke. Du musst ja ein Federgewicht von Auto haben. Ich bin die Müllerin Mehlich."],
+        ["nachdenken", "Die Mühlenkurve? Ach du liebe Zeit, das ist vierzig Jahre her. Bolzen und Kauz im Donnerkeil … und dann haben die beiden sich so zerstritten."],
+        ["juhu", "Ich stand damals genau da als Streckenposten. Und ich hab sogar ein Foto gemacht! Irgendwo in der Mühle muss es noch sein."],
+        ["auftrag", "Aber erst muss mein Mühlrad wieder laufen, es quietscht und hakt. Bring mir 2 Federn und 2 Schrauben, dann such ich dir das Foto raus."],
+      ], () => { n.muehle = "mrad"; fundeVerteilen(); hudNeu(); });
+    }
+    if (n.muehle === "mrad") {
+      if (m.federn < 2 || m.schrauben < 2) {
+        return muellerin([["nachdenken", `Fürs Mühlrad fehlen mir noch ${Math.max(0, 2 - m.federn)} Federn und ${Math.max(0, 2 - m.schrauben)} Schrauben.`]]);
+      }
+      m.federn -= 2; m.schrauben -= 2;
+      return muellerin([
+        ["juhu", "Federn und Schrauben! Zack, eingebaut … hörst du? Das Mühlrad klappert wieder ganz gemütlich."],
+        ["auftrag", "Und hier, das Foto. Ich hab's in der alten Keksdose gefunden. Schau's dir genau an!", ...fotoBild()],
+        ["nachdenken", "Na? Siehst du's? Bring das mal den beiden Streithähnen. Am besten zuerst Kauz, der lacht lieber als Bolzen."],
+      ], () => { n.muehle = "foto"; hudNeu(); toast("📷 Altes Foto von der Mühlenkurve eingesteckt. Zeig es Kauz!", 5000); });
+    }
+    muellerin([["hallo", n.muehle === "versoehnt"
+      ? "Bolzen und Kauz schrauben wieder zusammen? Das ist ja schöner als frisches Brot! Grüß die beiden von mir."
+      : "Schön, dass du vorbeischaust! Das Mühlrad klappert wieder, und das Mehl wird so fein wie lange nicht."]]);
+  }
   // G9: Kauz in seiner versteckten Werkstatt im Schilf
   function beiKauz() {
     const n = spiel.neben;
@@ -717,6 +766,31 @@ window.Karte = function (opt = {}) {
         ["nachdenken", "Ob ich mich bei Bolzen blicken lasse? Erst, wenn er zugibt, dass er in der Mühlenkurve zu spät gebremst hat!"],
         ["juhu", "Aber du gefällst mir. Wer selbst schraubt, ist hier willkommen. Komm wieder, ich hab bestimmt bald was für dich."],
       ], () => { n.kauz = "gefunden"; hudNeu(); toast("🦉 Kauz gefunden! Seine Hütte im Schilf steht jetzt auf der Karte.", 5000); });
+    }
+    const m10 = n.muehle;
+    if (!m10) {
+      return kauz([
+        ["nachdenken", "Da bist du ja wieder. Sag mal … der Bolzen mit dem Blitz. Den brauch ich! Ohne den hält die Hinterachse vom neuen Rahmen nicht."],
+        ["auftrag", "Hol ihn mir bei Bolzen zurück, ja? Aber sag ihm nicht, dass ich drum gebeten hab. Sag einfach … er gehört mir!"],
+      ], () => { n.muehle = "opa1"; hudNeu(); toast("🔩 Neuer Auftrag: Die Mühlenkurve. Steht im Auftragsbuch.", 4500); });
+    }
+    if (m10 === "kauz") {
+      return kauz([
+        ["nachdenken", "Er rückt ihn nicht raus? Und zu spät gebremst hat er angeblich auch nicht? Hmpf! Dann sag ihm: Falsch angesagt hab ich auch nicht!"],
+        ["nachdenken", "…"],
+        ["nachdenken", "Wie geht's ihm denn so? Zittern ihm noch die Hände beim Schrauben? … Ach, ist ja egal. Frag nicht weiter."],
+      ], () => { n.muehle = "opa2"; hudNeu(); });
+    }
+    if (m10 === "foto") {
+      return kauz([
+        ["nachdenken", "Ein Foto von der Mühlenkurve? Von der Müllerin? Zeig her …", ...fotoBild()],
+        ["juhu", "Eine KUH! Mitten auf der Strecke! Hahaha! Deshalb hat er gebremst! Und ich hab gebrüllt, er soll Gas geben!", ...fotoBild()],
+        ["juhu", "Vierzig Jahre streiten wir uns wegen einer Kuh. Ich lach mich kaputt."],
+        ["auftrag", "Weißt du was? Bring Bolzen das Foto. Ich … komm dann nach. Vielleicht. Mit was Schönem für dich."],
+      ], () => { n.muehle = "kauzlacht"; hudNeu(); });
+    }
+    if (m10 === "opa1" || m10 === "opa2" || m10 === "kauzlacht") {
+      return kauz([["nachdenken", "Na, was sagt der alte Sturkopf? Fahr ruhig zu ihm, ich warte hier. Ich hab eh zu tun."]]);
     }
     kauz([["nachdenken", istNacht()
       ? "Psst, nicht so laut, ich teste gerade die Lampen. Bolzen hat nicht zufällig nach mir gefragt? … Nein? Hmpf."
@@ -907,7 +981,7 @@ window.Karte = function (opt = {}) {
       offen.push({ ...opa, titel: "Opas Donnerkeil", stand: `${spiel.donnerkeil.length}/${DONNERKEIL_TEILE} Teile`,
         text: "Mit dem Donnerkeil hat Opa das Klappertal-Rennen dreimal gewonnen. Er ist zerlegt, die Teile sind im ganzen Tal verstreut.",
         belohnung: "Opas Rennwagen", ziel: null,
-        fehlt: spiel.donnerkeil.length ? `Gefunden: ${spiel.donnerkeil.map((t) => ({ lenkrad: "Lenkrad mit Blitz" }[t] || t)).join(", ")}. Wo die anderen wohl sind?`
+        fehlt: spiel.donnerkeil.length ? `Gefunden: ${spiel.donnerkeil.map((t) => ({ lenkrad: "Lenkrad mit Blitz", rahmen: "Donnerkeil-Rahmen" }[t] || t)).join(", ")}. Wo die anderen wohl sind?`
           : "Noch keine Spur. Die Leute im Tal wissen bestimmt mehr." });
       if (!spiel.moosRallye) {
         const licht = hatTeilEingebaut("licht");
@@ -982,6 +1056,29 @@ window.Karte = function (opt = {}) {
         ziel: maeht ? zielVon("kauz") : n.maehbalken === "erledigt" ? zielVon("schuppen") : n.maehbalken ? null : zielVon("bauernhof") });
     }
     if (n.kauz === "gefunden") erledigt.push(kauzA);
+    // G10: Die Mühlenkurve
+    const muehleA = { figur: "kauz", wer: "Tüftler Kauz", titel: "Die Mühlenkurve", belohnung: "?" };
+    const M10 = {
+      opa1: ["🔩 Bolzen holen", "Kauz will seinen Bolzen mit Blitz zurück. Opa hat ihn in der Werkstatt.", "schuppen"],
+      kauz: ["🔩 kein Bolzen", "Opa rückt den Bolzen nicht raus: „Soll er ihn sich selbst holen!“ Sag es Kauz.", "kauz"],
+      opa2: ["💬 Grüße?", "Kauz hat heimlich nach Opa gefragt. Erzähl es Opa in der Werkstatt.", "schuppen"],
+      muellerin: ["🌾 zur Mühle", "Die Müllerin war damals Streckenposten an der Mühlenkurve. Die Mühle liegt hinter den Feldern, über die morsche Brücke am Mühlbach (höchstens 120 kg).", "muehle"],
+      foto: ["📷 Foto dabei", "Die Müllerin hat ein altes Foto von der Mühlenkurve. Zeig es zuerst Kauz.", "kauz"],
+      kauzlacht: ["📷 zu Opa", "Kauz hat Tränen gelacht. Bring Opa das Foto in die Werkstatt.", "schuppen"],
+    };
+    if (M10[n.muehle]) {
+      const [stand, text, ziel] = M10[n.muehle];
+      offen.push({ ...muehleA, stand, text, ziel: zielVon(ziel) });
+    }
+    if (n.muehle === "mrad") {
+      const genug = m.federn >= 2 && m.schrauben >= 2;
+      offen.push({ figur: "muellerin", wer: "Müllerin Mehlich", titel: "Das quietschende Mühlrad", belohnung: "ein altes Foto",
+        stand: `🌀 ${Math.min(2, m.federn)}/2 · 🔩 ${Math.min(2, m.schrauben)}/2`,
+        text: genug ? "Federn und Schrauben sind im Beutel. Bring sie der Müllerin." : "Die Müllerin braucht 2 Federn und 2 Schrauben für ihr Mühlrad. Die liegen am Wegrand.",
+        ziel: genug ? zielVon("muehle") : null });
+    }
+    if (["foto", "kauzlacht", "versoehnt"].includes(n.muehle)) erledigt.push({ figur: "muellerin", wer: "Müllerin Mehlich", titel: "Das quietschende Mühlrad" });
+    if (n.muehle === "versoehnt") erledigt.push(muehleA);
     const maehA = { figur: "hilde", wer: "Bäuerin Hilde", titel: "Hildes alter Mähbalken", belohnung: "Mähbalken (schneidet Schilf)" };
     if (n.maehbalken === "auftrag") {
       const genug = m.schrauben >= 2 && m.federn >= 1;
@@ -1014,6 +1111,7 @@ window.Karte = function (opt = {}) {
     if (!spiel.rosi || (spiel.rosi === "erledigt" && !n.motor)) orte.add("camping");
     if (spiel.moosSeil === "erledigt" && !n.vogelhaus) orte.add("foersterhuette");
     if (n.vogelhaus === "erledigt" && !n.lichter) orte.add("foersterhuette");
+    if (n.kauz === "gefunden" && !n.muehle) orte.add("kauz");
     if (spiel.donnerkeil.includes("lenkrad") && !spiel.opaLenkrad) orte.add("schuppen");
     if (!spiel.opa && ["batterie", "erledigt"].includes(spiel.auftrag)) orte.add("schuppen");
     const liste = ZIELE.filter((z) => orte.has(z.id) && zielOffen(z) && zielErlaubt(z));
@@ -1261,6 +1359,7 @@ window.Karte = function (opt = {}) {
     if (spiel.moosSeil === "auftrag") Object.assign(b, { kabel: 2, federn: 2 });
     if (spiel.neben.vogelhaus === "auftrag") Object.assign(b, { blech: 2, schrauben: 2 });
     if (spiel.neben.maehbalken === "auftrag") { b.schrauben = Math.max(b.schrauben || 0, 2); b.federn = Math.max(b.federn || 0, 1); }
+    if (spiel.neben.muehle === "mrad") { b.schrauben = Math.max(b.schrauben || 0, 2); b.federn = Math.max(b.federn || 0, 2); }
     return b;
   }
   function gesucht() {
@@ -1484,6 +1583,7 @@ window.Karte = function (opt = {}) {
     { id: "weide", name: "Weideweg im Osten", x: 282, y: 248, r: 62, offen: false },
     { id: "felder", name: "Feldweg zu den Feldern", x: 300, y: 140, r: 70, offen: false }, // zeigt Hilde
     { id: "camping", name: "Holzweg und Waldsee", x: 52, y: 282, r: 58, offen: false }, // zeigt Moos
+    { id: "muehle", name: "Mühlbach und Mühle", x: 296, y: 50, r: 34, offen: false }, // zeichnet Opa ein (G10)
     { id: "ostufer", name: "Ostufer am Waldsee", x: 122, y: 298, r: 22, offen: false }, // zeichnet Moos ein (G8)
   ];
   const STUECKE = [
@@ -1547,7 +1647,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -1591,7 +1691,7 @@ window.Karte = function (opt = {}) {
     { id: "bauernhof", name: "Bauernhof", art: "ort", x: 276, y: 162, gebiet: "nord" },
     { id: "foersterhuette", name: "Försterhütte", art: "ort", x: 36, y: 197, gebiet: "wald" },
     { id: "felder", name: "Zu den Feldern", art: "weg", x: 300, y: 85, gebiet: "felder" },
-    { id: "muehle", name: "Mühle", art: "ort", x: 296, y: 45, gebiet: "felder", kommt: true },
+    { id: "muehle", name: "Mühle", art: "ort", x: 296, y: 53, gebiet: "muehle" },
     { id: "camping", name: "Campingplatz", art: "ort", x: 39, y: 289.4, gebiet: "camping" },
     { id: "ostufer", name: "Ostufer am Waldsee", art: "weg", x: 114, y: 300.5, gebiet: "ostufer" },
     // erst, wenn Opa von Kauz erzählt hat (G9)
@@ -1612,6 +1712,10 @@ window.Karte = function (opt = {}) {
     { id: "baeume", x: 38.7, y: 226, r: 3, braucht: "holzweg", titel: "Umgestürzte Bäume!",
       text: "Dicke Stämme liegen quer über dem alten Holzweg. Da kommt keiner durch.",
       fehlt: "Förster Moos zieht sie mit seinem Seilzug weg, sobald er ihn repariert hat." },
+    // Morsche Holzbrücke über den Mühlbach: trägt nur leichte Autos (Gewicht aus der Werkstatt)
+    { id: "bruecke", x: BRUECKE.x, y: BRUECKE.y + 2.5, r: 2.5, braucht: "leicht", titel: "Morsche Brücke!",
+      text: `Die Bretter knarzen schon, wenn man nur hinschaut. Mehr als ${BRUECKE.kg} kg trägt die nicht.`,
+      fehlt: () => `Dein Auto wiegt ${autoGewicht()} kg. Bau in Opas Werkstatt leichtere Teile ein (höchstens ${BRUECKE.kg} kg).` },
     // Dichtes Schilf auf den Reifenspuren zu Kauz: Der Mähbalken schneidet eine Schneise (dann weg)
     { id: "schilf", x: 119.5, y: 291, r: 3, braucht: "vorne", titel: "Dichtes Schilf!",
       text: "Das Schilf steht hier so dicht wie eine Wand. Die Reifenspuren führen mitten hinein.",
@@ -1623,7 +1727,8 @@ window.Karte = function (opt = {}) {
   // Licht braucht Strom: Ist die Batterie leer, bleibt der Scheinwerfer dunkel.
   // Gute Scheinwerfer (Teilwert ohneStrom) laufen ohne Batterie.
   const brauchtStrom = () => !(opt.werte && opt.werte().ohneStrom);
-  const hatTeil = (teil) => (teil === "holzweg" ? spiel.holzweg
+  const autoGewicht = () => Math.round((opt.werte && opt.werte().gewicht) || 0);
+  const hatTeil = (teil) => (teil === "holzweg" ? spiel.holzweg : teil === "leicht" ? autoGewicht() <= BRUECKE.kg
     : hatTeilEingebaut(teil) && (teil !== "licht" || !brauchtStrom() || spiel.strom > 0));
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
@@ -1666,7 +1771,7 @@ window.Karte = function (opt = {}) {
       $("mTitel").textContent = h.titel;
       const hupen = kann && h.aktion === "hupen";
       $("mText").textContent = hupen ? "Die Schafe stehen mitten auf dem Weg. Zeit für die Spezialhupe!" : h.text;
-      $("mFehlt").textContent = h.fehlt; $("mFehlt").hidden = hupen;
+      $("mFehlt").textContent = typeof h.fehlt === "function" ? h.fehlt() : h.fehlt; $("mFehlt").hidden = hupen;
       $("hupen").hidden = !hupen; $("zurWerkstatt").hidden = hupen;
       $("hupen").onclick = () => hupenBei(h);
       $("meldung").hidden = false;
@@ -1742,6 +1847,7 @@ window.Karte = function (opt = {}) {
       else if (zielWahl.id === "camping") beiRosi(rallyeAnbieten);
       else if (zielWahl.id === "ostufer") amOstufer();
       else if (zielWahl.id === "kauz") beiKauz();
+      else if (zielWahl.id === "muehle") beiMuellerin();
       else toast(`Angekommen: ${zielWahl.name}`);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
@@ -1916,8 +2022,10 @@ window.Karte = function (opt = {}) {
     }
     walddachZeichnen(sicht, c);
     seeMalen(c);
+    bachMalen(c);
     zeichneWege("erde", WEG_BREITE + 1.4, 0.35, c);
     zeichneWege("erde", WEG_BREITE, 1, c);
+    brueckeMalen(c);
     // Rand der Karte
     c.fillStyle = "rgba(10,20,15,0.85)";
     c.fillRect(-60, -60, W + 120, 60); c.fillRect(-60, W, W + 120, 60); c.fillRect(-60, 0, 60, W); c.fillRect(W, 0, 60, W);
@@ -1934,6 +2042,33 @@ window.Karte = function (opt = {}) {
     if (fh && fh.img.complete && fh.img.naturalWidth) c.drawImage(fh.img, FOERSTER.x - fh.b / 2, FOERSTER.y - fh.h / 2, fh.b, fh.h);
     const cp = OBJ.campingplatz;
     if (cp && cp.img.complete && cp.img.naturalWidth) c.drawImage(cp.img, CAMPING.X, CAMPING.Y, cp.b, cp.h);
+    const mu = OBJ.muehle; // Bild fehlt noch: dann bleibt die Wiese leer
+    if (mu && mu.img.complete && mu.img.naturalWidth) c.drawImage(mu.img, MUEHLE.x - mu.b / 2, MUEHLE.y - mu.h / 2, mu.b, mu.h);
+  }
+  // Mühlbach: Sandufer, darauf das Wasser als breite Linie
+  function bachMalen(c) {
+    const sand = musterVon("sand"), wasser = musterVon("wasser");
+    if (!sand || !wasser) return;
+    const linie = () => { c.beginPath(); c.moveTo(BACH[0][0], BACH[0][1]); for (const [x, y] of BACH.slice(1)) c.lineTo(x, y); };
+    c.save(); c.lineCap = "round"; c.lineJoin = "round";
+    c.strokeStyle = sand; c.lineWidth = BACH_BREITE + 2.2; c.globalAlpha = 0.7; linie(); c.stroke();
+    c.globalAlpha = 1; c.strokeStyle = wasser; c.lineWidth = BACH_BREITE; linie(); c.stroke();
+    c.restore();
+  }
+  // Morsche Holzbrücke über dem Weg: Bretter quer zum Weg, eins fehlt, zwei Geländerbalken
+  function brueckeMalen(c) {
+    c.save();
+    const bx = BRUECKE.x, by = BRUECKE.y;
+    c.fillStyle = "rgba(10,20,8,0.35)"; c.fillRect(bx - 1.6, by - 2.6, 3.6, 5.6);
+    for (let i = 0; i < 9; i++) {
+      if (i === 5) continue; // ein Brett fehlt
+      const y = by - 2.6 + i * 0.6;
+      c.fillStyle = i % 2 ? "#8a6a43" : "#7a5a36"; c.fillRect(bx - 1.8 + (i % 3) * 0.08, y, 3.6, 0.5);
+      c.strokeStyle = "#3a2818"; c.lineWidth = 0.06; c.strokeRect(bx - 1.8 + (i % 3) * 0.08, y, 3.6, 0.5);
+    }
+    c.fillStyle = "#5a3e24";
+    for (const dx of [-1.95, 1.75]) { c.fillRect(bx + dx, by - 2.8, 0.25, 5.6); }
+    c.restore();
   }
   // Waldsee: weiches Sandufer, darauf das Wasser
   function seeMalen(c) {
@@ -1952,7 +2087,7 @@ window.Karte = function (opt = {}) {
   let kachelPx = 0;
   function bodenBereit() {
     if (!["gras_ruhig", "gras", "erde", "walddach", "wasser", "sand"].every((n) => musterVon(n))) return false;
-    return ["schrottplatz", "schuppen", "huette", "bauernhof", "foersterhuette", "campingplatz"].every((n) => !OBJ[n] || (OBJ[n].img.complete && OBJ[n].img.naturalWidth));
+    return ["schrottplatz", "schuppen", "huette", "bauernhof", "foersterhuette", "campingplatz", "muehle"].every((n) => !OBJ[n] || (OBJ[n].img.complete && OBJ[n].img.naturalWidth));
   }
   function bodenAusKacheln(sicht, pxProM) {
     if (!bodenBereit()) return false;
@@ -2976,6 +3111,54 @@ window.Karte = function (opt = {}) {
         toast("📖 Neu im Auftragsbuch: Wo steckt Kauz?", 5000);
       });
       return true;
+    },
+    // G10: Opa in der Werkstatt (Bolzen verweigern, Mühle verraten, Foto, Versöhnung mit Kauz)
+    opaMuehle() {
+      const n = spiel.neben;
+      const opa = (zeilen, danach) => gespraech("opa", "Opa Bolzen", "werkstatt", zeilen, danach);
+      if (n.muehle === "opa1") {
+        opa([
+          ["nachdenken", "Kauz will seinen Bolzen zurück? SEINEN Bolzen? Den hab ich gedreht, mit diesen Händen!"],
+          ["auftrag", "Soll er ihn sich doch selbst holen, der alte Sturkopf! Und richte ihm aus: Zu spät gebremst hab ich nicht!"],
+        ], () => { n.muehle = "kauz"; hudNeu(); });
+        return true;
+      }
+      if (n.muehle === "opa2") {
+        opa([
+          ["nachdenken", "Er hat gefragt, wie's mir geht? … Hm. Die Hände zittern ein bisschen, ja. Aber schrauben kann ich noch!"],
+          ["nachdenken", "Weißt du was? Die Müllerin Mehlich stand damals an der Mühlenkurve. Die hat alles gesehen. Frag die, wer recht hat!"],
+          ["auftrag", "Die Mühle liegt hinter den Feldern im Norden, über den Mühlbach. Ich zeichne sie dir ein. Aber Vorsicht: Die alte Brücke ist morsch, die trägt nur ein leichtes Auto!"],
+        ], () => {
+          n.muehle = "muellerin"; hudNeu();
+          const g = GEBIETE.find((q) => q.id === "muehle");
+          if (!g.offen) { g.offen = true; nebelNeu(); }
+          toast("🌾 Neu auf der Karte: Mühlbach und Mühle (Brücke höchstens 120 kg)", 5000);
+        });
+        return true;
+      }
+      if (n.muehle === "kauzlacht") {
+        opa([
+          ["nachdenken", "Ein Foto? Von der Mühlenkurve? Na zeig schon her …", ...fotoBild()],
+          ["nachdenken", "Das ist … eine Kuh. Mitten auf der Strecke. Die hatte ich ja ganz vergessen.", ...fotoBild()],
+          ["juhu", "Hehe … hehehe … vierzig Jahre! Wegen einer Kuh!"],
+        ], () => {
+          // Kauz steht in der Tür: kurzes Hin und Her zwischen den beiden
+          const kauz = (zeilen, danach) => gespraech("kauz", "Tüftler Kauz", "werkstatt", zeilen, danach);
+          kauz([["nachdenken", "Na, Fahrer?"]], () => opa([["juhu", "Na, Beifahrer! … Komm rein, alter Kauz. Der Kaffee ist noch warm."]], () => kauz([
+            ["auftrag", "Ich hab was mitgebracht. Den Rahmen vom Donnerkeil hab ich damals gerettet, und daraus hab ich nachts einen neuen gebaut. Leicht und stark, nach unserem alten Plan."],
+            ["juhu", "Der ist für dich. Bau ihn in deine Klapperkiste! Und den Bolzen, den behalten wir beide. Abwechselnd."],
+          ], () => {
+            n.muehle = "versoehnt";
+            if (!spiel.donnerkeil.includes("rahmen")) spiel.donnerkeil.push("rahmen");
+            spiel.teile.add("donnerkeilrahmen");
+            if (opt.belohnung) opt.belohnung("donnerkeilrahmen");
+            hudNeu();
+            toast("⚡ Donnerkeil-Rahmen erhalten (Donnerkeil-Teil 2/8)! Liegt in Opas Werkstatt im Regal.", 6000);
+          })));
+        });
+        return true;
+      }
+      return false;
     },
     // In Opas Werkstatt: Reifen flicken, Tank füllen und Batterie laden (kostenlos)
     beiOpa() {

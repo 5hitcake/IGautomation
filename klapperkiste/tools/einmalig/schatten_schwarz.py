@@ -26,6 +26,8 @@ from charakter import schatten_schwarz  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CH = os.path.join(ROOT, "assets", "charaktere")
 AUSLASSEN = {"roh", "hintergrund", "moos"}
+
+
 def main() -> int:
     probe = sys.argv[sys.argv.index("--probe") + 1] if "--probe" in sys.argv else None
     reihen = []

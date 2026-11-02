@@ -30,7 +30,8 @@ ZIEL_TEILE = os.path.join(ROOT, "design", "spielstart_teile.js")
 BODEN = ["gras_ruhig", "gras", "erde", "schotter", "walddach", "wasser", "sand"]
 OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz",
            "reifen", "batterie", "huette",
-           "bauernhof", "foersterhuette", "campingplatz", "kauzwerkstatt"]
+           "bauernhof", "foersterhuette", "campingplatz", "kauzwerkstatt", "muehle"]
+KOMMT = ["muehle"]  # Orte, deren Bild noch fehlen darf
 RALLYE = ["pfuetze", "ast", "wurzel", "schlagloch"]  # Hindernisse der Waldrallye (freiwillig)
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
          "radV": "schubkarre", "motor": "maeher", "energie": "giesskanne", "sitz": "kuechenstuhl",
@@ -147,8 +148,8 @@ def main() -> int:
         daten["boden"][name] = {"bild": _uri(k), "meter": k.width / 32}
     for name in OBJEKTE + RALLYE:
         pfad = os.path.join(ROOT, "assets", "karte", "objekte", f"{name}.png")
-        if name in RALLYE and not os.path.exists(pfad):
-            continue  # noch kein Bild: die Rallye zeichnet das Hindernis selbst
+        if name in RALLYE + KOMMT and not os.path.exists(pfad):
+            continue  # noch kein Bild: die Rallye zeichnet das Hindernis selbst, Orte bleiben leer
         o = Image.open(pfad).convert("RGBA")
         daten["objekte"][name] = {"bild": _uri(o), "breite": o.width / 32, "hoehe": o.height / 32}
     for name in TIERE:
