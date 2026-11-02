@@ -16,12 +16,16 @@
 //   ohneStrom  true: das Licht braucht keine Batterie (bessere Scheinwerfer, z. B. mit Dynamo)
 //   laut       Lautstärke 1–10 (Hupe)
 //   gewicht    kg, bei Rädern und Achsen je Stück
+//   auflage    nur Rahmen, Seitenansicht: so viele Zellen unter der Kastenoberkante liegt die
+//              Schiene in der Mitte; Motor, Tank, Sitz, Lenkung und Hupe rutschen so weit nach unten
+//   rahmenVorne nur Rahmen: in der Seitenansicht über die Teile gezeichnet (hochgeschwungene
+//              Enden verdecken den unteren Teil von Motor und Tank)
 // text: ein, zwei Sätze zum Teil. extras: kurze Besonderheiten.
 window.TEILWERTE = (function () {
   const W = {
     bettgestell: { robust: 2, gewicht: 25, text: "Ein altes Eisenbett, die Matratze ist längst weg. Trägt alles, quietscht aber bei jeder Bodenwelle.", extras: ["Quietscht"] },
     // Donnerkeil-Teil (2/8): Kauz hat ihn nachts nach dem alten Plan neu gebaut, leicht und stark
-    donnerkeilrahmen: { robust: 8, gewicht: 12, text: "Der Rahmen vom Donnerkeil, von Kauz nach dem alten Plan neu gebaut. Leicht wie eine Feder und stark wie ein Brückenpfeiler.", extras: ["Donnerkeil", "Leicht"] },
+    donnerkeilrahmen: { robust: 8, gewicht: 12, auflage: 0.42, rahmenVorne: true, text: "Der Rahmen vom Donnerkeil, von Kauz nach dem alten Plan neu gebaut. Leicht wie eine Feder und stark wie ein Brückenpfeiler.", extras: ["Donnerkeil", "Leicht"] },
     rostachse: { robust: 2, gewicht: 8, text: "Rostig, aber sie dreht sich noch. Meistens.", extras: [] },
 
     schubkarre: { grip: 2, gewicht: 4, text: "Klein, leicht und hart wie ein Stein. Auf glatten Wegen reicht das.", extras: ["Nur für glatte Wege"] },

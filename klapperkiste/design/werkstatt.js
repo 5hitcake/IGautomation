@@ -292,9 +292,21 @@ window.Werkstatt = function (opt = {}) {
   function rects(slot, L) {
     const [b, hh] = R.kategorien[kat(slot)][state.view];
     const pos = state.view === "seite" ? [R.slots[slot].seite] : R.slots[slot].oben;
-    return pos.map(([x, y], i) => ({ x: L.ox + x * L.cell, y: L.oy + y * L.cell, w: b * L.cell, h: hh * L.cell, flip: i === 1 }));
+    // Rahmen mit tiefer liegender Schiene (Donnerkeil): Aufbauten sitzen tiefer
+    const tief = state.view === "seite" && AUF_RAHMEN.includes(slot) ? (rahmenWert("auflage") || 0) * L.cell : 0;
+    return pos.map(([x, y], i) => ({ x: L.ox + x * L.cell, y: L.oy + y * L.cell + tief, w: b * L.cell, h: hh * L.cell, flip: i === 1 }));
   }
 
+  const AUF_RAHMEN = ["motor", "energie", "sitz", "lenkung", "hupe"];
+  const rahmenWert = (k) => state.mounted.rahmen && (window.TEILWERTE || {})[state.mounted.rahmen] && window.TEILWERTE[state.mounted.rahmen][k];
+  // Zeichenreihenfolge; ein Rahmen mit rahmenVorne liegt in der Seitenansicht über den Aufbauten
+  function reihenfolge() {
+    const o = R["reihenfolge_" + state.view].filter((s) => SLOTS.includes(s));
+    if (state.view !== "seite" || !rahmenWert("rahmenVorne")) return o;
+    const ohne = o.filter((s) => s !== "rahmen");
+    ohne.splice(ohne.indexOf("karoH"), 0, "rahmen");
+    return ohne;
+  }
   // In der Seitenansicht ist die Achse hinter dem Rad unsichtbar
   function visible(slot) {
     if (state.view === "seite" && kat(slot) === "achse") return !state.mounted[slot === "achseH" ? "radH" : "radV"];
@@ -438,7 +450,7 @@ window.Werkstatt = function (opt = {}) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const L = layout(w, h);
     drawWorkshop(ctx, w, h, L);
-    const order = R["reihenfolge_" + state.view].filter((s) => SLOTS.includes(s));
+    const order = reihenfolge();
     for (const slot of order) {
       const inHand = drag && drag.fromSlot === slot;
       if (state.mounted[slot] && !inHand) { if (visible(slot)) drawPart(ctx, slot, L, now); }
@@ -456,7 +468,7 @@ window.Werkstatt = function (opt = {}) {
   // Oberstes sichtbares Teil (oder leerer Platz) unter einem Punkt der Bühne
   function hitSlot(pt) {
     const L = layout(pt.w, pt.h);
-    const order = R["reihenfolge_" + state.view].filter((sl) => SLOTS.includes(sl)).reverse();
+    const order = reihenfolge().reverse();
     const inside = (sl) => rects(sl, L).some((r) => pt.x >= r.x && pt.x <= r.x + r.w && pt.y >= r.y && pt.y <= r.y + r.h);
     // Eingebaute Teile haben Vorrang vor leeren Plätzen
     return order.find((sl) => state.mounted[sl] && visible(sl) && inside(sl)) ||
