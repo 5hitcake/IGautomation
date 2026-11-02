@@ -20,6 +20,8 @@
 window.TEILWERTE = (function () {
   const W = {
     bettgestell: { robust: 2, gewicht: 25, text: "Ein altes Eisenbett, die Matratze ist längst weg. Trägt alles, quietscht aber bei jeder Bodenwelle.", extras: ["Quietscht"] },
+    // Donnerkeil-Teil (2/8): Kauz hat ihn nachts nach dem alten Plan neu gebaut, leicht und stark
+    donnerkeilrahmen: { robust: 8, gewicht: 12, text: "Der Rahmen vom Donnerkeil, von Kauz nach dem alten Plan neu gebaut. Leicht wie eine Feder und stark wie ein Brückenpfeiler.", extras: ["Donnerkeil", "Leicht"] },
     rostachse: { robust: 2, gewicht: 8, text: "Rostig, aber sie dreht sich noch. Meistens.", extras: [] },
 
     schubkarre: { grip: 2, gewicht: 4, text: "Klein, leicht und hart wie ein Stein. Auf glatten Wegen reicht das.", extras: ["Nur für glatte Wege"] },

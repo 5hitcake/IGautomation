@@ -267,4 +267,9 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G7 | Waldrallye (erstes Rennen) | ✅ |
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
 | G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ |
-| G10 | Die Mühlenkurve: Botengänge, Mühle mit Brücke (Gewicht), Foto, Versöhnung, Donnerkeil-Rahmen | ✅ (Bilder fehlen noch) |
+| G10 | Die Mühlenkurve: Botengänge, Mühle mit Brücke (Gewicht), Foto, Versöhnung, Donnerkeil-Rahmen | ✅ (Bilder: siehe Wiedervorlage) |
+
+## Wiedervorlage (Bilder später)
+
+- **Mühle von oben** (Kartenobjekt `muehle`, 22 m): bis dahin steht neben der Brücke nur Wiese.
+- **Mühle als Gesprächshintergrund** (`muehle.png`, `muehle_nacht.png`): bis dahin Holz-Platzhalter.

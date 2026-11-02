@@ -248,6 +248,8 @@ An old faded sepia photograph from the 1960s with a white border and one bent co
   (Lücke zwischen erhobenem Arm und Kopf).
 - **Tüftler Kauz:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/kauz.jpg kauz --loch nachdenken:0.692,0.192`
   (Lücke zwischen erhobenem Arm und Kopf).
+- **Müllerin Mehlich:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/muellerin.jpg muellerin --loch hallo:0.537,0.882 --loch nachdenken:0.508,0.874 --loch auftrag:0.508,0.866 --loch juhu:0.505,0.861 --loch nachdenken:0.251,0.242 --loch nachdenken:0.77,0.435 --loch auftrag:0.802,0.438`
+  (Lücke zwischen den Beinen, zwischen Arm und Kopf und in den Armbeugen; die Mehlwölkchen bleiben).
 - **Hüttenwirt Frieder:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/frieder.jpg frieder --loch nachdenken:0.25,0.259`
   (Lücke zwischen Arm und Kopf).
 - Immer automatisch: kleine Löcher in der Figur werden geschlossen, kleine

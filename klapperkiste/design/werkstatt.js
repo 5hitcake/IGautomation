@@ -13,6 +13,7 @@ window.Werkstatt = function (opt = {}) {
 
   const ALLE_TEILE = [
     { id: "bettgestell", kat: "rahmen", name: "Bettgestell-Rahmen" },
+    { id: "donnerkeilrahmen", kat: "rahmen", name: "Donnerkeil-Rahmen" },
     { id: "rostachse", kat: "achse", name: "Rostige Achse" },
     { id: "schubkarre", kat: "rad", name: "Schubkarrenrad" },
     { id: "autoreifen", kat: "rad", name: "Autoreifen" },
