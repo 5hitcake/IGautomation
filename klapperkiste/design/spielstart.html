@@ -245,6 +245,7 @@ body { position: fixed; inset: 0; }
     zurWerkstatt: () => zeige("werkstatt"),
     gekauft: (id) => W.neuesTeil(id),
     belohnung: (id) => W.neuesTeil(id),
+    speichern: () => speichern(),
     unterwegs: () => {
       if (schritt !== 4) return;
       schritt = 5; leuchte("karteAuf", false);

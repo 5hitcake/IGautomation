@@ -2099,12 +2099,14 @@ window.Karte = function (opt = {}) {
     for (let ky = y0; ky <= y1; ky++) for (let kx = x0; kx <= x1; kx++) {
       const key = kx + "," + ky;
       let k = kacheln.get(key);
+      // Auf dem Handy kann der Browser bei Speichernot einzelne Zeichenflächen verwerfen: dann neu malen
+      if (k && k.getContext("2d").isContextLost && k.getContext("2d").isContextLost()) { kacheln.delete(key); k = null; }
       if (!k) {
         k = document.createElement("canvas"); k.width = k.height = px;
         const c = k.getContext("2d"), wx = kx * KACHEL, wy = ky * KACHEL, f = px / KACHEL;
         c.setTransform(f, 0, 0, f, -wx * f, -wy * f);
         bodenMalen(c, { x0: wx, x1: wx + KACHEL, y0: wy, y1: wy + KACHEL });
-        if (kacheln.size > 80) kacheln.delete(kacheln.keys().next().value); // älteste weg
+        if (kacheln.size > 48) kacheln.delete(kacheln.keys().next().value); // älteste weg (Speicher auf dem Handy)
       } else kacheln.delete(key);
       kacheln.set(key, k); // zuletzt benutzt ans Ende
       ctx.drawImage(k, kx * KACHEL, ky * KACHEL, KACHEL + ueber, KACHEL + ueber);
@@ -2738,6 +2740,23 @@ window.Karte = function (opt = {}) {
     Ton.uhu();
     if (Math.random() < 0.35) Ton.uhu(undefined, undefined, 2.2 + Math.random()); // manchmal antwortet ein zweiter
   }
+  // Verliert der Browser die Zeichenfläche (Speichernot auf dem Handy), bleibt nur Grün übrig.
+  // Kommt sie nicht von selbst zurück, wird nach dem Speichern neu geladen (Spielstand bleibt).
+  let zeichenFehler = false, verlorenSeit = 0;
+  cv.addEventListener("contextrestored", () => { kacheln.clear(); verlorenSeit = 0; });
+  function bildVerlorenPruefen(t) {
+    const weg = ctx.isContextLost && ctx.isContextLost();
+    if (!weg) { verlorenSeit = 0; return; }
+    if (!verlorenSeit) { verlorenSeit = t; kacheln.clear(); return; }
+    if (t - verlorenSeit > 2500 && !$("bildWeg")) {
+      const k = document.createElement("button");
+      k.id = "bildWeg"; k.type = "button"; k.className = "knopf";
+      k.textContent = "🔄 Bild neu laden (dein Spielstand bleibt)";
+      k.style.cssText = "position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50";
+      k.addEventListener("click", () => { if (opt.speichern) opt.speichern(); location.reload(); });
+      cv.parentElement.append(k);
+    }
+  }
   function bild(t) {
     const dt = Math.min(0.05, (t - (zuletzt || t)) / 1000);
     zuletzt = t;
@@ -2753,8 +2772,14 @@ window.Karte = function (opt = {}) {
       wetterSchritt(dt);
       zeitSchritt(dt);
       tiereSchritt(dt);
-      if (!$("grosskarte").hidden) grossBild(); // die große Karte verdeckt alles: nur sie (mit blinkenden Aufgaben) malen
-      else if ($("gespraech").hidden) zeichne(); // im Gespräch verdeckt das Gesprächsbild die Karte
+      try {
+        if (!$("grosskarte").hidden) grossBild(); // die große Karte verdeckt alles: nur sie (mit blinkenden Aufgaben) malen
+        else if ($("gespraech").hidden) zeichne(); // im Gespräch verdeckt das Gesprächsbild die Karte
+      } catch (e) {
+        // Ein Fehler beim Malen darf das Spiel nicht anhalten; einmal melden, damit man ihn findet
+        if (!zeichenFehler) { zeichenFehler = true; toast(`Hoppla, beim Zeichnen ging etwas schief: ${e && e.message}`, 8000); console.error(e); }
+      }
+      bildVerlorenPruefen(t);
     } else if (Ton && Ton.grillen) Ton.grillen(0); // Werkstatt: keine Grillen
     requestAnimationFrame(bild);
   }
