@@ -674,7 +674,7 @@ window.Karte = function (opt = {}) {
   function lichterAuftrag(zeilen) {
     zeilen.push(
       ["auftrag", "Pass auf: Vom Waldsee aus seh ich die Lichter jede Nacht am Ostufer. Da drüben, wo das Schilf so hoch steht."],
-      ["auftrag", "Südlich von Opas Schuppen führt ein alter Anglerpfad hin. Ich zeichne ihn dir auf die Karte. Fahr mal nachts hin und schau nach, ja? Mir ist das nicht geheuer."]);
+      ["auftrag", "Südlich von Opas Schuppen führt ein alter Anglerpfad hin. Ich zeichne ihn dir auf die Karte. Fahr mal hin und schau nach, ja? Die Lichter siehst du nur nachts. Mir ist das nicht geheuer."]);
     spiel.neben.lichter = "auftrag";
     const g = GEBIETE.find((q) => q.id === "ostufer");
     if (!g.offen) { g.offen = true; nebelNeu(); }
@@ -684,15 +684,21 @@ window.Karte = function (opt = {}) {
   function amOstufer() {
     const n = spiel.neben;
     if (n.lichter !== "auftrag") return toast(n.kauz ? "Die Reifenspuren verschwinden im dichten Schilf. Da kommt die Klapperkiste nicht durch." : "Angekommen: Ostufer am Waldsee");
-    if (!istNacht()) return toast("Nur Schilf, Matsch und ein paar Enten. Die Lichter tanzen nur nachts hier.", 4500);
     const blitz = spiel.donnerkeil.includes("lenkrad") ? "Genau so einer ist auf dem Lenkrad, das du Opa gebracht hast!" : "Wie auf dem Donnerkeil auf Opas altem Foto!";
-    gespraech("erzaehler", "Am Ostufer", "ostufer", [
+    const bolzenBild = D.geschichte && D.geschichte.bolzen ? [{ bild: D.geschichte.bolzen, alt: "Ein blanker Bolzen mit eingeritztem Blitz im Matsch." }] : [];
+    // Nachts sieht man die Lichter davonsausen; tagsüber findet man nur die Spuren und den Bolzen
+    const zeilen = istNacht() ? [
       ["", "Da! Drei blasse Lichter schweben über dem Schilf. Sie flackern … und sausen plötzlich davon, übers Wasser, mitten ins Schilf hinein."],
       ["", "Ein Motor brummt kurz auf, tief und rau. Dann ist alles still. Nur die Frösche quaken."],
       ["", "Im Matsch am Ufer: frische Reifenspuren. Sie führen geradewegs ins Schilf, aber da ist es viel zu dicht zum Durchfahren."],
-      ["", `Und da glänzt etwas im Scheinwerferlicht: ein schwerer, blanker Bolzen mit einem eingeritzten Blitz. ${blitz}`,
-        ...(D.geschichte && D.geschichte.bolzen ? [{ bild: D.geschichte.bolzen, alt: "Ein blanker Bolzen mit eingeritztem Blitz im Matsch." }] : [])],
-    ], () => {
+      ["", `Und da glänzt etwas im Scheinwerferlicht: ein schwerer, blanker Bolzen mit einem eingeritzten Blitz. ${blitz}`, ...bolzenBild],
+    ] : [
+      ["", "Am Ufer ist alles ruhig. Ein paar Enten paddeln durchs Schilf, von Lichtern keine Spur."],
+      ["", "Aber im Matsch: frische Reifenspuren, breit und tief, und ein paar Tropfen Öl. Sie führen geradewegs ins Schilf, viel zu dicht zum Durchfahren."],
+      ["", `Und da, halb im Matsch: ein schwerer, blanker Bolzen mit einem eingeritzten Blitz. ${blitz}`, ...bolzenBild],
+      ["", "Irgendwer fährt hier nachts herum. Und dieser Irgendwer hat etwas verloren."],
+    ];
+    gespraech("erzaehler", "Am Ostufer", "ostufer", zeilen, () => {
       n.lichter = "bolzen"; hudNeu();
       toast("🔩 Glänzender Bolzen eingesteckt. Zeig ihn Opa in der Werkstatt!", 5000);
     });
@@ -766,7 +772,7 @@ window.Karte = function (opt = {}) {
     } else if (spiel.neben.vogelhaus === "erledigt" && !spiel.neben.lichter) {
       lichterAuftrag(zeilen);
     } else if (spiel.neben.lichter === "auftrag") {
-      zeilen.push(["nachdenken", "Warst du schon nachts am Ostufer? Die Lichter tanzen nur, wenn es richtig dunkel ist. Nimm den alten Anglerpfad südlich von Opas Schuppen."]);
+      zeilen.push(["nachdenken", "Warst du schon am Ostufer? Nimm den alten Anglerpfad südlich von Opas Schuppen. Die Lichter tanzen dort nur, wenn es richtig dunkel ist."]);
     } else if (spiel.neben.lichter === "bolzen") {
       zeilen.push(["nachdenken", "Ein Bolzen mit einem Blitz drauf? Zeig den mal Opa Bolzen. Der weiß bestimmt, wo der herkommt."]);
     } else if (moosKennt) {
@@ -960,8 +966,8 @@ window.Karte = function (opt = {}) {
     }
     if (n.vogelhaus === "erledigt") erledigt.push(vogel);
     const lichter = { figur: "moos", wer: "Förster Moos", titel: "Die Lichter am Waldsee", belohnung: "eine Spur" };
-    if (n.lichter === "auftrag") offen.push({ ...lichter, stand: istNacht() ? "🌙 jetzt ist Nacht" : "☀️ erst nachts",
-      text: "Moos sieht jede Nacht Lichter am Ostufer des Waldsees. Fahr nachts über den alten Anglerpfad hin und schau nach.",
+    if (n.lichter === "auftrag") offen.push({ ...lichter, stand: istNacht() ? "🌙 jetzt ist Nacht" : "🔍 Ostufer",
+      text: "Moos sieht jede Nacht Lichter am Ostufer des Waldsees. Fahr über den alten Anglerpfad hin und schau nach (die Lichter selbst siehst du nur nachts).",
       ziel: zielVon("ostufer") });
     if (n.lichter === "bolzen") offen.push({ ...lichter, stand: "🔩 Bolzen dabei",
       text: "Am Ostufer lag ein Bolzen mit einem Blitz drauf. Zeig ihn Opa in der Werkstatt.", ziel: zielVon("schuppen") });
@@ -2958,7 +2964,7 @@ window.Karte = function (opt = {}) {
       const bolzen = D.geschichte && D.geschichte.bolzen ? [{ bild: D.geschichte.bolzen, alt: "Der blanke Bolzen mit dem eingeritzten Blitz." }] : [];
       gespraech("opa", "Opa Bolzen", "werkstatt", [
         ["nachdenken", "Was hast du denn da? Zeig mal her … ein Bolzen. Mit einem Blitz drauf.", ...bolzen],
-        ["nachdenken", "Den hab ich selbst gedreht, für die Hinterachse vom Donnerkeil. Am Ostufer lag der? Nachts, bei den Lichtern?", ...bolzen],
+        ["nachdenken", "Den hab ich selbst gedreht, für die Hinterachse vom Donnerkeil. Am Ostufer lag der? Da, wo Moos die Lichter sieht?", ...bolzen],
         ["nachdenken", "Dann ist er also noch da. Der alte Kauz."],
         ["auftrag", "Kauz war mein Beifahrer. Zusammen haben wir den Donnerkeil gebaut, Schraube für Schraube. Der Lange auf dem Foto, das ist er.",
           ...(foto ? [{ bild: foto, alt: "Altes Foto: der junge Opa Bolzen und Kauz, ein großer, dünner Mann mit Werkzeuggürtel, mit dem Pokal neben dem Donnerkeil." }] : [])],

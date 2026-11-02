@@ -126,10 +126,11 @@ sie mit **Gold** abgeschlossen hat.
 ## Die Lichter am Waldsee (G8)
 
 - **Auftrag von Moos:** Nach dem Vogelhaus erzählt Moos von Kauz und schickt einen nachts
-  ans Ostufer des Waldsees. Er zeichnet das Ostufer und den **alten Anglerpfad** ein (zweigt
+  ans Ostufer des Waldsees (am besten nachts). Er zeichnet das Ostufer und den **alten Anglerpfad** ein (zweigt
   südlich von Opas Schuppen von der Schleife nach Westen ab). Ziel „Ostufer am Waldsee“.
-- **Tagsüber** ist dort nur Schilf und Matsch („Die Lichter tanzen nur nachts hier“).
-- **Nachts** (mit Licht): Erzähltext ohne Figur („Am Ostufer“, Hintergrund `ostufer`): Die
+- **Tagsüber** (Erzähltext, Hintergrund `ostufer`, bis zum Tagbild das Nachtbild): Am Ufer ist es ruhig,
+  aber im Matsch liegen frische Reifenspuren mit Öltropfen und der Bolzen. Die Lichter sieht man nur nachts.
+- **Nachts** (mit Licht): Erzähltext ohne Figur („Am Ostufer“, Hintergrund `ostufer_nacht`): Die
   drei Lichter sausen übers Wasser ins Schilf, ein Motor brummt, frische Reifenspuren führen
   ins Schilf. Im Matsch liegt ein **Bolzen mit eingeritztem Blitz** (Bild `assets/geschichte/bolzen.jpg`,
   erscheint im Gespräch am Ufer und bei Opa).
