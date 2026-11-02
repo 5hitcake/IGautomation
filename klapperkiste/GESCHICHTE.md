@@ -246,5 +246,5 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | ✅ |
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
-| G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ (Kauz' Werkstatt bei Tag fehlt noch, bis dahin Nachtbild) |
+| G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ |
 | G10 | Kauz' erster Auftrag, Weg zur Versöhnung mit Opa | offen |

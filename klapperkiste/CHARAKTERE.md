@@ -131,7 +131,8 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Försterhütte (Moos) | `foersterhuette.png` | ✅ |
 | Campingplatz (Rosi) | `camping.png` | ✅ |
 | Ostufer bei Nacht (Erzähltext G8) | `ostufer.png` | ✅ |
-| Kauz' Werkstatt (G9) | `kauz.png` (Tag) / `kauz_nacht.png` | Nacht ✅, Tag offen |
+| Kauz' Werkstatt (G9) | `kauz.png` (Tag) / `kauz_nacht.png` | ✅ Tag und Nacht |
+| Nachtbilder | `schrottplatz_nacht.png`, `werkstatt_nacht.png`, `bauernhof_nacht.png` | ✅ (Försterhütte und Campingplatz offen) |
 | Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | ✅ (Lage der gemalten Hebebühne steht als `BUEHNE` in `design/werkstatt.js`) |
 
 ### Opas Werkstatt
