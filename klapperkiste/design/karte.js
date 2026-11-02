@@ -257,10 +257,25 @@ window.Karte = function (opt = {}) {
         if (ty < W - 4 && setze("nadelbaum", sx + Math.cos(w) * d, ty)) n++;
       }
     }
-    // Helle Laubbäume und Büsche passen nicht in den dunklen Nadelwald
+    // Helle Laubbäume, Büsche und Felsen passen nicht in den dunklen Nadelwald (unter dem
+    // hohen Walddach sieht man den Boden nicht)
     for (let k = OBJEKTE.length - 1; k >= 0; k--) {
       const o = OBJEKTE[k];
       if ((o.art === "laubbaum" || o.art === "busch") && imWald(o.x, o.y, -4)) OBJEKTE.splice(k, 1);
+      else if (o.art === "felsbrocken" && imWald(o.x, o.y, 2)) OBJEKTE.splice(k, 1);
+    }
+    // Wie in der Rallye: Nadelbäume dicht am Waldweg, ihre Kronen ragen über den Weg
+    for (const w of [ABZWEIG, WALDPFAD, HOLZWEG]) for (let i = 1; i < w.length; i++) {
+      const [ax, ay] = w[i - 1], [bx, by] = w[i], l = Math.hypot(bx - ax, by - ay);
+      for (let s = 1.5; s < l; s += 3.2 + rnd() * 1.6) for (const seite of [-1, 1]) {
+        if (rnd() < 0.2) continue;
+        const x = ax + (bx - ax) * s / l, y = ay + (by - ay) * s / l, d = WEG_BREITE / 2 + 0.9 + rnd() * 0.9;
+        const tx = x - (by - ay) / l * d * seite, ty = y + (bx - ax) / l * d * seite;
+        if (!imWald(tx, ty, -3) || abstandWeg(tx, ty) < WEG_BREITE / 2 + 0.8) continue;
+        if ([FOERSTER.bereich, CAMPING.bereich, KAUZ.bereich].some(([a, b, c, e]) => tx > a - 2 && tx < c + 2 && ty > b - 2 && ty < e + 2)) continue;
+        if (OBJEKTE.some((o) => o.art === "nadelbaum" && Math.hypot(o.x - tx, o.y - ty) < 2.6)) continue;
+        setze("nadelbaum", tx, ty, { fest: true, r: 0.45 });
+      }
     }
     OBJEKTE.sort((a, b) => a.y - b.y);
   }
@@ -2598,10 +2613,16 @@ window.Karte = function (opt = {}) {
   }
   const imBild = (x, y, sicht, rand = 3) => x > sicht.x0 - rand && x < sicht.x1 + rand && y > sicht.y0 - rand && y < sicht.y1 + rand;
   // Am Boden: Schafe, Hasen, sitzende Vögel und die Schatten der fliegenden
+  // Unter dem hohen Walddach (nicht auf Wegen und Lichtungen) sieht man nichts vom Boden
+  function unterDach(x, y) {
+    if (!WALD.some(([wx, wy, wr]) => Math.hypot(x - wx, y - wy) < wr * 0.95)) return false;
+    if (abstandWeg(x, y) < WEG_BREITE / 2 + 0.6) return false;
+    return ![FOERSTER.bereich, CAMPING.bereich, KAUZ.bereich].some(([a, b, c, e]) => x > a && x < c && y > b && y < e);
+  }
   function tiereBoden(sicht) {
     const T = TIERBILD;
     const berta = BERTA.da ? [BERTA] : [];
-    for (const sf of [...SCHAFE, ...berta, ...HERDE.map((q) => ({ ...q, art: "schaf", grast: q.grast && !q.flucht }))]) if (imBild(sf.x, sf.y, sicht) && T[sf.art]) {
+    for (const sf of [...SCHAFE, ...berta, ...HERDE.map((q) => ({ ...q, art: "schaf", grast: q.grast && !q.flucht }))]) if (imBild(sf.x, sf.y, sicht) && T[sf.art] && !unterDach(sf.x, sf.y)) {
       const b = T[sf.art][sf.grast ? 1 : 0];
       tierSchatten(b, sf.x + 0.15, sf.y + 0.15, sf.a, 1, 1);
       tierZeichnen(b, sf.x, sf.y, sf.a);
@@ -2610,7 +2631,7 @@ window.Karte = function (opt = {}) {
     const wach = tagTiere();
     if (wach <= 0) return;
     ctx.save(); ctx.globalAlpha = wach;
-    for (const h of HASEN) if (imBild(h.x, h.y, sicht) && T.hase) {
+    for (const h of HASEN) if (imBild(h.x, h.y, sicht) && T.hase && !unterDach(h.x, h.y)) {
       const b = T.hase[h.phase > 0 ? 1 : 0], hub = h.phase > 0 ? Math.sin((0.22 - h.phase) / 0.22 * Math.PI) * 0.25 : 0;
       tierSchatten(b, h.x + 0.1, h.y + 0.1, h.a, 1, 1);
       tierZeichnen(b, h.x - hub * 0.3, h.y - hub * 0.3, h.a, 1 + hub * 0.3);
@@ -2619,9 +2640,11 @@ window.Karte = function (opt = {}) {
     for (const v of [...VOEGEL, ...ueberflug.voegel]) {
       if (!imBild(v.x + v.z * 0.6, v.y + v.z * 0.6, sicht, 6)) continue;
       const b = T.vogel[v.fliegt && Math.sin(v.flap * 2) > 0 ? 0 : 1];
-      // Je höher, desto weiter weg (nach unten rechts) und blasser liegt der Schatten
-      tierSchatten(b, v.x + v.z * 0.6, v.y + v.z * 0.6, v.a, 1, Math.max(0.5, 1 - v.z * 0.03));
-      if (!v.fliegt) tierZeichnen(b, v.x, v.y, v.a, 0.85);
+      // Je höher, desto weiter weg (nach unten rechts) und blasser liegt der Schatten.
+      // Über dem Wald fällt er auf die hohen Kronen: dann ganz nah am Vogel und kleiner
+      const dach = unterDach(v.x, v.y), sz = dach ? Math.min(v.z, 1.2) : v.z;
+      if (!(dach && !v.fliegt)) tierSchatten(b, v.x + sz * 0.6, v.y + sz * 0.6, v.a, 1, Math.max(0.5, 1 - sz * 0.03));
+      if (!v.fliegt && !dach) tierZeichnen(b, v.x, v.y, v.a, 0.85);
     }
     ctx.restore();
   }
