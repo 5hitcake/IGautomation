@@ -45,7 +45,9 @@ jobs:
           for attempt in range(4):
               try:
                   print("HF_TOKEN gesetzt:", bool(os.environ.get("HF_TOKEN")))
-                  c = Client("ACE-Step/ACE-Step", hf_token=os.environ.get("HF_TOKEN") or None, verbose=False)
+                  import inspect
+                  key = "token" if "token" in inspect.signature(Client.__init__).parameters else "hf_token"
+                  c = Client("ACE-Step/ACE-Step", verbose=False, **{key: os.environ.get("HF_TOKEN") or None})
                   res = c.predict(audio_duration=30, prompt=os.environ["PROMPT"], lyrics="[instrumental]",
                                   infer_step=60, manual_seeds=os.environ["SEED"], api_name="/__call__")
                   ext = res[0][res[0].rfind("."):]
