@@ -130,3 +130,80 @@ def test_generation_failure_is_reported(monkeypatch):
     with pytest.raises(RuntimeError):
         pr.review(tg, {}, datetime.now(timezone.utc) + timedelta(hours=1), sleep=lambda s: None)
     assert "Kein Bild" in tg.texts[0]
+
+
+class FakeBatchTelegram(FakeTelegram):
+    """Wie FakeTelegram, aber Klicks kommen erst, wenn getUpdates abgefragt wird,
+    in der Reihenfolge von `clicks` (Index der gesendeten Nachricht, Aktion)."""
+
+    def __init__(self, clicks):
+        super().__init__([])
+        self.clicks = list(clicks)
+        self.tokens = []
+
+    def call(self, method, files=None, http_timeout=60, **params):
+        if method == "sendPhoto":
+            self.sent.append(params["caption"])
+            self.tokens.append(params["reply_markup"].split('"callback_data": "approve:')[1].split('"')[0])
+            return {"message_id": len(self.sent)}
+        if method == "getUpdates" and params.get("offset") != -1:
+            if self.clicks:
+                idx, action = self.clicks.pop(0)
+                self.uid += 1
+                return [cb(action, self.tokens[idx], update_id=self.uid)]
+            self.clock[0] += timedelta(hours=4)
+            return []
+        return super().call(method, files=files, http_timeout=http_timeout, **params)
+
+
+@pytest.fixture
+def batch(monkeypatch):
+    def run(clicks):
+        tg = FakeBatchTelegram(clicks)
+        clock = [datetime(2026, 11, 4, 7, 30, tzinfo=timezone.utc)]
+        tg.clock = clock
+        n = {"i": 0}
+
+        def fake_candidate(state, dry_run=False, skip_reserve=()):
+            n["i"] += 1
+            persona = {"gender": "woman", "age_range": [20, 29], "heritage": ["X", "x"], "setting": "s",
+                       "name": f"P{n['i']}", "age": 25}
+            return {"number": state.get("count", 0) + 1, "model": "@cf/x/m", "persona": persona,
+                    "caption": f"Person No. {state.get('count', 0) + 1:04d} cap{n['i']}",
+                    "jpeg": b"jpg", "prompt": "p"}
+
+        monkeypatch.setattr(pr.pg, "create_candidate", fake_candidate)
+        slots = [datetime(2026, 11, 4, 11, 13, tzinfo=timezone.utc),
+                 datetime(2026, 11, 4, 17, 13, tzinfo=timezone.utc)]
+        state = {"count": 4, "recent": []}
+        res = pr.review_batch(tg, state, slots, slots[0], now=lambda: clock[0])
+        return tg, res, state
+    return run
+
+
+def test_batch_sends_both_and_handles_each_answer(batch):
+    tg, res, state = batch([(1, "reject"), (0, "approve")])
+    assert len(tg.sent) == 2
+    assert "08:13" in tg.sent[0] and "14:13" in tg.sent[1]  # argentinische Zeit
+    assert res[0]["caption"].endswith("cap1") and res[1] is None
+    assert state == {"count": 4, "recent": []}  # echtes Log bleibt unveraendert
+
+
+def test_batch_timeout_approves_rest_and_reroll_replaces(batch):
+    tg, res, _ = batch([(0, "reroll")])
+    assert len(tg.sent) == 3  # 2 + 1 neue Person fuer den ersten Termin
+    assert res[0]["caption"].endswith("cap3") and res[1]["caption"].endswith("cap2")
+    assert sum(s.startswith("⏰") for s in tg.statuses) == 2
+
+
+def test_queue_roundtrip_renumbers(tmp_path, monkeypatch):
+    monkeypatch.setattr(pr, "QUEUE_DIR", str(tmp_path))
+    cand = {"persona": {"name": "A"}, "prompt": "p", "model": "m", "reserve": None,
+            "caption": "Hook\n\nPerson No. 0005 · \"A\", 30", "jpeg": b"jpg"}
+    pr.save_to_queue("11:13", cand)
+    pr.save_to_queue("17:13", None)
+    got, status = pr.load_from_queue("11:13", {"count": 7})
+    assert status == "ok" and got["number"] == 8 and "Person No. 0008" in got["caption"]
+    assert pr.load_from_queue("17:13", {"count": 8}) == (None, "rejected")
+    assert pr.load_from_queue("11:13", {"count": 8}) == (None, "missing")
+    assert list(tmp_path.iterdir()) == []

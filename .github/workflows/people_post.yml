@@ -1,16 +1,18 @@
 name: These People Do Not Exist
 
 # 3 Posts pro Tag zu Stosszeiten fuer ein englischsprachiges, internationales
-# Publikum. Jeder Lauf startet 3 Stunden VOR dem Posting-Termin: Das Bild geht
-# zur Freigabe per Telegram raus (✅ / 🔄 / ❌), ohne Antwort wird zum Termin
-# automatisch gepostet. Zeiten in UTC:
-#   Start 08:13 -> Post 11:13 UTC (~12-13 Uhr Deutschland / 7 Uhr US-Ostkueste)
-#   Start 14:13 -> Post 17:13 UTC (~18-19 Uhr Deutschland / 13 Uhr US-Ostkueste)
-#   Start 20:43 -> Post 23:43 UTC (~0-1 Uhr Deutschland   / 19-20 Uhr US-Ostkueste)
+# Publikum (Europa + USA). Freigabe per Telegram (✅ / 🔄 / ❌), ohne Antwort wird
+# automatisch gepostet. Zeiten in UTC (Argentinien = UTC-3):
+#   07:30  Sammel-Freigabe: beide Personen fuer 11:13 und 17:13 auf einmal
+#          (04:30 Argentinien, vor der Arbeit); freigegebene landen in assets/people_queue/
+#   11:13  Post aus der Warteschlange (08:13 AR / 12-13 Uhr DE / 7 Uhr US-Ost)
+#   17:13  Post aus der Warteschlange (14:13 AR / 18-19 Uhr DE / 13 Uhr US-Ost)
+#   20:43  Freigabe -> Post um 23:43 (17:43 -> 20:43 AR / 19-20 Uhr US-Ost)
 on:
   schedule:
-    - cron: "13 8 * * *"
-    - cron: "13 14 * * *"
+    - cron: "30 7 * * *"
+    - cron: "13 11 * * *"
+    - cron: "13 17 * * *"
     - cron: "43 20 * * *"
   workflow_dispatch:
     inputs:
@@ -24,6 +26,9 @@ permissions:
 env:
   # Story zum Post: so viele Minuten NACH dem Feed-Post (0 = gleichzeitig).
   STORY_DELAY_MINUTES: "60"
+  # Reels statt Bild-Posts. Wird eingeschaltet, sobald der eigene Song
+  # (assets/people_music/theme.*) vorliegt.
+  REEL_ENABLED: "false"
 
 concurrency:
   group: people-post
@@ -55,7 +60,7 @@ jobs:
             exit 0
           fi
           # Schutz gegen Doppelposts, falls GitHub einen geplanten Lauf doppelt startet.
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" != "30 7 * * *" ]; then
             last=$(git log -1 --grep="Neue Person:" --format=%ct || true)
             if [ -n "$last" ] && [ $(( $(date +%s) - last )) -lt 7200 ]; then
               echo "run=false" >> "$GITHUB_OUTPUT"
@@ -70,8 +75,9 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: |
           case "${{ github.event.schedule }}" in
-            "13 8 * * *")  echo "args=--target 11:13" >> "$GITHUB_OUTPUT" ;;
-            "13 14 * * *") echo "args=--target 17:13" >> "$GITHUB_OUTPUT" ;;
+            "30 7 * * *")  echo "args=--queue 11:13,17:13" >> "$GITHUB_OUTPUT" ;;
+            "13 11 * * *") echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT" ;;
+            "13 17 * * *") echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT" ;;
             "43 20 * * *") echo "args=--target 23:43" >> "$GITHUB_OUTPUT" ;;
             *) echo "args=--wait-minutes ${{ github.event.inputs.wait_minutes || '15' }}" >> "$GITHUB_OUTPUT" ;;
           esac
@@ -95,8 +101,17 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scripts/people_review.py ${{ steps.when.outputs.args }}
 
+      - name: Freigegebene Personen in die Warteschlange legen
+        if: steps.review.outputs.queued == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A assets/people_queue
+          git commit -m "Freigabe-Warteschlange: $(date -u +'%Y-%m-%d')" || echo "nichts zu committen"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
       - name: Reel rendern (Zoom, Glitch, Text, eigener Song)
-        if: steps.review.outputs.publish == 'true'
+        if: steps.review.outputs.publish == 'true' && env.REEL_ENABLED == 'true'
         run: |
           command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
           python scripts/people_reel.py
@@ -107,11 +122,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A assets/people_generated people_posted_log.json
+          git add -A assets/people_queue 2>/dev/null || true
           git commit -m "Neue Person: $(date -u +'%Y-%m-%d %H:%M') UTC"
           for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
 
       - name: Reel auf den Medien-Branch legen (haelt main klein)
-        if: steps.review.outputs.publish == 'true' && github.ref == 'refs/heads/main'
+        if: steps.review.outputs.publish == 'true' && env.REEL_ENABLED == 'true' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
