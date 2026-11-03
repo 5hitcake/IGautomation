@@ -76,7 +76,7 @@ def setup(monkeypatch):
         tg.clock = clock
         counter = {"n": 0}
 
-        def fake_candidate(state, dry_run=False):
+        def fake_candidate(state, dry_run=False, skip_reserve=()):
             counter["n"] += 1
             return {"number": 7, "model": "@cf/x/flux-2-klein-9b", "caption": f"cap{counter['n']}",
                     "jpeg": b"jpg", "persona": {}, "prompt": "p"}
@@ -123,7 +123,7 @@ def test_reroll_limit_then_auto_post(setup):
 def test_generation_failure_is_reported(monkeypatch):
     tg = FakeTelegram([])
 
-    def boom(state, dry_run=False):
+    def boom(state, dry_run=False, skip_reserve=()):
         raise RuntimeError("daily free allocation used up")
 
     monkeypatch.setattr(pr.pg, "create_candidate", boom)

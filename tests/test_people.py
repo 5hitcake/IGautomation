@@ -3,6 +3,7 @@ import json
 import random
 
 import people_generate as pg
+import pytest
 from PIL import Image
 
 
@@ -158,3 +159,42 @@ def test_no_double_glasses_or_piercings():
     for _ in range(1000):
         prompt = pg.build_prompt(pg.roll_persona({"recent": []}, rng))
         assert prompt.count("glasses") <= 1
+
+
+def test_reserve_used_when_generation_fails(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "a")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "t")
+
+    def quota_empty(prompt, account_id, api_token):
+        raise RuntimeError("daily free allocation used up")
+
+    monkeypatch.setattr(pg, "generate_image", quota_empty)
+    monkeypatch.setattr(pg, "STATE_PATH", str(tmp_path / "log.json"))
+    monkeypatch.setattr(pg, "GENERATED_DIR", str(tmp_path / "gen"))
+    state = {"count": 9, "recent": []}
+    cand = pg.create_candidate(state)
+    assert cand["reserve"] == "reserve_01" and cand["model"] == "reserve"
+    assert "Person No. 0010" in cand["caption"] and '"Nia", 73' in cand["caption"]
+    # Beim Neu-Wuerfeln (🔄) wird das gerade gezeigte Reservebild uebersprungen
+    assert pg.create_candidate(state, skip_reserve={"reserve_01"})["reserve"] == "reserve_02"
+    pg.finalize(state, cand)
+    assert state["reserve_used"] == ["reserve_01"] and state["count"] == 10
+    assert pg.create_candidate(state)["reserve"] == "reserve_02"
+
+
+def test_no_reserve_left_raises(monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "a")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "t")
+    monkeypatch.setattr(pg, "generate_image", lambda *a: (_ for _ in ()).throw(RuntimeError("quota")))
+    used = [f"reserve_0{i}" for i in range(1, 6)]
+    with pytest.raises(RuntimeError, match="Keine Reservebilder"):
+        pg.create_candidate({"recent": [], "reserve_used": used})
+
+
+def test_reserve_images_are_instagram_ready():
+    data = json.loads(open(f"{pg.RESERVE_DIR}/reserve.json", encoding="utf-8").read())
+    assert len(data["images"]) >= 5
+    for entry in data["images"]:
+        img = Image.open(f"{pg.RESERVE_DIR}/{entry['file']}")
+        assert img.size == pg.OUTPUT_SIZE
+        assert 20 <= entry["age"] <= 85
