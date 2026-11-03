@@ -76,7 +76,8 @@ def main():
     token = os.environ["CLOUDFLARE_API_TOKEN"]
     report = []
     jobs = [(m, lambda m=m: cloudflare(m, account_id, token)) for m in CF_MODELS]
-    jobs.append(("pollinations-flux", pollinations))
+    if os.environ.get("INCLUDE_POLLINATIONS"):
+        jobs.append(("pollinations-flux", pollinations))
     for name, fn in jobs:
         slug = name.split("/")[-1]
         start = time.time()
