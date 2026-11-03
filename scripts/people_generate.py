@@ -230,7 +230,7 @@ CLOTHING = [
     "a chunky knit sweater", "a denim jacket", "a plain white t-shirt", "a flannel shirt",
     "a rain jacket", "a linen shirt", "a hoodie", "a leather jacket", "a turtleneck",
     "a work uniform", "a wool coat and scarf", "a floral summer dress", "a tank top",
-    "a cardigan over a t-shirt", "a puffer jacket", "a simple blouse", "overalls",
+    "a cardigan over a t-shirt", "a puffer jacket", "a simple blouse", "denim overalls over a t-shirt",
 ]
 
 SETTINGS = [
