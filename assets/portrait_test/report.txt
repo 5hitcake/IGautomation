@@ -1,7 +1,7 @@
-FAIL  @cf/black-forest-labs/flux-2-dev: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/black-forest-labs/flux-2-dev, perhaps your object identifier is invalid?"}],"messages":[]}
-FAIL  @cf/black-forest-labs/flux-2-klein-9b: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/black-forest-labs/flux-2-klein-9b, perhaps your object identifier is invalid?"}],"messages":[]}
-FAIL  @cf/black-forest-labs/flux-2-klein-4b: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/black-forest-labs/flux-2-klein-4b, perhaps your object identifier is invalid?"}],"messages":[]}
-FAIL  @cf/black-forest-labs/flux-1-schnell: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/black-forest-labs/flux-1-schnell, perhaps your object identifier is invalid?"}],"messages":[]}
-FAIL  @cf/leonardo/lucid-origin: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/leonardo/lucid-origin, perhaps your object identifier is invalid?"}],"messages":[]}
-FAIL  @cf/leonardo/phoenix-1.0: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/leonardo/phoenix-1.0, perhaps your object identifier is invalid?"}],"messages":[]}
-FAIL  @cf/bytedance/stable-diffusion-xl-lightning: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/bytedance/stable-diffusion-xl-lightning, perhaps your object identifier is invalid?"}],"messages":[]}
+FAIL  @cf/black-forest-labs/flux-2-dev: HTTP 401: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
+FAIL  @cf/black-forest-labs/flux-2-klein-9b: HTTP 401: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
+FAIL  @cf/black-forest-labs/flux-2-klein-4b: HTTP 401: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
+FAIL  @cf/black-forest-labs/flux-1-schnell: HTTP 401: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
+FAIL  @cf/leonardo/lucid-origin: HTTP 401: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
+FAIL  @cf/leonardo/phoenix-1.0: HTTP 401: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
+FAIL  @cf/bytedance/stable-diffusion-xl-lightning: HTTP 401: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
