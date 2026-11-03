@@ -17,6 +17,11 @@ Mindset-Account oben (Details weiter unten unter
 [TikTok-Automatisierung](#tiktok-automatisierung-weirdworldai)):
 - **Täglich**: 1 narratives Kurzvideo (`tiktok_daily.yml`)
 
+**„These people do not exist“ (eigener Instagram-Account, englisch)** – 3× täglich
+ein fotorealistisches KI-Portrait einer Person, die es nicht gibt, kostenlos über
+Cloudflare Workers AI (`people_post.yml`, Details unter
+[These people do not exist](#these-people-do-not-exist)).
+
 ## Wie es funktioniert
 
 1. GitHub Actions läuft zeitgesteuert (Cron) auf GitHub-Servern – dein PC muss nicht an sein.
@@ -338,6 +343,77 @@ fehlzuschlagen. Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieb
 
 ---
 
+## These people do not exist
+
+`people_post.yml` postet **3× täglich** ein fotorealistisches Portrait einer erfundenen
+Person auf **@people.that.dont.exist**. Die Zeiten sind auf ein internationales Publikum
+ausgelegt: 11:13, 17:13 und 23:43 UTC, also ca. 12–13, 18–19 und 0–1 Uhr in Deutschland
+bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
+
+- **Freigabe per Telegram** (`scripts/people_review.py`): 3 Stunden vor jedem Termin kommt
+  das Bild mit Caption in deinen Telegram-Chat, mit den Knöpfen **✅ Posten · 🔄 Neue Person ·
+  ❌ Verwerfen**. ✅ postet zum Termin, 🔄 erzeugt einmal eine neue Person, ❌ lässt den Post
+  ausfallen. **Ohne Antwort wird zum Termin automatisch gepostet.** Nach dem Posten kommt
+  eine Bestätigung, bei Fehlern eine Warnung. Nur Klicks aus deinem eigenen Chat zählen.
+  Ohne Telegram-Secrets wird ohne Rückfrage gepostet.
+
+- **Jede Person ist neu**: `scripts/people_generate.py` würfelt Herkunft (32 Gruppen),
+  Geschlecht, Alter (nur Erwachsene, 20–85), Frisur, Details, Kleidung, Ort, Licht und
+  Kamera-Look aus. Rund die Hälfte wirkt ganz alltäglich. Ca. 40 % bekommen dezente Merkmale
+  (Brille, Sommersprossen, kleines Tattoo, Platinblond …). Nur ca. jede 7. Person bekommt
+  **ein** auffälliges Merkmal (Neon-Haare, Gesichtstattoo, Septum, Vitiligo, verschiedenfarbige
+  Augen …), nie zwei. Kulturelle Kopfbedeckungen wie Hijab oder Turban gibt es nur bei
+  passender Herkunft. Herkunft, Ort und Geschlecht+Altersgruppe der letzten 3 Personen werden
+  vermieden, und es kommt nie dreimal hintereinander dasselbe Geschlecht.
+  Das Gedächtnis liegt in `people_posted_log.json`.
+- **Bilder**: kostenlos über Cloudflare Workers AI, in dieser Reihenfolge:
+  FLUX-2 Klein 9B → FLUX-2 Klein 4B → Leonardo Lucid Origin. Fällt ein Modell aus, wird
+  automatisch das nächste genommen. Ausgabe: JPEG 1080×1350 (4:5).
+- **Gratis-Kontingent**: 10.000 Neurons pro Tag (Reset 00:00 UTC). FLUX-2 Klein 9B
+  braucht ca. 1.450 pro Bild, 3 Posts kosten also ca. 4.400. Teure Modelle wie FLUX-2 Dev
+  (8.000+) sind deshalb nicht in der Kette. Ist das Kontingent leer, bricht der Lauf ab,
+  ohne etwas zu posten.
+- **Beispielbilder**: `python scripts/people_generate.py --samples 5` legt 5 Bilder plus
+  Captions in `assets/people_samples/` ab, ohne Zähler und Log zu ändern.
+- **Caption (englisch)**: Hook („This person does not exist.“), laufende Nummer mit
+  fiktivem Vornamen und Alter, ein Doppelgänger-Aufruf („Tag their real-life
+  doppelgänger 👇“), die KI-Kennzeichnung und 10 Hashtags.
+- **Repo-Größe**: Im Ordner `assets/people_generated/` bleiben nur die letzten 12 Bilder
+  liegen. Die Git-Historie wächst trotzdem um ca. 250 KB pro Bild.
+
+### Einrichtung
+
+1. Neuen Instagram-Account anlegen und in der App auf ein **professionelles Konto**
+   (Creator oder Business) umstellen. In die Bio gehört, dass alle Personen KI-generiert
+   sind, z. B. „None of these people exist. 100% AI-generated faces. Find your doppelgänger 👇“.
+2. Wie in [Schritt 2](#schritt-2-instagram-api-einrichten-ohne-facebook-seite) einen Token
+   erzeugen: Den Account als Instagram-Tester in der bestehenden Meta-App hinzufügen, die
+   Einladung annehmen und auf „Generate token“ klicken.
+3. GitHub Secrets anlegen (die Cloudflare-Secrets sind schon vorhanden):
+
+| Name | Wert |
+|---|---|
+| `PTNE_API_TOKEN` | Long-Lived Token des neuen Accounts |
+| `PTNE_ACCOUNT_TOKEN` | Instagram-Account-ID des neuen Accounts |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID (32 Zeichen) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token mit Workers-AI-Berechtigung |
+| `TELEGRAM_BOT_TOKEN` | Token deines Telegram-Bots (von @BotFather) |
+| `TELEGRAM_CHAT_ID` | Deine Telegram-User-ID (Zahl, z. B. von @userinfobot) |
+
+**Telegram-Bot einrichten:** In Telegram **@BotFather** öffnen, `/newbot` senden, Namen und
+Benutzernamen wählen und den Token kopieren. Dann deinen neuen Bot öffnen und **Start**
+drücken, sonst darf er dir nicht schreiben. Deine Chat-ID bekommst du von **@userinfobot**
+(die Zahl hinter „Id“).
+
+4. Test: **Actions → These People Do Not Exist → Run workflow**. Das postet wirklich!
+
+Solange die Instagram-Secrets fehlen, überspringen die Läufe mit einer Warnung.
+Ein manueller Lauf (**Run workflow**) fragt per Telegram nach und postet nach der
+eingestellten Bedenkzeit (Standard: 15 Minuten).
+Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieben.
+
+---
+
 ## Content erweitern
 
 - **Neue Zitate**: In `content/quotes_de.json` einfach neue Einträge mit fortlaufender
@@ -377,4 +453,8 @@ tiktok_posted_log.json   Trackt bereits verwendete TikTok-Themen (wird automatis
 assets/jotalabs_stories/ Fertige Story-Bilder fuer @jota_labsweb
 content/jotalabs/        HTML-Vorlage + Render-Skript fuer die Jota-Labs-Stories
 jotalabs_posted_log.json Merkt sich die zuletzt gepostete Jota-Labs-Story (wird automatisch committet)
+scripts/people_generate.py   Wuerfelt eine erfundene Person + erzeugt das Portrait (Cloudflare)
+assets/people_generated/     Die letzten Portraits + next_post.json (Output)
+people_posted_log.json       Zaehler + Gedaechtnis der letzten Personen (wird automatisch committet)
+.github/workflows/people_post.yml 3x taeglicher Post "These people do not exist"
 ```
