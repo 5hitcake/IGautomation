@@ -272,35 +272,41 @@ MENSWEAR = [c for c in CLOTHING if not WOMENSWEAR & set(c.split())]
 # --- Auffaellige Merkmale ---------------------------------------------------
 # Werden unabhaengig von der Herkunft vergeben (keine Klischees). Ein Teil der
 # Personen bleibt bewusst unauffaellig, der Rest bekommt 1-2 Merkmale.
-TRAIT_COUNT_WEIGHTS = {0: 0.25, 1: 0.45, 2: 0.30}
+# Die meisten Personen wirken alltaeglich. Dezente Merkmale kommen oefter,
+# auffaellige nur ab und zu (keine "Freakshow") - und nie zwei auf einmal.
+SUBTLE_COUNT_WEIGHTS = {0: 0.55, 1: 0.35, 2: 0.10}
+BOLD_CHANCE = 0.15  # ca. jede 7. Person, bei 3 Posts/Tag etwa alle 2 Tage
 
-HAIR_COLORS = [
-    "bright pink", "electric blue", "platinum blonde", "pastel lavender", "fiery red", "emerald green",
-    "silver", "teal-to-purple ombre", "bleached blonde with dark roots", "copper orange",
+SUBTLE_HAIR_COLORS = [
+    "platinum blonde", "copper red", "bleached blonde with dark roots", "silver", "honey blonde highlights",
+]
+BOLD_HAIR_COLORS = [
+    "bright pink", "electric blue", "pastel lavender", "emerald green", "teal-to-purple ombre",
 ]
 
-TRAITS = {
+SUBTLE_TRAITS = {
     "tattoo": [
-        "a small tattoo on the side of the neck", "colorful sleeve tattoos on both arms",
-        "a fine-line tattoo behind the ear", "tattooed knuckles and hands",
-        "a tiny star tattoo below one eye", "a large floral tattoo peeking out of the collar",
-        "a script tattoo on the collarbone",
+        "a small tattoo on the side of the neck", "a fine-line tattoo behind the ear",
+        "a small script tattoo on the collarbone",
     ],
-    "piercing": [
-        "a septum piercing", "an eyebrow piercing", "a lip ring", "many ear piercings",
-        "stretched earlobes with plugs", "a nose ring and several ear cuffs",
-    ],
+    "piercing": ["several small ear piercings", "a small nose stud"],
     "skin": [
-        "vitiligo patches on the face", "very heavy freckles", "heterochromia, one blue and one brown eye",
-        "a prominent birthmark on the cheek", "a scar through one eyebrow", "acne scars",
+        "very heavy freckles", "a prominent birthmark on the cheek", "a scar through one eyebrow",
         "deep sun-weathered skin",
     ],
-    "makeup": [
-        "bold graphic winged eyeliner", "glitter makeup on the cheekbones", "dark lipstick",
-        "colorful eyeshadow", "painted nails visible near the face",
-    ],
+    "makeup": ["classic winged eyeliner", "dark red lipstick"],
     "body": ["a plus-size body", "a very slim build", "a muscular build", "a stocky build"],
     "eyewear": ["thick black-rimmed glasses", "round tinted sunglasses", "bright red cat-eye glasses"],
+}
+
+BOLD_TRAITS = {
+    "tattoo": [
+        "colorful sleeve tattoos on both arms", "tattooed knuckles and hands",
+        "a tiny star tattoo below one eye", "a large floral tattoo covering the neck",
+    ],
+    "piercing": ["a septum piercing", "an eyebrow piercing", "a lip ring", "stretched earlobes with plugs"],
+    "skin": ["vitiligo patches on the face", "heterochromia, one blue and one brown eye"],
+    "makeup": ["glitter makeup on the cheekbones", "bold colorful eyeshadow"],
 }
 
 # Kopfbedeckungen mit kulturellem Bezug nur bei passender Herkunft.
@@ -443,30 +449,45 @@ def roll_persona(state, rng=random):
     return persona
 
 
+def _dye_hair(persona, colors, rng):
+    hair = persona["hair"]
+    if persona.get("headwear") or "shaved" in hair or "under a" in hair:
+        return False
+    persona["hair"] = f"{hair} dyed {rng.choice(colors)}".replace("grey hair", "hair")
+    return True
+
+
 def add_traits(persona, rng=random):
-    """Gibt der Person 0-2 auffaellige Merkmale (gefaerbte Haare, Tattoos, ...)."""
-    counts, weights = zip(*TRAIT_COUNT_WEIGHTS.items())
-    n = rng.choices(counts, weights)[0]
+    """Dezente Merkmale (0-2) und selten ein einzelnes auffaelliges Merkmal."""
     persona["traits"] = []
-    if n == 0:
-        return persona
+    persona["bold"] = False
+    used = set()
+
     group = persona["heritage"][1]
     headwear = [h for h, (g, groups) in HEADWEAR.items() if g == persona["gender"] and group in groups]
-    pool = list(TRAITS) + ["hair_color"] + (["headwear"] if headwear else [])
-    if persona["gender"] == "man" and persona["age"] > 60:
-        pool.remove("makeup")  # selten genug, um eher kuenstlich zu wirken
-    for kind in rng.sample(pool, n):
+    counts, weights = zip(*SUBTLE_COUNT_WEIGHTS.items())
+    pool = list(SUBTLE_TRAITS) + ["hair_color"] + (["headwear"] if headwear else [])
+    for kind in rng.sample(pool, rng.choices(counts, weights)[0]):
         if kind == "headwear":
             persona["hair"] = rng.choice(headwear)
             persona["headwear"] = True
         elif kind == "hair_color":
-            hair = persona["hair"]
-            if persona.get("headwear") or "shaved" in hair or "under a" in hair:
+            if not _dye_hair(persona, SUBTLE_HAIR_COLORS, rng):
                 continue
-            color = rng.choice(HAIR_COLORS)
-            persona["hair"] = f"{persona['hair']} dyed {color}".replace("grey hair", "hair")
         else:
-            persona["traits"].append(rng.choice(TRAITS[kind]))
+            persona["traits"].append(rng.choice(SUBTLE_TRAITS[kind]))
+        used.add(kind)
+
+    if rng.random() < BOLD_CHANCE:
+        options = [k for k in list(BOLD_TRAITS) + ["hair_color"] if k not in used]
+        if persona["gender"] == "man" and persona["age"] > 60 and "makeup" in options:
+            options.remove("makeup")
+        kind = rng.choice(options)
+        if kind == "hair_color":
+            persona["bold"] = _dye_hair(persona, BOLD_HAIR_COLORS, rng)
+        else:
+            persona["traits"].append(rng.choice(BOLD_TRAITS[kind]))
+            persona["bold"] = True
     return persona
 
 

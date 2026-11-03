@@ -122,25 +122,27 @@ def test_indoor_settings_get_indoor_light():
         assert p["lighting"] in pool
 
 
-def test_traits_mix_and_headwear_rules():
+def test_traits_mostly_everyday_and_bold_only_sometimes():
     rng = random.Random(21)
-    with_traits = dyed = 0
-    for _ in range(600):
+    n = 2000
+    plain = bold = 0
+    for _ in range(n):
         p = pg.roll_persona({"recent": []}, rng)
         prompt = pg.build_prompt(p)
         assert "with wearing" not in prompt
-        if p["traits"] or "dyed" in p["hair"] or p.get("headwear"):
-            with_traits += 1
-        if "dyed" in p["hair"]:
-            dyed += 1
-            assert not p.get("headwear")
+        bold_items = [t for t in p["traits"] if any(t in v for v in pg.BOLD_TRAITS.values())]
+        bold_hair = any(c in p["hair"] for c in pg.BOLD_HAIR_COLORS)
+        assert len(bold_items) + bold_hair <= 1  # nie zwei auffaellige Merkmale
+        assert p["bold"] == bool(bold_items or bold_hair)
         if p.get("headwear"):
             gender, groups = pg.HEADWEAR[p["hair"]]
             assert gender == p["gender"] and p["heritage"][1] in groups
-        assert len(p["traits"]) <= 2
-    # ca. 75 % mit auffaelligen Merkmalen, ca. 25 % ganz normal
-    assert 0.6 < with_traits / 600 < 0.85
-    assert dyed > 30
+            assert "dyed" not in p["hair"]
+        if not p["traits"] and "dyed" not in p["hair"] and not p.get("headwear"):
+            plain += 1
+        bold += p["bold"]
+    assert 0.38 < plain / n < 0.58  # rund die Haelfte ganz alltaeglich
+    assert 0.10 < bold / n < 0.18  # auffaellig nur ab und zu
 
 
 def test_men_get_no_womenswear():
