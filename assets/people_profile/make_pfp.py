@@ -1,8 +1,12 @@
-import math, sys
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
-
+"""Baut das Profilbild (geteiltes Gesicht + Schriftring) fuer den These-people-do-not-exist-Account."""
+import math
 import os
-FONT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fonts", "Poppins-Bold.ttf")
+import sys
+
+from PIL import Image, ImageDraw, ImageFont
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+FONT = os.path.join(HERE, "..", "fonts", "Poppins-Bold.ttf")
 S = 1080            # Ausgabegroesse
 INNER_R = 430       # Radius des Fotos
 RING_C = (24, 28, 38)  # Ringfarbe
@@ -20,7 +24,7 @@ CENTER = (S // 2, S // 2 - 40)  # Augen-Mittelpunkt im Endbild
 
 def aligned(name):
     f, (lx, ly), (rx, ry) = faces[name]
-    img = Image.open(f).convert("RGB")
+    img = Image.open(os.path.join(HERE, f)).convert("RGB")
     scale = TARGET_EYE_DIST / (rx - lx)
     img = img.resize((round(img.width * scale), round(img.height * scale)), Image.LANCZOS)
     mx, my = (lx + rx) / 2 * scale, (ly + ry) / 2 * scale
