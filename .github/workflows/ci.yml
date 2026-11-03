@@ -47,6 +47,8 @@ jobs:
         run: |
           python scripts/people_generate.py --dry-run
           python scripts/people_review.py --dry-run --wait-minutes 0
+          python scripts/people_reel.py
+          python scripts/publish.py --post-file assets/people_generated/next_post.json --dry-run
           python scripts/people_story.py
           python scripts/publish.py --post-file assets/people_generated/next_story.json --dry-run
           python scripts/publish.py --post-file assets/people_generated/next_post.json --dry-run

@@ -95,6 +95,12 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scripts/people_review.py ${{ steps.when.outputs.args }}
 
+      - name: Reel rendern (Zoom, Glitch, Text, eigener Song)
+        if: steps.review.outputs.publish == 'true'
+        run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          python scripts/people_reel.py
+
       - name: Commit Bild
         if: steps.review.outputs.publish == 'true'
         run: |
@@ -103,6 +109,20 @@ jobs:
           git add -A assets/people_generated people_posted_log.json
           git commit -m "Neue Person: $(date -u +'%Y-%m-%d %H:%M') UTC"
           for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Reel auf den Medien-Branch legen (haelt main klein)
+        if: steps.review.outputs.publish == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tmp=$(mktemp -d)
+          cp assets/people_generated/reel_*.mp4 "$tmp/"
+          cd "$tmp"
+          git init -q -b people-media
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Aktuelles Reel"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" people-media
+          sleep 20  # raw.githubusercontent.com braucht einen Moment
 
       - name: Publish to Instagram (@people.that.dont.exist)
         id: publish

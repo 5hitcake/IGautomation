@@ -78,9 +78,10 @@ def build_story(portrait, number, name, age):
 def main():
     with open(os.path.join(GENERATED_DIR, "next_post.json"), "r", encoding="utf-8") as f:
         post = json.load(f)
-    portrait = Image.open(os.path.join(ROOT, post["file"]))
+    image_rel = post.get("image", post["file"])  # bei Reels liegt das Portrait unter "image"
+    portrait = Image.open(os.path.join(ROOT, image_rel))
     story = build_story(portrait, post["number"], post["name"], post["age"])
-    filename = os.path.basename(post["file"]).replace("person_", "story_", 1)
+    filename = os.path.basename(image_rel).replace("person_", "story_", 1)
     story.save(os.path.join(GENERATED_DIR, filename), format="JPEG", quality=90, optimize=True)
     with open(os.path.join(GENERATED_DIR, "next_story.json"), "w", encoding="utf-8") as f:
         json.dump({"type": "story", "file": f"{GENERATED_REL}/{filename}"}, f, indent=2)

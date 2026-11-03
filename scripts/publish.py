@@ -62,7 +62,7 @@ def raise_with_details(resp):
 SESSION = make_session()
 
 
-def public_asset_url(relative_path, dry_run=False):
+def public_asset_url(relative_path, dry_run=False, branch="main"):
     repo = os.environ.get("GITHUB_REPOSITORY")
     if not repo:
         if dry_run:
@@ -71,7 +71,7 @@ def public_asset_url(relative_path, dry_run=False):
             raise RuntimeError(
                 "GITHUB_REPOSITORY ist nicht gesetzt. Lokal: setze es manuell auf 'owner/repo'."
             )
-    return f"https://raw.githubusercontent.com/{repo}/main/{relative_path}"
+    return f"https://raw.githubusercontent.com/{repo}/{branch}/{relative_path}"
 
 
 def wait_for_media_ready(creation_id, access_token, dry_run):
@@ -100,11 +100,13 @@ def wait_for_media_ready(creation_id, access_token, dry_run):
 
 
 def create_media_container(ig_account_id, access_token, post, dry_run):
-    asset_url = public_asset_url(post["file"], dry_run=dry_run)
+    asset_url = public_asset_url(post["file"], dry_run=dry_run, branch=post.get("branch", "main"))
     params = {"access_token": access_token}
     if post["type"] == "reel":
         params["media_type"] = "REELS"
         params["video_url"] = asset_url
+        if post.get("thumb_offset") is not None:
+            params["thumb_offset"] = str(post["thumb_offset"])
     elif post["type"] == "story":
         # Stories haben keine Caption; die API nimmt Bilder nur als JPEG an.
         params["media_type"] = "STORIES"

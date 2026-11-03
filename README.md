@@ -372,6 +372,13 @@ bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
 - **Gratis-Kontingent**: 10.000 Neurons pro Tag (Reset 00:00 UTC). FLUX-2 Klein 9B
   braucht ca. 1.450 pro Bild, 3 Posts kosten also ca. 4.400. Teure Modelle wie FLUX-2 Dev
   (8.000+) sind deshalb nicht in der Kette.
+- **Jeder Post ist ein Reel** (`scripts/people_reel.py`, 9 s, 1080×1920): Nahaufnahme der
+  Augen mit Zoom heraus („Look closely.“ → „Do you know this person?“), Glitch-Effekt mit Blitz,
+  „Nobody does.“ → „THIS PERSON DOES NOT EXIST“, am Ende zerfällt das Gesicht in Pixel und es
+  erscheinen Nummer, Name, Alter und der Doppelgänger-Aufruf. Unterlegt ist der eigene Song
+  `assets/people_music/theme.*` (KI-generiert mit ACE-Step, frei von Rechten Dritter). Titelbild
+  ist der Moment mit „THIS PERSON DOES NOT EXIST“. Die Videos liegen nicht in `main`, sondern auf
+  dem Branch `people-media`, der bei jedem Post überschrieben wird. So wächst das Repo nicht.
 - **Story zu jedem Post** (`scripts/people_story.py`): 60 Minuten nach dem Feed-Post kommt
   eine Story (1080×1920) mit dem Portrait als Karte auf unscharfem Hintergrund, „THIS PERSON
   DOES NOT EXIST“, Nummer, Name und Alter sowie dem Doppelgänger-Aufruf. Die Verzögerung
