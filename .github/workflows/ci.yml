@@ -46,7 +46,11 @@ jobs:
       - name: Dry-Run These-People-Do-Not-Exist (kein echter API-Call)
         run: |
           python scripts/people_generate.py --dry-run
+          python scripts/people_review.py --dry-run --queue 11:13,17:13
+          python scripts/people_review.py --dry-run --from-queue 17:13
           python scripts/people_review.py --dry-run --wait-minutes 0
+          python scripts/people_reel.py
+          python scripts/publish.py --post-file assets/people_generated/next_post.json --dry-run
           python scripts/people_story.py
           python scripts/publish.py --post-file assets/people_generated/next_story.json --dry-run
           python scripts/publish.py --post-file assets/people_generated/next_post.json --dry-run

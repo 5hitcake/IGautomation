@@ -347,10 +347,19 @@ fehlzuschlagen. Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieb
 
 `people_post.yml` postet **3× täglich** ein fotorealistisches Portrait einer erfundenen
 Person auf **@people.that.dont.exist**. Die Zeiten sind auf ein internationales Publikum
-ausgelegt: 11:13, 17:13 und 23:43 UTC, also ca. 12–13, 18–19 und 0–1 Uhr in Deutschland
-bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
+ausgelegt: 11:13, 17:13 und 23:43 UTC (Argentinien: 8:13, 14:13, 20:43 Uhr).
 
-- **Freigabe per Telegram** (`scripts/people_review.py`): 3 Stunden vor jedem Termin kommt
+| UTC | Argentinien | Was passiert |
+|---|---|---|
+| 07:30 | 04:30 | Sammel-Freigabe per Telegram: beide Personen für 8:13 und 14:13 Uhr auf einmal |
+| 11:13 | 08:13 | Post aus der Warteschlange (`assets/people_queue/`), 1 h später die Story |
+| 17:13 | 14:13 | Post aus der Warteschlange, 1 h später die Story |
+| 20:43 | 17:43 | Freigabe per Telegram für den Abend-Post |
+| 23:43 | 20:43 | Abend-Post, 1 h später die Story |
+
+Bei der Sammel-Freigabe gilt: ohne Antwort bis 8:13 Uhr werden beide gepostet.
+
+- **Freigabe per Telegram** (`scripts/people_review.py`): vor jedem Termin kommt
   das Bild mit Caption in deinen Telegram-Chat, mit den Knöpfen **✅ Posten · 🔄 Neue Person ·
   ❌ Verwerfen**. ✅ postet zum Termin, 🔄 erzeugt einmal eine neue Person, ❌ lässt den Post
   ausfallen. **Ohne Antwort wird zum Termin automatisch gepostet.** Nach dem Posten kommt
@@ -372,6 +381,13 @@ bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
 - **Gratis-Kontingent**: 10.000 Neurons pro Tag (Reset 00:00 UTC). FLUX-2 Klein 9B
   braucht ca. 1.450 pro Bild, 3 Posts kosten also ca. 4.400. Teure Modelle wie FLUX-2 Dev
   (8.000+) sind deshalb nicht in der Kette.
+- **Reels** (eingeschaltet über `REEL_ENABLED: "true"` in `people_post.yml`, sobald der Song da ist) (`scripts/people_reel.py`, 9 s, 1080×1920): Nahaufnahme der
+  Augen mit Zoom heraus („Look closely.“ → „Do you know this person?“), Glitch-Effekt mit Blitz,
+  „Nobody does.“ → „THIS PERSON DOES NOT EXIST“, am Ende zerfällt das Gesicht in Pixel und es
+  erscheinen Nummer, Name, Alter und der Doppelgänger-Aufruf. Unterlegt ist der eigene Song
+  `assets/people_music/theme.*` (KI-generiert mit ACE-Step, frei von Rechten Dritter). Titelbild
+  ist der Moment mit „THIS PERSON DOES NOT EXIST“. Die Videos liegen nicht in `main`, sondern auf
+  dem Branch `people-media`, der bei jedem Post überschrieben wird. So wächst das Repo nicht.
 - **Story zu jedem Post** (`scripts/people_story.py`): 60 Minuten nach dem Feed-Post kommt
   eine Story (1080×1920) mit dem Portrait als Karte auf unscharfem Hintergrund, „THIS PERSON
   DOES NOT EXIST“, Nummer, Name und Alter sowie dem Doppelgänger-Aufruf. Die Verzögerung
