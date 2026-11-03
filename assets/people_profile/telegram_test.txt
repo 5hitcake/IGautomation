@@ -1,5 +1,0 @@
-token length 46, chat id length 10, chat id numeric True
-Bot: @JeffChabot
-Freigegeben - warte 569s bis zum Termin.
-(Test: wuerde jetzt 569s bis zum Termin warten)
-Ergebnis: FREIGEGEBEN (oder keine Antwort)
