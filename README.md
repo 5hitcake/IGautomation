@@ -372,6 +372,11 @@ bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
 - **Gratis-Kontingent**: 10.000 Neurons pro Tag (Reset 00:00 UTC). FLUX-2 Klein 9B
   braucht ca. 1.450 pro Bild, 3 Posts kosten also ca. 4.400. Teure Modelle wie FLUX-2 Dev
   (8.000+) sind deshalb nicht in der Kette.
+- **Story zu jedem Post** (`scripts/people_story.py`): 60 Minuten nach dem Feed-Post kommt
+  eine Story (1080×1920) mit dem Portrait als Karte auf unscharfem Hintergrund, „THIS PERSON
+  DOES NOT EXIST“, Nummer, Name und Alter sowie dem Doppelgänger-Aufruf. Die Verzögerung
+  steht in `people_post.yml` (`STORY_DELAY_MINUTES`, 0 = gleichzeitig). **Musik, Link- und
+  Umfrage-Sticker sind über die Instagram-API nicht möglich**, nur beim manuellen Posten in der App.
 - **Reservebilder**: Ist das Kontingent leer oder fallen alle Modelle aus, wird das nächste
   unbenutzte Bild aus `assets/people_reserve/` genommen (Freigabe per Telegram wie immer,
   markiert als „♻️ Reservebild“). Jedes Reservebild wird höchstens einmal gepostet. Nachfüllen:

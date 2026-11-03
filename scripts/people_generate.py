@@ -592,9 +592,10 @@ def to_instagram_jpeg(raw_bytes):
 
 def prune_old_images(directory, keep=None):
     keep = KEEP_IMAGES if keep is None else keep
-    files = sorted(f for f in os.listdir(directory) if f.startswith("person_") and f.endswith(".jpg"))
-    for old in files[:-keep] if keep else files:
-        os.remove(os.path.join(directory, old))
+    for prefix in ("person_", "story_"):
+        files = sorted(f for f in os.listdir(directory) if f.startswith(prefix) and f.endswith(".jpg"))
+        for old in files[:-keep] if keep else files:
+            os.remove(os.path.join(directory, old))
 
 
 def _credentials():
@@ -697,6 +698,9 @@ def finalize(state, candidate):
         "caption": candidate["caption"],
         "model": candidate["model"],
         "prompt": candidate["prompt"],
+        "number": number,
+        "name": candidate["persona"]["name"],
+        "age": candidate["persona"]["age"],
     }
     with open(os.path.join(GENERATED_DIR, "next_post.json"), "w", encoding="utf-8") as f:
         json.dump(post, f, ensure_ascii=False, indent=2)
