@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      max-parallel: 1  # nacheinander, damit das ZeroGPU-Kontingent des Tokens reicht
       matrix:
         include:
           - name: a_dark_pulse
@@ -36,13 +37,15 @@ jobs:
           PROMPT: ${{ matrix.prompt }}
           SEED: ${{ matrix.seed }}
           NAME: ${{ matrix.name }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           python3 - <<'PY'
           import os, shutil, time
           from gradio_client import Client
-          for attempt in range(3):
+          for attempt in range(4):
               try:
-                  c = Client("ACE-Step/ACE-Step", verbose=False)
+                  print("HF_TOKEN gesetzt:", bool(os.environ.get("HF_TOKEN")))
+                  c = Client("ACE-Step/ACE-Step", hf_token=os.environ.get("HF_TOKEN") or None, verbose=False)
                   res = c.predict(audio_duration=30, prompt=os.environ["PROMPT"], lyrics="[instrumental]",
                                   infer_step=60, manual_seeds=os.environ["SEED"], api_name="/__call__")
                   ext = res[0][res[0].rfind("."):]
@@ -52,7 +55,7 @@ jobs:
                   break
               except Exception as exc:
                   print("Versuch fehlgeschlagen:", exc)
-                  time.sleep(30)
+                  time.sleep(45)
           else:
               raise SystemExit(1)
           PY
