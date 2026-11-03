@@ -120,3 +120,32 @@ def test_indoor_settings_get_indoor_light():
         p = pg.roll_persona({"recent": []}, rng)
         pool = pg.INDOOR_LIGHTING if p["setting"] in pg.INDOOR_SETTINGS else pg.OUTDOOR_LIGHTING
         assert p["lighting"] in pool
+
+
+def test_traits_mix_and_headwear_rules():
+    rng = random.Random(21)
+    with_traits = dyed = 0
+    for _ in range(600):
+        p = pg.roll_persona({"recent": []}, rng)
+        prompt = pg.build_prompt(p)
+        assert "with wearing" not in prompt
+        if p["traits"] or "dyed" in p["hair"] or p.get("headwear"):
+            with_traits += 1
+        if "dyed" in p["hair"]:
+            dyed += 1
+            assert not p.get("headwear")
+        if p.get("headwear"):
+            gender, groups = pg.HEADWEAR[p["hair"]]
+            assert gender == p["gender"] and p["heritage"][1] in groups
+        assert len(p["traits"]) <= 2
+    # ca. 75 % mit auffaelligen Merkmalen, ca. 25 % ganz normal
+    assert 0.6 < with_traits / 600 < 0.85
+    assert dyed > 30
+
+
+def test_men_get_no_womenswear():
+    rng = random.Random(4)
+    for _ in range(400):
+        p = pg.roll_persona({"recent": []}, rng)
+        if p["gender"] == "man":
+            assert "blouse" not in p["clothing"] and "dress" not in p["clothing"]

@@ -357,9 +357,12 @@ bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
   eine Bestätigung, bei Fehlern eine Warnung. Nur Klicks aus deinem eigenen Chat zählen.
   Ohne Telegram-Secrets wird ohne Rückfrage gepostet.
 
-- **Jede Person ist neu**: `scripts/people_generate.py` würfelt Herkunft (27 Gruppen),
+- **Jede Person ist neu**: `scripts/people_generate.py` würfelt Herkunft (32 Gruppen),
   Geschlecht, Alter (nur Erwachsene, 20–85), Frisur, Details, Kleidung, Ort, Licht und
-  Kamera-Look aus. Herkunft, Ort und Geschlecht+Altersgruppe der letzten 3 Personen werden
+  Kamera-Look aus. Ca. 75 % bekommen zusätzlich 1–2 auffällige Merkmale: gefärbte Haare,
+  Tattoos, Piercings, Vitiligo, verschiedenfarbige Augen, Szene-Outfits (Punk, Goth,
+  Streetwear …), Körpertypen, auffällige Brillen oder Kopfbedeckungen. Kulturelle
+  Kopfbedeckungen wie Hijab oder Turban gibt es nur bei passender Herkunft. Herkunft, Ort und Geschlecht+Altersgruppe der letzten 3 Personen werden
   vermieden, und es kommt nie dreimal hintereinander dasselbe Geschlecht.
   Das Gedächtnis liegt in `people_posted_log.json`.
 - **Bilder**: kostenlos über Cloudflare Workers AI, in dieser Reihenfolge:

@@ -91,6 +91,11 @@ HERITAGES = [
     ("Pacific Islander", "pacific_islander"),
     ("Aboriginal Australian", "aboriginal_australian"),
     ("mixed-race", "mixed"),
+    ("Mongolian", "mongolian"),
+    ("Nepali", "nepali"),
+    ("Inuit", "inuit"),
+    ("Sámi", "sami"),
+    ("Malagasy", "malagasy"),
 ]
 
 FIRST_NAMES = {
@@ -198,6 +203,26 @@ FIRST_NAMES = {
         ["Kirra", "Alinta", "Marlee", "Lowanna", "Tanami"],
         ["Jirra", "Jarrah", "Kalan", "Yarran", "Mundara"],
     ),
+    "mongolian": (
+        ["Altantsetseg", "Saruul", "Oyuna", "Enkhjin", "Nomin"],
+        ["Bat-Erdene", "Temuulen", "Ganbold", "Bilguun", "Munkh"],
+    ),
+    "nepali": (
+        ["Sita", "Pooja", "Anjali", "Sarita", "Kabita"],
+        ["Pemba", "Bikash", "Rajan", "Suman", "Ang Dorje"],
+    ),
+    "inuit": (
+        ["Aputi", "Nuka", "Siqiniq", "Kunik", "Ivalu"],
+        ["Aputsiaq", "Inuk", "Malik", "Nanook", "Kunuk"],
+    ),
+    "sami": (
+        ["Áile", "Sárá", "Elle", "Biret", "Máret"],
+        ["Ánte", "Niillas", "Mikkel", "Joret", "Áslak"],
+    ),
+    "malagasy": (
+        ["Hasina", "Voahangy", "Fara", "Tiana", "Miora"],
+        ["Rivo", "Haja", "Tojo", "Fidy", "Andry"],
+    ),
     "mixed": (
         ["Maya", "Zoe", "Aria", "Naomi", "Luna"],
         ["Kai", "Noah", "Ezra", "Leo", "Jaden"],
@@ -217,7 +242,10 @@ HAIR = {
     ],
 }
 
-FACIAL_HAIR = ["clean-shaven", "light stubble", "a full beard", "a trimmed moustache", "a short boxed beard"]
+FACIAL_HAIR = [
+    "clean-shaven", "light stubble", "a full beard", "a trimmed moustache", "a short boxed beard",
+    "a handlebar moustache", "a long braided beard", "mutton chops", "a goatee",
+]
 
 DETAILS = [
     "light freckles", "a small mole on the cheek", "laugh lines", "a few blemishes", "thick eyebrows",
@@ -231,7 +259,60 @@ CLOTHING = [
     "a rain jacket", "a linen shirt", "a hoodie", "a leather jacket", "a turtleneck",
     "a work uniform", "a wool coat and scarf", "a floral summer dress", "a tank top",
     "a cardigan over a t-shirt", "a puffer jacket", "a simple blouse", "denim overalls over a t-shirt",
+    "a studded punk leather jacket", "all-black goth clothing with a lace collar",
+    "oversized streetwear and a gold chain",
+    "a sharp tailored business suit", "a colorful vintage 70s shirt", "hiking gear", "a chef's white jacket",
+    "nurse scrubs", "a high-visibility work vest", "a paint-stained artist's shirt", "a sequined party top",
+    "a football jersey", "a bright patterned shirt",
 ]
+
+WOMENSWEAR = {"dress", "blouse"}
+MENSWEAR = [c for c in CLOTHING if not WOMENSWEAR & set(c.split())]
+
+# --- Auffaellige Merkmale ---------------------------------------------------
+# Werden unabhaengig von der Herkunft vergeben (keine Klischees). Ein Teil der
+# Personen bleibt bewusst unauffaellig, der Rest bekommt 1-2 Merkmale.
+TRAIT_COUNT_WEIGHTS = {0: 0.25, 1: 0.45, 2: 0.30}
+
+HAIR_COLORS = [
+    "bright pink", "electric blue", "platinum blonde", "pastel lavender", "fiery red", "emerald green",
+    "silver", "teal-to-purple ombre", "bleached blonde with dark roots", "copper orange",
+]
+
+TRAITS = {
+    "tattoo": [
+        "a small tattoo on the side of the neck", "colorful sleeve tattoos on both arms",
+        "a fine-line tattoo behind the ear", "tattooed knuckles and hands",
+        "a tiny star tattoo below one eye", "a large floral tattoo peeking out of the collar",
+        "a script tattoo on the collarbone",
+    ],
+    "piercing": [
+        "a septum piercing", "an eyebrow piercing", "a lip ring", "many ear piercings",
+        "stretched earlobes with plugs", "a nose ring and several ear cuffs",
+    ],
+    "skin": [
+        "vitiligo patches on the face", "very heavy freckles", "heterochromia, one blue and one brown eye",
+        "a prominent birthmark on the cheek", "a scar through one eyebrow", "acne scars",
+        "deep sun-weathered skin",
+    ],
+    "makeup": [
+        "bold graphic winged eyeliner", "glitter makeup on the cheekbones", "dark lipstick",
+        "colorful eyeshadow", "painted nails visible near the face",
+    ],
+    "body": ["a plus-size body", "a very slim build", "a muscular build", "a stocky build"],
+    "eyewear": ["thick black-rimmed glasses", "round tinted sunglasses", "bright red cat-eye glasses"],
+}
+
+# Kopfbedeckungen mit kulturellem Bezug nur bei passender Herkunft.
+HEADWEAR = {
+    "a hijab": ("woman", {"middle_eastern", "north_african", "turkish", "persian", "south_asian",
+                        "southeast_asian", "west_african", "east_african", "central_asian", "malagasy",
+                        "mixed"}),
+    "a colorful patterned headwrap": ("woman", {"west_african", "east_african", "caribbean",
+                                                "african_american", "malagasy"}),
+    "a Sikh turban": ("man", {"south_asian"}),
+    "a kufi cap": ("man", {"west_african", "east_african", "north_african", "african_american"}),
+}
 
 SETTINGS = [
     "on a busy city street", "in a small neighborhood café", "in a park in autumn", "at a beach at dusk",
@@ -349,7 +430,7 @@ def roll_persona(state, rng=random):
         "hair": rng.choice(HAIR[gender]),
         "facial_hair": rng.choice(FACIAL_HAIR) if gender == "man" else None,
         "detail": rng.choice(DETAILS),
-        "clothing": rng.choice(CLOTHING if gender == "woman" else [c for c in CLOTHING if "dress" not in c]),
+        "clothing": rng.choice(CLOTHING if gender == "woman" else MENSWEAR),
         "setting": setting,
         "lighting": rng.choice(INDOOR_LIGHTING if setting in INDOOR_SETTINGS else OUTDOOR_LIGHTING),
         "camera": rng.choice(CAMERAS),
@@ -358,6 +439,34 @@ def roll_persona(state, rng=random):
     }
     if persona["age"] >= 55 and "hair" in persona["hair"] and rng.random() < 0.6:
         persona["hair"] = persona["hair"].replace("hair", "grey hair", 1)
+    add_traits(persona, rng)
+    return persona
+
+
+def add_traits(persona, rng=random):
+    """Gibt der Person 0-2 auffaellige Merkmale (gefaerbte Haare, Tattoos, ...)."""
+    counts, weights = zip(*TRAIT_COUNT_WEIGHTS.items())
+    n = rng.choices(counts, weights)[0]
+    persona["traits"] = []
+    if n == 0:
+        return persona
+    group = persona["heritage"][1]
+    headwear = [h for h, (g, groups) in HEADWEAR.items() if g == persona["gender"] and group in groups]
+    pool = list(TRAITS) + ["hair_color"] + (["headwear"] if headwear else [])
+    if persona["gender"] == "man" and persona["age"] > 60:
+        pool.remove("makeup")  # selten genug, um eher kuenstlich zu wirken
+    for kind in rng.sample(pool, n):
+        if kind == "headwear":
+            persona["hair"] = rng.choice(headwear)
+            persona["headwear"] = True
+        elif kind == "hair_color":
+            hair = persona["hair"]
+            if persona.get("headwear") or "shaved" in hair or "under a" in hair:
+                continue
+            color = rng.choice(HAIR_COLORS)
+            persona["hair"] = f"{persona['hair']} dyed {color}".replace("grey hair", "hair")
+        else:
+            persona["traits"].append(rng.choice(TRAITS[kind]))
     return persona
 
 
@@ -365,6 +474,8 @@ def build_prompt(p):
     looks = p["hair"]
     if p["facial_hair"]:
         looks += f", {p['facial_hair']}"
+    for trait in p.get("traits", []):
+        looks += f", {trait}"
     article = "an" if str(p["age"]).startswith("8") else "a"
     return (
         f"{p['framing'].capitalize()} photo of {article} {p['age']}-year-old "
