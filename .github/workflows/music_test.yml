@@ -1,0 +1,65 @@
+name: Music generation (temporaer)
+
+on:
+  push:
+    branches: [ccr-178c7728-27xf6u]
+    paths: [".github/workflows/music_test.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: a_dark_pulse
+            seed: "4242"
+            prompt: "dark electronic, mysterious, cinematic, eerie synth pads, deep pulsing sub bass, glitchy percussion, haunting piano motif, hypnotic, tension, 100 BPM, instrumental, minimal, modern"
+          - name: b_synthwave_mystery
+            seed: "777"
+            prompt: "dark synthwave, retro analog synths, driving arpeggio, punchy drums, mysterious, nocturnal, cinematic build, 110 BPM, instrumental, catchy hook"
+          - name: c_ethereal_glitch
+            seed: "1312"
+            prompt: "ethereal ambient electronica, glitch beats, airy female vocal chops without words, soft piano, deep bass drops, uncanny, dreamy, 90 BPM, instrumental, emotional"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install gradio_client
+      - name: Song erzeugen (ACE-Step)
+        env:
+          PROMPT: ${{ matrix.prompt }}
+          SEED: ${{ matrix.seed }}
+          NAME: ${{ matrix.name }}
+        run: |
+          python3 - <<'PY'
+          import os, shutil, time
+          from gradio_client import Client
+          for attempt in range(3):
+              try:
+                  c = Client("ACE-Step/ACE-Step", verbose=False)
+                  res = c.predict(audio_duration=30, prompt=os.environ["PROMPT"], lyrics="[instrumental]",
+                                  infer_step=60, manual_seeds=os.environ["SEED"], api_name="/__call__")
+                  ext = res[0][res[0].rfind("."):]
+                  os.makedirs("assets/people_music", exist_ok=True)
+                  shutil.copy(res[0], f"assets/people_music/{os.environ['NAME']}{ext}")
+                  print("OK", res[0])
+                  break
+              except Exception as exc:
+                  print("Versuch fehlgeschlagen:", exc)
+                  time.sleep(30)
+          else:
+              raise SystemExit(1)
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/people_music
+          git commit -m "Musik-Entwurf: ${{ matrix.name }}"
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push && break; sleep $((RANDOM % 10 + 3)); done
