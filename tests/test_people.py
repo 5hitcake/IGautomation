@@ -151,3 +151,10 @@ def test_men_get_no_womenswear():
         p = pg.roll_persona({"recent": []}, rng)
         if p["gender"] == "man":
             assert "blouse" not in p["clothing"] and "dress" not in p["clothing"]
+
+
+def test_no_double_glasses_or_piercings():
+    rng = random.Random(8)
+    for _ in range(1000):
+        prompt = pg.build_prompt(pg.roll_persona({"recent": []}, rng))
+        assert prompt.count("glasses") <= 1

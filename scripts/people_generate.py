@@ -249,9 +249,8 @@ FACIAL_HAIR = [
 
 DETAILS = [
     "light freckles", "a small mole on the cheek", "laugh lines", "a few blemishes", "thick eyebrows",
-    "a gap between the front teeth", "rosy cheeks", "slightly sunburned nose", "a nose piercing",
-    "round glasses", "thin metal-frame glasses", "small hoop earrings", "a faded scar on the chin",
-    "dimples", "crow's feet around the eyes",
+    "a gap between the front teeth", "rosy cheeks", "slightly sunburned nose", "small hoop earrings",
+    "a faded scar on the chin", "dimples", "crow's feet around the eyes",
 ]
 
 CLOTHING = [
