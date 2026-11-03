@@ -1,0 +1,20 @@
+{
+  "count": 1,
+  "recent": [
+    {
+      "gender": "woman",
+      "age_range": [
+        70,
+        85
+      ],
+      "heritage": [
+        "African American",
+        "african_american"
+      ],
+      "setting": "at an outdoor market"
+    }
+  ],
+  "reserve_used": [
+    "reserve_01"
+  ]
+}
