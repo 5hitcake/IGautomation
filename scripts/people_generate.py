@@ -38,16 +38,17 @@ OUTPUT_SIZE = (1080, 1350)
 # Generierungsgroesse: Vielfache von 16, gleiches Seitenverhaeltnis wie OUTPUT_SIZE.
 GEN_WIDTH, GEN_HEIGHT = 1088, 1360
 
-# Reihenfolge = Qualitaet laut Vergleichstest (FLUX-2 Klein 9B am realistischsten).
+# Reihenfolge = Qualitaet laut Vergleichstest, abgestimmt auf das kostenlose
+# Tageskontingent von Cloudflare (10.000 Neurons, Reset 00:00 UTC):
+#   FLUX-2 Klein 9B  ~1.450 Neurons/Bild -> 3 Bilder/Tag = ~4.400
+#   FLUX-2 Klein 4B  ~  250 Neurons/Bild (Reserve)
+#   Lucid Origin     ~4.000+ Neurons/Bild (nur letzte Reserve)
+# FLUX-2 Dev (~8.000+/Bild) und Phoenix sind fuer das Gratis-Kontingent zu teuer.
 MODEL_CHAIN = [
     "@cf/black-forest-labs/flux-2-klein-9b",
-    "@cf/leonardo/lucid-origin",
     "@cf/black-forest-labs/flux-2-klein-4b",
-    "@cf/black-forest-labs/flux-2-dev",
+    "@cf/leonardo/lucid-origin",
 ]
-# Ab und zu Lucid Origin zuerst nehmen, damit der Feed nicht immer gleich aussieht.
-ALT_PRIMARY = "@cf/leonardo/lucid-origin"
-ALT_PRIMARY_CHANCE = 0.25
 
 # Wie viele der letzten Personen beim Wuerfeln vermieden werden.
 AVOID_RECENT = 3
@@ -240,10 +241,20 @@ SETTINGS = [
     "at a harbor with boats", "in a snowy street", "in a bustling night market", "in a workshop",
 ]
 
-LIGHTING = [
-    "soft golden hour light", "overcast diffused daylight", "soft window light", "warm evening light",
+INDOOR_SETTINGS = {
+    "in a small neighborhood café", "on a subway platform", "in a home kitchen", "in a library",
+    "in a cozy living room", "in a workshop",
+}
+
+OUTDOOR_LIGHTING = [
+    "soft golden hour light", "overcast diffused daylight", "warm evening light",
     "neon city lights at night", "bright midday sun with hard shadows", "light rain and moody sky",
-    "warm indoor lamp light", "blue hour twilight",
+    "blue hour twilight",
+]
+
+INDOOR_LIGHTING = [
+    "soft window light", "warm indoor lamp light", "dim moody ambient light",
+    "afternoon sunlight through a window", "cool fluorescent light",
 ]
 
 CAMERAS = [
@@ -340,7 +351,7 @@ def roll_persona(state, rng=random):
         "detail": rng.choice(DETAILS),
         "clothing": rng.choice(CLOTHING if gender == "woman" else [c for c in CLOTHING if "dress" not in c]),
         "setting": setting,
-        "lighting": rng.choice(LIGHTING),
+        "lighting": rng.choice(INDOOR_LIGHTING if setting in INDOOR_SETTINGS else OUTDOOR_LIGHTING),
         "camera": rng.choice(CAMERAS),
         "framing": rng.choice(FRAMING),
         "expression": rng.choice(EXPRESSIONS),
@@ -374,14 +385,6 @@ def build_caption(p, number, rng=random):
     )
 
 
-def model_order(rng=random):
-    chain = list(MODEL_CHAIN)
-    if rng.random() < ALT_PRIMARY_CHANCE:
-        chain.remove(ALT_PRIMARY)
-        chain.insert(0, ALT_PRIMARY)
-    return chain
-
-
 def _decode_image(resp):
     if resp.headers.get("content-type", "").startswith("image/"):
         return resp.content
@@ -413,9 +416,9 @@ def generate_cloudflare(model, prompt, account_id, api_token, retries=3):
     raise RuntimeError("unerreichbar")
 
 
-def generate_image(prompt, account_id, api_token, rng=random):
+def generate_image(prompt, account_id, api_token):
     errors = []
-    for model in model_order(rng):
+    for model in MODEL_CHAIN:
         try:
             img = generate_cloudflare(model, prompt, account_id, api_token)
             print(f"Bild erzeugt mit {model}")
@@ -423,6 +426,8 @@ def generate_image(prompt, account_id, api_token, rng=random):
         except Exception as exc:  # noqa: BLE001 - naechstes Modell probieren
             print(f"{model} fehlgeschlagen: {exc}")
             errors.append(f"{model}: {exc}")
+            if "daily free allocation" in str(exc):
+                break  # Kontingent gilt fuers ganze Konto - andere Modelle scheitern genauso
     raise RuntimeError("Alle Bildmodelle fehlgeschlagen:\n" + "\n".join(errors))
 
 
@@ -460,10 +465,46 @@ def prune_old_images(directory, keep=None):
         os.remove(os.path.join(directory, old))
 
 
+def _credentials():
+    account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    api_token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+    if not account_id or not api_token:
+        raise SystemExit("CLOUDFLARE_ACCOUNT_ID und CLOUDFLARE_API_TOKEN muessen gesetzt sein.")
+    return account_id, api_token
+
+
+def make_samples(count, dry_run=False):
+    out_dir = os.path.join(ROOT, "assets", "people_samples")
+    os.makedirs(out_dir, exist_ok=True)
+    state = {"recent": []}
+    lines = []
+    for i in range(1, count + 1):
+        persona = roll_persona(state)
+        state["recent"].append({k: persona[k] for k in ("gender", "age_range", "heritage", "setting")})
+        prompt = build_prompt(persona)
+        if dry_run:
+            raw, model = placeholder_image(), "dry-run"
+        else:
+            raw, model = generate_image(prompt, *_credentials())
+        name = f"sample_{i:02d}.jpg"
+        with open(os.path.join(out_dir, name), "wb") as f:
+            f.write(to_instagram_jpeg(raw))
+        lines.append(f"## {name} ({model})\n\nPrompt: {prompt}\n\nCaption:\n\n{build_caption(persona, i)}\n")
+        print(f"{name}: {model}")
+    with open(os.path.join(out_dir, "captions.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="Platzhalterbild statt Cloudflare-Aufruf")
+    parser.add_argument(
+        "--samples", type=int, default=0,
+        help="N Beispielbilder nach assets/people_samples/ erzeugen (aendert weder Zaehler noch Log)",
+    )
     args = parser.parse_args()
+    if args.samples:
+        return make_samples(args.samples, args.dry_run)
 
     state = load_state()
     persona = roll_persona(state)
@@ -473,11 +514,7 @@ def main():
     if args.dry_run:
         raw, model = placeholder_image(), "dry-run"
     else:
-        account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
-        api_token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
-        if not account_id or not api_token:
-            raise SystemExit("CLOUDFLARE_ACCOUNT_ID und CLOUDFLARE_API_TOKEN muessen gesetzt sein.")
-        raw, model = generate_image(prompt, account_id, api_token)
+        raw, model = generate_image(prompt, *_credentials())
 
     number = state.get("count", 0) + 1
     os.makedirs(GENERATED_DIR, exist_ok=True)

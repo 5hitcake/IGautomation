@@ -81,9 +81,23 @@ def test_model_fallback(monkeypatch):
         return b"img"
 
     monkeypatch.setattr(pg, "generate_cloudflare", fake)
-    rng = random.Random(0)
-    img, model = pg.generate_image("x", "a", "t", rng)
-    assert img == b"img" and len(calls) == 2 and model == calls[1]
+    img, model = pg.generate_image("x", "a", "t")
+    assert img == b"img" and calls == pg.MODEL_CHAIN[:2] and model == pg.MODEL_CHAIN[1]
+
+
+def test_quota_exhausted_stops_early(monkeypatch):
+    calls = []
+
+    def fake(model, prompt, account_id, api_token):
+        calls.append(model)
+        raise RuntimeError("HTTP 429: you have used up your daily free allocation of 10,000 neurons")
+
+    monkeypatch.setattr(pg, "generate_cloudflare", fake)
+    try:
+        pg.generate_image("x", "a", "t")
+    except RuntimeError:
+        pass
+    assert len(calls) == 1
 
 
 def test_main_dry_run_writes_post(tmp_path, monkeypatch):
@@ -97,3 +111,12 @@ def test_main_dry_run_writes_post(tmp_path, monkeypatch):
     assert len(list((tmp_path / "gen").glob("person_*.jpg"))) <= pg.KEEP_IMAGES
     state = json.loads((tmp_path / "log.json").read_text())
     assert state["count"] == pg.KEEP_IMAGES + 2
+
+
+def test_indoor_settings_get_indoor_light():
+    assert pg.INDOOR_SETTINGS <= set(pg.SETTINGS)
+    rng = random.Random(11)
+    for _ in range(300):
+        p = pg.roll_persona({"recent": []}, rng)
+        pool = pg.INDOOR_LIGHTING if p["setting"] in pg.INDOOR_SETTINGS else pg.OUTDOOR_LIGHTING
+        assert p["lighting"] in pool

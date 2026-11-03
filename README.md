@@ -356,9 +356,14 @@ internationales Publikum ausgelegt: 11:13, 17:13 und 23:43 UTC, also ca. 12–13
   vermieden, und es kommt nie dreimal hintereinander dasselbe Geschlecht.
   Das Gedächtnis liegt in `people_posted_log.json`.
 - **Bilder**: kostenlos über Cloudflare Workers AI, in dieser Reihenfolge:
-  FLUX-2 Klein 9B → Leonardo Lucid Origin → FLUX-2 Klein 4B → FLUX-2 Dev. In ~25 % der
-  Fälle kommt Lucid Origin zuerst, damit der Look variiert. Fällt ein Modell aus, wird
+  FLUX-2 Klein 9B → FLUX-2 Klein 4B → Leonardo Lucid Origin. Fällt ein Modell aus, wird
   automatisch das nächste genommen. Ausgabe: JPEG 1080×1350 (4:5).
+- **Gratis-Kontingent**: 10.000 Neurons pro Tag (Reset 00:00 UTC). FLUX-2 Klein 9B
+  braucht ca. 1.450 pro Bild, 3 Posts kosten also ca. 4.400. Teure Modelle wie FLUX-2 Dev
+  (8.000+) sind deshalb nicht in der Kette. Ist das Kontingent leer, bricht der Lauf ab,
+  ohne etwas zu posten.
+- **Beispielbilder**: `python scripts/people_generate.py --samples 5` legt 5 Bilder plus
+  Captions in `assets/people_samples/` ab, ohne Zähler und Log zu ändern.
 - **Caption (englisch)**: Hook („This person does not exist.“), laufende Nummer mit
   fiktivem Vornamen und Alter, ein Doppelgänger-Aufruf („Tag their real-life
   doppelgänger 👇“), die KI-Kennzeichnung und 10 Hashtags.

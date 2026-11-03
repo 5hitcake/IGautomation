@@ -11,11 +11,6 @@ on:
     - cron: "13 17 * * *"
     - cron: "43 23 * * *"
   workflow_dispatch: {}
-  # Nur zum Testen der Bildgenerierung auf dem Entwicklungs-Branch
-  # (veroeffentlicht dort nichts, siehe "Publish"-Bedingung unten).
-  push:
-    branches: [ccr-178c7728-27xf6u]
-    paths: [".github/workflows/people_post.yml", "scripts/people_generate.py"]
 
 permissions:
   contents: write
