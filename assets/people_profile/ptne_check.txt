@@ -1,0 +1,3 @@
+PTNE_API_TOKEN length: 182 / PTNE_ACCOUNT_TOKEN length: 17 / account id numeric: True
+API_TOKEN as token: OK username=@people.that.dont.exist type=MEDIA_CREATOR user_id matches other secret: True
+ACCOUNT_TOKEN as token: HTTP 400 Invalid OAuth access token - Cannot parse access token
