@@ -109,6 +109,7 @@ def test_main_dry_run_writes_post(tmp_path, monkeypatch):
         pg.main()
     post = json.loads((tmp_path / "gen" / "next_post.json").read_text())
     assert post["type"] == "image" and post["file"].startswith("assets/people_generated/person_")
+    assert post["number"] == pg.KEEP_IMAGES + 2 and post["name"] and post["age"]
     assert len(list((tmp_path / "gen").glob("person_*.jpg"))) <= pg.KEEP_IMAGES
     state = json.loads((tmp_path / "log.json").read_text())
     assert state["count"] == pg.KEEP_IMAGES + 2

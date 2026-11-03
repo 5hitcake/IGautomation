@@ -21,6 +21,10 @@ on:
 permissions:
   contents: write
 
+env:
+  # Story zum Post: so viele Minuten NACH dem Feed-Post (0 = gleichzeitig).
+  STORY_DELAY_MINUTES: "60"
+
 concurrency:
   group: people-post
   cancel-in-progress: false
@@ -28,7 +32,7 @@ concurrency:
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
         with:
@@ -108,14 +112,42 @@ jobs:
           IG_ACCOUNT_ID: ${{ secrets.PTNE_ACCOUNT_TOKEN }}
         run: python scripts/publish.py --post-file assets/people_generated/next_post.json
 
+      - name: Feed-Post per Telegram bestaetigen
+        if: steps.publish.outcome == 'success'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/people_review.py --notify "📸 Gepostet auf @people.that.dont.exist - Story folgt in ${STORY_DELAY_MINUTES} Min."
+
+      - name: Story erstellen + committen
+        id: story_build
+        if: steps.publish.outcome == 'success'
+        run: |
+          python scripts/people_story.py
+          git add -A assets/people_generated
+          git commit -m "Neue Person: Story"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Story posten
+        id: story
+        if: steps.story_build.outcome == 'success'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.PTNE_API_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.PTNE_ACCOUNT_TOKEN }}
+        run: |
+          sleep $(( STORY_DELAY_MINUTES * 60 ))
+          python scripts/publish.py --post-file assets/people_generated/next_story.json
+
       - name: Ergebnis per Telegram melden
         if: always() && steps.gate.outputs.run == 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          if [ "${{ steps.publish.outcome }}" = "success" ]; then
-            msg="📸 Gepostet auf @people.that.dont.exist"
+          if [ "${{ steps.story.outcome }}" = "success" ]; then
+            msg="📲 Story ist online"
+          elif [ "${{ steps.publish.outcome }}" = "success" ]; then
+            msg="⚠️ Post ist online, aber die Story ist fehlgeschlagen - Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           elif [ "${{ steps.publish.outcome }}" = "failure" ] || [ "${{ steps.review.outcome }}" = "failure" ]; then
             msg="⚠️ Fehler beim Posten - Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
