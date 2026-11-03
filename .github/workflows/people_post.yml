@@ -1,0 +1,95 @@
+name: These People Do Not Exist
+
+# 3 Posts pro Tag zu Stosszeiten fuer ein englischsprachiges, internationales
+# Publikum (Zeiten in UTC):
+#   11:13 UTC = ~12-13 Uhr Deutschland  / 7 Uhr US-Ostkueste
+#   17:13 UTC = ~18-19 Uhr Deutschland  / 13 Uhr US-Ostkueste
+#   23:43 UTC = ~0-1 Uhr Deutschland    / 19-20 Uhr US-Ostkueste
+on:
+  schedule:
+    - cron: "13 11 * * *"
+    - cron: "13 17 * * *"
+    - cron: "43 23 * * *"
+  workflow_dispatch: {}
+  # Nur zum Testen der Bildgenerierung auf dem Entwicklungs-Branch
+  # (veroeffentlicht dort nichts, siehe "Publish"-Bedingung unten).
+  push:
+    branches: [ccr-178c7728-27xf6u]
+    paths: [".github/workflows/people_post.yml", "scripts/people_generate.py"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: people-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Pruefen, ob Secrets gesetzt sind
+        id: gate
+        env:
+          HAS_CF: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' && secrets.CLOUDFLARE_API_TOKEN != '' }}
+          HAS_IG: ${{ secrets.PEOPLE_IG_ACCESS_TOKEN != '' && secrets.PEOPLE_IG_ACCOUNT_ID != '' }}
+        run: |
+          if [ "$HAS_CF" != "true" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN fehlen - nichts zu tun."
+            exit 0
+          fi
+          # Geplante Laeufe nur, wenn der Instagram-Account angebunden ist -
+          # sonst wuerden taeglich ungenutzte Bilder ins Repo wandern.
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$HAS_IG" != "true" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::PEOPLE_IG_ACCESS_TOKEN / PEOPLE_IG_ACCOUNT_ID fehlen - geplanter Post uebersprungen (siehe README)."
+            exit 0
+          fi
+          # Schutz gegen Doppelposts, falls GitHub einen geplanten Lauf verspaetet/doppelt startet.
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            last=$(git log -1 --grep="Neue Person:" --format=%ct || true)
+            if [ -n "$last" ] && [ $(( $(date +%s) - last )) -lt 10800 ]; then
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "Ueberspringe: letzter Post ist weniger als 3 Stunden her."
+              exit 0
+            fi
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "publish=$([ "$HAS_IG" = "true" ] && [ "${{ github.ref }}" = "refs/heads/main" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: pip install requests Pillow
+
+      - name: Person generieren
+        if: steps.gate.outputs.run == 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: python scripts/people_generate.py
+
+      - name: Commit Bild
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A assets/people_generated people_posted_log.json
+          git commit -m "Neue Person: $(date -u +'%Y-%m-%d %H:%M') UTC"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Publish to Instagram
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.PEOPLE_IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.PEOPLE_IG_ACCOUNT_ID }}
+        run: python scripts/publish.py --post-file assets/people_generated/next_post.json

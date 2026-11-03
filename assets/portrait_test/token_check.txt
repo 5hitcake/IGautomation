@@ -1,6 +1,0 @@
-token has whitespace/newline: False
-account id looks like 32 hex: True
-token prefix kind: cfut_/cfat_ style
-user token verify: HTTP 200 success=True errors=[] result={'status': 'active', 'expires_on': None, 'not_before': None}
-account token verify: HTTP 401 success=False errors=[{'code': 1000, 'message': 'Invalid API Token'}] result=None
-list accounts: HTTP 200 success=True errors=[] result=[]

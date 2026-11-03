@@ -1,7 +1,0 @@
-OK    @cf/black-forest-labs/flux-2-dev (14s, 650 KB)
-OK    @cf/black-forest-labs/flux-2-klein-9b (2s, 803 KB)
-OK    @cf/black-forest-labs/flux-2-klein-4b (8s, 857 KB)
-OK    @cf/black-forest-labs/flux-1-schnell (2s, 682 KB)
-OK    @cf/leonardo/lucid-origin (4s, 615 KB)
-OK    @cf/leonardo/phoenix-1.0 (5s, 595 KB)
-OK    @cf/bytedance/stable-diffusion-xl-lightning (3s, 128 KB)
