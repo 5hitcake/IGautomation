@@ -346,9 +346,16 @@ fehlzuschlagen. Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieb
 ## These people do not exist
 
 `people_post.yml` postet **3× täglich** ein fotorealistisches Portrait einer erfundenen
-Person auf einen eigenen, englischsprachigen Instagram-Account. Die Zeiten sind auf ein
-internationales Publikum ausgelegt: 11:13, 17:13 und 23:43 UTC, also ca. 12–13, 18–19 und
-0–1 Uhr in Deutschland bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
+Person auf **@people.that.dont.exist**. Die Zeiten sind auf ein internationales Publikum
+ausgelegt: 11:13, 17:13 und 23:43 UTC, also ca. 12–13, 18–19 und 0–1 Uhr in Deutschland
+bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
+
+- **Freigabe per Telegram** (`scripts/people_review.py`): 3 Stunden vor jedem Termin kommt
+  das Bild mit Caption in deinen Telegram-Chat, mit den Knöpfen **✅ Posten · 🔄 Neue Person ·
+  ❌ Verwerfen**. ✅ postet zum Termin, 🔄 erzeugt einmal eine neue Person, ❌ lässt den Post
+  ausfallen. **Ohne Antwort wird zum Termin automatisch gepostet.** Nach dem Posten kommt
+  eine Bestätigung, bei Fehlern eine Warnung. Nur Klicks aus deinem eigenen Chat zählen.
+  Ohne Telegram-Secrets wird ohne Rückfrage gepostet.
 
 - **Jede Person ist neu**: `scripts/people_generate.py` würfelt Herkunft (27 Gruppen),
   Geschlecht, Alter (nur Erwachsene, 20–85), Frisur, Details, Kleidung, Ort, Licht und
@@ -386,11 +393,19 @@ internationales Publikum ausgelegt: 11:13, 17:13 und 23:43 UTC, also ca. 12–13
 | `PTNE_ACCOUNT_TOKEN` | Instagram-Account-ID des neuen Accounts |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID (32 Zeichen) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API Token mit Workers-AI-Berechtigung |
+| `TELEGRAM_BOT_TOKEN` | Token deines Telegram-Bots (von @BotFather) |
+| `TELEGRAM_CHAT_ID` | Deine Telegram-User-ID (Zahl, z. B. von @userinfobot) |
 
-4. Test: **Actions → These People Do Not Exist → Run workflow**.
+**Telegram-Bot einrichten:** In Telegram **@BotFather** öffnen, `/newbot` senden, Namen und
+Benutzernamen wählen und den Token kopieren. Dann deinen neuen Bot öffnen und **Start**
+drücken, sonst darf er dir nicht schreiben. Deine Chat-ID bekommst du von **@userinfobot**
+(die Zahl hinter „Id“).
 
-Solange die Instagram-Secrets fehlen, überspringen die geplanten Läufe mit einer Warnung.
-Ein manueller Lauf erzeugt trotzdem ein Bild, veröffentlicht aber nichts.
+4. Test: **Actions → These People Do Not Exist → Run workflow**. Das postet wirklich!
+
+Solange die Instagram-Secrets fehlen, überspringen die Läufe mit einer Warnung.
+Ein manueller Lauf (**Run workflow**) fragt per Telegram nach und postet nach der
+eingestellten Bedenkzeit (Standard: 15 Minuten).
 Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieben.
 
 ---

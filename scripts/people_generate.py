@@ -495,6 +495,57 @@ def make_samples(count, dry_run=False):
         f.write("\n".join(lines))
 
 
+def create_candidate(state, dry_run=False):
+    """Wuerfelt eine Person und erzeugt ihr Bild. Aendert noch nichts auf der
+    Platte - erst finalize() speichert Bild, next_post.json und Log."""
+    persona = roll_persona(state)
+    prompt = build_prompt(persona)
+    print(f"Prompt: {prompt}")
+    if dry_run:
+        raw, model = placeholder_image(), "dry-run"
+    else:
+        raw, model = generate_image(prompt, *_credentials())
+    number = state.get("count", 0) + 1
+    return {
+        "persona": persona,
+        "prompt": prompt,
+        "model": model,
+        "number": number,
+        "jpeg": to_instagram_jpeg(raw),
+        "caption": build_caption(persona, number),
+    }
+
+
+def finalize(state, candidate):
+    """Speichert den freigegebenen Kandidaten als naechsten Post."""
+    number = candidate["number"]
+    os.makedirs(GENERATED_DIR, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
+    filename = f"person_{stamp}_{number:04d}.jpg"
+    with open(os.path.join(GENERATED_DIR, filename), "wb") as f:
+        f.write(candidate["jpeg"])
+    prune_old_images(GENERATED_DIR)
+
+    post = {
+        "type": "image",
+        "file": f"{GENERATED_REL}/{filename}",
+        "caption": candidate["caption"],
+        "model": candidate["model"],
+        "prompt": candidate["prompt"],
+    }
+    with open(os.path.join(GENERATED_DIR, "next_post.json"), "w", encoding="utf-8") as f:
+        json.dump(post, f, ensure_ascii=False, indent=2)
+
+    state["count"] = number
+    persona = candidate["persona"]
+    memory = {k: persona[k] for k in ("gender", "age_range", "heritage", "setting")}
+    state.setdefault("recent", []).append(memory)
+    state["recent"] = state["recent"][-STATE_HISTORY_LIMIT:]
+    save_state(state)
+    print(f"Gespeichert: {post['file']}\n\n{post['caption']}")
+    return post
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="Platzhalterbild statt Cloudflare-Aufruf")
@@ -507,39 +558,8 @@ def main():
         return make_samples(args.samples, args.dry_run)
 
     state = load_state()
-    persona = roll_persona(state)
-    prompt = build_prompt(persona)
-    print(f"Prompt: {prompt}")
-
-    if args.dry_run:
-        raw, model = placeholder_image(), "dry-run"
-    else:
-        raw, model = generate_image(prompt, *_credentials())
-
-    number = state.get("count", 0) + 1
-    os.makedirs(GENERATED_DIR, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
-    filename = f"person_{stamp}_{number:04d}.jpg"
-    with open(os.path.join(GENERATED_DIR, filename), "wb") as f:
-        f.write(to_instagram_jpeg(raw))
-    prune_old_images(GENERATED_DIR)
-
-    post = {
-        "type": "image",
-        "file": f"{GENERATED_REL}/{filename}",
-        "caption": build_caption(persona, number),
-        "model": model,
-        "prompt": prompt,
-    }
-    with open(os.path.join(GENERATED_DIR, "next_post.json"), "w", encoding="utf-8") as f:
-        json.dump(post, f, ensure_ascii=False, indent=2)
-
-    state["count"] = number
-    memory = {k: persona[k] for k in ("gender", "age_range", "heritage", "setting")}
-    state.setdefault("recent", []).append(memory)
-    state["recent"] = state["recent"][-STATE_HISTORY_LIMIT:]
-    save_state(state)
-    print(f"Gespeichert: {post['file']}\n\n{post['caption']}")
+    candidate = create_candidate(state, dry_run=args.dry_run)
+    finalize(state, candidate)
 
 
 if __name__ == "__main__":

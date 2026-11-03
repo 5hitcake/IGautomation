@@ -46,5 +46,6 @@ jobs:
       - name: Dry-Run These-People-Do-Not-Exist (kein echter API-Call)
         run: |
           python scripts/people_generate.py --dry-run
+          python scripts/people_review.py --dry-run --wait-minutes 0
           python scripts/publish.py --post-file assets/people_generated/next_post.json --dry-run
           git checkout -- . && git clean -fdq assets/people_generated people_posted_log.json
