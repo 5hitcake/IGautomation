@@ -23,11 +23,12 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
         run: |
           echo "HF_TOKEN length: ${#HF_TOKEN}"
           echo "ACCOUNT_ID length: ${#CLOUDFLARE_ACCOUNT_ID}"
           echo "API_TOKEN length: ${#CLOUDFLARE_API_TOKEN}"
-          echo "ACCOUNT_ID length: ${#CLOUDFLARE_ACCOUNT_ID} / API_TOKEN length: ${#CLOUDFLARE_API_TOKEN} / HF_TOKEN length: ${#HF_TOKEN}" > assets/portrait_test/secrets_check.txt
+          echo "ACCOUNT_ID length: ${#CLOUDFLARE_ACCOUNT_ID} / API_TOKEN length: ${#CLOUDFLARE_API_TOKEN} / HF_TOKEN length: ${#HF_TOKEN} / IG_ACCESS_TOKEN (Vergleich) length: ${#IG_ACCESS_TOKEN}" > assets/portrait_test/secrets_check.txt
       - name: Generate test portraits
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
