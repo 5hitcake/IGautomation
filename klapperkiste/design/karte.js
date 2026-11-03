@@ -113,7 +113,9 @@ window.Karte = function (opt = {}) {
   // Sichtbar erst, wenn Opa von Kauz erzählt hat. Haus = Schuppen mit Blechdach.
   const KAUZ = { X: 92, Y: 271, b: 24, bereich: [92, 271, 116, 287.1], haus: [95.8, 271, 108.3, 278.8] };
   // Mühle der Müllerin (Bild 22 m breit) hinter den Feldern im Norden, Mitte bei (x, y)
-  const MUEHLE = { x: 296, y: 40, b: 22, bereich: [285, 29, 307, 51], haus: [289, 31, 303, 46] };
+  // Bild 22 m breit (33,8 m hoch), linke obere Ecke bei (X, Y); der Weg im Bild läuft unten in den Mühlenweg.
+  // Haus = Dach und Veranda, aus dem Bild vermessen.
+  const MUEHLE = { X: 283, Y: 26.2, b: 22, bereich: [283, 26, 305, 60], haus: [288, 27.5, 303.5, 42] };
   // Mühlbach: Linie, an der morschen Holzbrücke (BRUECKE) quert der Mühlenweg
   const BACH = [[246, 60], [262, 63.5], [278, 66], [292, 67.5], [301.2, 68], [310, 66.5], [322, 63]];
   const BACH_BREITE = 3.2, BRUECKE = { x: 301.2, y: 68, kg: 120 };
@@ -188,7 +190,7 @@ window.Karte = function (opt = {}) {
   }
 
   const OBJEKTE = []; // {art, x, y, rot, s, spiegel, r (Kollision)}
-  const NADELWALD = [[0, 100, 125, 255], [245, 75, 320, 205], [0, 250, 135, 320]]; // wie die Nadelbaum-Flächen unten
+  const NADELWALD = [[0, 100, 125, 255], [0, 250, 135, 320]]; // wie die Nadelbaum-Flächen unten
   function setze(art, x, y, opt = {}) {
     // In den Nadelwäldern stechen helle Laubbäume heraus: dort wird ein Nadelbaum daraus
     if (art === "laubbaum" && NADELWALD.some(([x0, y0, x1, y1]) => x > x0 && x < x1 && y > y0 && y < y1)) art = "nadelbaum";
@@ -229,7 +231,9 @@ window.Karte = function (opt = {}) {
     streue("nadelbaum", 110, 6, 100, 120, 250);
     streue("laubbaum", 30, 10, 110, 120, 250);
     streue("laubbaum", 30, 6, 6, 200, 100);
-    streue("nadelbaum", 32, 250, 80, 314, 200);
+    // Im Osten bei Hof, Feldern und Mühle Laubbäume wie auf dem Bild der Mühle (keine Tannen)
+    streue("laubbaum", 26, 250, 80, 314, 200);
+    streue("laubbaum", 10, 252, 8, 318, 76);
     streue("laubbaum", 18, 100, 306, 314, 318);
     streue("laubbaum", 12, 170, 120, 250, 200);
     streue("nadelbaum", 20, 10, 255, 130, 316);
@@ -2084,7 +2088,7 @@ window.Karte = function (opt = {}) {
     bild(OBJ.bauernhof, HOF.X, HOF.Y);
     mitte(OBJ.foersterhuette, FOERSTER.x, FOERSTER.y);
     bild(OBJ.campingplatz, CAMPING.X, CAMPING.Y);
-    mitte(OBJ.muehle, MUEHLE.x, MUEHLE.y); // Bild fehlt noch: dann bleibt die Wiese leer
+    bild(OBJ.muehle, MUEHLE.X, MUEHLE.Y);
   }
   // Mühlbach: Sandufer, darauf das Wasser als breite Linie
   function bachMalen(c) {
