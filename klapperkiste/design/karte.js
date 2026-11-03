@@ -104,7 +104,7 @@ window.Karte = function (opt = {}) {
   // Das Schilf geht nur mit dem Mähbalken (Kategorie Vorne) weg.
   const SCHILFPFAD = [[114, 300.5], [119.5, 292], [119.5, 284], [114.5, 279]];
   // Mühlenweg (G10): vom Ende des Feldwegs nach Norden über die morsche Brücke am Mühlbach zur Mühle
-  const MUEHLENWEG = [[300, 85], [302, 74], [300.5, 62], [296, 53]];
+  const MUEHLENWEG = [[300, 85], [302, 74], [300.5, 63], [297.5, 56], [295.5, 50]]; // endet im Hof (Weg im Mühlenbild)
   const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG];
   // Campingplatz (Bild 30 m breit), Einfahrt links, Steg rechts zum Waldsee
   const CAMPING = { X: 37, Y: 282, b: 30, bereich: [37, 282, 67, 302.1],
@@ -115,7 +115,7 @@ window.Karte = function (opt = {}) {
   // Mühle der Müllerin (Bild 22 m breit) hinter den Feldern im Norden, Mitte bei (x, y)
   // Bild 22 m breit (33,8 m hoch), linke obere Ecke bei (X, Y); der Weg im Bild läuft unten in den Mühlenweg.
   // Haus = Dach und Veranda, aus dem Bild vermessen.
-  const MUEHLE = { X: 283, Y: 26.2, b: 22, bereich: [283, 26, 305, 60], haus: [288, 27.5, 303.5, 42] };
+  const MUEHLE = { X: 284.5, Y: 26.2, b: 22, bereich: [284.5, 26, 306.5, 60], haus: [289.5, 27.5, 305, 42] };
   // Mühlbach: Linie, an der morschen Holzbrücke (BRUECKE) quert der Mühlenweg
   const BACH = [[246, 60], [262, 63.5], [278, 66], [292, 67.5], [301.2, 68], [310, 66.5], [322, 63]];
   const BACH_BREITE = 3.2, BRUECKE = { x: 301.2, y: 68, kg: 120 };
@@ -1732,7 +1732,7 @@ window.Karte = function (opt = {}) {
     { id: "bauernhof", name: "Bauernhof", art: "ort", x: 276, y: 162, gebiet: "nord" },
     { id: "foersterhuette", name: "Försterhütte", art: "ort", x: 36, y: 197, gebiet: "wald" },
     { id: "felder", name: "Zu den Feldern", art: "weg", x: 300, y: 85, gebiet: "felder" },
-    { id: "muehle", name: "Mühle", art: "ort", x: 296, y: 53, gebiet: "muehle" },
+    { id: "muehle", name: "Mühle", art: "ort", x: 295.5, y: 50, gebiet: "muehle" },
     { id: "camping", name: "Campingplatz", art: "ort", x: 39, y: 289.4, gebiet: "camping" },
     { id: "ostufer", name: "Ostufer am Waldsee", art: "weg", x: 114, y: 300.5, gebiet: "ostufer" },
     // erst, wenn Opa von Kauz erzählt hat (G9)
