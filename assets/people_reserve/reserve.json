@@ -1,0 +1,15 @@
+{
+  "_info": "Reservebilder fuer den Fall, dass das Cloudflare-Kontingent leer ist. Jedes wird hoechstens einmal gepostet (people_posted_log.json -> reserve_used). Neue Reservebilder: JPEG 1080x1350 hier ablegen und unten eintragen.",
+  "images": [
+    {"id": "reserve_01", "file": "reserve_01.jpg", "name": "Nia", "age": 73, "gender": "woman",
+     "age_range": [70, 85], "heritage": ["African American", "african_american"], "setting": "at an outdoor market"},
+    {"id": "reserve_02", "file": "reserve_02.jpg", "name": "Salma", "age": 27, "gender": "woman",
+     "age_range": [20, 29], "heritage": ["North African", "north_african"], "setting": "at a bus stop"},
+    {"id": "reserve_03", "file": "reserve_03.jpg", "name": "Ren", "age": 35, "gender": "man",
+     "age_range": [30, 39], "heritage": ["Japanese", "japanese"], "setting": "on a rooftop"},
+    {"id": "reserve_04", "file": "reserve_04.jpg", "name": "Zainab", "age": 62, "gender": "woman",
+     "age_range": [60, 69], "heritage": ["West African", "west_african"], "setting": "in a small neighborhood café"},
+    {"id": "reserve_05", "file": "reserve_05.jpg", "name": "Nils", "age": 44, "gender": "man",
+     "age_range": [40, 49], "heritage": ["Northern European", "northern_european"], "setting": "at a harbor with boats"}
+  ]
+}

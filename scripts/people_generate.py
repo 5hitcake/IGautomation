@@ -32,6 +32,7 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 STATE_PATH = os.path.join(ROOT, "people_posted_log.json")
 GENERATED_DIR = os.path.join(ROOT, "assets", "people_generated")
 GENERATED_REL = "assets/people_generated"
+RESERVE_DIR = os.path.join(ROOT, "assets", "people_reserve")
 
 # Instagram-Feed-Hochformat 4:5.
 OUTPUT_SIZE = (1080, 1350)
@@ -626,17 +627,50 @@ def make_samples(count, dry_run=False):
         f.write("\n".join(lines))
 
 
-def create_candidate(state, dry_run=False):
-    """Wuerfelt eine Person und erzeugt ihr Bild. Aendert noch nichts auf der
-    Platte - erst finalize() speichert Bild, next_post.json und Log."""
+def next_reserve(state, skip=()):
+    """Naechstes noch nicht gepostetes Reservebild (oder None)."""
+    path = os.path.join(RESERVE_DIR, "reserve.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        images = json.load(f)["images"]
+    used = set(state.get("reserve_used", [])) | set(skip)
+    for entry in images:
+        if entry["id"] not in used and os.path.exists(os.path.join(RESERVE_DIR, entry["file"])):
+            return entry
+    return None
+
+
+def create_candidate(state, dry_run=False, skip_reserve=()):
+    """Wuerfelt eine Person und erzeugt ihr Bild. Ist das Cloudflare-Kontingent
+    leer (oder fallen alle Modelle aus), wird ein Reservebild genommen.
+    Aendert noch nichts auf der Platte - erst finalize() speichert alles."""
     persona = roll_persona(state)
     prompt = build_prompt(persona)
     print(f"Prompt: {prompt}")
+    number = state.get("count", 0) + 1
     if dry_run:
         raw, model = placeholder_image(), "dry-run"
     else:
-        raw, model = generate_image(prompt, *_credentials())
-    number = state.get("count", 0) + 1
+        try:
+            raw, model = generate_image(prompt, *_credentials())
+        except RuntimeError as exc:
+            reserve = next_reserve(state, skip_reserve)
+            if reserve is None:
+                raise RuntimeError(f"{exc}\n\nKeine Reservebilder mehr uebrig.") from exc
+            print(f"Generierung fehlgeschlagen - nehme Reservebild {reserve['id']}")
+            with open(os.path.join(RESERVE_DIR, reserve["file"]), "rb") as f:
+                raw = f.read()
+            persona = {k: reserve[k] for k in ("name", "age", "gender", "age_range", "heritage", "setting")}
+            return {
+                "persona": persona,
+                "prompt": f"reserve:{reserve['id']}",
+                "model": "reserve",
+                "reserve": reserve["id"],
+                "number": number,
+                "jpeg": to_instagram_jpeg(raw),
+                "caption": build_caption(persona, number),
+            }
     return {
         "persona": persona,
         "prompt": prompt,
@@ -668,6 +702,8 @@ def finalize(state, candidate):
         json.dump(post, f, ensure_ascii=False, indent=2)
 
     state["count"] = number
+    if candidate.get("reserve"):
+        state.setdefault("reserve_used", []).append(candidate["reserve"])
     persona = candidate["persona"]
     memory = {k: persona[k] for k in ("gender", "age_range", "heritage", "setting")}
     state.setdefault("recent", []).append(memory)

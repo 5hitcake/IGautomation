@@ -157,15 +157,21 @@ def review(tg, state, deadline, dry_run=False, sleep=time.sleep, now=None):
     now = now or (lambda: datetime.now(timezone.utc))
     tg.skip_old_updates()
     rerolls = 0
+    offered_reserve = set()
     while True:
         try:
-            cand = pg.create_candidate(state, dry_run=dry_run)
+            cand = pg.create_candidate(state, dry_run=dry_run, skip_reserve=offered_reserve)
         except Exception as exc:  # noqa: BLE001
             tg.send_text(f"⚠️ Kein Bild erzeugt - dieser Post faellt aus.\n\n{str(exc)[:500]}")
             raise
+        if cand.get("reserve"):
+            offered_reserve.add(cand["reserve"])
+            source = "♻️ Reservebild (Cloudflare-Kontingent leer)"
+        else:
+            source = f"Modell: {cand['model'].split('/')[-1]}"
         token = f"{cand['number']}-{rerolls}-{int(time.time())}"
         header = (f"🕒 Post um {local_time(deadline)} Uhr - ohne Antwort wird automatisch gepostet.\n"
-                  f"Modell: {cand['model'].split('/')[-1]}\n\n")
+                  f"{source}\n\n")
         msg_id = tg.send_candidate(cand["jpeg"], header + cand["caption"], token)
         decision = tg.wait_for_decision(token, deadline, now=now)
         if decision == REROLL and rerolls >= MAX_REROLLS:

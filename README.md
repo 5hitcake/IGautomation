@@ -371,8 +371,11 @@ bzw. 7, 13 und 19–20 Uhr an der US-Ostküste.
   automatisch das nächste genommen. Ausgabe: JPEG 1080×1350 (4:5).
 - **Gratis-Kontingent**: 10.000 Neurons pro Tag (Reset 00:00 UTC). FLUX-2 Klein 9B
   braucht ca. 1.450 pro Bild, 3 Posts kosten also ca. 4.400. Teure Modelle wie FLUX-2 Dev
-  (8.000+) sind deshalb nicht in der Kette. Ist das Kontingent leer, bricht der Lauf ab,
-  ohne etwas zu posten.
+  (8.000+) sind deshalb nicht in der Kette.
+- **Reservebilder**: Ist das Kontingent leer oder fallen alle Modelle aus, wird das nächste
+  unbenutzte Bild aus `assets/people_reserve/` genommen (Freigabe per Telegram wie immer,
+  markiert als „♻️ Reservebild“). Jedes Reservebild wird höchstens einmal gepostet. Nachfüllen:
+  JPEG in 1080×1350 dort ablegen und in `reserve.json` eintragen.
 - **Beispielbilder**: `python scripts/people_generate.py --samples 5` legt 5 Bilder plus
   Captions in `assets/people_samples/` ab, ohne Zähler und Log zu ändern.
 - **Caption (englisch)**: Hook („This person does not exist.“), laufende Nummer mit
