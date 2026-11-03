@@ -382,8 +382,8 @@ internationales Publikum ausgelegt: 11:13, 17:13 und 23:43 UTC, also ca. 12–13
 
 | Name | Wert |
 |---|---|
-| `PEOPLE_IG_ACCESS_TOKEN` | Long-Lived Token des neuen Accounts |
-| `PEOPLE_IG_ACCOUNT_ID` | Instagram-Account-ID des neuen Accounts |
+| `PTNE_API_TOKEN` | Long-Lived Token des neuen Accounts |
+| `PTNE_ACCOUNT_TOKEN` | Instagram-Account-ID des neuen Accounts |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID (32 Zeichen) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API Token mit Workers-AI-Berechtigung |
 
