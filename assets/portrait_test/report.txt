@@ -5,4 +5,3 @@ FAIL  @cf/black-forest-labs/flux-1-schnell: HTTP 404: {"result":null,"success":f
 FAIL  @cf/leonardo/lucid-origin: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/leonardo/lucid-origin, perhaps your object identifier is invalid?"}],"messages":[]}
 FAIL  @cf/leonardo/phoenix-1.0: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/leonardo/phoenix-1.0, perhaps your object identifier is invalid?"}],"messages":[]}
 FAIL  @cf/bytedance/stable-diffusion-xl-lightning: HTTP 404: {"result":null,"success":false,"errors":[{"code":7003,"message":"Could not route to /client/v4/accounts/ai/run/@cf/bytedance/stable-diffusion-xl-lightning, perhaps your object identifier is invalid?"}],"messages":[]}
-OK    pollinations-flux (109s, 69 KB)
