@@ -381,7 +381,10 @@ Bei der Sammel-Freigabe gilt: ohne Antwort bis 8:13 Uhr werden beide gepostet.
 - **Gratis-Kontingent**: 10.000 Neurons pro Tag (Reset 00:00 UTC). FLUX-2 Klein 9B
   braucht ca. 1.450 pro Bild, 3 Posts kosten also ca. 4.400. Teure Modelle wie FLUX-2 Dev
   (8.000+) sind deshalb nicht in der Kette.
-- **Reels** (eingeschaltet über `REEL_ENABLED: "true"` in `people_post.yml`, sobald der Song da ist) (`scripts/people_reel.py`, 9 s, 1080×1920): Nahaufnahme der
+- **Mix aus Bild und Reel**: Der Morgen-Post (8:13 AR) ist ein Bild-Post, die Posts um 14:13 und
+  20:43 AR sind Reels (`REEL_SLOTS` in `people_post.yml`). Reels lassen sich insgesamt über
+  `REEL_ENABLED` ein- und ausschalten, sie sind aus, bis der eigene Song da ist.
+- **Reels** (`scripts/people_reel.py`, 9 s, 1080×1920): Nahaufnahme der
   Augen mit Zoom heraus („Look closely.“ → „Do you know this person?“), Glitch-Effekt mit Blitz,
   „Nobody does.“ → „THIS PERSON DOES NOT EXIST“, am Ende zerfällt das Gesicht in Pixel und es
   erscheinen Nummer, Name, Alter und der Doppelgänger-Aufruf. Unterlegt ist der eigene Song

@@ -38,6 +38,9 @@ env:
   # Reels statt Bild-Posts. Wird eingeschaltet, sobald der eigene Song
   # (assets/people_music/theme.*) vorliegt.
   REEL_ENABLED: "false"
+  # Termine (UTC), die als Reel gepostet werden; alle anderen als Bild-Post.
+  # 17:13 = 14:13 AR, 23:43 = 20:43 AR. Der Morgen-Post (11:13) bleibt ein Bild.
+  REEL_SLOTS: "17:13 23:43"
 
 concurrency:
   group: people-post
@@ -96,14 +99,14 @@ jobs:
         run: |
           case "${{ github.event.schedule }}" in
             "30 7 * * *")  echo "args=--queue 11:13,17:13" >> "$GITHUB_OUTPUT" ;;
-            "13 11 * * *") echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT" ;;
-            "13 17 * * *") echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT" ;;
-            "43 20 * * *") echo "args=--target 23:43" >> "$GITHUB_OUTPUT" ;;
+            "13 11 * * *") echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT"; echo "slot=11:13" >> "$GITHUB_OUTPUT" ;;
+            "13 17 * * *") echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT"; echo "slot=17:13" >> "$GITHUB_OUTPUT" ;;
+            "43 20 * * *") echo "args=--target 23:43" >> "$GITHUB_OUTPUT"; echo "slot=23:43" >> "$GITHUB_OUTPUT" ;;
             *)
               case "${{ github.event.inputs.mode }}" in
                 Morgen*) echo "args=--queue 11:13,17:13" >> "$GITHUB_OUTPUT" ;;
-                "Warteschlange 8:13"*) echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT" ;;
-                "Warteschlange 14:13"*) echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT" ;;
+                "Warteschlange 8:13"*) echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT"; echo "slot=11:13" >> "$GITHUB_OUTPUT" ;;
+                "Warteschlange 14:13"*) echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT"; echo "slot=17:13" >> "$GITHUB_OUTPUT" ;;
                 *) echo "args=--wait-minutes ${{ github.event.inputs.wait_minutes || '15' }}" >> "$GITHUB_OUTPUT" ;;
               esac ;;
           esac
@@ -137,7 +140,9 @@ jobs:
           for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
 
       - name: Reel rendern (Zoom, Glitch, Text, eigener Song)
-        if: steps.review.outputs.publish == 'true' && env.REEL_ENABLED == 'true'
+        if: >-
+          steps.review.outputs.publish == 'true' && env.REEL_ENABLED == 'true'
+          && steps.when.outputs.slot != '' && contains(env.REEL_SLOTS, steps.when.outputs.slot)
         run: |
           command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
           python scripts/people_reel.py
@@ -153,7 +158,9 @@ jobs:
           for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
 
       - name: Reel auf den Medien-Branch legen (haelt main klein)
-        if: steps.review.outputs.publish == 'true' && env.REEL_ENABLED == 'true' && github.ref == 'refs/heads/main'
+        if: >-
+          steps.review.outputs.publish == 'true' && env.REEL_ENABLED == 'true' && github.ref == 'refs/heads/main'
+          && steps.when.outputs.slot != '' && contains(env.REEL_SLOTS, steps.when.outputs.slot)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
