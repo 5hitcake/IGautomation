@@ -1,5 +1,5 @@
 {
-  "count": 1,
+  "count": 2,
   "recent": [
     {
       "gender": "woman",
@@ -12,9 +12,22 @@
         "african_american"
       ],
       "setting": "at an outdoor market"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "North African",
+        "north_african"
+      ],
+      "setting": "at a bus stop"
     }
   ],
   "reserve_used": [
-    "reserve_01"
+    "reserve_01",
+    "reserve_02"
   ]
 }

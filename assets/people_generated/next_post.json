@@ -1,10 +1,10 @@
 {
   "type": "image",
-  "file": "assets/people_generated/person_20261103_2204_0001.jpg",
-  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0001 · \"Nia\", 73\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #digitalhuman #notreal #fluxai #generativeai #portraitphotography #fakeface",
+  "file": "assets/people_generated/person_20261104_1136_0002.jpg",
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0002 · \"Salma\", 27\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #lookalike #fakeface #notreal #portrait #artificialintelligence",
   "model": "reserve",
-  "prompt": "reserve:reserve_01",
-  "number": 1,
-  "name": "Nia",
-  "age": 73
+  "prompt": "reserve:reserve_02",
+  "number": 2,
+  "name": "Salma",
+  "age": 27
 }
