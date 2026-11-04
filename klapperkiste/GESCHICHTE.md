@@ -98,7 +98,8 @@ der Wald, dann folgen Dorf, Felder, Fluss usw. (Reihenfolge der Gegenden:
 - **Erste Medaille:** 30 Münzen, 1 Feder und von Rosi ein altes **Lenkrad mit Blitz**,
   das seit Jahren an ihrer Hütte hing: das erste Donnerkeil-Teil (1/8). Opa erkennt es
   in der Werkstatt („Den Blitz hab ich selbst draufgemalt!“) und wundert sich, wie es
-  in den Wald kam (Spur zu Kauz). Erstes Gold: 20 Münzen extra.
+  in den Wald kam (Spur zu Kauz). Dann gibt er es zum Einbauen: **Donnerkeil-Lenkrad**
+  (Lenkung, Wendigkeit 9, 4 kg). Erstes Gold: 20 Münzen extra.
 
 ## Nebenaufträge parallel zur Rallye
 

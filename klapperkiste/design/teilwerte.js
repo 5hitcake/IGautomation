@@ -59,6 +59,8 @@ window.TEILWERTE = (function () {
     fahrradlenker: { wendig: 4, gewicht: 2, text: "Ein Fahrradlenker mit Klingel. Lenkt sich ein bisschen zappelig.", extras: ["Klingel"] },
     bus_lenkrad: { wendig: 6, gewicht: 6, text: "Ein riesiges Lenkrad aus einem alten Bus. Ruhig und sicher.", extras: [] },
     steuerrad: { wendig: 7, gewicht: 9, text: "Ein Steuerrad vom Schiff. Ahoi! Lenkt sich weich und weit.", extras: ["Ahoi"] },
+    // Donnerkeil-Teil (1/8): hing bei Rosi am Campingplatz, Opa hat den Blitz selbst draufgemalt
+    donnerkeillenkrad: { wendig: 9, gewicht: 4, text: "Das Lenkrad vom Donnerkeil, mit Holzkranz und Opas gemaltem Blitz. Leicht in der Hand und genau wie ein Rennwagen.", extras: ["Donnerkeil"] },
 
     scheinwerfer: { licht: 25, gewicht: 4, text: "Ein alter Scheinwerfer. Damit wird der dunkle Wald befahrbar.", extras: ["Dunkler Wald", "Braucht Strom"] },
     spezialhupe: { laut: 10, gewicht: 2, text: "Laut wie ein Nebelhorn. Selbst die sturste Schafherde macht Platz.", extras: ["Verscheucht Schafe"] },

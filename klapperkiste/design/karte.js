@@ -3189,15 +3189,29 @@ window.Karte = function (opt = {}) {
       return true;
     },
     // Opa erkennt das Lenkrad aus der Rallye (einmal)
+    // und gibt es zum Einbauen. Ältere Spielstände: Opa nimmt es von der Wand.
     opaLenkrad() {
-      if (!spiel.donnerkeil.includes("lenkrad") || spiel.opaLenkrad) return false;
+      if (!spiel.donnerkeil.includes("lenkrad") || spiel.teile.has("donnerkeillenkrad")) return false;
+      const geben = () => {
+        spiel.teile.add("donnerkeillenkrad");
+        if (opt.belohnung) opt.belohnung("donnerkeillenkrad");
+        toast("🛞 Das Donnerkeil-Lenkrad liegt jetzt im Regal (Lenkung).", 4000);
+      };
+      if (spiel.opaLenkrad) {
+        gespraech("opa", "Opa Bolzen", "werkstatt", [
+          ["nachdenken", "Weißt du was? Das Lenkrad vom Donnerkeil hängt da nur an der Wand rum und staubt ein."],
+          ["juhu", "Nimm's runter und bau's ein! Damit lenkt sich's wie früher bei den Rennen. Für den Donnerkeil heben wir's trotzdem auf."],
+        ], geben);
+        return true;
+      }
       spiel.opaLenkrad = true;
       gespraech("opa", "Opa Bolzen", "werkstatt", [
         ["nachdenken", "Zeig mal her, was hast du denn da? Ein Lenkrad mit einem Blitz drauf …"],
         ["juhu", "Das gibt's ja nicht! Das ist das Lenkrad vom Donnerkeil! Den Blitz hab ich selbst draufgemalt, mit Fahrradlack!"],
         ["nachdenken", "Bei Rosi am Campingplatz hing es? Hm. Wie kommt es denn bloß dahin … Da war doch früher nur Wald."],
-        ["auftrag", "Und gratuliere zur Qualifikation! Ich heb das Lenkrad gut auf. Wenn wir alle Teile haben, bauen wir den Donnerkeil wieder zusammen!"],
-      ], () => toast("Opa hat das Lenkrad an die Werkstattwand gehängt.", 4000));
+        ["auftrag", "Und gratuliere zur Qualifikation! Wenn wir alle Teile haben, bauen wir den Donnerkeil wieder zusammen."],
+        ["juhu", "Bis dahin bau's ruhig in dein Auto ein. Damit lenkt sich's wie früher bei den Rennen!"],
+      ], geben);
       return true;
     },
     // Opa erkennt den Bolzen vom Ostufer und erzählt zum ersten Mal von Kauz (G8)
