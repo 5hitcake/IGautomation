@@ -35,9 +35,8 @@ permissions:
 env:
   # Story zum Post: so viele Minuten NACH dem Feed-Post (0 = gleichzeitig).
   STORY_DELAY_MINUTES: "60"
-  # Reels statt Bild-Posts. Wird eingeschaltet, sobald der eigene Song
-  # (assets/people_music/theme.*) vorliegt.
-  REEL_ENABLED: "false"
+  # Reels statt Bild-Posts, mit dem eigenen Song (assets/people_music/theme.mp3).
+  REEL_ENABLED: "true"
   # Termine (UTC), die als Reel gepostet werden; alle anderen als Bild-Post.
   # 17:13 = 14:13 AR, 23:43 = 20:43 AR. Der Morgen-Post (11:13) bleibt ein Bild.
   REEL_SLOTS: "17:13 23:43"
