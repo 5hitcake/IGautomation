@@ -1,0 +1,22 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "name": "Salma",
+    "age": 27,
+    "gender": "woman",
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "North African",
+      "north_african"
+    ],
+    "setting": "at a bus stop"
+  },
+  "prompt": "reserve:reserve_02",
+  "model": "reserve",
+  "reserve": "reserve_02",
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0002 · \"Salma\", 27\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #lookalike #fakeface #notreal #portrait #artificialintelligence"
+}
