@@ -134,7 +134,8 @@ geflattert. Zustand `spiel.neben.pieps` (`suchen` → `dabei` → `erledigt`), O
 - **Hören:** Bis 70 m piepst er alle 1,3–2,5 s, je näher desto lauter, links oder rechts je nach
   Richtung (Stereo, `Ton.pieps`). Ohne Ton helfen die hellblauen Noten ♪, die über ihm aufsteigen
   (auch nachts und über den Bäumen); liegt er außerhalb des Bilds, erscheinen sie am Bildrand.
-- **Fangen:** Näher als 6 m hüpft er aufs Auto und fährt mit. Bei Moos: 25 Münzen.
+- **Fangen:** Näher als 6 m hüpft er aufs Auto und fährt mit. Bei Moos: 25 Münzen und seine alte
+  **Talkarte** mit der Landstraße ins Dorf (Gebiet `landstrasse`, führt zu G11).
 - Pieps auf der Karte ist der Spatz in Blau umgefärbt (`tools/einmalig/pieps_blau.py`).
 
 ## Die Lichter am Waldsee (G8)
@@ -192,6 +193,33 @@ habe sie falsch angesagt. Zustand `spiel.neben.muehle`.
    Werkstatt: „Na, Fahrer?“ – „Na, Beifahrer!“ Kauz schenkt den **Donnerkeil-Rahmen**, den er
    nachts aus dem alten Rahmen neu gebaut hat (Donnerkeil-Teil 2/8, Teil `donnerkeilrahmen`).
    Den Bolzen behalten beide, abwechselnd (`versoehnt`).
+
+## Das Dorffest (G11, Entwurf)
+
+Die Karte ist nach Osten auf 480 × 320 m gewachsen. Östlich der Weide führt die **Landstraße**
+zum Ortseingang von **Klappertal-Dorf** (`LANDSTRASSE`, Gebiet `landstrasse`). Moos zeichnet sie
+nach Pieps' Rückkehr ein (seine alte Talkarte, G4). Am Ortsschild steht eine rot-weiße
+Absperrung: „Wegen Dorffest-Vorbereitung gesperrt!“ (Hindernis `dorffest`). Das Dorf selbst
+(Gebiet `dorf`, Fläche `DORF.flaeche` bleibt frei) kommt mit den Bildern.
+
+1. **An der Absperrung: Hauptfrau Funke** (Feuerwehr). „Halt! Durchfahrt nur für Helfer! …
+   Du hast ein Auto? Dann bist du ab sofort Helfer!“ Sie hebt die Schranke, das Dorf ist offen.
+2. **Das Dorf:** Marktplatz mit Brunnen und Marktständen in der Mitte, die Eisdiele von
+   **Gino Gelato** und die **Feuerwache** von Funke, dazu ein paar Dorfhäuser.
+3. **Ginos Eis-Express (Zeitdruck, neue Rätselart):** Ginos Kühltruhe ist kaputt, das Eis fürs
+   Fest muss ausgeliefert werden, bevor es schmilzt. Ein Becher für Opa (nah), einer für die
+   Müllerin (weit, über die Brücke: leicht **und** schnell). Anzeige 🍦 100 % → 0 %, je
+   Fahrminute weniger. Geschmolzen? Zurück zu Gino, neuer Becher. Belohnung: die
+   **Eiswagen-Karosserie** (hinten, Mitte, vorne) und 30 Münzen.
+4. **Funkes Hütchen:** Der Sturm hat die Pylonen für den Dorf-Slalom übers Dorf und die
+   Landstraße verteilt. 6 Stück einsammeln (wie Material, liegen sichtbar am Weg).
+5. **Der Dorf-Slalom (2. Vorrunde):** Auf dem Marktplatz um Pylonen und Marktstände, so schnell
+   es geht. Zählt: Lenkung und Gewicht (das Donnerkeil-Lenkrad und der leichte Rahmen helfen).
+   Erste Medaille: Funke gibt den alten Sessel aus der Wachstube, ein Rennsitz mit Blitz:
+   **Donnerkeil-Sitz (3/8)**. „Den hat mein Vorgänger beim Sperrmüll-Händler gekauft.“ Opa
+   erkennt ihn (Spur für später: Wer hat die Teile damals verkauft?).
+
+Bilder: siehe [`CHARAKTERE.md`](CHARAKTERE.md), Abschnitt „Klappertal-Dorf (G11)“.
 
 ## Rennen über das Spiel verteilt
 
@@ -284,3 +312,4 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
 | G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ |
 | G10 | Die Mühlenkurve: Botengänge, Mühle mit Brücke (Gewicht), Foto, Versöhnung, Donnerkeil-Rahmen | ✅ |
+| G11 | Das Dorffest: Landstraße, Funke, Ginos Eis-Express, Hütchen, Dorf-Slalom, Donnerkeil-Sitz | Landstraße ✅, Dorf wartet auf Bilder |

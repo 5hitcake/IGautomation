@@ -233,6 +233,59 @@ Use the attached image as the reference: the exact same scene, same composition,
 An old faded sepia photograph from the 1960s with a white border and one bent corner: a sleek silver racing car with a painted lightning bolt on its side brakes hard in a dusty gravel curve next to an old watermill, a big cloud of dust and gravel behind the wheels, a short round driver with goggles and a very tall thin co-driver with a leather cap leaning forward and shouting, and right in the middle of the track in front of the car a calm brown and white cow stands chewing grass and looking at the camera, spectators behind straw bales at the edge of the curve. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, sepia and brown tones only, light paper texture, slightly blurred like an old photo. Landscape format. No text, no frames except the photo border.
 ```
 
+## Klappertal-Dorf (G11)
+
+Kartenobjekte (von oben, Format 1:1) und Gesprächshintergründe (16:9) fürs Dorf. Die Kartenobjekte
+passe ich mit `tools/objekt.py einpassen … --meter M` ein (Breite in Klammern).
+
+### Marktplatz von oben (`marktplatz`, 30 m)
+
+```
+A small old village market square seen from high above, top-down bird's-eye view like on a map or in a top-down video game, slightly angled so things are a little visible: a square of grey cobblestones with a round stone fountain with blue water in the middle, a big old lime tree with a round bench around its trunk in one corner, four small wooden market stalls with red-white and green-white striped awnings along the edges with crates of vegetables, flowers and bread, a few strings of colourful bunting flags stretched across the square for a village fest, a cobbled street entering in the middle of the left edge and leaving in the middle of the right edge. Light comes from the upper left. Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, warm earthy colours. Isolated on a plain flat white background, the whole place fills most of the frame. No surrounding grass, no cast shadow on the ground outside the place, no text, no letters, no people.
+```
+
+### Eisdiele von oben (`eisdiele`, 18 m)
+
+```
+A small village ice cream parlour seen from high above, top-down bird's-eye view like on a map or in a top-down video game, slightly angled so the building is a little visible: a narrow two-storey house with a pink and white striped awning over the shop window, a pastel pink plastered wall and an orange tile roof, a giant plastic ice cream cone sign on the roof edge, in front a small terrace with three round white tables and pink parasols, a broken white chest freezer standing outside next to the door with its lid open, a short cobbled path at the bottom edge. Light comes from the upper left. Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, warm earthy colours. Isolated on a plain flat white background, the whole place fills most of the frame. No surrounding grass, no cast shadow on the ground outside the place, no text, no letters, no people.
+```
+
+### Feuerwache von oben (`feuerwache`, 24 m)
+
+```
+A small village fire station seen from high above, top-down bird's-eye view like on a map or in a top-down video game, slightly angled so the building is a little visible: a red brick building with a dark grey roof and two big red garage doors at the bottom side, a tall narrow hose drying tower on one corner, a paved yard in front with a rolled-out fire hose, a stack of orange traffic cones and a hydrant, a red bench and a bell on a post next to the door, the yard opens at the bottom edge. Light comes from the upper left. Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, warm earthy colours. Isolated on a plain flat white background, the whole place fills most of the frame. No surrounding grass, no cast shadow on the ground outside the place, no text, no letters, no people.
+```
+
+### Dorfhäuser von oben (`dorfhaus_1`, `dorfhaus_2`, je 12 m)
+
+Zwei einzelne Bilder, damit das Dorf nicht nur aus Läden besteht:
+
+```
+A small cosy village house seen from high above, top-down bird's-eye view like on a map or in a top-down video game, slightly angled so the building is a little visible: [HAUS], a tiny front garden with a low picket fence, flower beds and a short path at the bottom edge. Light comes from the upper left. Comic book illustration, bold uniform black ink outlines, flat cel-shaded colours with one clear shadow tone and small white highlights, warm earthy colours. Isolated on a plain flat white background, the whole place fills most of the frame. No surrounding grass, no cast shadow on the ground outside the place, no text, no letters, no people.
+```
+
+`[HAUS]`:
+- `dorfhaus_1`: `a white half-timbered house with dark wooden beams, a steep red tile roof with a small chimney and green window shutters`
+- `dorfhaus_2`: `a yellow plastered house with a blue-grey slate roof, a round dormer window, a bicycle leaning against the wall and laundry on a line`
+
+### Eisdiele (Gesprächshintergrund `eisdiele`)
+
+```
+Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals except a cat sleeping in a window. In front of a small village ice cream parlour on a sunny summer afternoon: on the right the shop front with a pink and white striped awning, a big shop window with a counter full of colourful ice cream tubs, a giant ice cream cone sign above the door, two round white tables with pink parasols and chairs, next to the door a broken white chest freezer with its lid open and a puddle of melted water under it, cobblestones, colourful bunting flags for a village fest across the street, half-timbered houses in the background. The left half and the centre of the image are calm and open: empty cobblestones in the sun, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```
+
+Nachtbild mit der Vorlage „Nachtbilder“, `[ORT]`: `The shop window glows warmly, the bunting is lit by a string of small coloured bulbs, the parasols are folded.`
+
+### Feuerwache (Gesprächshintergrund `feuerwache`)
+
+```
+Background illustration for a game dialogue scene, seen at eye level from the ground, no characters, no people, no animals except a small dalmatian dog sleeping on a mat. In front of a small red brick village fire station in the late morning: on the right one big red garage door is open and shows a shiny old red fire engine inside, a tall hose tower, a brass bell on a post, a rolled fire hose, a stack of orange traffic cones and a hydrant, through a small window you can see an old armchair-like racing seat with a painted yellow lightning bolt on its backrest. The left half and the centre of the image are calm and open: an empty paved yard, so a character can stand there. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, fully coloured with warm flat watercolour-like colours and a light paper texture, slightly muted so a character in front stands out. Wide landscape format. No text, no letters, no frames.
+```
+
+Nachtbild mit der Vorlage „Nachtbilder“, `[ORT]`: `A red lamp above the garage door and the windows glow, the fire engine shines in the dark hall.`
+
+Später (Dorf-Slalom und Donnerkeil-Sitz) kommen noch der Sitz als Teil und Pylonen von oben dazu.
+
 ## Ausschneiden, Sonderfälle
 
 - **Direktorin Zylinda:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/zylinda.jpg zylinda --saum hallo --loch nachdenken:0.81,0.387`

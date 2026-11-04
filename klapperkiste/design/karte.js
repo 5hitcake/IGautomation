@@ -16,7 +16,9 @@ window.Karte = function (opt = {}) {
   const D = window.KARTE_DATEN;
   const $ = (id) => document.getElementById(id);
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const W = 320; // Kartengröße in Metern (5 × 5 Abschnitte à 64 m)
+  // Kartengröße in Metern: 480 × 320 (7,5 × 5 Abschnitte à 64 m). Bis x = 320 das alte Tal,
+  // östlich davon Landstraße und Dorf (G11)
+  const WX = 480, WY = 320;
 
   // --- Bilder laden --------------------------------------------------------
   const lade = (src) => { const im = new Image(); im.src = src; return im; };
@@ -44,6 +46,9 @@ window.Karte = function (opt = {}) {
   // --- Zufall mit festem Startwert, damit die Karte immer gleich ist --------
   let seed = 7;
   const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  // eigener Zufall für den Osten (Landstraße, Dorf): so bleibt im alten Tal alles, wo es war
+  let seedOst = 4711;
+  const rndOst = () => ((seedOst = (seedOst * 1664525 + 1013904223) >>> 0) / 4294967296);
 
   // --- Karte -----------------------------------------------------------------
   // Opas Schuppen: Bild 14 m breit, linke obere Ecke bei (X, Y). Maße aus dem Bild vermessen.
@@ -105,7 +110,13 @@ window.Karte = function (opt = {}) {
   const SCHILFPFAD = [[114, 300.5], [119.5, 292], [119.5, 284], [114.5, 279]];
   // Mühlenweg (G10): vom Ende des Feldwegs nach Norden über die morsche Brücke am Mühlbach zur Mühle
   const MUEHLENWEG = [[300, 85], [302, 74], [300.5, 63], [297.5, 56], [295.5, 50]]; // endet im Hof (Weg im Mühlenbild)
-  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG];
+  // Landstraße (G4/G11): von der Weide nach Osten zum Ortseingang von Klappertal-Dorf. Moos zeichnet
+  // sie nach Pieps' Rückkehr ein (seine alte Talkarte). Am Ortsschild ist die Straße noch gesperrt.
+  const LANDSTRASSE = [[299, 250], [318, 247], [342, 243], [366, 246], [388, 250]];
+  const DORF = { schild: [376.5, 242.5], fest: [380, 248.5], flaeche: [376, 196, 478, 304] }; // Dorf: Fläche bleibt frei für G11
+  const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG, LANDSTRASSE];
+  const WEGE_OST = [LANDSTRASSE]; // Bäume und Büsche daran mit eigenem Zufall (rndOst)
+  const WEGE_ALT = WEGE.filter((w) => !WEGE_OST.includes(w));
   // Campingplatz (Bild 30 m breit), Einfahrt links, Steg rechts zum Waldsee
   const CAMPING = { X: 37, Y: 282, b: 30, bereich: [37, 282, 67, 302.1],
     haeuser: [[46.6, 282, 51.7, 287.4], [57.4, 285.8, 62.5, 290.2]] };
@@ -166,15 +177,17 @@ window.Karte = function (opt = {}) {
     const t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / (dx * dx + dy * dy)));
     return Math.hypot(px - (a[0] + t * dx), py - (a[1] + t * dy));
   }
-  function abstandWeg(px, py) {
+  function abstandWeg(px, py, wege = WEGE) {
     let m = Infinity;
-    for (const w of WEGE) for (let i = 1; i < w.length; i++) m = Math.min(m, abstandStrecke(px, py, w[i - 1], w[i]));
+    for (const w of wege) for (let i = 1; i < w.length; i++) m = Math.min(m, abstandStrecke(px, py, w[i - 1], w[i]));
     return m;
   }
   // vis: sichtbarer Halbmesser des neuen Objekts. Felsen, Büsche und Bäume dürfen sich im
   // Bild nicht überlagern; nur Nadelbäume stehen im Wald etwas dichter.
   function frei(x, y, r, vis = r, art = null) {
-    if (abstandWeg(x, y) < WEG_BREITE / 2 + r + 1.5) return false;
+    // Beim Setzen im alten Tal zählen die Wege im Osten nicht (sonst verschöbe sich dort alles);
+    // was dann auf der Landstraße steht, räumt karteBauen() wieder weg
+    if (abstandWeg(x, y, zq === rnd ? WEGE_ALT : WEGE) < WEG_BREITE / 2 + r + 1.5) return false;
     if (ZAEUNE.some(([a, b]) => abstandStrecke(x, y, a, b) < vis + 0.3)) return false;
     if (imSee(x, y, vis + 1.5) || imBach(x, y, vis + 1)) return false;
     for (const [bx0, by0, bx1, by1] of [SCHUPPEN.bereich, HUETTE.bereich, HOF.bereich, FOERSTER.bereich, CAMPING.bereich, KAUZ.bereich, MUEHLE.bereich]) {
@@ -190,19 +203,24 @@ window.Karte = function (opt = {}) {
   }
 
   const OBJEKTE = []; // {art, x, y, rot, s, spiegel, r (Kollision)}
+  let zq = rnd; // Zufallsquelle beim Setzen (im Osten rndOst, damit im alten Tal alles bleibt, wo es war)
   const NADELWALD = [[0, 100, 125, 255], [0, 250, 135, 320]]; // wie die Nadelbaum-Flächen unten
   function setze(art, x, y, opt = {}) {
     // In den Nadelwäldern stechen helle Laubbäume heraus: dort wird ein Nadelbaum daraus
     if (art === "laubbaum" && NADELWALD.some(([x0, y0, x1, y1]) => x > x0 && x < x1 && y > y0 && y < y1)) art = "nadelbaum";
-    const o = OBJ[art], s = opt.s ?? 0.85 + rnd() * 0.3;
+    const o = OBJ[art], s = opt.s ?? 0.85 + zq() * 0.3;
     const r = opt.r ?? (art === "felsbrocken" ? 0.42 : art === "busch" ? 0.4 : 0.3) * o.b * s;
     const vis = art === "zaun" ? 0 : 0.5 * o.b * s;
     if (!opt.fest && !frei(x, y, r, vis, art)) return false;
-    OBJEKTE.push({ art, x, y, rot: opt.rot ?? (rnd() - 0.5) * 0.7, s, spiegel: opt.spiegel ?? rnd() < 0.5, r: opt.ohne ? 0 : r, vis });
+    OBJEKTE.push({ art, x, y, rot: opt.rot ?? (zq() - 0.5) * 0.7, s, spiegel: opt.spiegel ?? zq() < 0.5, r: opt.ohne ? 0 : r, vis });
     return true;
   }
-  function streue(art, anzahl, x0, y0, x1, y1) {
-    for (let i = 0, n = 0; i < anzahl * 8 && n < anzahl; i++) if (setze(art, x0 + rnd() * (x1 - x0), y0 + rnd() * (y1 - y0))) n++;
+  function streue(art, anzahl, x0, y0, x1, y1, ausser = null) {
+    for (let i = 0, n = 0; i < anzahl * 8 && n < anzahl; i++) {
+      const x = x0 + zq() * (x1 - x0), y = y0 + zq() * (y1 - y0);
+      if (ausser && x > ausser[0] && x < ausser[2] && y > ausser[1] && y < ausser[3]) continue;
+      if (setze(art, x, y)) n++;
+    }
   }
   const ZAEUNE = []; // Strecken für die Kollision
   function zaun(punkte) {
@@ -238,12 +256,15 @@ window.Karte = function (opt = {}) {
     streue("laubbaum", 12, 170, 120, 250, 200);
     streue("nadelbaum", 20, 10, 255, 130, 316);
     // Ein paar Büsche und Felsen am Wegrand, die meisten verstreut über die Wiesen (siehe unten)
-    for (const w of WEGE) for (let i = 1; i < w.length; i++) for (let t = 0; t < 1; t += 0.2) {
-      const x = w[i - 1][0] + (w[i][0] - w[i - 1][0]) * t, y = w[i - 1][1] + (w[i][1] - w[i - 1][1]) * t;
-      const seite = rnd() < 0.5 ? -1 : 1, d = 4.2 + rnd() * 4;
-      const nx = -(w[i][1] - w[i - 1][1]), ny = w[i][0] - w[i - 1][0], nl = Math.hypot(nx, ny);
-      if (rnd() < 0.07) setze(rnd() < 0.7 ? "busch" : "felsbrocken", x + nx / nl * d * seite, y + ny / nl * d * seite);
-    }
+    const amWegrand = (wege) => {
+      for (const w of wege) for (let i = 1; i < w.length; i++) for (let t = 0; t < 1; t += 0.2) {
+        const x = w[i - 1][0] + (w[i][0] - w[i - 1][0]) * t, y = w[i - 1][1] + (w[i][1] - w[i - 1][1]) * t;
+        const seite = zq() < 0.5 ? -1 : 1, d = 4.2 + zq() * 4;
+        const nx = -(w[i][1] - w[i - 1][1]), ny = w[i][0] - w[i - 1][0], nl = Math.hypot(nx, ny);
+        if (zq() < 0.07) setze(zq() < 0.7 ? "busch" : "felsbrocken", x + nx / nl * d * seite, y + ny / nl * d * seite);
+      }
+    };
+    amWegrand(WEGE_ALT);
     streue("felsbrocken", 6, 180, 10, 314, 120);
     streue("busch", 10, 130, 120, 260, 300);
     // über die ganze Karte verteilt, damit nicht alles am Straßenrand klebt (Büsche im Wald fallen unten wieder weg)
@@ -258,7 +279,7 @@ window.Karte = function (opt = {}) {
     for (const [sx, sy, sr] of SEE) {
       for (let i = 0, n = 0; i < 80 && n < Math.round(sr * 0.9); i++) {
         const w = rnd() * Math.PI * 2, d = sr + 4.5 + rnd() * 5, ty = sy + Math.sin(w) * d;
-        if (ty < W - 4 && setze("nadelbaum", sx + Math.cos(w) * d, ty)) n++;
+        if (ty < WY - 4 && setze("nadelbaum", sx + Math.cos(w) * d, ty)) n++;
       }
     }
     // Helle Laubbäume, Büsche und Felsen passen nicht in den dunklen Nadelwald (unter dem
@@ -281,12 +302,26 @@ window.Karte = function (opt = {}) {
         setze("nadelbaum", tx, ty, { fest: true, r: 0.45 });
       }
     }
+    // Der Osten (Landstraße und Dorf) mit eigenem Zufall: Wiesen mit Laubbäumen, Büschen und Felsen,
+    // die Dorffläche bleibt frei für die Häuser (G11)
+    for (let k = OBJEKTE.length - 1; k >= 0; k--) {
+      const o = OBJEKTE[k];
+      if (o.art && o.art !== "zaun" && abstandWeg(o.x, o.y, WEGE_OST) < WEG_BREITE / 2 + (o.r || 0) + 1.5) OBJEKTE.splice(k, 1);
+    }
+    zq = rndOst;
+    amWegrand(WEGE_OST);
+    streue("laubbaum", 45, 322, 6, 476, 316, DORF.flaeche);
+    streue("busch", 40, 322, 6, 476, 316, DORF.flaeche);
+    streue("felsbrocken", 12, 322, 6, 476, 316, DORF.flaeche);
+    setze("schild", DORF.schild[0], DORF.schild[1], { fest: true, rot: 0, s: 1, spiegel: false, r: 0.5 });
+    zq = rnd;
     OBJEKTE.sort((a, b) => a.y - b.y);
   }
 
   // Blumenwiesen-Flecken (Gras mit Blumen) über dem ruhigen Gras
   const FLECKEN = [];
-  for (let i = 0; i < 40; i++) FLECKEN.push([rnd() * W, rnd() * W, 6 + rnd() * 14]);
+  for (let i = 0; i < 40; i++) FLECKEN.push([rnd() * 320, rnd() * WY, 6 + rnd() * 14]);
+  for (let i = 0; i < 20; i++) FLECKEN.push([320 + rndOst() * (WX - 320), rndOst() * WY, 6 + rndOst() * 14]);
 
   // --- Zustand ---------------------------------------------------------------
   // #schrottplatz in der Adresse: direkt vor dem Tor starten (zum Testen)
@@ -349,8 +384,8 @@ window.Karte = function (opt = {}) {
     if (spiel.platt && Math.abs(auto.v) > 0.5) auto.wackel += (Math.random() - 0.5) * 0.08;
     verbrauchen(Math.abs(auto.v) * dt, u.name === "Wiese", dt);
     stoss();
-    auto.x = Math.max(2, Math.min(W - 2, auto.x));
-    auto.y = Math.max(2, Math.min(W - 2, auto.y));
+    auto.x = Math.max(2, Math.min(WX - 2, auto.x));
+    auto.y = Math.max(2, Math.min(WY - 2, auto.y));
     if (Math.abs(auto.v) > 0.3 && start === null) start = performance.now();
     for (const st of STUECKE) if (!st.genommen && Math.hypot(st.x - auto.x, st.y - auto.y) < 2.4) stueckFinden(st);
     reifenPruefen();
@@ -910,7 +945,13 @@ window.Karte = function (opt = {}) {
     }
   }
   // Was Moos nach Pieps' Rückkehr noch erzählt (die Karte wächst, G11)
-  function piepsDank() { /* wird mit dem Weg ins Dorf erweitert */ }
+  function piepsDank(zeilen) {
+    zeilen.push(
+      ["nachdenken", "Weißt du was? Du kommst ja jetzt richtig rum im Tal. Hier, meine alte Talkarte, die brauch ich nicht mehr."],
+      ["auftrag", "Da ist die Landstraße eingezeichnet: hinter der Weide nach Osten, bis ins Dorf. Gino von der Eisdiele hat neulich gefragt, ob nicht mal einer mit Auto vorbeikommt."]);
+    const g = GEBIETE.find((q) => q.id === "landstrasse");
+    if (!g.offen) { g.offen = true; nebelNeu(); setTimeout(() => toast("🗺️ Moos' Talkarte: Neues Gebiet Landstraße ins Dorf!", 5000), 400); }
+  }
 
   function hupenBei(h) {
     h.weg = true;
@@ -1089,7 +1130,7 @@ window.Karte = function (opt = {}) {
         ziel: genug ? zielVon("foersterhuette") : null });
     }
     if (n.vogelhaus === "erledigt") erledigt.push(vogel);
-    const piepsA = { figur: "moos", wer: "Förster Moos", titel: "Pieps ist ausgebüxt", belohnung: "25 Münzen" };
+    const piepsA = { figur: "moos", wer: "Förster Moos", titel: "Pieps ist ausgebüxt", belohnung: "25 Münzen und eine alte Karte" };
     if (n.pieps === "suchen") offen.push({ ...piepsA, stand: "🐦 gesucht", text: "Pieps sitzt irgendwo im Wald. Fahr langsam und hör hin, von welcher Seite es piepst (Ton an). Die Noten ♪ über den Bäumen verraten ihn auch. Ganz nah hüpft er dir aufs Auto." });
     if (n.pieps === "dabei") offen.push({ ...piepsA, stand: "🐦 sitzt auf dem Auto", text: "Pieps sitzt auf deinem Auto. Bring ihn zu Moos in die Försterhütte.", ziel: zielVon("foersterhuette") });
     if (n.pieps === "erledigt") erledigt.push(piepsA);
@@ -1662,6 +1703,8 @@ window.Karte = function (opt = {}) {
     { id: "camping", name: "Holzweg und Waldsee", x: 52, y: 282, r: 58, offen: false }, // zeigt Moos
     { id: "muehle", name: "Mühlbach und Mühle", x: 296, y: 50, r: 34, offen: false }, // zeichnet Opa ein (G10)
     { id: "ostufer", name: "Ostufer am Waldsee", x: 122, y: 298, r: 22, offen: false }, // zeichnet Moos ein (G8)
+    { id: "landstrasse", name: "Landstraße ins Dorf", x: 348, y: 247, r: 46, offen: false }, // Moos' Talkarte (G4)
+    { id: "dorf", name: "Klappertal-Dorf", x: 428, y: 250, r: 64, offen: false }, // G11
   ];
   const STUECKE = [
     { gebiet: "nord", x: 184, y: 213 },
@@ -1676,14 +1719,14 @@ window.Karte = function (opt = {}) {
   const bekannt = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r);
   const offen = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r - 2);
   const nebel = document.createElement("canvas");
-  nebel.width = W; nebel.height = W;
+  nebel.width = WX; nebel.height = WY;
   function nebelNeu() {
     const n = nebel.getContext("2d");
     n.globalCompositeOperation = "source-over";
-    n.clearRect(0, 0, W, W);
-    n.fillStyle = "rgba(228,214,180,0.97)"; n.fillRect(0, 0, W, W);
+    n.clearRect(0, 0, WX, WY);
+    n.fillStyle = "rgba(228,214,180,0.97)"; n.fillRect(0, 0, WX, WY);
     n.strokeStyle = "rgba(140,110,70,0.22)"; n.lineWidth = 0.5;
-    for (let i = -W; i < W; i += 7) { n.beginPath(); n.moveTo(i, 0); n.lineTo(i + W, W); n.stroke(); }
+    for (let i = -WY; i < WX; i += 7) { n.beginPath(); n.moveTo(i, 0); n.lineTo(i + WY, WY); n.stroke(); }
     n.globalCompositeOperation = "destination-out";
     for (const g of GEBIETE) {
       if (!g.offen) continue;
@@ -1697,7 +1740,7 @@ window.Karte = function (opt = {}) {
   const klar = (x, y) => GEBIETE.some((g) => g.offen && Math.hypot(x - g.x, y - g.y) < g.r * 0.78);
   function nebelZeichnen(sicht) {
     const x0 = Math.max(0, Math.floor(sicht.x0) - 1), y0 = Math.max(0, Math.floor(sicht.y0) - 1);
-    const x1 = Math.min(W, Math.ceil(sicht.x1) + 1), y1 = Math.min(W, Math.ceil(sicht.y1) + 1);
+    const x1 = Math.min(WX, Math.ceil(sicht.x1) + 1), y1 = Math.min(WY, Math.ceil(sicht.y1) + 1);
     if (x1 <= x0 || y1 <= y0) return;
     let alles = true;
     for (let i = 0; i <= 6 && alles; i++) for (let j = 0; j <= 4 && alles; j++) {
@@ -1724,7 +1767,7 @@ window.Karte = function (opt = {}) {
   // --- Wegenetz, Ziele und Hindernisse ----------------------------------------
   // Das Auto fährt nur auf den Wegen. Die Linien werden in Punkte im Abstand von
   // etwa 2 m zerlegt; benachbarte Punkte und die Abzweigung sind verbunden.
-  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG];
+  const NETZ_LINIEN = [[[150, 243], ...WEG], ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG, LANDSTRASSE];
   const KNOTEN = [], NACHBARN = [];
   let HAUPT = 0; // Anzahl Punkte der Hauptlinie
   function netzBauen() {
@@ -1773,6 +1816,7 @@ window.Karte = function (opt = {}) {
     { id: "ostufer", name: "Ostufer am Waldsee", art: "weg", x: 114, y: 300.5, gebiet: "ostufer" },
     // erst, wenn Opa von Kauz erzählt hat (G9)
     { id: "kauz", name: "Hütte im Schilf", art: "ort", x: 114.5, y: 279, gebiet: "ostufer", erst: () => Boolean(spiel.neben.kauz) },
+    { id: "ortseingang", name: "Ortseingang Klappertal", art: "weg", x: 386, y: 250, gebiet: "landstrasse" },
   ];
   const zielOffen = (z) => !z.kommt && (!z.erst || z.erst()) && GEBIETE.find((g) => g.id === z.gebiet).offen;
   const zielErlaubt = (z) => !opt.zielErlaubt || opt.zielErlaubt(z);
@@ -1801,6 +1845,10 @@ window.Karte = function (opt = {}) {
     { id: "schilf", x: 119.5, y: 291, r: 3, braucht: "vorne", titel: "Dichtes Schilf!",
       text: "Das Schilf steht hier so dicht wie eine Wand. Die Reifenspuren führen mitten hinein.",
       fehlt: "Es fehlt: ein Mähbalken (Kategorie Vorne). Hilde auf dem Bauernhof mäht doch immer ihre Wiesen …" },
+    // Absperrung am Ortseingang: Das Dorf bereitet sein Fest vor (G11 öffnet sie)
+    { id: "dorffest", x: DORF.fest[0], y: DORF.fest[1], r: 2.5, braucht: "dorf", titel: "Straße gesperrt!",
+      text: "Rot-weiße Absperrung quer über die Straße. Auf dem Schild: „Klappertal-Dorf. Wegen Dorffest-Vorbereitung gesperrt!“",
+      fehlt: "Hinter der Absperrung hört man Hämmern und Musik. Das Dorf bereitet gerade sein Fest vor (kommt mit G11)." },
   ];
   // Ohne Werkstatt (Kartenprobe) zählt eine Belohnung gleich als eingebaut
   const TEIL_FUER = { licht: "scheinwerfer", hupe: "spezialhupe", vorne: "maehbalken" };
@@ -1811,6 +1859,7 @@ window.Karte = function (opt = {}) {
   const autoGewicht = () => Math.round((opt.werte && opt.werte().gewicht) || 0);
   const hatTeil = (teil) => (teil === "holzweg" ? spiel.holzweg : teil === "leicht" ? autoGewicht() <= BRUECKE.kg
     : teil === "muehlweg" ? ["muellerin", "mrad", "foto", "kauzlacht", "versoehnt"].includes(spiel.neben.muehle)
+    : teil === "dorf" ? false // G11
     : hatTeilEingebaut(teil) && (teil !== "licht" || !brauchtStrom() || spiel.strom > 0));
 
   // --- Selbst zum gewählten Ziel fahren ----------------------------------------
@@ -2116,7 +2165,7 @@ window.Karte = function (opt = {}) {
     if (trifft(BRUECKE.x - 2, BRUECKE.y - 3, BRUECKE.x + 2, BRUECKE.y + 3)) brueckeMalen(c);
     // Rand der Karte
     c.fillStyle = "rgba(10,20,15,0.85)";
-    c.fillRect(-60, -60, W + 120, 60); c.fillRect(-60, W, W + 120, 60); c.fillRect(-60, 0, 60, W); c.fillRect(W, 0, 60, W);
+    c.fillRect(-60, -60, WX + 120, 60); c.fillRect(-60, WY, WX + 120, 60); c.fillRect(-60, 0, 60, WY); c.fillRect(WX, 0, 60, WY);
 
     bild(OBJ.schrottplatz, SCHROTT.X, SCHROTT.Y);
     bild(OBJ.schuppen, SCHUPPEN.X, SCHUPPEN.Y);
@@ -2204,7 +2253,7 @@ window.Karte = function (opt = {}) {
       let beste = null, bestWert = -Infinity;
       for (let ky = y0 - 1; ky <= y1 + 1; ky++) for (let kx = x0 - 1; kx <= x1 + 1; kx++) {
         if (kx >= x0 && kx <= x1 && ky >= y0 && ky <= y1) continue;
-        if (kx < 0 || ky < 0 || kx * KACHEL >= W || ky * KACHEL >= W || kacheln.has(kx + "," + ky)) continue;
+        if (kx < 0 || ky < 0 || kx * KACHEL >= WX || ky * KACHEL >= WY || kacheln.has(kx + "," + ky)) continue;
         const wert = (kx - cx) * vx + (ky - cy) * vy;
         if (wert > bestWert) { bestWert = wert; beste = [kx, ky]; }
       }
@@ -2277,6 +2326,25 @@ window.Karte = function (opt = {}) {
       for (const dy of [-0.32, 0.18]) { ctx.fillRect(0.2, dy, 5.8, 0.28); ctx.strokeRect(0.2, dy, 5.8, 0.28); }
       ctx.beginPath(); ctx.moveTo(0.4, 0.4); ctx.lineTo(5.8, -0.35); ctx.lineWidth = 0.18; ctx.strokeStyle = "#6b4a2b"; ctx.stroke();
       if (!auf) { ctx.fillStyle = "#f3ead6"; ctx.strokeStyle = "#1d140a"; ctx.lineWidth = 0.06; ctx.fillRect(2.4, -0.9, 1.4, 0.75); ctx.strokeRect(2.4, -0.9, 1.4, 0.75); }
+      ctx.restore();
+    }
+    // Rot-weiße Absperrung am Ortseingang (bis G11), daneben das Ortsschild
+    if (!hatTeil("dorf")) {
+      const h = HINDERNISSE.find((q) => q.id === "dorffest");
+      ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(Math.PI / 2 + 0.05);
+      ctx.fillStyle = "rgba(10,20,8,0.3)"; ctx.fillRect(-3.1 + 0.2, -0.2 + 0.2, 6.2, 0.5);
+      for (let i = 0; i < 8; i++) { ctx.fillStyle = i % 2 ? "#f4f1ea" : "#d23a2a"; ctx.fillRect(-3.1 + i * 0.775, -0.25, 0.775, 0.5); }
+      ctx.strokeStyle = "#1d140a"; ctx.lineWidth = 0.08; ctx.strokeRect(-3.1, -0.25, 6.2, 0.5);
+      ctx.fillStyle = "#2a2a2a"; for (const dx of [-2.6, 2.6]) { ctx.beginPath(); ctx.arc(dx, 0, 0.3, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    }
+    {
+      const [sx, sy] = DORF.schild;
+      ctx.save(); ctx.translate(sx, sy - 1.6);
+      ctx.fillStyle = "#f2c230"; ctx.strokeStyle = "#1d140a"; ctx.lineWidth = 0.1;
+      ctx.beginPath(); ctx.roundRect(-2.4, -0.6, 4.8, 1.2, 0.15); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#1d140a"; ctx.font = "900 0.7px Nunito, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("KLAPPERTAL", 0, 0.03);
       ctx.restore();
     }
     // Umgestürzte Stämme quer über dem Holzweg, bis Moos sie wegzieht
@@ -2408,13 +2476,16 @@ window.Karte = function (opt = {}) {
   const mini = $("mini"), mctx = mini.getContext("2d");
   let miniGrund = null;
   function miniZeichnen() {
-    const s = 96 * Math.min(window.devicePixelRatio || 1, 2);
-    if (mini.width !== s) { mini.width = s; mini.height = s; miniGrund = null; }
-    const k = s / W;
+    // so hoch wie im Stylesheet, so breit wie die Karte im Verhältnis
+    const hoch = mini.clientHeight || 96, breitPx = Math.round(hoch * WX / WY);
+    if (mini.style.width !== breitPx + "px") mini.style.width = breitPx + "px";
+    const s = hoch * Math.min(window.devicePixelRatio || 1, 2), sb = Math.round(s * WX / WY);
+    if (mini.height !== s || mini.width !== sb) { mini.width = sb; mini.height = s; miniGrund = null; }
+    const k = s / WY;
     if (!miniGrund) {
-      miniGrund = document.createElement("canvas"); miniGrund.width = s; miniGrund.height = s;
+      miniGrund = document.createElement("canvas"); miniGrund.width = sb; miniGrund.height = s;
       const g = miniGrund.getContext("2d");
-      g.fillStyle = "#5d8a3e"; g.fillRect(0, 0, s, s);
+      g.fillStyle = "#5d8a3e"; g.fillRect(0, 0, sb, s);
       g.fillStyle = "#2c4d2a";
       for (const o of OBJEKTE) if (o.art === "nadelbaum" || o.art === "laubbaum") { g.beginPath(); g.arc(o.x * k, o.y * k, 2.2 * k, 0, 7); g.fill(); }
       g.strokeStyle = "#c9a26b"; g.lineWidth = Math.max(2, 4.5 * k); g.lineCap = "round"; g.lineJoin = "round";
@@ -2428,7 +2499,7 @@ window.Karte = function (opt = {}) {
       g.fillStyle = "#5a3d26"; g.fillRect(mx0 * k, my0 * k, (mx1 - mx0) * k, (my1 - my0) * k);
       for (const [hx0, hy0, hx1, hy1] of [HUETTE.haus, FOERSTER.haus, ...HOF.haeuser]) g.fillRect(hx0 * k, hy0 * k, (hx1 - hx0) * k, (hy1 - hy0) * k);
     }
-    if (!miniGrund.mitNebel) { miniGrund.getContext("2d").drawImage(nebel, 0, 0, s, s); miniGrund.mitNebel = true; }
+    if (!miniGrund.mitNebel) { miniGrund.getContext("2d").drawImage(nebel, 0, 0, sb, s); miniGrund.mitNebel = true; }
     mctx.drawImage(miniGrund, 0, 0);
     mctx.fillStyle = "#c0392b";
     for (const st of STUECKE) if (!st.genommen && offen(st.x, st.y)) { mctx.fillRect(st.x * k - 3, st.y * k - 3, 6, 6); }
@@ -2798,8 +2869,8 @@ window.Karte = function (opt = {}) {
     const vx = 1 + wetter.ist.wind * 5, vy = 0.3 + wetter.ist.wind;
     for (const c of WOLKEN) {
       c.x += vx * dt * c.s; c.y += vy * dt * c.s;
-      if (c.x - c.r > W + 40) c.x = -40 - c.r;
-      if (c.y - c.r > W + 40) c.y = -40 - c.r;
+      if (c.x - c.r > WX + 40) c.x = -40 - c.r;
+      if (c.y - c.r > WY + 40) c.y = -40 - c.r;
     }
   }
   // Ein weicher Klecks aus mehreren Kreisen, einmal gemalt und dann nur noch kopiert
@@ -2814,7 +2885,7 @@ window.Karte = function (opt = {}) {
     return c;
   }
   const WOLKE = klecks("rgba(10,25,35,0.9)"), SCHWADE = klecks("rgba(235,240,238,0.9)");
-  const WOLKEN = Array.from({ length: 60 }, () => ({ x: Math.random() * (W + 80) - 40, y: Math.random() * (W + 80) - 40,
+  const WOLKEN = Array.from({ length: 80 }, () => ({ x: Math.random() * (WX + 80) - 40, y: Math.random() * (WY + 80) - 40,
     r: 8 + Math.random() * 10, s: 0.7 + Math.random() * 0.6 }));
   function wolkenZeichnen(sicht) {
     const { wolken, nebel: dunst } = wetter.ist;
@@ -2969,22 +3040,22 @@ window.Karte = function (opt = {}) {
   // malt grossBild() jedes Bild neu, damit die Aufgaben-Orte blinken können
   function grossZeichnen() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const b = gross.getBoundingClientRect(), seite = Math.min(b.width, b.height);
+    const b = gross.getBoundingClientRect();
     gross.width = Math.round(b.width * dpr); gross.height = Math.round(b.height * dpr);
-    const k = seite / W, ox = (b.width - seite) / 2, oy = (b.height - seite) / 2;
+    const k = Math.min(b.width / WX, b.height / WY), kb = WX * k, kh = WY * k, ox = (b.width - kb) / 2, oy = (b.height - kh) / 2;
     grossMass = { k, ox, oy, dpr, b: b.width, h: b.height };
     grossGrund = document.createElement("canvas"); grossGrund.width = gross.width; grossGrund.height = gross.height;
     const echt = gctx;
     gctx = grossGrund.getContext("2d");
     gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     gctx.save(); gctx.translate(ox, oy);
-    gctx.fillStyle = "#5d8a3e"; gctx.fillRect(0, 0, seite, seite);
+    gctx.fillStyle = "#5d8a3e"; gctx.fillRect(0, 0, kb, kh);
     gctx.fillStyle = "#2c4d2a";
     for (const o of OBJEKTE) if (o.art === "nadelbaum" || o.art === "laubbaum") { gctx.beginPath(); gctx.arc(o.x * k, o.y * k, 2.2 * k, 0, 7); gctx.fill(); }
     gctx.strokeStyle = "#c9a26b"; gctx.lineWidth = Math.max(3, 4.5 * k); gctx.lineCap = "round"; gctx.lineJoin = "round";
     for (const w of WEGE) { gctx.beginPath(); gctx.moveTo(w[0][0] * k, w[0][1] * k); for (const [x, y] of w.slice(1)) gctx.lineTo(x * k, y * k); gctx.stroke(); }
     gctx.fillStyle = "#9a9a90"; gctx.beginPath(); for (const [x, y] of SCHROTT.zaun) gctx.lineTo(x * k, y * k); gctx.fill();
-    gctx.drawImage(nebel, 0, 0, seite, seite);
+    gctx.drawImage(nebel, 0, 0, kb, kh);
     for (const h of HINDERNISSE) if (offen(h.x, h.y)) {
       gctx.fillStyle = "#1d1a16"; gctx.font = `800 ${Math.max(14, 16)}px Nunito, sans-serif`; gctx.textAlign = "center"; gctx.textBaseline = "middle";
       gctx.fillText("⚠", h.x * k, h.y * k);
