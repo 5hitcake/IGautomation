@@ -146,14 +146,23 @@ def parse_callback(update, chat_id, token):
     return action
 
 
+LATE_GRACE = timedelta(hours=8)
+LATE_REVIEW = timedelta(minutes=20)
+
+
 def next_target(hhmm, now=None):
-    """Naechster Zeitpunkt HH:MM (UTC) ab jetzt."""
+    """Zeitpunkt HH:MM (UTC) fuer den aktuellen Lauf.
+
+    GitHub startet geplante Laeufe manchmal Stunden zu spaet. Liegt der Termin
+    hoechstens LATE_GRACE in der Vergangenheit, gilt der Lauf als verspaetet:
+    dann bleiben LATE_REVIEW Minuten Bedenkzeit, statt bis morgen zu warten."""
     now = now or datetime.now(timezone.utc)
     hour, minute = (int(x) for x in hhmm.split(":"))
-    target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if target <= now:
-        target += timedelta(days=1)
-    return target
+    today = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    for passed in (today, today - timedelta(days=1)):  # auch "gestern 23:43, jetzt 00:55"
+        if passed <= now and now - passed <= LATE_GRACE:
+            return now + LATE_REVIEW
+    return today if today > now else today + timedelta(days=1)
 
 
 def local_time(dt):

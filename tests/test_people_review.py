@@ -27,10 +27,16 @@ def test_parse_callback_accepts_only_own_chat_and_current_candidate():
     assert pr.parse_callback({"update_id": 5, "message": {"text": "hi"}}, CHAT, "t1") is None
 
 
-def test_next_target_rolls_over_to_tomorrow():
+def test_next_target_today_late_or_tomorrow():
     now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
     assert pr.next_target("17:13", now) == datetime(2026, 11, 4, 17, 13, tzinfo=timezone.utc)
-    assert pr.next_target("11:13", now) == datetime(2026, 11, 5, 11, 13, tzinfo=timezone.utc)
+    # Verspaeteter Lauf (Termin vor 47 Min.): kurze Bedenkzeit statt bis morgen warten
+    assert pr.next_target("11:13", now) == now + pr.LATE_REVIEW
+    # Gestern 23:43, Lauf erst 00:55 gestartet -> ebenfalls verspaetet, nicht +1 Tag
+    late = datetime(2026, 11, 4, 0, 55, tzinfo=timezone.utc)
+    assert pr.next_target("23:43", late) == late + pr.LATE_REVIEW
+    # Termin weit in der Vergangenheit -> naechster Tag
+    assert pr.next_target("02:00", now) == datetime(2026, 11, 5, 2, 0, tzinfo=timezone.utc)
 
 
 class FakeTelegram(pr.Telegram):

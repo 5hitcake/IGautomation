@@ -191,3 +191,12 @@ jobs:
           fi
           pip install -q requests Pillow 2>/dev/null || true
           python scripts/people_review.py --notify "$msg"
+
+      - name: Bei Abbruch per Telegram warnen
+        if: cancelled() && steps.gate.outputs.run == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          pip install -q requests Pillow 2>/dev/null || true
+          python scripts/people_review.py --notify "⚠️ Lauf abgebrochen - die Knöpfe der letzten Anfrage sind nicht mehr aktiv, es wurde nichts gepostet."
