@@ -302,7 +302,7 @@ window.Karte = function (opt = {}) {
     gebieteStart();
     Object.assign(spiel, { auftrag: null, geld: 0, beutel: 0, gekauft: new Set(), teile: new Set(), hilde: null,
       opa: null, moosRallye: false, donnerkeil: [], moosSeil: null, holzweg: false, rosi: null, rallye: null, knutMoped: false, neben: nebenStart(), ...verbrauchStart() });
-    hinweisGezeigt = false; angehalten = false; moosKennt = false; bertaSetzen();
+    hinweisGezeigt = false; angehalten = false; moosKennt = false; bertaSetzen(); piepsSetzen();
     for (const h of HINDERNISSE) h.weg = false;
     herdeSetzen();
     for (const r of SAMMEL) r.weg = false;
@@ -468,7 +468,9 @@ window.Karte = function (opt = {}) {
   // muehle (G10, Die Mühlenkurve): null | "opa1" (Kauz will den Bolzen, zu Opa) | "kauz" (Opa weigert sich)
   //   | "opa2" (Kauz fragt heimlich nach Opa) | "muellerin" (Opa schickt zur Mühle) | "mrad" (Mühlrad: 2 Federn,
   //   2 Schrauben) | "foto" (Foto von der Mühlenkurve, zu Kauz) | "kauzlacht" (zu Opa) | "versoehnt"
-  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null, maehbalken: null, muehle: null }; }
+  // pieps (Moos, G4): null | "suchen" (Pieps ist ausgebüxt) | "dabei" (sitzt auf dem Auto) | "erledigt";
+  //   piepsOrt: wo er sitzt (Index in PIEPS_ORTE)
+  function nebenStart() { return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null, maehbalken: null, muehle: null, pieps: null, piepsOrt: 0 }; }
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
       material: { schrauben: 0, kabel: 0, federn: 0, blech: 0 } };
@@ -868,6 +870,8 @@ window.Karte = function (opt = {}) {
       zeilen.push(["nachdenken", "Warst du schon am Ostufer? Nimm den alten Anglerpfad südlich von Opas Schuppen. Die Lichter tanzen dort nur, wenn es richtig dunkel ist."]);
     } else if (spiel.neben.lichter === "bolzen") {
       zeilen.push(["nachdenken", "Ein Bolzen mit einem Blitz drauf? Zeig den mal Opa Bolzen. Der weiß bestimmt, wo der herkommt."]);
+    } else if (spiel.neben.lichter === "erledigt" && spiel.neben.pieps !== "erledigt") {
+      piepsBeiMoos(zeilen);
     } else if (moosKennt) {
       zeilen.push(["nachdenken", spiel.holzweg
         ? "Der Holzweg ist frei, die Rallye-Strecke stecke ich gerade ab. Und die Lichter? Letzte Nacht wieder. Unheimlich, sag ich dir."
@@ -880,6 +884,33 @@ window.Karte = function (opt = {}) {
     moosKennt = true;
     gespraech("moos", "Förster Moos", "foersterhuette", zeilen, () => hudNeu());
   }
+
+  // G4: Pieps ist ausgebüxt. Man hört ihn im Wald piepsen (links/rechts), fährt hin, er hüpft aufs Auto
+  function piepsBeiMoos(zeilen) {
+    const n = spiel.neben;
+    if (!n.pieps) {
+      zeilen.push(
+        ["nachdenken", "Ach, du bist's! Ich bin ganz durcheinander: Pieps ist weg! Heute früh ist er aus dem Vogelhaus geflattert und nicht wiedergekommen."],
+        ["nachdenken", "Seit am See keine Lichter mehr flackern, ist er so neugierig. Will überall hin, der kleine Frechdachs."],
+        ["auftrag", "Ich hör ihn manchmal piepsen, aber mit meinen alten Ohren weiß ich nicht, von wo. Fahr langsam durch den Wald und hör genau hin!"],
+        ["juhu", "Wenn du nah genug bist, hüpft er dir bestimmt aufs Auto. Er mag alles, was brummt."]);
+      const moeglich = PIEPS_ORTE.map((o, i) => i).filter((i) => bekannt(PIEPS_ORTE[i][0], PIEPS_ORTE[i][1]));
+      n.pieps = "suchen"; n.piepsOrt = moeglich.length ? moeglich[Math.floor(Math.random() * moeglich.length)] : 0;
+      piepsSetzen();
+      setTimeout(() => toast("🐦 Neuer Auftrag: Pieps ist ausgebüxt. Ton an und gut hinhören!", 4500), 300);
+    } else if (n.pieps === "suchen") {
+      zeilen.push(["nachdenken", "Noch keine Spur von Pieps? Hör genau hin, von welcher Seite es piepst. Und schau nach den kleinen Noten ♪ über den Bäumen."]);
+    } else if (n.pieps === "dabei") {
+      n.pieps = "erledigt"; spiel.geld += 25;
+      zeilen.push(
+        ["juhu", "PIEPS! Da sitzt er ja auf deinem Auto, als wär nix gewesen!"],
+        ["juhu", "Zack, zurück in den Bart. Da ist's doch am gemütlichsten, gell? Pieps, pieps, sagt er. Das heißt danke."],
+        ["auftrag", "Und von mir auch: Danke! Hier, 25 Münzen."]);
+      piepsDank(zeilen);
+    }
+  }
+  // Was Moos nach Pieps' Rückkehr noch erzählt (die Karte wächst, G11)
+  function piepsDank() { /* wird mit dem Weg ins Dorf erweitert */ }
 
   function hupenBei(h) {
     h.weg = true;
@@ -1058,6 +1089,10 @@ window.Karte = function (opt = {}) {
         ziel: genug ? zielVon("foersterhuette") : null });
     }
     if (n.vogelhaus === "erledigt") erledigt.push(vogel);
+    const piepsA = { figur: "moos", wer: "Förster Moos", titel: "Pieps ist ausgebüxt", belohnung: "25 Münzen" };
+    if (n.pieps === "suchen") offen.push({ ...piepsA, stand: "🐦 gesucht", text: "Pieps sitzt irgendwo im Wald. Fahr langsam und hör hin, von welcher Seite es piepst (Ton an). Die Noten ♪ über den Bäumen verraten ihn auch. Ganz nah hüpft er dir aufs Auto." });
+    if (n.pieps === "dabei") offen.push({ ...piepsA, stand: "🐦 sitzt auf dem Auto", text: "Pieps sitzt auf deinem Auto. Bring ihn zu Moos in die Försterhütte.", ziel: zielVon("foersterhuette") });
+    if (n.pieps === "erledigt") erledigt.push(piepsA);
     const lichter = { figur: "moos", wer: "Förster Moos", titel: "Die Lichter am Waldsee", belohnung: "eine Spur" };
     if (n.lichter === "auftrag") offen.push({ ...lichter, stand: istNacht() ? "🌙 jetzt ist Nacht" : "🔍 Ostufer",
       text: "Moos sieht jede Nacht Lichter am Ostufer des Waldsees. Fahr über den alten Anglerpfad hin und schau nach (die Lichter selbst siehst du nur nachts).",
@@ -1130,6 +1165,7 @@ window.Karte = function (opt = {}) {
     if (!spiel.rosi || (spiel.rosi === "erledigt" && !n.motor)) orte.add("camping");
     if (spiel.moosSeil === "erledigt" && !n.vogelhaus) orte.add("foersterhuette");
     if (n.vogelhaus === "erledigt" && !n.lichter) orte.add("foersterhuette");
+    if (n.lichter === "erledigt" && !n.pieps) orte.add("foersterhuette");
     if (n.kauz === "gefunden" && !n.muehle) orte.add("kauz");
     if (spiel.donnerkeil.includes("lenkrad") && !spiel.opaLenkrad) orte.add("schuppen");
     if (!spiel.opa && ["batterie", "erledigt"].includes(spiel.auftrag)) orte.add("schuppen");
@@ -2297,6 +2333,7 @@ window.Karte = function (opt = {}) {
       ctx.restore();
     }
     for (const o of OBJEKTE) zeichneObjekt(o, sicht);
+    piepsAufAuto();
     tiereLuft(sicht);
     // Dunkler Wald hinter dem Hindernis
     dunklerWald(w, h, sicht);
@@ -2312,6 +2349,7 @@ window.Karte = function (opt = {}) {
     ctx.restore();
     nachtZeichnen(w, h, dpr);
     aufgabenWelt(sicht, t); // nach Nacht und dunklem Wald: Aufgaben leuchten immer
+    piepsWelt(sicht); // Pieps' Noten sieht man auch nachts und über dem Walddach
     wetterBildschirm(w, h, dpr);
 
     // Anzeige
@@ -2474,6 +2512,60 @@ window.Karte = function (opt = {}) {
       SCHAFE.push({ art: "kuh", x: BERTA.x, y: BERTA.y, a: BERTA.a, zx: 0, zy: 0, warte: zufall(2, 6), grast: true });
     }
   }
+  // Pieps (G4) sitzt in einem Baum nahe am Weg. Unter dem Walddach sieht man ihn nicht, nur die Noten
+  const PIEPS_ORTE = [[103.5, 204.5], [79, 216], [29, 235.5], [15.5, 264], [131, 292.5]]; // je 4 m neben dem Weg
+  const PIEPS = { x: 0, y: 0, a: 0, ruf: 1, noten: [], gehoert: false };
+  const PIEPS_HOEREN = 70, PIEPS_FANGEN = 6;
+  function piepsSetzen() {
+    const o = PIEPS_ORTE[spiel.neben.piepsOrt] || PIEPS_ORTE[0];
+    Object.assign(PIEPS, { x: o[0], y: o[1], a: zufall(0, 6.3), ruf: 1, noten: [], gehoert: false });
+  }
+  function piepsSchritt(dt) {
+    const n = spiel.neben;
+    for (const no of PIEPS.noten) no.t += dt;
+    PIEPS.noten = PIEPS.noten.filter((no) => no.t < 1.8);
+    if (n.pieps !== "suchen" || !$("gespraech").hidden) return;
+    const d = Math.hypot(auto.x - PIEPS.x, auto.y - PIEPS.y);
+    if (d < PIEPS_FANGEN) {
+      n.pieps = "dabei"; PIEPS.noten = []; hudNeu();
+      if (Ton && Ton.pieps) Ton.pieps(1, 0);
+      toast("🐦 Pieps! Da ist er! Er hüpft auf dein Auto. Bring ihn zu Moos zurück.", 4500);
+      return;
+    }
+    if (d > PIEPS_HOEREN || (PIEPS.ruf -= dt) > 0) return;
+    PIEPS.ruf = 1.3 + Math.random() * 1.2;
+    PIEPS.noten.push({ t: 0, dx: zufall(-0.8, 0.8) });
+    if (Ton && Ton.pieps) Ton.pieps(0.08 + Math.pow(1 - d / PIEPS_HOEREN, 1.5) * 0.92, (PIEPS.x - auto.x) / Math.max(d, 1));
+    if (!PIEPS.gehoert) { PIEPS.gehoert = true; toast("🎵 Pieps, pieps … Da piepst doch was im Wald!", 3500); }
+  }
+  // Pieps sitzend (nicht unter dem Walddach) und die Noten über ihm; außerhalb des Bilds
+  // zeigt eine Note am Rand, aus welcher Richtung es piepst
+  function piepsWelt(sicht) {
+    const n = spiel.neben, T = TIERBILD.pieps;
+    if (n.pieps === "suchen" && T && imBild(PIEPS.x, PIEPS.y, sicht) && !unterDach(PIEPS.x, PIEPS.y)) tierZeichnen(T[1], PIEPS.x, PIEPS.y, PIEPS.a, 0.8);
+    if (!PIEPS.noten.length) return;
+    ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "900 3.6px Nunito, sans-serif";
+    ctx.lineWidth = 0.5; ctx.lineJoin = "round"; ctx.strokeStyle = "rgba(15,25,45,0.85)";
+    const mx = (sicht.x0 + sicht.x1) / 2, my = (sicht.y0 + sicht.y1) / 2;
+    for (const no of PIEPS.noten) {
+      let x = PIEPS.x + no.dx + no.t * 0.6, y = PIEPS.y - 2 - no.t * 2.2;
+      if (!imBild(x, y, sicht, -2)) { // an den Bildrand holen
+        const dx = x - mx, dy = y - my, hx = (sicht.x1 - sicht.x0) / 2 - 3, hy = (sicht.y1 - sicht.y0) / 2 - 3;
+        const k = Math.min(hx / Math.max(Math.abs(dx), 0.01), hy / Math.max(Math.abs(dy), 0.01));
+        x = mx + dx * k; y = my + dy * k;
+      }
+      ctx.globalAlpha = Math.max(0, 1 - no.t / 1.8);
+      ctx.fillStyle = "#a8dcff"; ctx.strokeText("♪", x, y); ctx.fillText("♪", x, y);
+    }
+    ctx.restore();
+  }
+  // Pieps fährt mit: sitzt hinten auf dem Auto
+  function piepsAufAuto() {
+    const T = TIERBILD.pieps;
+    if (spiel.neben.pieps !== "dabei" || !T) return;
+    const hops = Math.max(0, Math.sin(performance.now() / 260)) * 0.15;
+    tierZeichnen(T[1], auto.x - Math.cos(auto.a) * 0.6, auto.y - Math.sin(auto.a) * 0.6 - hops, auto.a, 0.75);
+  }
   // Hildes Schafherde steht auf dem Feldweg (Hindernis "schafe"), bis man hupt
   const HERDE = [];
   function herdeSetzen() {
@@ -2494,6 +2586,7 @@ window.Karte = function (opt = {}) {
   }
   function tiereSchritt(dt) {
     bertaSchritt(dt);
+    piepsSchritt(dt);
     for (const sf of HERDE) {
       if (sf.flucht) { // davonlaufen zur Wiese neben dem Weg, dort wieder grasen
         const d = Math.hypot(sf.zx - sf.x, sf.zy - sf.y);
@@ -3111,7 +3204,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { aufgabenOrte, BERTA, OBJEKTE, auto, planen, zeit, FUNDE, neuerTag, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { aufgabenOrte, BERTA, PIEPS, PIEPS_ORTE, abstandWeg, nebelNeu: () => nebelNeu(), beiMoos: () => beiMoos(), OBJEKTE, auto, planen, zeit, FUNDE, neuerTag, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen
@@ -3155,7 +3248,7 @@ window.Karte = function (opt = {}) {
         moosSeil: st.moosSeil || null, holzweg: Boolean(st.holzweg), rosi: st.rosi || null });
       if (st.zeit) { zeit.t = st.zeit.t; zeit.tag = st.zeit.tag; }
       spiel.rallye = st.rallye || null; spiel.opaLenkrad = Boolean(st.opaLenkrad); spiel.knutMoped = Boolean(st.knutMoped);
-      spiel.neben = { ...nebenStart(), ...st.neben }; bertaSetzen();
+      spiel.neben = { ...nebenStart(), ...st.neben }; bertaSetzen(); piepsSetzen();
       Object.assign(spiel, { sprit: st.sprit ?? v.sprit, strom: st.strom ?? v.strom, platt: Boolean(st.platt),
         vorrat: { ...v.vorrat, ...st.vorrat }, material: { ...v.material, ...st.material } });
       moosKennt = Boolean(st.moosKennt); besucht = Boolean(st.besucht); hinweisGezeigt = Boolean(st.hinweis);

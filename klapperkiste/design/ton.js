@@ -1,4 +1,4 @@
-// Ton: Musik und Geräusche (Motor, Hupe, Uhu, Grillen) im Browser (Web Audio), aus Aufnahmen
+// Ton: Musik und Geräusche (Motor, Hupe, Uhu, Pieps, Grillen) im Browser (Web Audio), aus Aufnahmen
 // oder selbst gespielt. Wird von karte.js genutzt (window.Ton). Die Figuren sprechen nicht
 // (die Stimmen sind entfernt), Gespräche gibt es nur als Text.
 window.Ton = (function () {
@@ -354,6 +354,26 @@ K:Am
     flattern.start(t); flattern.stop(t + 1.05);
   }
 
+  // Pieps (Moos' Vogel): zwei, drei helle, schnell steigende Zwitscher. laut 0 … 1 (näher = lauter),
+  // seite -1 (links) … 1 (rechts), damit man hört, wo er sitzt
+  function pieps(laut = 1, seite = 0) {
+    const a = ein.stimmen && bereit();
+    if (!a || laut <= 0.01) return;
+    const t0 = a.currentTime + 0.02, raus = a.createGain();
+    raus.gain.value = 0.22 * Math.min(1, laut);
+    let ziel = a.destination;
+    if (a.createStereoPanner) { const p = a.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, seite)); p.connect(ziel); ziel = p; }
+    raus.connect(ziel);
+    const n = 2 + (Math.random() < 0.4 ? 1 : 0), hoehe = 3200 + Math.random() * 300;
+    for (let i = 0; i < n; i++) {
+      const t = t0 + i * 0.13, o = a.createOscillator(), g = a.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(hoehe * 0.8, t); o.frequency.exponentialRampToValueAtTime(hoehe * 1.25, t + 0.06);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(1, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+      o.connect(g).connect(raus); o.start(t); o.stop(t + 0.1);
+    }
+    setTimeout(() => { try { raus.disconnect(); } catch { /* schon weg */ } }, 1000);
+  }
+
   // Uhu im nächtlichen Wald: ein kurzes „hu“ und ein langes, leicht fallendes „huuu“, mit Hall
   function uhu(a = ein.stimmen && bereit(), ziel = a && a.destination, ab = 0) {
     if (!a) return;
@@ -427,7 +447,7 @@ K:Am
   }
 
   return {
-    musik, leise, motor, hupe, uhu, grillen, freischalten, probe, STUECKE,
+    musik, leise, motor, hupe, uhu, pieps, grillen, freischalten, probe, STUECKE,
     get an() { return ein; }, schalte,
     // Zeitpunkt, seit dem Ton erlaubt ist (0: noch nicht)
     get seit() { return (audio && audio.wach) || 0; },

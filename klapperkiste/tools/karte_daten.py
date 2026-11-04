@@ -42,7 +42,7 @@ MODELLE = {"rundling": "Rundling", "pickup": "Pick-up", "badewanne": "Badewanne"
            "hotdog": "Hot-Dog-Wagen", "feuerwehr": "Feuerwehr", "betonmischer": "Betonmischer",
            "wohnwagen": "Mini-Wohnwagen", "geldtransporter": "Geldtransporter", "schneeraupe": "Schneeraupe",
            "gewaechshaus": "Gewächshaus", "zirkus": "Zirkus", "schlauchboot": "Schlauchboot"}
-TIERE = ["vogel", "hase", "schaf", "kuh"]  # je zwei Posen: NAME_1.png, NAME_2.png
+TIERE = ["vogel", "hase", "schaf", "kuh", "pieps"]  # je zwei Posen: NAME_1.png, NAME_2.png
 LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne", "scheinwerfer", "spezialhupe",
          "pickup_hinten", "badewanne_vorne", "mopedmotor",
          "milchkanne", "steuerrad", "maehbalken", "donnerkeilrahmen",

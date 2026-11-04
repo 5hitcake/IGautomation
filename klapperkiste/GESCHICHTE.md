@@ -124,6 +124,19 @@ Die Rallye leuchtet nicht. Stattdessen zeigt nur die **Minikarte** eine Rennflag
 (schwarz-weiß kariert) am Campingplatz, sobald die Rallye freigespielt ist und bis man
 sie mit **Gold** abgeschlossen hat.
 
+## Pieps ist ausgebüxt (G4)
+
+Nach den Lichtern (G8 erledigt) leuchtet die Försterhütte wieder: Pieps ist aus dem Vogelhaus
+geflattert. Zustand `spiel.neben.pieps` (`suchen` → `dabei` → `erledigt`), Ort `piepsOrt`.
+
+- Pieps sitzt an einer von fünf Stellen im Wald, je 4 m neben dem Weg (`PIEPS_ORTE`, zufällig
+  unter den schon bekannten). Unter dem Walddach sieht man ihn nicht.
+- **Hören:** Bis 70 m piepst er alle 1,3–2,5 s, je näher desto lauter, links oder rechts je nach
+  Richtung (Stereo, `Ton.pieps`). Ohne Ton helfen die hellblauen Noten ♪, die über ihm aufsteigen
+  (auch nachts und über den Bäumen); liegt er außerhalb des Bilds, erscheinen sie am Bildrand.
+- **Fangen:** Näher als 6 m hüpft er aufs Auto und fährt mit. Bei Moos: 25 Münzen.
+- Pieps auf der Karte ist der Spatz in Blau umgefärbt (`tools/einmalig/pieps_blau.py`).
+
 ## Die Lichter am Waldsee (G8)
 
 - **Auftrag von Moos:** Nach dem Vogelhaus erzählt Moos von Kauz und schickt einen nachts
@@ -264,7 +277,7 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G1 | Auftragsbuch | ✅ |
 | G2 | Opa erzählt vom Rennen und vom Donnerkeil; Moos weiß von der Waldrallye und den Lichtern (mit Opas altem Foto im Gespräch) | ✅ |
 | G3 | Holzweg hinter der Försterhütte, Campingplatz am Waldsee; Moos braucht Kabel und Federn für seinen Seilzug | ✅ (die Figur am Campingplatz fehlt noch: „Bin angeln, komme gleich!“) |
-| G4 | Moos' Aufträge (Pieps, Vogelhäuschen) | offen, braucht Bilder |
+| G4 | Moos' Aufträge (Vogelhaus, Pieps ist ausgebüxt) | ✅ |
 | G5 | Tag und Nacht | ✅ |
 | G6 | Materialien im Beutel, Verbrauch (Sprit, Batterie, Flickzeug) | ✅ |
 | G7 | Waldrallye (erstes Rennen) | ✅ |
