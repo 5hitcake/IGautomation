@@ -16,8 +16,15 @@ on:
     - cron: "43 20 * * *"
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Was soll passieren?"
+        type: choice
+        default: "Einzelner Post"
+        options:
+          - "Einzelner Post"
+          - "Morgen-Freigabe (2 Personen fuer 8:13 + 14:13)"
       wait_minutes:
-        description: "Minuten Bedenkzeit per Telegram bis zum Posten"
+        description: "Nur bei Einzelner Post: Minuten Bedenkzeit per Telegram"
         default: "15"
 
 permissions:
@@ -68,6 +75,17 @@ jobs:
               exit 0
             fi
           fi
+          # Sammel-Freigabe nur einmal pro Tag (geplant ODER per Knopf).
+          is_queue=false
+          [ "${{ github.event.schedule }}" = "30 7 * * *" ] && is_queue=true
+          case "${{ github.event.inputs.mode }}" in Morgen*) is_queue=true ;; esac
+          if [ "$is_queue" = true ]; then
+            if git log --since="$(date -u +%Y-%m-%d)T00:00:00Z" --grep="Freigabe-Warteschlange:" --oneline | grep -q .; then
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "Ueberspringe: Die Morgen-Freigabe lief heute schon."
+              exit 0
+            fi
+          fi
           echo "run=true" >> "$GITHUB_OUTPUT"
 
       - name: Posting-Termin bestimmen
@@ -79,7 +97,11 @@ jobs:
             "13 11 * * *") echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT" ;;
             "13 17 * * *") echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT" ;;
             "43 20 * * *") echo "args=--target 23:43" >> "$GITHUB_OUTPUT" ;;
-            *) echo "args=--wait-minutes ${{ github.event.inputs.wait_minutes || '15' }}" >> "$GITHUB_OUTPUT" ;;
+            *)
+              case "${{ github.event.inputs.mode }}" in
+                Morgen*) echo "args=--queue 11:13,17:13" >> "$GITHUB_OUTPUT" ;;
+                *) echo "args=--wait-minutes ${{ github.event.inputs.wait_minutes || '15' }}" >> "$GITHUB_OUTPUT" ;;
+              esac ;;
           esac
 
       - uses: actions/setup-python@v5
