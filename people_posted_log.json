@@ -1,5 +1,5 @@
 {
-  "count": 2,
+  "count": 3,
   "recent": [
     {
       "gender": "woman",
@@ -24,10 +24,23 @@
         "north_african"
       ],
       "setting": "at a bus stop"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "Japanese",
+        "japanese"
+      ],
+      "setting": "on a rooftop"
     }
   ],
   "reserve_used": [
     "reserve_01",
-    "reserve_02"
+    "reserve_02",
+    "reserve_03"
   ]
 }
