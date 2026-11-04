@@ -1,5 +1,8 @@
 """Bilder für die Karten-Fahrprobe (design/kartenprobe.html) als design/karte_daten.js.
 
+Figuren und Gesprächshintergründe stehen in design/karte_figuren.js und
+design/karte_hintergruende.js (jede Datei der Web-Vorschau höchstens 16 MB).
+
 Dazu design/spielstart_teile.js mit den Teilen der Schrottkarre (Werkstatt im
 Spielstart). Die ganze Teile-Sammlung wäre für die Spielstart-Seite zu groß.
 
@@ -27,6 +30,10 @@ import teilwerk  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ZIEL = os.path.join(ROOT, "design", "karte_daten.js")
 ZIEL_TEILE = os.path.join(ROOT, "design", "spielstart_teile.js")
+AUSGELAGERT = {  # nach karte_daten.js laden
+    "figuren": os.path.join(ROOT, "design", "karte_figuren.js"),
+    "hintergruende": os.path.join(ROOT, "design", "karte_hintergruende.js"),
+}
 BODEN = ["gras_ruhig", "gras", "erde", "schotter", "walddach", "wasser", "sand"]
 OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz",
            "reifen", "batterie", "huette",
@@ -171,6 +178,13 @@ def main() -> int:
         a, achse, dreh = auto(raster, mid)
         daten["autos"].append({"id": mid, "name": name, "bild": _uri(a), "achse": _uri(achse),
                                "drehpunkt": dreh, "laenge": a.width / AUTO_PX * 4})
+    # Figuren und Gesprächshintergründe in eigene Dateien: jede Datei der Web-Vorschau darf
+    # höchstens 16 MB groß sein. Sie hängen sich an window.KARTE_DATEN an.
+    for teil, ziel in AUSGELAGERT.items():
+        with open(ziel, "w", encoding="utf-8") as f:
+            f.write("// Automatisch erzeugt von tools/karte_daten.py. Nicht von Hand ändern.\n")
+            f.write(f"window.KARTE_DATEN.{teil} = " + json.dumps(daten.pop(teil)) + ";\n")
+        print(f"{os.path.relpath(ziel)}: {os.path.getsize(ziel) // 1024} KB")
     with open(ZIEL, "w", encoding="utf-8") as f:
         f.write("// Automatisch erzeugt von tools/karte_daten.py. Nicht von Hand ändern.\n")
         f.write("window.KARTE_DATEN = " + json.dumps(daten) + ";\n")
