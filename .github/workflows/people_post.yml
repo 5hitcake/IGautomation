@@ -23,6 +23,8 @@ on:
         options:
           - "Einzelner Post"
           - "Morgen-Freigabe (2 Personen fuer 8:13 + 14:13)"
+          - "Warteschlange 8:13 jetzt posten"
+          - "Warteschlange 14:13 jetzt posten"
       wait_minutes:
         description: "Nur bei Einzelner Post: Minuten Bedenkzeit per Telegram"
         default: "15"
@@ -100,6 +102,8 @@ jobs:
             *)
               case "${{ github.event.inputs.mode }}" in
                 Morgen*) echo "args=--queue 11:13,17:13" >> "$GITHUB_OUTPUT" ;;
+                "Warteschlange 8:13"*) echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT" ;;
+                "Warteschlange 14:13"*) echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT" ;;
                 *) echo "args=--wait-minutes ${{ github.event.inputs.wait_minutes || '15' }}" >> "$GITHUB_OUTPUT" ;;
               esac ;;
           esac
