@@ -1,5 +1,5 @@
 {
-  "count": 5,
+  "count": 6,
   "recent": [
     {
       "gender": "woman",
@@ -60,6 +60,18 @@
         "southeast_asian"
       ],
       "setting": "at a train station"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        50,
+        59
+      ],
+      "heritage": [
+        "Filipino",
+        "filipino"
+      ],
+      "setting": "in a cozy living room"
     }
   ],
   "reserve_used": [

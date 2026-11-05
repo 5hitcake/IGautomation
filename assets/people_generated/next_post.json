@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261105_1121_0005.jpg",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0005 · \"Thanh\", 42\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #artificialintelligence #aiart #fakeface #streetportrait #twinstranger",
+  "type": "reel",
+  "file": "reel_20261105_1721_0006.mp4",
+  "caption": "This face belongs to no one.\n\nPerson No. 0006 · \"Jomar\", 52\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #lookalike #portraitphotography #twinstranger #aiphotography #generativeai",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 42-year-old Southeast Asian man with a high fade, a long braided beard and light freckles, wearing a tank top, a thoughtful look, at a train station, bright midday sun with hard shadows, shot on Sony A7 III, 50mm f/1.8, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 5,
-  "name": "Thanh",
-  "age": 42
+  "prompt": "Close-up headshot photo of a 52-year-old Filipino man with shoulder-length wavy hair, a full beard and dimples, wearing a leather jacket, a calm neutral expression, in a cozy living room, warm indoor lamp light, shot on Sony A7 III, 50mm f/1.8, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 6,
+  "name": "Jomar",
+  "age": 52,
+  "image": "assets/people_generated/person_20261105_1721_0006.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
