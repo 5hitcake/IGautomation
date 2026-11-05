@@ -42,8 +42,30 @@ def test_mix_covers_many_heritages_and_both_genders():
         seen.add(p["heritage"][0])
         genders.add(p["gender"])
         state["recent"].append({k: p[k] for k in ("gender", "age_range", "heritage", "setting")})
-    assert len(seen) >= len(pg.HERITAGES) - 3
+    assert len(seen) >= len(pg.HERITAGES) - 6
     assert genders == {"woman", "man"}
+
+
+def test_regions_rotate_and_western_faces_appear():
+    rng = random.Random(11)
+    state = {"recent": []}
+    regions = []
+    for _ in range(400):
+        p = pg.roll_persona(state, rng)
+        regions.append(pg.REGION_OF[p["heritage"][0]])
+        state["recent"].append({k: p[k] for k in ("gender", "age_range", "heritage", "setting")})
+    for a, b, c in zip(regions, regions[1:], regions[2:]):
+        assert c not in (a, b)  # gleiche Weltregion erst nach 2 anderen Personen
+    share = regions.count("europe_west") / len(regions)
+    assert 0.18 <= share <= 0.34
+    assert set(regions) == set(pg.REGIONS)
+    western = [i for i, r in enumerate(regions) if r == "europe_west"]
+    assert max(b - a for a, b in zip(western, western[1:])) <= 15  # nie lange ohne westliche Person
+
+
+def test_every_region_heritage_is_unique():
+    names = [h[0] for h in pg.HERITAGES]
+    assert len(names) == len(set(names))
 
 
 def test_every_heritage_has_names():
