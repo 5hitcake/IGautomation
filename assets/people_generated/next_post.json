@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261105_1721_0006.mp4",
-  "caption": "This face belongs to no one.\n\nPerson No. 0006 · \"Jomar\", 52\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #lookalike #portraitphotography #twinstranger #aiphotography #generativeai",
+  "file": "reel_20261105_2343_0007.mp4",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0007 · \"Anouk\", 78\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #generativeai #streetportrait #fakeface #notreal #aiart",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 52-year-old Filipino man with shoulder-length wavy hair, a full beard and dimples, wearing a leather jacket, a calm neutral expression, in a cozy living room, warm indoor lamp light, shot on Sony A7 III, 50mm f/1.8, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 6,
-  "name": "Jomar",
-  "age": 52,
-  "image": "assets/people_generated/person_20261105_1721_0006.jpg",
+  "prompt": "Close-up headshot photo of a 78-year-old Dutch woman with grey hair tucked under a beanie, vitiligo patches on the face and light freckles, wearing a tank top, a confident gaze into the camera, on a rainy sidewalk, blue hour twilight, shot on Canon EOS R5, 85mm f/1.4, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 7,
+  "name": "Anouk",
+  "age": 78,
+  "image": "assets/people_generated/person_20261105_2343_0007.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
