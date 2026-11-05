@@ -200,7 +200,9 @@ Die Karte ist nach Osten auf 480 × 320 m gewachsen. Östlich der Weide führt d
 zum Ortseingang von **Klappertal-Dorf** (`LANDSTRASSE`, Gebiet `landstrasse`). Moos zeichnet sie
 nach Pieps' Rückkehr ein (seine alte Talkarte, G4). Am Ortsschild steht eine rot-weiße
 Absperrung: „Wegen Dorffest-Vorbereitung gesperrt!“ (Hindernis `dorffest`). Das Dorf selbst
-(Gebiet `dorf`, Fläche `DORF.flaeche` bleibt frei) kommt mit den Bildern.
+(Gebiet `dorf`): Eisdiele am Ortseingang, Marktplatz mit Brunnen (die Dorfstraße läuft unten
+um ihn herum), Feuerwache und ein Dorfhaus an der Dorfstraße (`DORF`, `DORFSTRASSE`). Zustand
+`spiel.neben.dorf`, `eis`, `eisRest`, `eisZiel`.
 
 1. **An der Absperrung: Hauptfrau Funke** (Feuerwehr). „Halt! Durchfahrt nur für Helfer! …
    Du hast ein Auto? Dann bist du ab sofort Helfer!“ Sie hebt die Schranke, das Dorf ist offen.
@@ -209,7 +211,8 @@ Absperrung: „Wegen Dorffest-Vorbereitung gesperrt!“ (Hindernis `dorffest`). 
 3. **Ginos Eis-Express (Zeitdruck, neue Rätselart):** Ginos Kühltruhe ist kaputt, das Eis fürs
    Fest muss ausgeliefert werden, bevor es schmilzt. Ein Becher für Opa (nah), einer für die
    Müllerin (weit, über die Brücke: leicht **und** schnell). Anzeige 🍦 100 % → 0 %, je
-   Fahrminute weniger. Geschmolzen? Zurück zu Gino, neuer Becher. Belohnung: die
+   Fahrminute weniger (ein Becher hält 110 s Fahrzeit, `EIS_SEKUNDEN`). Ohne offene Mühle geht der
+   zweite Becher zu Hilde. Geschmolzen? Zurück zu Gino, neuer Becher. Belohnung: die
    **Eiswagen-Karosserie** (hinten, Mitte, vorne) und 30 Münzen.
 4. **Funkes Hütchen:** Der Sturm hat die Pylonen für den Dorf-Slalom übers Dorf und die
    Landstraße verteilt. 6 Stück einsammeln (wie Material, liegen sichtbar am Weg).
@@ -312,4 +315,4 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
 | G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ |
 | G10 | Die Mühlenkurve: Botengänge, Mühle mit Brücke (Gewicht), Foto, Versöhnung, Donnerkeil-Rahmen | ✅ |
-| G11 | Das Dorffest: Landstraße, Funke, Ginos Eis-Express, Hütchen, Dorf-Slalom, Donnerkeil-Sitz | Landstraße ✅, Dorf wartet auf Bilder |
+| G11 | Das Dorffest: Landstraße, Funke, Ginos Eis-Express, Hütchen, Dorf-Slalom, Donnerkeil-Sitz | Landstraße, Dorf, Funke, Eis-Express ✅; Hütchen, Slalom, Sitz offen |

@@ -37,8 +37,9 @@ AUSGELAGERT = {  # nach karte_daten.js laden
 BODEN = ["gras_ruhig", "gras", "erde", "schotter", "walddach", "wasser", "sand"]
 OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "schuppen", "schrottplatz",
            "reifen", "batterie", "huette",
-           "bauernhof", "foersterhuette", "campingplatz", "kauzwerkstatt", "muehle"]
-KOMMT: list[str] = []  # Orte, deren Bild noch fehlen darf
+           "bauernhof", "foersterhuette", "campingplatz", "kauzwerkstatt", "muehle",
+           "marktplatz", "eisdiele", "feuerwache", "dorfhaus_1", "dorfhaus_2"]
+KOMMT = ["dorfhaus_2"]  # Orte, deren Bild noch fehlen darf
 RALLYE = ["pfuetze", "ast", "wurzel", "schlagloch"]  # Hindernisse der Waldrallye (freiwillig)
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
          "radV": "schubkarre", "motor": "maeher", "energie": "giesskanne", "sitz": "kuechenstuhl",
@@ -53,7 +54,8 @@ TIERE = ["vogel", "hase", "schaf", "kuh", "pieps"]  # je zwei Posen: NAME_1.png,
 LADEN = ["rundling_hinten", "rundling_mitte", "rundling_vorne", "scheinwerfer", "spezialhupe",
          "pickup_hinten", "badewanne_vorne", "mopedmotor",
          "milchkanne", "steuerrad", "maehbalken", "donnerkeilrahmen",
-         "donnerkeillenkrad"]  # Knuts Laden (früher) und Belohnungen
+         "donnerkeillenkrad",
+         "eiswagen_hinten", "eiswagen_mitte", "eiswagen_vorne"]  # Knuts Laden (früher) und Belohnungen
 AUTO_PX = 320  # Breite des Autobilds (10 Zellen = 4 m)
 
 

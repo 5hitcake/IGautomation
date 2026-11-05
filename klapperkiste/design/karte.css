@@ -140,7 +140,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--mint); out
 /* Verbrauch und Beutel rechts unter der Minikarte, je zwei Anzeigen nebeneinander */
 .hud-rechts { grid-template-columns: auto auto; justify-content: end; justify-items: end; }
 .hud-rechts span, .hud-rechts button { font-size: 13px !important; }
-#sprit.wenig, #strom.wenig { background: rgba(190,60,40,0.92); color: #fffaf0; }
+#sprit.wenig, #strom.wenig, #eis.wenig { background: rgba(190,60,40,0.92); color: #fffaf0; }
 #platt, #beutelKnopf { pointer-events: auto; font: inherit; font-weight: 800; border: 0; border-radius: 999px; padding: 4px 10px; cursor: pointer; background: rgba(18,35,42,0.82); color: var(--chalk); }
 #platt { background: rgba(190,60,40,0.94); color: #fffaf0; animation: blink 1.2s steps(2) infinite; }
 #beutel { position: absolute; inset: 0; z-index: 8; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; padding: 10px 12px; box-sizing: border-box; background: rgba(250,243,228,0.97); color: #1d1a16; }
