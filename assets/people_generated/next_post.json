@@ -1,10 +1,10 @@
 {
   "type": "image",
-  "file": "assets/people_generated/person_20261104_2341_0004.jpg",
-  "caption": "This face belongs to no one.\n\nPerson No. 0004 · \"Seo-yeon\", 35\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #artificialintelligence #streetportrait #peopleofinstagram #notreal #lookalike #digitalhuman",
+  "file": "assets/people_generated/person_20261105_1121_0005.jpg",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0005 · \"Thanh\", 42\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #artificialintelligence #aiart #fakeface #streetportrait #twinstranger",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 35-year-old Korean woman with long straight hair and a few blemishes, wearing a paint-stained artist's shirt, a slight smirk, in a workshop, afternoon sunlight through a window, shot on iPhone, candid snapshot, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 4,
-  "name": "Seo-yeon",
-  "age": 35
+  "prompt": "Waist-up portrait photo of a 42-year-old Southeast Asian man with a high fade, a long braided beard and light freckles, wearing a tank top, a thoughtful look, at a train station, bright midday sun with hard shadows, shot on Sony A7 III, 50mm f/1.8, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 5,
+  "name": "Thanh",
+  "age": 42
 }
