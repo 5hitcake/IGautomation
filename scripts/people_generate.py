@@ -63,41 +63,70 @@ GENDERS = ["woman", "man"]
 # Nur Erwachsene - niemals Minderjaehrige.
 AGE_RANGES = [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69), (70, 85)]
 
-# (Beschreibung fuer den Prompt, Namensgruppe)
-HERITAGES = [
-    ("West African", "west_african"),
-    ("East African", "east_african"),
-    ("Afro-Caribbean", "caribbean"),
-    ("African American", "african_american"),
-    ("Northern European", "northern_european"),
-    ("Southern European", "southern_european"),
-    ("Eastern European", "eastern_european"),
-    ("Irish", "irish"),
-    ("East Asian", "east_asian"),
-    ("Korean", "korean"),
-    ("Japanese", "japanese"),
-    ("Southeast Asian", "southeast_asian"),
-    ("Filipino", "filipino"),
-    ("South Asian", "south_asian"),
-    ("Middle Eastern", "middle_eastern"),
-    ("North African", "north_african"),
-    ("Turkish", "turkish"),
-    ("Persian", "persian"),
-    ("Central Asian", "central_asian"),
-    ("Latin American", "latin_american"),
-    ("Brazilian", "brazilian"),
-    ("Mexican", "mexican"),
-    ("Indigenous Andean", "andean"),
-    ("Native American", "native_american"),
-    ("Pacific Islander", "pacific_islander"),
-    ("Aboriginal Australian", "aboriginal_australian"),
-    ("mixed-race", "mixed"),
-    ("Mongolian", "mongolian"),
-    ("Nepali", "nepali"),
-    ("Inuit", "inuit"),
-    ("Sámi", "sami"),
-    ("Malagasy", "malagasy"),
-]
+# Weltregionen mit Wuerfel-Gewicht und ihren Herkuenften
+# (Beschreibung fuer den Prompt, Namensgruppe). Erst wird die Region gewuerfelt,
+# dann die Herkunft darin - sonst dominieren Regionen mit vielen Untergruppen.
+# Durch die Sperre gleicher Regionen ergibt sich real: Europa/westlich ~25 %,
+# Afrika, Lateinamerika, Ostasien je ~13 %, Nahost ~12 %, Suedasien ~10 %, Rest ~6 %.
+REGIONS = {
+    "europe_west": (0.40, [
+        ("Northern European", "northern_european"),
+        ("Southern European", "southern_european"),
+        ("Eastern European", "eastern_european"),
+        ("Irish", "irish"),
+        ("British", "british"),
+        ("German", "german"),
+        ("French", "french"),
+        ("Dutch", "dutch"),
+        ("white American", "white_american"),
+        ("white Australian", "white_australian"),
+        ("Sámi", "sami"),
+    ]),
+    "africa": (0.14, [
+        ("West African", "west_african"),
+        ("East African", "east_african"),
+        ("Afro-Caribbean", "caribbean"),
+        ("African American", "african_american"),
+        ("Malagasy", "malagasy"),
+    ]),
+    "latin_america": (0.14, [
+        ("Latin American", "latin_american"),
+        ("Brazilian", "brazilian"),
+        ("Mexican", "mexican"),
+        ("Indigenous Andean", "andean"),
+    ]),
+    "east_asia": (0.12, [
+        ("East Asian", "east_asian"),
+        ("Korean", "korean"),
+        ("Japanese", "japanese"),
+        ("Southeast Asian", "southeast_asian"),
+        ("Filipino", "filipino"),
+        ("Mongolian", "mongolian"),
+    ]),
+    "mena": (0.11, [
+        ("Middle Eastern", "middle_eastern"),
+        ("North African", "north_african"),
+        ("Turkish", "turkish"),
+        ("Persian", "persian"),
+    ]),
+    "south_central_asia": (0.08, [
+        ("South Asian", "south_asian"),
+        ("Nepali", "nepali"),
+        ("Central Asian", "central_asian"),
+    ]),
+    "indigenous_pacific": (0.05, [
+        ("Native American", "native_american"),
+        ("Pacific Islander", "pacific_islander"),
+        ("Aboriginal Australian", "aboriginal_australian"),
+        ("Inuit", "inuit"),
+    ]),
+    "mixed": (0.06, [
+        ("mixed-race", "mixed"),
+    ]),
+}
+HERITAGES = [h for _, hs in REGIONS.values() for h in hs]
+REGION_OF = {h[0]: region for region, (_, hs) in REGIONS.items() for h in hs}
+AVOID_RECENT_REGIONS = 2  # dieselbe Weltregion fruehestens nach 2 anderen Personen wieder
 
 FIRST_NAMES = {
     "west_african": (
@@ -215,6 +244,30 @@ FIRST_NAMES = {
     "inuit": (
         ["Aputi", "Nuka", "Siqiniq", "Kunik", "Ivalu"],
         ["Aputsiaq", "Inuk", "Malik", "Nanook", "Kunuk"],
+    ),
+    "british": (
+        ["Charlotte", "Emily", "Sophie", "Harriet", "Lucy"],
+        ["Oliver", "James", "Harry", "Callum", "George"],
+    ),
+    "german": (
+        ["Lena", "Johanna", "Katrin", "Mareike", "Greta"],
+        ["Jonas", "Felix", "Tobias", "Florian", "Matthias"],
+    ),
+    "french": (
+        ["Camille", "Manon", "Élodie", "Chloé", "Margaux"],
+        ["Julien", "Théo", "Antoine", "Bastien", "Mathis"],
+    ),
+    "dutch": (
+        ["Sanne", "Femke", "Lotte", "Anouk", "Eva"],
+        ["Daan", "Bram", "Joost", "Sem", "Ruben"],
+    ),
+    "white_american": (
+        ["Ashley", "Megan", "Hannah", "Brooke", "Kayla"],
+        ["Tyler", "Cody", "Ryan", "Brandon", "Jake"],
+    ),
+    "white_australian": (
+        ["Chloe", "Jess", "Tahlia", "Georgia", "Bec"],
+        ["Liam", "Mitch", "Jack", "Brodie", "Lachlan"],
     ),
     "sami": (
         ["Áile", "Sárá", "Elle", "Biret", "Máret"],
@@ -414,9 +467,13 @@ def _pick_avoiding(rng, options, recent_values):
 
 def roll_persona(state, rng=random):
     """Wuerfelt eine neue Person. Herkunft, Geschlecht+Altersgruppe und Ort der
-    letzten AVOID_RECENT Personen werden vermieden."""
+    letzten AVOID_RECENT Personen werden vermieden; dieselbe Weltregion kommt fruehestens
+    nach AVOID_RECENT_REGIONS anderen Personen wieder (Gewichte siehe REGIONS)."""
     recent = state.get("recent", [])[-AVOID_RECENT:]
-    heritage, name_group = _pick_avoiding(rng, HERITAGES, [tuple(r["heritage"]) for r in recent])
+    recent_regions = {REGION_OF.get(r["heritage"][0]) for r in recent[-AVOID_RECENT_REGIONS:]}
+    regions = [r for r in REGIONS if r not in recent_regions] or list(REGIONS)
+    region = rng.choices(regions, [REGIONS[r][0] for r in regions])[0]
+    heritage, name_group = _pick_avoiding(rng, REGIONS[region][1], [tuple(r["heritage"]) for r in recent])
 
     combos = [(g, a) for g in GENDERS for a in AGE_RANGES]
     gender, age_range = _pick_avoiding(rng, combos, [(r["gender"], tuple(r["age_range"])) for r in recent])
