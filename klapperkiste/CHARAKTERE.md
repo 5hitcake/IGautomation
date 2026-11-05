@@ -140,6 +140,8 @@ der Mitte bleibt Platz für die Figur. Ablage:
 | Mühle (Müllerin, G10) | `muehle.png` / `muehle_nacht.png` | ✅ Tag und Nacht |
 | Kauz' Werkstatt (G9) | `kauz.png` (Tag) / `kauz_nacht.png` | ✅ Tag und Nacht |
 | Nachtbilder | `schrottplatz_nacht.png`, `werkstatt_nacht.png`, `bauernhof_nacht.png`, `foersterhuette_nacht.png`, `camping_nacht.png` | ✅ alle |
+| Eisdiele (Gino, G11) | `eisdiele.png` / `eisdiele_nacht.png` | ✅ Tag und Nacht |
+| Feuerwache (Funke, G11) | `feuerwache.png` / `feuerwache_nacht.png` | ✅ Tag und Nacht |
 | Werkstatt-Halle (Bauen, nicht für Gespräche) | `halle.png` | ✅ (Lage der gemalten Hebebühne steht als `BUEHNE` in `design/werkstatt.js`) |
 
 ### Opas Werkstatt

@@ -39,7 +39,7 @@ OBJEKTE = ["laubbaum", "nadelbaum", "busch", "felsbrocken", "zaun", "schild", "s
            "reifen", "batterie", "huette",
            "bauernhof", "foersterhuette", "campingplatz", "kauzwerkstatt", "muehle",
            "marktplatz", "eisdiele", "feuerwache", "dorfhaus_1", "dorfhaus_2"]
-KOMMT = ["dorfhaus_2"]  # Orte, deren Bild noch fehlen darf
+KOMMT: list[str] = []  # Orte, deren Bild noch fehlen darf
 RALLYE = ["pfuetze", "ast", "wurzel", "schlagloch"]  # Hindernisse der Waldrallye (freiwillig)
 GRUND = {"rahmen": "bettgestell", "achseH": "rostachse", "achseV": "rostachse", "radH": "schubkarre",
          "radV": "schubkarre", "motor": "maeher", "energie": "giesskanne", "sitz": "kuechenstuhl",

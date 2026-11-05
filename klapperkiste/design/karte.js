@@ -119,7 +119,8 @@ window.Karte = function (opt = {}) {
     platz: { X: 392, Y: 239.8 }, brunnen: [407.3, 250, 3.1],
     eis: { X: 372, Y: 233, haus: [375.4, 233, 387.8, 241.4] },
     wache: { X: 432, Y: 226, haus: [436.8, 226, 449.5, 235.2] },
-    haeuser: [{ bild: "dorfhaus_1", X: 458, Y: 236, haus: [460, 236, 469.5, 244] }] };
+    haeuser: [{ bild: "dorfhaus_1", X: 458, Y: 236, haus: [460, 236, 469.5, 244] },
+      { bild: "dorfhaus_2", X: 434, Y: 253.5, haus: [436, 253.5, 444.5, 260.5] }] };
   const DORFSTRASSE = [[388, 250], [398, 250], [403, 254.5], [408.5, 254.5], [413.5, 250], [472, 250]];
   const DORF_HAEUSER = [DORF.eis.haus, DORF.wache.haus, ...DORF.haeuser.map((h) => h.haus)];
   const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG, LANDSTRASSE, DORFSTRASSE];
