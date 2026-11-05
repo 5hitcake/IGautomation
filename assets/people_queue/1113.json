@@ -1,0 +1,32 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 42,
+    "age_range": [
+      40,
+      49
+    ],
+    "heritage": [
+      "Southeast Asian",
+      "southeast_asian"
+    ],
+    "name": "Thanh",
+    "hair": "a high fade",
+    "facial_hair": "a long braided beard",
+    "detail": "light freckles",
+    "clothing": "a tank top",
+    "setting": "at a train station",
+    "lighting": "bright midday sun with hard shadows",
+    "camera": "shot on Sony A7 III, 50mm f/1.8",
+    "framing": "waist-up portrait",
+    "expression": "a thoughtful look",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Waist-up portrait photo of a 42-year-old Southeast Asian man with a high fade, a long braided beard and light freckles, wearing a tank top, a thoughtful look, at a train station, bright midday sun with hard shadows, shot on Sony A7 III, 50mm f/1.8, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0005 · \"Thanh\", 42\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #artificialintelligence #aiart #fakeface #streetportrait #twinstranger"
+}

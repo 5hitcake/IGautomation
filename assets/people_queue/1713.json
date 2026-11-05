@@ -1,0 +1,32 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 52,
+    "age_range": [
+      50,
+      59
+    ],
+    "heritage": [
+      "Filipino",
+      "filipino"
+    ],
+    "name": "Jomar",
+    "hair": "shoulder-length wavy hair",
+    "facial_hair": "a full beard",
+    "detail": "dimples",
+    "clothing": "a leather jacket",
+    "setting": "in a cozy living room",
+    "lighting": "warm indoor lamp light",
+    "camera": "shot on Sony A7 III, 50mm f/1.8",
+    "framing": "close-up headshot",
+    "expression": "a calm neutral expression",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a 52-year-old Filipino man with shoulder-length wavy hair, a full beard and dimples, wearing a leather jacket, a calm neutral expression, in a cozy living room, warm indoor lamp light, shot on Sony A7 III, 50mm f/1.8, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This face belongs to no one.\n\nPerson No. 0006 · \"Jomar\", 52\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #lookalike #portraitphotography #twinstranger #aiphotography #generativeai"
+}
