@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261106_1721_0009.mp4",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0009 · \"Babak\", 37\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #fakeface #portrait #peopleofinstagram #fluxai #streetportrait",
+  "file": "reel_20261106_2343_0010.mp4",
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0010 · \"Ayu\", 26\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #generativeai #twinstranger #notreal #fakeface #peopleofinstagram",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 37-year-old Persian man with a neat side part, light stubble and crow's feet around the eyes, wearing a linen shirt, a tired but friendly look, at a beach at dusk, bright midday sun with hard shadows, shot on Kodak Portra 400 film, 35mm, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 9,
-  "name": "Babak",
-  "age": 37,
-  "image": "assets/people_generated/person_20261106_1721_0009.jpg",
+  "prompt": "Close-up headshot photo of a 26-year-old Southeast Asian woman with hair tucked under a beanie, dark red lipstick and dimples, wearing a sequined party top, a slight smirk, on a mountain trail, neon city lights at night, shot on Fujifilm X-T4, 56mm f/1.2, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 10,
+  "name": "Ayu",
+  "age": 26,
+  "image": "assets/people_generated/person_20261106_2343_0010.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
