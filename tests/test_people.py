@@ -221,3 +221,16 @@ def test_reserve_images_are_instagram_ready():
         img = Image.open(f"{pg.RESERVE_DIR}/{entry['file']}")
         assert img.size == pg.OUTPUT_SIZE
         assert 20 <= entry["age"] <= 85
+
+
+def test_ages_lean_young_but_stay_mixed():
+    rng = random.Random(4)
+    state = {"recent": []}
+    ages = []
+    for _ in range(600):
+        p = pg.roll_persona(state, rng)
+        ages.append(p["age"])
+        state["recent"].append({k: p[k] for k in ("gender", "age_range", "heritage", "setting")})
+    assert 34 <= sum(ages) / len(ages) <= 44
+    assert sum(a < 40 for a in ages) / len(ages) >= 0.5
+    assert any(a >= 60 for a in ages)  # aeltere Gesichter weiter dabei

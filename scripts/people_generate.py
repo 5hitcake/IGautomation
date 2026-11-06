@@ -62,6 +62,9 @@ GENDERS = ["woman", "man"]
 
 # Nur Erwachsene - niemals Minderjaehrige.
 AGE_RANGES = [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69), (70, 85)]
+# Wuerfel-Gewichte: Schwerpunkt auf dem Alter typischer Instagram-Nutzer,
+# aeltere Gesichter weiter dabei, aber seltener.
+AGE_WEIGHTS = {(20, 29): 0.40, (30, 39): 0.32, (40, 49): 0.14, (50, 59): 0.08, (60, 69): 0.04, (70, 85): 0.02}
 
 # Weltregionen mit Wuerfel-Gewicht und ihren Herkuenften
 # (Beschreibung fuer den Prompt, Namensgruppe). Erst wird die Region gewuerfelt,
@@ -476,7 +479,9 @@ def roll_persona(state, rng=random):
     heritage, name_group = _pick_avoiding(rng, REGIONS[region][1], [tuple(r["heritage"]) for r in recent])
 
     combos = [(g, a) for g in GENDERS for a in AGE_RANGES]
-    gender, age_range = _pick_avoiding(rng, combos, [(r["gender"], tuple(r["age_range"])) for r in recent])
+    recent_combos = [(r["gender"], tuple(r["age_range"])) for r in recent]
+    combos = [c for c in combos if c not in recent_combos] or combos
+    gender, age_range = rng.choices(combos, [AGE_WEIGHTS[a] for _, a in combos])[0]
     # Nicht dreimal hintereinander dasselbe Geschlecht.
     if len(recent) >= 2 and all(r["gender"] == gender for r in recent[-2:]):
         gender = "man" if gender == "woman" else "woman"
