@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261106_1121_0008.jpg",
-  "caption": "This person does not exist.\n\nPerson No. 0008 · \"Timur\", 72\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #portrait #generativeai #faces #notreal #aiart",
+  "type": "reel",
+  "file": "reel_20261106_1721_0009.mp4",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0009 · \"Babak\", 37\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #fakeface #portrait #peopleofinstagram #fluxai #streetportrait",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 72-year-old Central Asian man with a man bun, a full beard, thick black-rimmed glasses and slightly sunburned nose, wearing a flannel shirt, a tired but friendly look, in a home kitchen, soft window light, shot on Fujifilm X-T4, 56mm f/1.2, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 8,
-  "name": "Timur",
-  "age": 72
+  "prompt": "Close-up headshot photo of a 37-year-old Persian man with a neat side part, light stubble and crow's feet around the eyes, wearing a linen shirt, a tired but friendly look, at a beach at dusk, bright midday sun with hard shadows, shot on Kodak Portra 400 film, 35mm, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 9,
+  "name": "Babak",
+  "age": 37,
+  "image": "assets/people_generated/person_20261106_1721_0009.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
