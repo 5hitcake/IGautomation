@@ -1,0 +1,38 @@
+name: People scheduler deploy (Cloudflare)
+
+# Legt den Cloudflare-Worker an, der people_post.yml puenktlich startet.
+# Braucht die Secrets CF_WORKERS_API_TOKEN (Cloudflare-Token "Edit Cloudflare Workers")
+# und GH_DISPATCH_TOKEN (GitHub-Token mit "Actions: Read and write" fuer dieses Repo).
+on:
+  push:
+    branches: [main]
+    paths: ["cloudflare/people_scheduler/**", ".github/workflows/people_scheduler_deploy.yml"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pruefen, ob Secrets gesetzt sind
+        env:
+          HAS: ${{ secrets.CF_WORKERS_API_TOKEN != '' && secrets.GH_DISPATCH_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          if [ "$HAS" != "true" ]; then
+            echo "::error::CF_WORKERS_API_TOKEN, GH_DISPATCH_TOKEN oder CLOUDFLARE_ACCOUNT_ID fehlt."
+            exit 1
+          fi
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_WORKERS_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cloudflare/people_scheduler
+          secrets: |
+            GH_DISPATCH_TOKEN
+            TELEGRAM_BOT_TOKEN
+            TELEGRAM_CHAT_ID
+        env:
+          GH_DISPATCH_TOKEN: ${{ secrets.GH_DISPATCH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
