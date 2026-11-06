@@ -1,5 +1,5 @@
 {
-  "count": 7,
+  "count": 8,
   "recent": [
     {
       "gender": "woman",
@@ -84,6 +84,18 @@
         "dutch"
       ],
       "setting": "on a rainy sidewalk"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        70,
+        85
+      ],
+      "heritage": [
+        "Central Asian",
+        "central_asian"
+      ],
+      "setting": "in a home kitchen"
     }
   ],
   "reserve_used": [

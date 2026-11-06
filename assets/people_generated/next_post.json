@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261105_2343_0007.mp4",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0007 · \"Anouk\", 78\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #generativeai #streetportrait #fakeface #notreal #aiart",
+  "type": "image",
+  "file": "assets/people_generated/person_20261106_1121_0008.jpg",
+  "caption": "This person does not exist.\n\nPerson No. 0008 · \"Timur\", 72\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #portrait #generativeai #faces #notreal #aiart",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 78-year-old Dutch woman with grey hair tucked under a beanie, vitiligo patches on the face and light freckles, wearing a tank top, a confident gaze into the camera, on a rainy sidewalk, blue hour twilight, shot on Canon EOS R5, 85mm f/1.4, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 7,
-  "name": "Anouk",
-  "age": 78,
-  "image": "assets/people_generated/person_20261105_2343_0007.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Close-up headshot photo of a 72-year-old Central Asian man with a man bun, a full beard, thick black-rimmed glasses and slightly sunburned nose, wearing a flannel shirt, a tired but friendly look, in a home kitchen, soft window light, shot on Fujifilm X-T4, 56mm f/1.2, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 8,
+  "name": "Timur",
+  "age": 72
 }
