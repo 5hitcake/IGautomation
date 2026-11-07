@@ -1,0 +1,4 @@
+HF_TOKEN gesetzt: nein
+Versuch 1 fehlgeschlagen: GPU task aborted
+Versuch 2 fehlgeschlagen: You have exceeded your ZeroGPU quota (180s requested vs. 0s left). Try again in 23:55:49. Authenticate with a Hugging Face token for more quota - https://huggingface.co/settings/tokens
+Versuch 3 fehlgeschlagen: You have exceeded your ZeroGPU quota (180s requested vs. 0s left). Try again in 23:55:18. Authenticate with a Hugging Face token for more quota - https://huggingface.co/settings/tokens
