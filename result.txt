@@ -1,0 +1,5 @@
+TIKTOK_CLIENT_KEY gesetzt: ja (Laenge 18)
+TIKTOK_CLIENT_SECRET gesetzt: ja (Laenge 32)
+Key + Secret von TikTok akzeptiert: JA
+HORROR: Anzeigename='Gruselgeschichten', Konto-ID endet auf ...Fquxaq, API-Antwort-Fehler: {'code': 'ok', 'message': '', 'log_id': '202611072001265790B84982A00DDFBB50'}
+MYSTERY: Anzeigename='MYSTERY=HISTORY', Konto-ID endet auf ...70oVpA, API-Antwort-Fehler: {'code': 'ok', 'message': '', 'log_id': '202611072001274944C0294F184CC221C4'}
