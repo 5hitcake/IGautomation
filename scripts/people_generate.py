@@ -6,11 +6,12 @@ Jede Person wird zufaellig neu zusammengewuerfelt (Herkunft, Alter, Geschlecht,
 Aussehen, Ort, Licht, Kamera). Ein kleines Gedaechtnis in people_posted_log.json
 verhindert, dass direkt hintereinander aehnliche Personen kommen.
 
-Bilder kommen kostenlos von Cloudflare Workers AI. Faellt ein Modell aus (z.B.
-Tageskontingent leer), wird automatisch das naechste in MODEL_CHAIN probiert.
+Bilder kommen kostenlos von Pollinations (POLLI_TOKEN) und Cloudflare Workers AI.
+Faellt ein Modell aus (z.B. Kontingent leer), wird automatisch das naechste in
+MODEL_CHAIN probiert; erst danach ein Reservebild.
 
 Benoetigte Umgebungsvariablen (ausser mit --dry-run):
-  CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
+  CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, optional POLLI_TOKEN
 
 Nutzung:
   python people_generate.py            (echtes Bild ueber Cloudflare)
@@ -39,17 +40,24 @@ OUTPUT_SIZE = (1080, 1350)
 # Generierungsgroesse: Vielfache von 16, gleiches Seitenverhaeltnis wie OUTPUT_SIZE.
 GEN_WIDTH, GEN_HEIGHT = 1088, 1360
 
-# Reihenfolge = Qualitaet laut Vergleichstest, abgestimmt auf das kostenlose
-# Tageskontingent von Cloudflare (10.000 Neurons, Reset 00:00 UTC):
-#   FLUX-2 Klein 9B  ~1.450 Neurons/Bild -> 3 Bilder/Tag = ~4.400
-#   FLUX-2 Klein 4B  ~  250 Neurons/Bild (Reserve)
+# Reihenfolge = Qualitaet laut Vergleichstests. "pollinations:..." laeuft ueber
+# gen.pollinations.ai (kostenlose Modelle, Gratis-Guthaben in "Pollen"), "@cf/..."
+# ueber Cloudflare (10.000 Neurons/Tag, Reset 00:00 UTC):
+#   MAI Image 2.6    echteste Gesichter, setzt Details wie Zahnluecken um
+#   FLUX-2 Klein 9B  ~1.450 Neurons/Bild
+#   FLUX-2 Klein 4B  ~  250 Neurons/Bild
+#   Z-Image Turbo    sehr natuerlich, guenstigstes Pollinations-Modell
 #   Lucid Origin     ~4.000+ Neurons/Bild (nur letzte Reserve)
-# FLUX-2 Dev (~8.000+/Bild) und Phoenix sind fuer das Gratis-Kontingent zu teuer.
+POLLI_PREFIX = "pollinations:"
 MODEL_CHAIN = [
+    "pollinations:microsoft/mai-image-2.6",
     "@cf/black-forest-labs/flux-2-klein-9b",
     "@cf/black-forest-labs/flux-2-klein-4b",
+    "pollinations:tongyi-mai/z-image-turbo",
     "@cf/leonardo/lucid-origin",
 ]
+# Pollinations will Seiten als Vielfache von 32 (FLUX) bzw. 16 (MAI).
+POLLI_WIDTH, POLLI_HEIGHT = 1088, 1344
 
 # Wie viele der letzten Personen beim Wuerfeln vermieden werden.
 AVOID_RECENT = 3
@@ -610,18 +618,45 @@ def generate_cloudflare(model, prompt, account_id, api_token, retries=3):
     raise RuntimeError("unerreichbar")
 
 
-def generate_image(prompt, account_id, api_token):
+def generate_pollinations(model, prompt, token, retries=2):
+    url = f"https://gen.pollinations.ai/image/{requests.utils.quote(prompt, safe='')}"
+    params = {"model": model, "width": POLLI_WIDTH, "height": POLLI_HEIGHT,
+              "seed": random.randint(1, 2**31 - 1), "nologo": "true"}
+    headers = {"Authorization": f"Bearer {token}"}
+    for attempt in range(retries):
+        resp = requests.get(url, params=params, headers=headers, timeout=180)
+        if resp.ok and resp.headers.get("Content-Type", "").startswith("image/"):
+            return resp.content
+        if resp.status_code in (429, 500, 502, 503, 504) and attempt < retries - 1:
+            time.sleep(15)
+            continue
+        raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:300]}")
+    raise RuntimeError("unerreichbar")
+
+
+def generate_image(prompt, account_id, api_token, polli_token=None):
+    if polli_token is None:
+        polli_token = os.environ.get("POLLI_TOKEN", "").strip()
     errors = []
+    cf_exhausted = polli_exhausted = False
     for model in MODEL_CHAIN:
+        is_polli = model.startswith(POLLI_PREFIX)
+        if (is_polli and (not polli_token or polli_exhausted)) or (not is_polli and cf_exhausted):
+            continue
         try:
-            img = generate_cloudflare(model, prompt, account_id, api_token)
+            if is_polli:
+                img = generate_pollinations(model[len(POLLI_PREFIX):], prompt, polli_token)
+            else:
+                img = generate_cloudflare(model, prompt, account_id, api_token)
             print(f"Bild erzeugt mit {model}")
             return img, model
         except Exception as exc:  # noqa: BLE001 - naechstes Modell probieren
             print(f"{model} fehlgeschlagen: {exc}")
             errors.append(f"{model}: {exc}")
             if "daily free allocation" in str(exc):
-                break  # Kontingent gilt fuers ganze Konto - andere Modelle scheitern genauso
+                cf_exhausted = True  # Kontingent gilt fuers ganze Cloudflare-Konto
+            if is_polli and ("HTTP 401" in str(exc) or "HTTP 402" in str(exc) or "HTTP 403" in str(exc)):
+                polli_exhausted = True  # Token ungueltig oder Guthaben leer
     raise RuntimeError("Alle Bildmodelle fehlgeschlagen:\n" + "\n".join(errors))
 
 
