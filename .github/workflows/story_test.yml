@@ -1,0 +1,66 @@
+name: Story-Automation Test (temporaer)
+
+on:
+  push:
+    branches: [claude/instagram-reels-automation-koceqs]
+    paths: [".github/workflows/story_test.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      POLLINATIONS_API_KEY: ${{ secrets.POLLI_TOKEN }}
+      STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      HORROR_IG_ACCESS_TOKEN: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
+      MYSTERY_IG_ACCESS_TOKEN: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN }}
+      STORY_ENABLED_ACCOUNTS: "horror"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          pip install requests Pillow "edge-tts>=7.3.1"
+          mkdir -p out
+          echo "Telegram: story-bot=$([ -n "$STORY_TELEGRAM_BOT_TOKEN" ] && echo ja || echo nein), bot=$([ -n "$TELEGRAM_BOT_TOKEN" ] && echo ja || echo nein), chat=$([ -n "$TELEGRAM_CHAT_ID" ] && echo ja || echo nein)" | tee out/log.txt
+      - name: 1) Neue Geschichte schreiben
+        continue-on-error: true
+        run: |
+          python scripts/story_writer.py --account horror --count 2 2>&1 | tee -a out/log.txt
+          python - <<'PY' | tee out/new_stories.json
+          import json
+          d = json.load(open("content/story_reels/horror.json"))
+          print(json.dumps([s for s in d["stories"] if s.get("generated")], ensure_ascii=False, indent=2))
+          PY
+      - name: 2) Wartung + Telegram-Testnachricht
+        continue-on-error: true
+        run: python scripts/story_health.py --test 2>&1 | tee -a out/log.txt
+      - name: 3) Neue Geschichte als Video
+        continue-on-error: true
+        run: |
+          sid=$(python -c "import json;s=[x for x in json.load(open('content/story_reels/horror.json'))['stories'] if x.get('generated')];print(s[0]['id'] if s else '')")
+          [ -n "$sid" ] && python scripts/story_reel.py --account horror --story "$sid" --preview 2>&1 | tee -a out/log.txt && cp assets/story_reels/horror/reel_$sid.mp4 out/ || echo "keine neue Geschichte" | tee -a out/log.txt
+      - name: 4) Test-Vorschau per Telegram (nichts wird gepostet)
+        continue-on-error: true
+        run: python scripts/story_review.py --account horror --wait-minutes 6 --test 2>&1 | tee -a out/log.txt
+      - name: Ergebnis ablegen
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          git init -q -b story-test-result
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Test"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" story-test-result

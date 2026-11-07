@@ -160,7 +160,8 @@ def pick_story(stories, account_state, rng=random, story_id=None):
                 return s
         raise SystemExit(f"Story '{story_id}' nicht gefunden")
     posted = account_state.get("posted", [])
-    unused = [s for s in stories if s["id"] not in posted]
+    blocked = set(posted) | set(account_state.get("skipped", []))
+    unused = [s for s in stories if s["id"] not in blocked]
     if unused:
         return unused[0]
     order = {sid: i for i, sid in enumerate(posted)}
@@ -169,6 +170,43 @@ def pick_story(stories, account_state, rng=random, story_id=None):
 
 def strip_marks(text):
     return text.replace("*", "")
+
+
+def validate_story(story):
+    """Prueft eine Geschichte auf das Reel-Format. Gibt eine Liste von Problemen zurueck
+    (leer = in Ordnung). Wird fuer handgeschriebene und KI-geschriebene Geschichten genutzt."""
+    problems = []
+    try:
+        if not re.fullmatch(r"[a-z0-9_]{3,60}", story.get("id", "")):
+            problems.append("id muss aus a-z, 0-9 und _ bestehen")
+        hook, scenes = story["hook"], story["scenes"]
+        if not (hook.get("text") and hook.get("image")):
+            problems.append("Hook braucht text und image")
+        if not 6 <= len(scenes) <= 10:
+            problems.append(f"{len(scenes)} Szenen (erlaubt 6-10)")
+        texts = [hook.get("text", "")] + [sc.get("text", "") for sc in scenes]
+        for i, sc in enumerate(scenes):
+            if not sc.get("image") or not sc.get("text"):
+                problems.append(f"Szene {i + 1} braucht text und image")
+        for t in texts:
+            if t.count("*") % 2:
+                problems.append(f"unpaarige Sternchen: {t[:40]}")
+            if len(strip_marks(t).split()) > 34:
+                problems.append(f"Szene zu lang: {t[:40]}")
+        words = sum(len(strip_marks(t).split()) for t in texts)
+        if not 85 <= words <= 170:
+            problems.append(f"{words} Woerter (Ziel 100-150 fuer ~1 Minute)")
+        for tag in story.get("tags", []):
+            if not re.fullmatch(r"#[\wäöüÄÖÜß]+", tag):
+                problems.append(f"ungueltiger Hashtag: {tag}")
+    except (KeyError, TypeError, AttributeError) as exc:
+        problems.append(f"Formatfehler: {exc}")
+    return problems
+
+
+def unused_count(stories, account_state):
+    used = set(account_state.get("posted", [])) | set(account_state.get("skipped", []))
+    return sum(1 for s in stories if s["id"] not in used)
 
 
 def build_caption(account_cfg, story, rng=random):

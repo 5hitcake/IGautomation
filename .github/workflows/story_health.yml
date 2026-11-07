@@ -1,0 +1,53 @@
+name: Story Reels Wartung
+
+# Täglich 08:23 UTC: prüft Tokens, Geschichten-Vorrat und ob gepostet wurde.
+# Meldet sich per Telegram nur, wenn etwas ansteht - montags zusätzlich mit einer Wochenübersicht.
+on:
+  schedule:
+    - cron: "23 8 * * *"
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Testnachricht schicken?"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+env:
+  STORY_ENABLED_ACCOUNTS: "horror"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests Pillow
+      - name: Prüfen und ggf. benachrichtigen
+        env:
+          HORROR_IG_ACCESS_TOKEN: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
+          MYSTERY_IG_ACCESS_TOKEN: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          HORROR_TIKTOK_REFRESH_TOKEN: ${{ secrets.HORROR_TIKTOK_REFRESH_TOKEN }}
+          MYSTERY_TIKTOK_REFRESH_TOKEN: ${{ secrets.MYSTERY_TIKTOK_REFRESH_TOKEN }}
+          STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          args=""
+          [ "${{ github.event.inputs.test }}" = "true" ] && args="--test"
+          python scripts/story_health.py $args
+      - name: Zustand speichern
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add story_health_state.json 2>/dev/null || true
+          git commit -qm "Story-Reels Wartung: $(date -u +'%Y-%m-%d')" || exit 0
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done

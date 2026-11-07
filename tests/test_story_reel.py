@@ -15,16 +15,27 @@ def test_content_is_valid(account):
     assert cfg.get("voiceover") is True and cfg["cta_voice"]
     assert len(stories) >= 15
     for s in stories:
-        assert s["hook"]["text"] and s["hook"]["image"], s["id"]
-        assert 6 <= len(s["scenes"]) <= 10, s["id"]
-        for scene in s["scenes"]:
-            assert scene["image"], s["id"]
-        texts = [s["hook"]["text"]] + [x["text"] for x in s["scenes"]]
-        for text in texts:
-            assert text.count("*") % 2 == 0, f"unpaarige Sternchen in {s['id']}"
-            assert len(sr.strip_marks(text).split()) <= 34, f"Szene zu lang in {s['id']}: {text}"
-        words = sum(len(sr.strip_marks(t).split()) for t in texts)
-        assert 85 <= words <= 170, f"{s['id']}: {words} Woerter (Ziel ~1 Minute)"
+        assert sr.validate_story(s) == [], (s["id"], sr.validate_story(s))
+
+
+def test_validate_story_catches_problems():
+    good = {
+        "id": "ok_story",
+        "hook": {"text": "Hook " * 10, "image": "x"},
+        "scenes": [{"text": "wort " * 14, "image": "y"} for _ in range(8)],
+        "tags": ["#grusel"],
+    }
+    assert sr.validate_story(good) == []
+    bad = {**good, "id": "Böse ID", "scenes": good["scenes"][:3], "tags": ["kein hashtag"]}
+    problems = " ".join(sr.validate_story(bad))
+    assert "id" in problems and "Szenen" in problems and "Hashtag" in problems
+    assert sr.validate_story({"id": "x"})  # Formatfehler statt Absturz
+
+
+def test_skipped_stories_are_not_picked():
+    stories = [{"id": "a"}, {"id": "b"}]
+    assert sr.pick_story(stories, {"posted": [], "skipped": ["a"]})["id"] == "b"
+    assert sr.unused_count(stories, {"posted": ["b"], "skipped": ["a"]}) == 0
 
 
 def test_pick_story_order_and_cycle():
