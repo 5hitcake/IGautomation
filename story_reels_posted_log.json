@@ -1,6 +1,10 @@
 {
   "horror": {
-    "posted": [],
-    "recent_music": []
+    "posted": [
+      "dyatlov"
+    ],
+    "recent_music": [
+      "theme.mp3"
+    ]
   }
 }
