@@ -23,6 +23,7 @@ import io
 import json
 import os
 import random
+import re
 import time
 from datetime import datetime, timezone
 
@@ -40,22 +41,26 @@ OUTPUT_SIZE = (1080, 1350)
 # Generierungsgroesse: Vielfache von 16, gleiches Seitenverhaeltnis wie OUTPUT_SIZE.
 GEN_WIDTH, GEN_HEIGHT = 1088, 1360
 
-# Reihenfolge = Qualitaet laut Vergleichstests. "pollinations:..." laeuft ueber
-# gen.pollinations.ai (kostenlose Modelle, Gratis-Guthaben in "Pollen"), "@cf/..."
-# ueber Cloudflare (10.000 Neurons/Tag, Reset 00:00 UTC):
-#   MAI Image 2.6    echteste Gesichter, setzt Details wie Zahnluecken um
-#   FLUX-2 Klein 9B  ~1.450 Neurons/Bild
+# Reihenfolge laut Vergleichstests. "@cf/..." laeuft ueber Cloudflare (10.000
+# Neurons/Tag gratis, Reset 00:00 UTC), "pollinations:..." ueber gen.pollinations.ai
+# (Gratis-Guthaben in "Pollen", reicht nur fuer wenige Bilder -> nur als Ersatz):
+#   FLUX-2 Klein 9B  ~1.450 Neurons/Bild, trifft das Alter gut
 #   FLUX-2 Klein 4B  ~  250 Neurons/Bild
-#   Z-Image Turbo    sehr natuerlich, guenstigstes Pollinations-Modell
+#   Z-Image Turbo    ~0,004 Pollen/Bild, sehr natuerlich, Alter passt
+#   MAI Image 2.6    ~0,034 Pollen/Bild, echteste Details, macht Personen aber aelter
+#                    (daher mit AGE_HINT)
 #   Lucid Origin     ~4.000+ Neurons/Bild (nur letzte Reserve)
 POLLI_PREFIX = "pollinations:"
 MODEL_CHAIN = [
-    "pollinations:microsoft/mai-image-2.6",
     "@cf/black-forest-labs/flux-2-klein-9b",
     "@cf/black-forest-labs/flux-2-klein-4b",
     "pollinations:tongyi-mai/z-image-turbo",
+    "pollinations:microsoft/mai-image-2.6",
     "@cf/leonardo/lucid-origin",
 ]
+# Modelle, die Gesichter zu alt darstellen, bekommen den Zusatz vor "photorealistic".
+AGE_HINT_MODELS = {"microsoft/mai-image-2.6"}
+AGE_HINT = "looks exactly {age} years old, age-accurate face, "
 # Pollinations will Seiten als Vielfache von 32 (FLUX) bzw. 16 (MAI).
 POLLI_WIDTH, POLLI_HEIGHT = 1088, 1344
 
@@ -618,7 +623,17 @@ def generate_cloudflare(model, prompt, account_id, api_token, retries=3):
     raise RuntimeError("unerreichbar")
 
 
+def with_age_hint(prompt):
+    """'...a 25-year-old...photorealistic...' -> Alterszusatz vor 'photorealistic'."""
+    m = re.search(r"(\d+)-year-old", prompt)
+    if not m or "photorealistic" not in prompt:
+        return prompt
+    return prompt.replace("photorealistic", AGE_HINT.format(age=m.group(1)) + "photorealistic", 1)
+
+
 def generate_pollinations(model, prompt, token, retries=2):
+    if model in AGE_HINT_MODELS:
+        prompt = with_age_hint(prompt)
     url = f"https://gen.pollinations.ai/image/{requests.utils.quote(prompt, safe='')}"
     params = {"model": model, "width": POLLI_WIDTH, "height": POLLI_HEIGHT,
               "seed": random.randint(1, 2**31 - 1), "nologo": "true"}
