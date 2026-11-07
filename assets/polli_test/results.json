@@ -1,0 +1,9 @@
+{
+  "prompt": "Head and shoulders portrait photo of a 40-year-old Eastern European woman with shoulder-length wavy hair and a gap between the front teeth, wearing all-black goth clothing with a lace collar, a warm genuine smile, in a park in autumn, soft golden hour light, shot on iPhone, candid snapshot, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "results": {
+    "black-forest-labs/flux.1.1-pro": "HTTP 400: {\"success\":false,\"error\":{\"message\":\"FLUX 1.1 Pro requires width and height in multiples of 32\",\"code\":\"BAD_REQUEST\",\"timestamp\":\"2026-11-07T14:34:43.455Z\",\"details\":{\"name\":\"UpstreamError\",\"upstreamStatus\":400}},\"status\":400}",
+    "tongyi-mai/z-image-turbo": "ok 376 KB, 5s",
+    "microsoft/mai-image-2.6": "HTTP 400: {\"success\":false,\"error\":{\"message\":\"MAI Image 2.6 requires width and height to be multiples of 16px\",\"code\":\"BAD_REQUEST\",\"timestamp\":\"2026-11-07T14:34:50.114Z\",\"details\":{\"name\":\"UpstreamError\",\"upstreamStatus\":400}},\"status\":400}",
+    "black-forest-labs/flux.2-klein-4b": "ok 349 KB, 8s"
+  }
+}
