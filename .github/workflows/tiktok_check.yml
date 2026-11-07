@@ -1,4 +1,4 @@
-name: TikTok-Zugang pruefen (temporaer)
+name: TikTok-Zugang pruefen (temporaer, Lauf 2)
 on:
   push:
     branches: [claude/instagram-reels-automation-koceqs]
