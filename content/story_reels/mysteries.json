@@ -2,12 +2,25 @@
   "account": {
     "name": "Rätsel & Verschwörungen",
     "handle": "@DEIN_MYSTERY_ACCOUNT",
-    "accent": [232, 186, 74],
+    "accent": [
+      232,
+      186,
+      74
+    ],
     "grade": "warm",
-    "voiceover": false,
-    "voice": "de-DE-ConradNeural",
-    "kickers": ["Wusstest du…?", "Was niemand weiß…", "Das steht in keinem Schulbuch", "WAHRER KERN", "UNGELÖSTES RÄTSEL"],
-    "cta": ["Folge {handle}", "für jeden Tag ein neues Rätsel"],
+    "voiceover": true,
+    "voice": "de-DE-KillianNeural",
+    "kickers": [
+      "Wusstest du…?",
+      "Was niemand weiß…",
+      "Das steht in keinem Schulbuch",
+      "WAHRER KERN",
+      "UNGELÖSTES RÄTSEL"
+    ],
+    "cta": [
+      "Folge {handle}",
+      "für jeden Tag ein neues Rätsel"
+    ],
     "caption_cta": [
       "Was glaubst du – Zufall oder mehr? 👇",
       "Kanntest du das schon? Schreib's in die Kommentare 👇",
@@ -15,360 +28,1020 @@
       "Welches Rätsel soll als Nächstes kommen? 👇"
     ],
     "image_style": "hand-painted anime film illustration, cinematic composition, lush painterly backgrounds, dramatic volumetric light, mysterious atmosphere, rich colors, highly detailed, vertical composition, no text, no letters, no watermark",
-    "hashtags": ["#mystery", "#rätsel", "#verschwörung", "#ancientaliens", "#geschichte", "#wusstestdu", "#ungelöst", "#archäologie", "#weltraum", "#faktencheck"]
+    "hashtags": [
+      "#mystery",
+      "#rätsel",
+      "#verschwörung",
+      "#ancientaliens",
+      "#geschichte",
+      "#wusstestdu",
+      "#ungelöst",
+      "#archäologie",
+      "#weltraum",
+      "#faktencheck"
+    ],
+    "cta_voice": "Folge uns für jeden Tag ein neues Rätsel."
   },
   "stories": [
     {
       "id": "antikythera",
-      "hook": "Taucher fanden einen *2.000 Jahre alten Computer* auf dem Meeresgrund.",
-      "slides": [
-        "1901, ein Schiffswrack vor der griechischen Insel Antikythera. Zwischen Statuen: ein verkrusteter Klumpen Bronze.",
-        "Röntgenbilder zeigen über 30 Zahnräder – präzise wie bei einer Uhr.",
-        "Das Gerät berechnete *Sonnen- und Mondfinsternisse* und die Termine der Olympischen Spiele.",
-        "Etwas Vergleichbares taucht erst über 1.000 Jahre später wieder auf. Wer konnte so etwas bauen?"
+      "hook": {
+        "text": "Taucher fanden einen *2.000 Jahre alten Computer* auf dem Meeresgrund.",
+        "image": "ancient shipwreck on the sea floor with divers and bronze statues, light rays through water"
+      },
+      "scenes": [
+        {
+          "text": "Ostern 1900. Griechische Schwammtaucher suchen vor der kleinen Insel Antikythera Schutz vor einem Sturm.",
+          "image": "small greek sponge diving boat near a rocky island in a storm, 1900"
+        },
+        {
+          "text": "Beim Tauchen entdecken sie ein antikes Schiffswrack – voller Bronzestatuen und Schätze.",
+          "image": "divers in old copper helmets discovering bronze statues on the sea floor"
+        },
+        {
+          "text": "Zwischen den Funden: ein unscheinbarer, verkrusteter Klumpen aus Bronze und Holz.",
+          "image": "corroded lump of ancient bronze on a museum table, dramatic light"
+        },
+        {
+          "text": "Jahrzehnte später zeigen Röntgenbilder: Im Inneren stecken über *30 Zahnräder*. Präzise wie bei einer Uhr.",
+          "image": "x-ray image of intricate ancient gears glowing blue"
+        },
+        {
+          "text": "Das Gerät berechnete die Bewegung von Sonne und Mond, sagte *Finsternisse* voraus und zeigte die Termine der Olympischen Spiele.",
+          "image": "ancient greek astronomer looking at the night sky with sun and moon, eclipse"
+        },
+        {
+          "text": "Gebaut wurde es vor über 2.000 Jahren, im antiken Griechenland.",
+          "image": "ancient greek workshop with a craftsman building a bronze gear mechanism, oil lamps"
+        },
+        {
+          "text": "Etwas Vergleichbares taucht erst über *1.000 Jahre später* wieder auf – in mittelalterlichen Uhren.",
+          "image": "medieval astronomical clock tower with golden dials"
+        },
+        {
+          "text": "Welches Wissen ging damals verloren? Und gab es noch mehr solcher Maschinen?",
+          "image": "reconstructed ancient bronze mechanism with glowing gears, museum, mysterious"
+        }
       ],
-      "images": [
-        "ancient shipwreck on the sea floor with divers and bronze statues, light rays through water",
-        "corroded ancient bronze gear mechanism glowing softly on a museum table",
-        "ancient greek astronomer looking at the night sky with sun and moon, eclipse"
-      ],
-      "tags": ["#antikythera", "#antikegriechenland"]
+      "tags": [
+        "#antikythera",
+        "#antikegriechenland"
+      ]
     },
     {
       "id": "piri_reis",
-      "hook": "Eine Karte von 1513 zeigt angeblich die Küste der *Antarktis* – 300 Jahre vor ihrer Entdeckung.",
-      "slides": [
-        "Gezeichnet hat sie der osmanische Admiral Piri Reis, auf Gazellenleder. Gefunden wurde sie 1929 in Istanbul.",
-        "Er schrieb selbst: Er habe rund 20 ältere Karten kombiniert – darunter eine von *Kolumbus*.",
-        "1966 behauptete ein Professor, unten auf der Karte sei die eisfreie Küste der Antarktis zu sehen.",
-        "Die meisten Historiker sagen: Es ist eine verzerrte Küste Südamerikas. Aber welche Quellen kannte Piri Reis wirklich?"
+      "hook": {
+        "text": "Eine Karte von 1513 zeigt angeblich die *Antarktis* – 300 Jahre vor ihrer Entdeckung.",
+        "image": "ancient map painted on leather with ships and sea monsters, warm candlelight"
+      },
+      "scenes": [
+        {
+          "text": "1929, Istanbul. Bei Umbauarbeiten im Topkapı-Palast entdecken Forscher eine uralte Karte.",
+          "image": "old ottoman palace library with dusty scrolls and maps, sunlight"
+        },
+        {
+          "text": "Gezeichnet 1513 vom osmanischen Admiral Piri Reis – auf Gazellenleder.",
+          "image": "ottoman admiral in his cabin studying old maps by lantern light"
+        },
+        {
+          "text": "Sie zeigt Afrika, Europa und die Küste Südamerikas. Nur 21 Jahre nach Kolumbus.",
+          "image": "ancient colorful map with coastlines of africa and south america, parchment"
+        },
+        {
+          "text": "Piri Reis schrieb selbst: Er habe rund 20 ältere Karten kombiniert – darunter eine von *Kolumbus*, die heute verschollen ist.",
+          "image": "pile of ancient maps and charts on a wooden table, candlelight"
+        },
+        {
+          "text": "1966 behauptete ein amerikanischer Professor: Unten auf der Karte sei die Küste der *Antarktis* zu sehen – ohne Eis.",
+          "image": "icy coastline of Antarctica under aurora, dramatic"
+        },
+        {
+          "text": "Die Antarktis wurde aber erst 1820 entdeckt. Und eisfrei war sie seit Millionen Jahren nicht.",
+          "image": "endless antarctic ice shelf under a cold blue sky"
+        },
+        {
+          "text": "Die meisten Historiker sagen: Es ist eine verzerrte Küste Südamerikas, gebogen, damit sie aufs Leder passt.",
+          "image": "historian examining an ancient map with a magnifying glass"
+        },
+        {
+          "text": "Doch welche Quellen kannte Piri Reis wirklich? Viele seiner Vorlagen sind *für immer verloren*.",
+          "image": "burning ancient library with scrolls, dramatic, historic"
+        }
       ],
-      "images": [
-        "ancient map painted on leather with ships and sea monsters, warm candlelight",
-        "ottoman admiral in his cabin studying old maps by lantern light",
-        "icy coastline of Antarctica under aurora, dramatic"
-      ],
-      "tags": ["#pirireis", "#altekarten", "#antarktis"]
+      "tags": [
+        "#pirireis",
+        "#altekarten",
+        "#antarktis"
+      ]
     },
     {
       "id": "goebekli_tepe",
-      "hook": "Dieser Tempel ist *älter als Stonehenge und die Pyramiden* – zusammen.",
-      "slides": [
-        "Göbekli Tepe, Türkei. Tonnenschwere Steinsäulen mit Reliefs von Füchsen, Schlangen und Geiern.",
-        "Alter: rund 11.500 Jahre. Gebaut von Menschen, die noch *keine Landwirtschaft* kannten. Keine Schrift. Kein Rad.",
-        "Lange galt: Erst kommt die Stadt, dann der Tempel. Göbekli Tepe dreht das um.",
-        "Und: Ein Großteil der Anlage ist noch gar nicht ausgegraben."
+      "hook": {
+        "text": "Dieser Tempel ist *älter als Stonehenge und die Pyramiden* – zusammen.",
+        "image": "ancient T-shaped stone pillars with animal carvings in a circle at sunset, archaeological site"
+      },
+      "scenes": [
+        {
+          "text": "Südosten der Türkei. Ein unscheinbarer Hügel namens Göbekli Tepe. Bauern finden hier seit Jahrhunderten seltsame Steine.",
+          "image": "barren hill in southeastern turkey with a farmer, golden light"
+        },
+        {
+          "text": "Mitte der 1990er beginnt der deutsche Archäologe Klaus Schmidt zu graben. Was er findet, verändert die Geschichte.",
+          "image": "archaeologist kneeling at an excavation with tools, dusty sunlight"
+        },
+        {
+          "text": "Riesige Steinsäulen in Kreisen. Bis zu fünf Meter hoch und viele Tonnen schwer.",
+          "image": "huge stone T-pillars in circles at an excavation site, dramatic sky"
+        },
+        {
+          "text": "Darauf Reliefs von Füchsen, Schlangen, Wildschweinen und Geiern.",
+          "image": "close up of an ancient stone pillar with fox and vulture relief, golden light"
+        },
+        {
+          "text": "Das Alter: rund *11.500 Jahre*. Gebaut von Jägern und Sammlern.",
+          "image": "stone age people moving a massive carved megalith, epic landscape"
+        },
+        {
+          "text": "Keine Landwirtschaft. Keine Schrift. Kein Rad. Und trotzdem diese Bauwerke.",
+          "image": "stone age hunter gatherers around a fire near giant stone pillars at night"
+        },
+        {
+          "text": "Lange galt: Erst kommen Dörfer und Felder, dann Tempel. Göbekli Tepe *dreht das um*.",
+          "image": "ancient hilltop sanctuary at dawn overlooking a vast plain"
+        },
+        {
+          "text": "Und das Erstaunlichste: Ein Großteil der Anlage ist *noch gar nicht ausgegraben*.",
+          "image": "unexcavated hill with hints of buried stone pillars, mysterious light"
+        }
       ],
-      "images": [
-        "ancient T-shaped stone pillars with animal carvings in a circle at sunset, archaeological site",
-        "stone age people moving a massive carved megalith, epic landscape",
-        "close up of an ancient stone pillar with fox and vulture relief, golden light"
-      ],
-      "tags": ["#göbeklitepe", "#archäologie"]
+      "tags": [
+        "#göbeklitepe",
+        "#archäologie"
+      ]
     },
     {
       "id": "tesla_papers",
-      "hook": "Als Nikola Tesla starb, wurden seine *Unterlagen beschlagnahmt*.",
-      "slides": [
-        "New York, Januar 1943. Tesla stirbt verarmt in Hotelzimmer 3327.",
-        "Wenige Tage später lässt eine US-Behörde seine Habe sicherstellen – obwohl er US-Bürger war.",
-        "Gerüchte: Tesla habe an einer „Todesstrahl“-Waffe gearbeitet. Das FBI veröffentlichte erst 2016 Teile seiner Akte.",
-        "Ein Professor prüfte die Papiere und fand angeblich nichts Gefährliches. Sein Name: John G. *Trump*."
+      "hook": {
+        "text": "Als Nikola Tesla starb, wurden seine *Unterlagen beschlagnahmt*.",
+        "image": "old 1940s New York hotel room at night with scientific papers and a tesla coil glowing"
+      },
+      "scenes": [
+        {
+          "text": "Nikola Tesla: Pionier des Wechselstroms, Erfinder der Funkfernsteuerung, Inhaber Hunderter Patente.",
+          "image": "inventor in a 1890s laboratory surrounded by lightning from a tesla coil"
+        },
+        {
+          "text": "Er träumte von kabelloser Energie für die ganze Welt.",
+          "image": "giant tesla tower sending lightning into a stormy night sky"
+        },
+        {
+          "text": "Doch im Alter ist er verarmt. Er lebt allein in Zimmer 3327 des Hotel New Yorker.",
+          "image": "old man feeding pigeons at an open hotel window in 1940s New York"
+        },
+        {
+          "text": "7. Januar 1943: Tesla wird tot aufgefunden.",
+          "image": "dim 1940s hotel room with an empty bed and scattered papers"
+        },
+        {
+          "text": "Kurz darauf lässt eine US-Behörde seine gesamte Habe sicherstellen. Obwohl er *amerikanischer Staatsbürger* war.",
+          "image": "men in 1940s suits carrying boxes of documents out of a hotel, noir mood"
+        },
+        {
+          "text": "Mitten im Krieg kursieren Gerüchte: Tesla habe an einem „Todesstrahl“ gearbeitet.",
+          "image": "secret military laboratory with a glowing energy beam machine, 1940s"
+        },
+        {
+          "text": "Ein Professor prüft die Papiere und meldet: nichts Gefährliches. Sein Name: John G. *Trump* – der Onkel von Donald Trump.",
+          "image": "professor reading old documents at a desk under a lamp, 1940s"
+        },
+        {
+          "text": "Erst 2016 gab das FBI Teile seiner Akte frei. Was genau in den Kisten war, ist bis heute umstritten.",
+          "image": "classified FBI files stamped secret in an archive box, dramatic light"
+        }
       ],
-      "images": [
-        "old 1940s New York hotel room at night with scientific papers and a tesla coil glowing",
-        "men in 1940s suits carrying boxes of documents out of a hotel, noir mood",
-        "giant tesla tower sending lightning into a stormy night sky"
-      ],
-      "tags": ["#nikolatesla", "#tesla"]
+      "tags": [
+        "#nikolatesla",
+        "#tesla"
+      ]
     },
     {
       "id": "paperclip",
-      "hook": "Nach dem Krieg holten die USA heimlich *über 1.600 deutsche Forscher* ins Land.",
-      "slides": [
-        "Operation Paperclip, ab 1945. Viele von ihnen waren NSDAP-Mitglieder. Ihre Akten wurden „bereinigt“.",
-        "Der bekannteste: Wernher von Braun. Seine V2-Rakete wurde von KZ-Häftlingen gebaut.",
-        "In den USA baute er die *Saturn V* – die Rakete, die Menschen zum Mond brachte.",
-        "Lange als Gerücht abgetan. Heute ist alles durch freigegebene Dokumente belegt."
+      "hook": {
+        "text": "Nach dem Krieg holten die USA heimlich *über 1.600 deutsche Forscher* ins Land.",
+        "image": "1940s scientists in a secret military hangar with a large rocket, dramatic shadows"
+      },
+      "scenes": [
+        {
+          "text": "1945. Der Zweite Weltkrieg ist vorbei. Die Siegermächte jagen nach dem Wissen der Deutschen.",
+          "image": "ruined german city in 1945 with soldiers searching buildings"
+        },
+        {
+          "text": "Die USA starten ein geheimes Programm: *Operation Paperclip*.",
+          "image": "stack of classified folders with paperclips on a desk under a lamp, noir"
+        },
+        {
+          "text": "Über 1.600 Wissenschaftler und Ingenieure werden in die USA gebracht. Viele waren Mitglieder der NSDAP.",
+          "image": "1940s scientists stepping off a ship in an american harbor"
+        },
+        {
+          "text": "Ihre Akten werden „bereinigt“, damit sie einreisen dürfen.",
+          "image": "hands removing pages from a file folder in a dark office"
+        },
+        {
+          "text": "Der bekannteste: Wernher von Braun. Seine V2-Rakete wurde von *KZ-Häftlingen* unter grausamen Bedingungen gebaut.",
+          "image": "dark underground rocket factory tunnel with V2 rockets, ominous"
+        },
+        {
+          "text": "In den USA steigt er zum Star der Raumfahrt auf. Er entwickelt die Saturn V.",
+          "image": "giant moon rocket on a launch pad at night with searchlights"
+        },
+        {
+          "text": "Die Rakete, die 1969 die ersten Menschen *zum Mond* brachte.",
+          "image": "moon rocket launching at dawn, epic clouds of smoke"
+        },
+        {
+          "text": "Lange galt das als Gerücht. Heute ist alles durch freigegebene Dokumente belegt.",
+          "image": "declassified documents spread on a table with old photographs"
+        }
       ],
-      "images": [
-        "1940s scientists in a secret military hangar with a large rocket, dramatic shadows",
-        "stack of classified folders with paperclips on a desk under a lamp, noir",
-        "giant moon rocket launching at dawn, epic clouds of smoke"
-      ],
-      "tags": ["#operationpaperclip", "#raumfahrt"]
+      "tags": [
+        "#operationpaperclip",
+        "#raumfahrt"
+      ]
     },
     {
       "id": "mkultra",
-      "hook": "Die CIA gab Menschen *LSD, ohne dass sie es wussten*. Das ist keine Theorie.",
-      "slides": [
-        "Projekt MKUltra, 1953 bis 1973. Ziel: Methoden zur Gedankenkontrolle und Verhöre finden.",
-        "Drogen, Hypnose, Schlafentzug – teils an ahnungslosen Bürgern, Patienten und Häftlingen.",
-        "1973 ließ der CIA-Chef die Akten vernichten. Doch 1977 tauchten rund *20.000 Dokumente* auf, die übersehen worden waren.",
-        "Der US-Senat bestätigte die Experimente öffentlich. Wie viele Menschen betroffen waren, weiß niemand genau."
+      "hook": {
+        "text": "Die CIA gab Menschen *LSD, ohne dass sie es wussten*. Das ist keine Theorie.",
+        "image": "dim 1950s laboratory with old machines and a lone chair under a lamp, ominous"
+      },
+      "scenes": [
+        {
+          "text": "1953, mitten im Kalten Krieg. Die CIA fürchtet, der Feind könne Gedanken kontrollieren.",
+          "image": "cold war era map room with officials in suits, smoky"
+        },
+        {
+          "text": "Sie startet ein geheimes Programm: *Projekt MKUltra*.",
+          "image": "secret government archive with endless shelves of files, dusty light"
+        },
+        {
+          "text": "Das Ziel: Methoden finden, um Menschen zu verhören, zu brechen – oder zu steuern.",
+          "image": "man sitting in a chair with electrodes in a dim 1950s laboratory"
+        },
+        {
+          "text": "Drogen, Hypnose, Schlafentzug. Oft an Menschen, die *nicht wussten*, dass sie Teil eines Experiments sind.",
+          "image": "hospital room in the 1950s with a patient and doctors in shadow"
+        },
+        {
+          "text": "Ein Wissenschaftler, dem heimlich LSD gegeben wurde, stürzt Tage später aus einem Hotelfenster.",
+          "image": "old New York hotel window at night from below, rain, dramatic"
+        },
+        {
+          "text": "1973 lässt der CIA-Chef die Akten vernichten.",
+          "image": "documents burning in a metal barrel at night"
+        },
+        {
+          "text": "Doch 1977 tauchen rund *20.000 Dokumente* auf – sie lagen in einem Archiv für Finanzunterlagen und wurden übersehen.",
+          "image": "dusty boxes of forgotten financial files in a basement archive"
+        },
+        {
+          "text": "Der US-Senat bestätigt die Experimente öffentlich. Wie viele Menschen betroffen waren, weiß bis heute niemand.",
+          "image": "1970s senate hearing room with microphones, dramatic lighting"
+        }
       ],
-      "images": [
-        "dim 1950s laboratory with old machines and a lone chair under a lamp, ominous",
-        "secret government archive with endless shelves of files, dusty light",
-        "1970s senate hearing room with microphones, dramatic lighting"
-      ],
-      "tags": ["#mkultra", "#cia"]
+      "tags": [
+        "#mkultra",
+        "#cia"
+      ]
     },
     {
       "id": "uap_pentagon",
-      "hook": "Das Pentagon hatte jahrelang ein *geheimes UFO-Programm*.",
-      "slides": [
-        "2017 enthüllte die New York Times: Die US-Regierung finanzierte ein Programm zu unbekannten Flugobjekten – mit rund 22 Millionen Dollar.",
-        "Dazu: Videos von Navy-Piloten, die Objekte ohne sichtbaren Antrieb verfolgen.",
-        "2021 ein offizieller Bericht: 144 Sichtungen untersucht. *Nur eine* konnte erklärt werden.",
-        "2023 sagte ein Ex-Geheimdienstler unter Eid vor dem Kongress aus. Belege sind bis heute nicht öffentlich."
+      "hook": {
+        "text": "Das Pentagon hatte jahrelang ein *geheimes UFO-Programm*.",
+        "image": "fighter jet over the ocean chasing a glowing white oval object, dramatic sky"
+      },
+      "scenes": [
+        {
+          "text": "Dezember 2017. Die New York Times veröffentlicht einen Bericht, der um die Welt geht.",
+          "image": "newspaper printing press at night, dramatic"
+        },
+        {
+          "text": "Das US-Verteidigungsministerium finanzierte ein geheimes Programm zu unbekannten Flugobjekten. Kosten: rund 22 Millionen Dollar.",
+          "image": "pentagon building at dusk from above, mysterious light"
+        },
+        {
+          "text": "Dazu: Videos von Navy-Piloten. Sie verfolgen Objekte, die sich *ohne sichtbaren Antrieb* bewegen.",
+          "image": "infrared targeting screen showing a small white object over the ocean"
+        },
+        {
+          "text": "Ein Pilot beschreibt ein weißes, ovales Objekt, das blitzschnell beschleunigt und verschwindet.",
+          "image": "fighter pilot in a cockpit looking at a bright object outside, ocean below"
+        },
+        {
+          "text": "2021 der erste offizielle Bericht an den Kongress: 144 Sichtungen untersucht. *Nur eine* konnte erklärt werden.",
+          "image": "government report on a desk with a ufo photograph, lamp light"
+        },
+        {
+          "text": "2023 sagt ein ehemaliger Geheimdienstler unter Eid aus: Die USA besäßen Fluggeräte nicht-menschlichen Ursprungs.",
+          "image": "congressional hearing with a man testifying, cameras flashing"
+        },
+        {
+          "text": "Das Pentagon widerspricht. Eine eigene Untersuchung fand *keine Belege* für außerirdische Technik.",
+          "image": "military radar room with green screens and officers, tense"
+        },
+        {
+          "text": "Was haben die Piloten also gesehen? Die Akten sind nur teilweise öffentlich.",
+          "image": "government building at night with a strange light hovering above"
+        }
       ],
-      "images": [
-        "fighter jet over the ocean chasing a glowing white oval object, dramatic sky",
-        "dark military radar room with green screens and officers, tense",
-        "government building at night with a strange light hovering above"
-      ],
-      "tags": ["#ufo", "#uap", "#pentagon"]
+      "tags": [
+        "#ufo",
+        "#uap",
+        "#pentagon"
+      ]
     },
     {
       "id": "wow_signal",
-      "hook": "72 Sekunden lang empfing ein Teleskop ein Signal aus dem All. *Es kam nie wieder.*",
-      "slides": [
-        "15. August 1977, Ohio. Das Radioteleskop „Big Ear“ fängt ein extrem starkes, schmalbandiges Signal auf.",
-        "Der Astronom Jerry Ehman kreist es auf dem Ausdruck ein und schreibt daneben: „Wow!“",
-        "Jahrzehnte lang suchten Forscher dieselbe Stelle am Himmel ab. *Nichts.*",
-        "Eine Studie von 2024 vermutet eine aufleuchtende Wasserstoffwolke. Bewiesen ist auch das nicht."
+      "hook": {
+        "text": "72 Sekunden lang empfing ein Teleskop ein Signal aus dem All. *Es kam nie wieder.*",
+        "image": "large radio telescope field under a starry night sky, milky way"
+      },
+      "scenes": [
+        {
+          "text": "15. August 1977. Ohio, USA. Das Radioteleskop „Big Ear“ lauscht ins All.",
+          "image": "large flat radio telescope structure in an american field at night"
+        },
+        {
+          "text": "Es sucht nach Signalen außerirdischer Zivilisationen. Jahrelang: nichts.",
+          "image": "deep space with countless stars and a faint radio wave"
+        },
+        {
+          "text": "Dann, für *72 Sekunden*: ein extrem starkes, schmales Signal.",
+          "image": "deep space nebula with a single bright signal pulse, cosmic"
+        },
+        {
+          "text": "Es kommt aus Richtung des Sternbilds Schütze. Und es liegt nahe der Frequenz, die Forscher für Außerirdische als wahrscheinlich hielten.",
+          "image": "sagittarius constellation in the night sky with a glowing point"
+        },
+        {
+          "text": "Tage später sieht Astronom Jerry Ehman den Ausdruck. Er kreist die Zeichen rot ein und schreibt daneben: „Wow!“",
+          "image": "old computer printout paper with a red circled sequence, warm lamp light"
+        },
+        {
+          "text": "Seitdem haben Forscher dieselbe Stelle am Himmel immer wieder abgesucht. *Nichts.*",
+          "image": "modern radio telescope dish pointing at the starry sky"
+        },
+        {
+          "text": "Eine Studie von 2024 vermutet eine Wasserstoffwolke, die kurz aufleuchtete.",
+          "image": "glowing hydrogen gas cloud in space, scientific illustration"
+        },
+        {
+          "text": "Bewiesen ist auch das nicht. Das Wow-Signal bleibt das *berühmteste Rätsel* der Suche nach Außerirdischen.",
+          "image": "lonely astronomer under a starry sky next to a telescope"
+        }
       ],
-      "images": [
-        "large radio telescope field under a starry night sky, milky way",
-        "old computer printout paper with a red circled sequence, warm lamp light",
-        "deep space nebula with a single bright signal pulse, cosmic"
-      ],
-      "tags": ["#wowsignal", "#weltraum", "#aliens"]
+      "tags": [
+        "#wowsignal",
+        "#weltraum",
+        "#aliens"
+      ]
     },
     {
       "id": "semmelweis",
-      "hook": "Er rettete Tausende Mütter – und landete dafür *in der Irrenanstalt*.",
-      "slides": [
-        "Wien, 1847. In einer Klinik stirbt fast jede zehnte Mutter am Kindbettfieber. Ärzte kommen direkt aus der Leichenhalle.",
-        "Arzt Ignaz Semmelweis führt eine Regel ein: Hände mit Chlorkalk waschen. Die Sterberate stürzt ab.",
-        "Doch Kollegen verspotten ihn. Die Idee, Ärzte selbst könnten die Ursache sein, ist ihnen unerträglich.",
-        "1865 wird er in eine Anstalt gebracht. Zwei Wochen später ist er tot. Heute nennt man ihn den *Retter der Mütter*."
+      "hook": {
+        "text": "Er rettete Tausende Mütter – und landete dafür *in der Irrenanstalt*.",
+        "image": "19th century Vienna hospital ward with beds and gas lamps, somber"
+      },
+      "scenes": [
+        {
+          "text": "Wien, 1847. Im Allgemeinen Krankenhaus sterben Mütter nach der Geburt am Kindbettfieber.",
+          "image": "19th century hospital maternity ward with many beds, candlelight"
+        },
+        {
+          "text": "Auf einer Station sterben weit mehr als auf der anderen. Der junge Arzt Ignaz Semmelweis will wissen, warum.",
+          "image": "young 19th century doctor in a black coat looking at hospital records"
+        },
+        {
+          "text": "Er bemerkt: Auf der tödlichen Station kommen die Ärzte *direkt aus der Leichenhalle*.",
+          "image": "dark 19th century autopsy room with doctors, gas light"
+        },
+        {
+          "text": "Er führt eine Regel ein: Hände waschen. Mit Chlorkalk.",
+          "image": "doctor washing hands in a basin in an old hospital, candlelight"
+        },
+        {
+          "text": "Die Sterberate stürzt ab – auf etwa ein bis zwei Prozent.",
+          "image": "bright hospital ward with recovering mothers and babies, hopeful light"
+        },
+        {
+          "text": "Doch viele Kollegen verspotten ihn. Die Idee, dass *Ärzte selbst* die Ursache sind, ist ihnen unerträglich.",
+          "image": "group of 19th century doctors laughing in a lecture hall"
+        },
+        {
+          "text": "Semmelweis wird immer verzweifelter. 1865 bringt man ihn in eine Anstalt. Zwei Wochen später ist er tot.",
+          "image": "lonely asylum building in the rain, 1860s, gloomy"
+        },
+        {
+          "text": "Erst Jahre später wird bewiesen: Er hatte recht. Heute nennt man ihn den *Retter der Mütter*.",
+          "image": "statue of a 19th century doctor in a park, golden hour"
+        }
       ],
-      "images": [
-        "19th century Vienna hospital ward with beds and gas lamps, somber",
-        "doctor washing hands in a basin in an old hospital, candlelight",
-        "lonely asylum building in the rain, 1860s, gloomy"
-      ],
-      "tags": ["#semmelweis", "#medizin", "#wissenschaft"]
+      "tags": [
+        "#semmelweis",
+        "#medizin",
+        "#wissenschaft"
+      ]
     },
     {
       "id": "wegener",
-      "hook": "Alle lachten über ihn. *50 Jahre später* hatte er recht.",
-      "slides": [
-        "1912 stellt der deutsche Forscher Alfred Wegener eine Theorie vor: Die Kontinente bewegen sich.",
-        "Seine Belege: Küsten, die wie Puzzleteile passen. Gleiche Fossilien auf verschiedenen Kontinenten.",
-        "Die Fachwelt verspottet ihn. Er hat keinen Mechanismus, also kann es nicht stimmen.",
-        "1930 stirbt Wegener im Eis Grönlands. In den 1960ern wird die *Plattentektonik* bewiesen."
+      "hook": {
+        "text": "Alle lachten über ihn. *50 Jahre später* hatte er recht.",
+        "image": "ancient supercontinent Pangaea breaking apart seen from space, glowing magma"
+      },
+      "scenes": [
+        {
+          "text": "1912. Der deutsche Forscher Alfred Wegener stellt eine verrückte Theorie vor.",
+          "image": "early 20th century scientist in a study with globe and maps, warm light"
+        },
+        {
+          "text": "Die Kontinente bewegen sich. Einst waren sie ein einziger Urkontinent.",
+          "image": "ancient supercontinent seen from orbit, cinematic"
+        },
+        {
+          "text": "Seine Belege: Die Küsten von Afrika und Südamerika passen wie *Puzzleteile*.",
+          "image": "map showing africa and south america fitting together like puzzle pieces"
+        },
+        {
+          "text": "Und dieselben Fossilien tauchen auf Kontinenten auf, die heute durch Ozeane getrennt sind.",
+          "image": "ancient reptile fossil in rock, dramatic light"
+        },
+        {
+          "text": "Doch die Fachwelt verspottet ihn. Er kann nicht erklären, *welche Kraft* Kontinente bewegen soll.",
+          "image": "1920s scientific conference with skeptical scientists, smoke"
+        },
+        {
+          "text": "Wegener gibt nicht auf. Er forscht weiter – auch im ewigen Eis Grönlands.",
+          "image": "polar explorer walking alone across the Greenland ice sheet in a blizzard"
+        },
+        {
+          "text": "1930 stirbt er auf einer Expedition. Seine Leiche wird erst im Frühjahr gefunden.",
+          "image": "lonely grave marker in snow on an ice sheet, grey sky"
+        },
+        {
+          "text": "In den 1960ern wird die *Plattentektonik* bewiesen. Wegener hatte recht.",
+          "image": "glowing tectonic plates and magma under the ocean floor, cross section"
+        }
       ],
-      "images": [
-        "ancient supercontinent Pangaea breaking apart seen from space, glowing magma",
-        "polar explorer walking alone across the Greenland ice sheet in a blizzard",
-        "early 20th century scientist in a study with globe and maps, warm light"
-      ],
-      "tags": ["#alfredwegener", "#wissenschaft"]
+      "tags": [
+        "#alfredwegener",
+        "#wissenschaft"
+      ]
     },
     {
       "id": "voynich",
-      "hook": "Dieses Buch ist 600 Jahre alt – und *niemand kann es lesen*.",
-      "slides": [
-        "Das Voynich-Manuskript: rund 240 Seiten, geschrieben in einer Schrift, die es sonst nirgends gibt.",
-        "Dazu Zeichnungen von Pflanzen, die kein Botaniker kennt, Sternkarten und rätselhafte badende Frauen.",
-        "Das Pergament wurde datiert: zwischen 1404 und 1438.",
-        "Geheimdienst-Codeknacker aus dem Zweiten Weltkrieg scheiterten daran. *Bis heute*."
+      "hook": {
+        "text": "Dieses Buch ist 600 Jahre alt – und *niemand kann es lesen*.",
+        "image": "ancient illuminated manuscript with strange botanical drawings and unknown script, candlelight, no readable text"
+      },
+      "scenes": [
+        {
+          "text": "1912. Der Buchhändler Wilfrid Voynich kauft in Italien ein seltsames Manuskript.",
+          "image": "old italian monastery library with stacks of books, sunlight"
+        },
+        {
+          "text": "Rund 240 Seiten. Geschrieben in einer Schrift, die es *nirgendwo sonst* gibt.",
+          "image": "pages of an old book with strange unknown symbols, close up, no real letters"
+        },
+        {
+          "text": "Dazu Zeichnungen von Pflanzen, die kein Botaniker kennt.",
+          "image": "strange imaginary plants painted in a medieval manuscript style"
+        },
+        {
+          "text": "Sternkarten, Tierkreiszeichen und rätselhafte Frauen, die in grünem Wasser baden.",
+          "image": "medieval astrological diagram with stars and circles on parchment"
+        },
+        {
+          "text": "Das Pergament wurde datiert: zwischen *1404 und 1438*.",
+          "image": "scientist examining old parchment in a modern lab"
+        },
+        {
+          "text": "Codeknacker aus dem Zweiten Weltkrieg versuchten es. Linguisten. Computer. Künstliche Intelligenz.",
+          "image": "wartime codebreakers working at desks with papers, 1940s"
+        },
+        {
+          "text": "Ist es eine Geheimsprache? Eine verlorene Sprache? Oder ein raffinierter Schwindel?",
+          "image": "medieval alchemist study with herbs, star charts and an old book"
+        },
+        {
+          "text": "Heute liegt es in der Yale-Universität. Und noch immer hat es *niemand entschlüsselt*.",
+          "image": "old library vault with a single book on a pedestal under a beam of light"
+        }
       ],
-      "images": [
-        "ancient illuminated manuscript with strange botanical drawings and unknown script, candlelight, no readable text",
-        "medieval alchemist study with herbs, star charts and an old book",
-        "old library vault with a single book on a pedestal under a beam of light"
-      ],
-      "tags": ["#voynich", "#manuskript"]
+      "tags": [
+        "#voynich",
+        "#manuskript"
+      ]
     },
     {
       "id": "bagdad_batterie",
-      "hook": "Hatten die Menschen vor 2.000 Jahren schon *Strom*?",
-      "slides": [
-        "1936, nahe Bagdad. Archäologen finden ein Tongefäß – darin ein Kupferzylinder und ein Eisenstab.",
-        "Füllt man es mit Säure wie Essig, entsteht eine *elektrische Spannung*. Nachbauten bestätigen das.",
-        "Wozu? Zum Vergolden von Schmuck? Für religiöse Rituale? Oder nur zum Aufbewahren von Schriftrollen?",
-        "Eine eindeutige Antwort gibt es nicht. Das Original verschwand 2003 bei der Plünderung des Museums in Bagdad."
+      "hook": {
+        "text": "Hatten die Menschen vor 2.000 Jahren schon *Strom*?",
+        "image": "ancient clay jar with copper cylinder and iron rod, faint blue electric glow, museum"
+      },
+      "scenes": [
+        {
+          "text": "1936, nahe Bagdad. Bei Ausgrabungen taucht ein unscheinbares Tongefäß auf.",
+          "image": "desert archaeological dig near ancient ruins at sunset"
+        },
+        {
+          "text": "Darin: ein Zylinder aus Kupfer. Und darin ein Stab aus Eisen.",
+          "image": "cross section of an ancient clay jar with a copper cylinder and an iron rod"
+        },
+        {
+          "text": "Ein deutscher Forscher hat einen kühnen Gedanken: Das könnte eine *Batterie* sein.",
+          "image": "1930s scientist in a museum examining an ancient artifact"
+        },
+        {
+          "text": "Und tatsächlich: Füllt man Nachbauten mit Säure wie Essig, entsteht eine elektrische Spannung.",
+          "image": "replica of an ancient battery connected to a small voltmeter, lab"
+        },
+        {
+          "text": "Wofür? Zum Vergolden von Schmuck? Für Rituale mit leichten Stromschlägen?",
+          "image": "ancient mesopotamian workshop with craftsmen and golden jewelry, oil lamps"
+        },
+        {
+          "text": "Kritiker sagen: Es war nur ein Behälter für Schriftrollen. Es wurden nie Kabel oder Leitungen gefunden.",
+          "image": "ancient scrolls stored in clay jars in a dim storeroom"
+        },
+        {
+          "text": "Die Wahrheit lässt sich kaum noch klären.",
+          "image": "museum display case empty with dust, dramatic light"
+        },
+        {
+          "text": "Denn das Original *verschwand 2003* bei der Plünderung des Nationalmuseums in Bagdad.",
+          "image": "looted museum hall with broken display cases, dust in sunlight"
+        }
       ],
-      "images": [
-        "ancient clay jar with copper cylinder and iron rod, faint blue electric glow, museum",
-        "ancient mesopotamian workshop with craftsmen and golden jewelry, oil lamps",
-        "desert archaeological dig near ancient ruins at sunset"
-      ],
-      "tags": ["#bagdadbatterie", "#archäologie"]
+      "tags": [
+        "#bagdadbatterie",
+        "#archäologie"
+      ]
     },
     {
       "id": "cheops",
-      "hook": "Die Cheops-Pyramide zeigt fast *exakt nach Norden* – ohne Kompass.",
-      "slides": [
-        "Rund 4.500 Jahre alt. Geschätzt 2,3 Millionen Steinblöcke. Abweichung von der Nordrichtung: nur Bruchteile eines Grades.",
-        "3.800 Jahre lang war sie das höchste Bauwerk der Welt.",
-        "2017 entdeckten Forscher mit Myonen-Strahlung einen riesigen, *unbekannten Hohlraum* in ihrem Inneren.",
-        "Was sich darin befindet? Bisher hat ihn niemand betreten."
+      "hook": {
+        "text": "Die Cheops-Pyramide zeigt fast *exakt nach Norden* – ohne Kompass.",
+        "image": "great pyramid of giza under a starry night sky aligned with stars, epic"
+      },
+      "scenes": [
+        {
+          "text": "Gizeh, vor rund 4.500 Jahren. Die Ägypter bauen das gewaltigste Bauwerk der Antike.",
+          "image": "workers moving giant stone blocks to build a pyramid at sunrise"
+        },
+        {
+          "text": "Geschätzt 2,3 Millionen Steinblöcke. Manche wiegen mehr als ein Lastwagen.",
+          "image": "massive limestone blocks being pulled on sledges by hundreds of workers"
+        },
+        {
+          "text": "Die Seiten sind fast exakt nach den Himmelsrichtungen ausgerichtet. Die Abweichung: nur Bruchteile eines Grades.",
+          "image": "aerial view of the great pyramid with compass directions, golden hour"
+        },
+        {
+          "text": "Wie gelang das? Vermutlich mit den Sternen.",
+          "image": "ancient egyptian priests observing stars at night with simple tools"
+        },
+        {
+          "text": "3.800 Jahre lang war die Pyramide das *höchste Bauwerk der Welt*.",
+          "image": "great pyramid towering over the desert at dusk, epic scale"
+        },
+        {
+          "text": "2017 durchleuchteten Forscher sie mit Myonen – Teilchen aus dem Weltall.",
+          "image": "scientific detector inside a pyramid corridor, particle rays visualized"
+        },
+        {
+          "text": "Sie entdeckten einen riesigen, *unbekannten Hohlraum* über der Großen Galerie.",
+          "image": "hidden chamber inside a pyramid with mysterious light, dust in the air"
+        },
+        {
+          "text": "Was sich darin befindet? Bisher hat ihn *kein Mensch* betreten.",
+          "image": "dark sealed passage inside a pyramid with ancient stone walls"
+        }
       ],
-      "images": [
-        "great pyramid of giza under a starry night sky aligned with stars, epic",
-        "workers moving giant stone blocks to build a pyramid at sunrise",
-        "hidden chamber inside a pyramid with mysterious light, dust in the air"
-      ],
-      "tags": ["#pyramiden", "#ägypten", "#cheops"]
+      "tags": [
+        "#pyramiden",
+        "#ägypten",
+        "#cheops"
+      ]
     },
     {
       "id": "antarktis",
-      "hook": "Ein ganzer Kontinent, auf dem *Militär verboten* ist. Warum?",
-      "slides": [
-        "1959 unterzeichneten 12 Staaten mitten im Kalten Krieg den Antarktis-Vertrag: nur Forschung, keine Waffen, keine Gebietsansprüche.",
-        "Kurz zuvor, 1946/47: Operation Highjump. Die US-Navy schickte 13 Schiffe und 4.700 Mann ins Eis.",
-        "Unter fast 4 km Eis liegt der Wostoksee – vermutlich seit *Millionen Jahren* abgeschnitten.",
-        "Offiziell geht es um Klima und Wissenschaft. Für viele Theorien ist die Antarktis bis heute der perfekte Ort."
+      "hook": {
+        "text": "Ein ganzer Kontinent, auf dem *Militär verboten* ist. Warum?",
+        "image": "vast antarctic ice landscape with research station under aurora australis"
+      },
+      "scenes": [
+        {
+          "text": "1946. Der Krieg ist kaum vorbei, da schickt die US-Navy eine riesige Flotte ins Eis.",
+          "image": "1940s navy ships and aircraft in antarctic ice, dramatic"
+        },
+        {
+          "text": "Operation Highjump: 13 Schiffe, Flugzeuge und 4.700 Mann.",
+          "image": "aircraft carrier among icebergs with planes on deck, 1940s"
+        },
+        {
+          "text": "Offiziell: Training und Kartierung. Für Verschwörungstheoretiker: eine Jagd nach geheimen Basen.",
+          "image": "secret base hidden in an ice cave, mysterious light, cinematic"
+        },
+        {
+          "text": "1959, mitten im Kalten Krieg, unterzeichnen zwölf Staaten den *Antarktis-Vertrag*.",
+          "image": "diplomats signing a treaty in a 1950s hall, flags"
+        },
+        {
+          "text": "Keine Waffen. Kein Militäreinsatz. Keine neuen Gebietsansprüche. Nur Forschung.",
+          "image": "lonely research station in antarctica during a blizzard"
+        },
+        {
+          "text": "Unter fast vier Kilometern Eis liegt der Wostoksee – seit *Millionen Jahren* von der Außenwelt abgeschnitten.",
+          "image": "hidden lake glowing beneath kilometers of blue ice, cross-section, mysterious"
+        },
+        {
+          "text": "Russische Forscher bohrten sich 2012 bis zu ihm durch. Was lebt dort unten?",
+          "image": "drilling rig on an antarctic ice field, night, floodlights"
+        },
+        {
+          "text": "Offiziell geht es um Wissenschaft. Für viele Theorien ist die Antarktis bis heute der *perfekte Ort*.",
+          "image": "aurora over an endless frozen wasteland, epic"
+        }
       ],
-      "images": [
-        "vast antarctic ice landscape with research station under aurora australis",
-        "1940s navy ships and aircraft in antarctic ice, dramatic",
-        "hidden lake glowing beneath kilometers of blue ice, cross-section, mysterious"
-      ],
-      "tags": ["#antarktis", "#operationhighjump"]
+      "tags": [
+        "#antarktis",
+        "#operationhighjump"
+      ]
     },
     {
       "id": "tunguska",
-      "hook": "1908 explodierte etwas über Sibirien – und *ebnete 80 Millionen Bäume*.",
-      "slides": [
-        "30. Juni 1908. Augenzeugen sehen einen Feuerball über der Taiga. Die Explosion ist Hunderte Kilometer weit zu spüren.",
-        "Auf über 2.000 Quadratkilometern liegen die Bäume flach – strahlenförmig nach außen.",
-        "Das Seltsame: Es gibt *keinen Krater*.",
-        "Die gängige Erklärung: ein Asteroid, der in der Luft explodierte. Andere Theorien reichen bis zu UFOs."
+      "hook": {
+        "text": "1908 explodierte etwas über Sibirien – und *knickte 80 Millionen Bäume* um.",
+        "image": "giant fireball exploding in the sky over siberian forest, shockwave"
+      },
+      "scenes": [
+        {
+          "text": "30. Juni 1908, früher Morgen. Über der sibirischen Taiga rast ein gleißender Feuerball über den Himmel.",
+          "image": "bright fireball streaking across the morning sky over a forest"
+        },
+        {
+          "text": "Dann: eine gewaltige Explosion. Ein Mann in 60 Kilometern Entfernung wird vom Stuhl geworfen.",
+          "image": "man thrown from a wooden porch by a blast wave, siberian village"
+        },
+        {
+          "text": "Die Druckwelle ist noch in England messbar. Nächte lang ist der Himmel in Europa *seltsam hell*.",
+          "image": "glowing bright night sky over a european city in 1908"
+        },
+        {
+          "text": "Erst 1927 erreicht eine Expedition den Ort.",
+          "image": "early 20th century expedition camp in the siberian taiga, misty"
+        },
+        {
+          "text": "Auf über 2.000 Quadratkilometern liegen die Bäume flach – strahlenförmig nach außen.",
+          "image": "flattened forest with fallen trees radiating outward, smoke, desolate"
+        },
+        {
+          "text": "Das Seltsame: Es gibt *keinen Krater*. Keine Trümmer.",
+          "image": "explorers standing in a field of fallen trees, searching, grey sky"
+        },
+        {
+          "text": "Die gängige Erklärung: ein Asteroid oder Komet, der in der Luft explodierte.",
+          "image": "asteroid exploding in the atmosphere, cinematic"
+        },
+        {
+          "text": "Doch Theorien reichen von Antimaterie bis zu einem *abgestürzten Raumschiff*.",
+          "image": "mysterious glowing craft over a siberian forest at night"
+        }
       ],
-      "images": [
-        "giant fireball exploding in the sky over siberian forest, shockwave",
-        "flattened forest with fallen trees radiating outward, smoke, desolate",
-        "early 20th century expedition camp in the siberian taiga, misty"
-      ],
-      "tags": ["#tunguska", "#asteroid"]
+      "tags": [
+        "#tunguska",
+        "#asteroid"
+      ]
     },
     {
       "id": "puma_punku",
-      "hook": "Diese Steine sind so präzise, als kämen sie *aus einer Fabrik*.",
-      "slides": [
-        "Puma Punku, Bolivien, auf fast 4.000 Metern Höhe. Erbaut vor etwa 1.500 Jahren.",
-        "Die Blöcke haben glatte Flächen, exakte Winkel und wiederkehrende Formen – wie genormte Bauteile.",
-        "Für Anhänger der Prä-Astronautik ein Beweis für *fremde Hilfe*.",
-        "Archäologen sagen: Meisterhafte Steinmetze mit Schablonen. Wie genau sie arbeiteten, bleibt aber beeindruckend."
+      "hook": {
+        "text": "Diese Steine sind so präzise, als kämen sie *aus einer Fabrik*.",
+        "image": "ancient precisely cut H-shaped stone blocks scattered on a high plateau, andes mountains"
+      },
+      "scenes": [
+        {
+          "text": "Bolivien, fast 4.000 Meter hoch in den Anden. Hier liegen die Ruinen von Puma Punku.",
+          "image": "high andean plateau with ancient ruins and snowy mountains"
+        },
+        {
+          "text": "Erbaut vor etwa 1.500 Jahren von der Tiwanaku-Kultur.",
+          "image": "ancient andean city with stone temples at dawn, reconstruction"
+        },
+        {
+          "text": "Die Steinblöcke haben glatte Flächen, exakte Winkel und scharfe Innenkanten.",
+          "image": "close up of perfectly cut stone block with sharp inner corners"
+        },
+        {
+          "text": "Besonders berühmt: die *H-Blöcke*. Fast identisch, wie genormte Bauteile.",
+          "image": "row of identical H-shaped stone blocks, dramatic light"
+        },
+        {
+          "text": "Sie wurden mit Metallklammern verbunden, die man in die Steine *gegossen* hat.",
+          "image": "ancient metal clamp embedded in stone, macro"
+        },
+        {
+          "text": "Für Anhänger der Prä-Astronautik ist klar: Das konnten Menschen damals nicht allein.",
+          "image": "mysterious ruins at night with a spaceship-like light in the sky"
+        },
+        {
+          "text": "Archäologen widersprechen: Meisterhafte Steinmetze mit Schablonen, Sand und harten Werkzeugen.",
+          "image": "ancient andean stonemasons shaping blocks with tools, golden hour"
+        },
+        {
+          "text": "Doch wie genau sie arbeiteten, ist *bis heute nicht vollständig geklärt*.",
+          "image": "scattered stone blocks on the plateau under a starry sky"
+        }
       ],
-      "images": [
-        "ancient precisely cut H-shaped stone blocks scattered on a high plateau, andes mountains",
-        "ancient andean stonemasons shaping blocks with tools, golden hour",
-        "mysterious ruins at night with a spaceship-like light in the sky"
-      ],
-      "tags": ["#pumapunku", "#ancientaliens", "#bolivien"]
+      "tags": [
+        "#pumapunku",
+        "#ancientaliens",
+        "#bolivien"
+      ]
     },
     {
       "id": "black_knight",
-      "hook": "Ein *13.000 Jahre alter Satellit* umkreist die Erde? Was wirklich dahintersteckt.",
-      "slides": [
-        "Im Netz kursiert ein Foto aus dem All: ein schwarzes, zackiges Objekt. Genannt: der „Black Knight“.",
-        "Die Legende: Ein außerirdischer Satellit beobachtet uns seit Jahrtausenden.",
-        "Die Wahrheit: Das Foto entstand 1998 bei einer Space-Shuttle-Mission. Es zeigt eine *verlorene Thermodecke*.",
-        "Manchmal ist die wahre Geschichte einfacher. Aber spannend ist, wie schnell aus einem Foto ein Mythos wird."
+      "hook": {
+        "text": "Ein *13.000 Jahre alter Satellit* umkreist die Erde? Was wirklich dahintersteckt.",
+        "image": "mysterious black jagged object orbiting earth, earth glow behind, space"
+      },
+      "scenes": [
+        {
+          "text": "Im Internet kursiert ein Foto aus dem All: ein schwarzes, zackiges Objekt vor der Erde.",
+          "image": "dark irregular object floating in space above earth, grainy photo look"
+        },
+        {
+          "text": "Sein Name: der „Black Knight“. Der schwarze Ritter.",
+          "image": "silhouette of a dark object eclipsing the sun in orbit"
+        },
+        {
+          "text": "Die Legende: Ein außerirdischer Satellit beobachtet die Menschheit seit *13.000 Jahren*.",
+          "image": "alien satellite watching earth from orbit, cinematic"
+        },
+        {
+          "text": "Angeblich empfing schon Nikola Tesla seine Signale.",
+          "image": "inventor listening to radio signals in a 1900s lab at night"
+        },
+        {
+          "text": "Die Wahrheit ist einfacher: Das Foto entstand 1998 bei einer Space-Shuttle-Mission.",
+          "image": "astronaut on a spacewalk near a space shuttle, earth below"
+        },
+        {
+          "text": "Astronauten arbeiteten an der Raumstation. Dabei ging ihnen eine *Thermodecke* verloren.",
+          "image": "silver thermal blanket floating away in space, sunlight reflection"
+        },
+        {
+          "text": "Sie trieb davon – und wurde fotografiert. Aus Decke, Gerüchten und alten Geschichten wurde ein Mythos.",
+          "image": "old radio signals and newspaper clippings collage, mysterious"
+        },
+        {
+          "text": "Manchmal ist die Wahrheit langweiliger. Aber spannend ist, *wie schnell* ein Mythos entsteht.",
+          "image": "earth at night from space with city lights, calm"
+        }
       ],
-      "images": [
-        "mysterious black jagged object orbiting earth, earth glow behind, space",
-        "astronaut on a spacewalk near a space shuttle, earth below",
-        "silver thermal blanket floating away in space, sunlight reflection"
-      ],
-      "tags": ["#blackknight", "#weltraum", "#mythos"]
+      "tags": [
+        "#blackknight",
+        "#weltraum",
+        "#mythos"
+      ]
     },
     {
       "id": "northwoods",
-      "hook": "Das US-Militär plante *Anschläge auf die eigenen Bürger*. Schriftlich.",
-      "slides": [
-        "1962 legte die US-Militärführung Präsident Kennedy einen Plan vor: Operation Northwoods.",
-        "Die Idee: inszenierte Anschläge, gefälschte Flugzeugentführungen – und das alles Kuba in die Schuhe schieben.",
-        "Ziel: einen Vorwand für eine Invasion schaffen. Kennedy lehnte ab.",
-        "Öffentlich wurde das Dokument erst *1997*. Eine Verschwörung – nur eben keine Theorie."
+      "hook": {
+        "text": "Das US-Militär plante *Anschläge auf die eigenen Bürger*. Schriftlich.",
+        "image": "1960s pentagon war room with generals around a map table, cigarette smoke"
+      },
+      "scenes": [
+        {
+          "text": "1962. Kalter Krieg. Kuba ist kommunistisch geworden – direkt vor der Küste der USA.",
+          "image": "map of cuba and florida on a military table, 1960s"
+        },
+        {
+          "text": "Die US-Militärführung will eine Invasion. Doch dafür braucht sie einen Vorwand.",
+          "image": "generals in uniform discussing around a table, dramatic shadows"
+        },
+        {
+          "text": "Sie entwirft einen Plan: *Operation Northwoods*.",
+          "image": "top secret stamped document on a desk under a lamp, cold war, no readable text"
+        },
+        {
+          "text": "Inszenierte Anschläge in amerikanischen Städten. Ein gesprengtes Schiff. Gefälschte Flugzeugentführungen.",
+          "image": "burning ship in a harbor at night, 1960s"
+        },
+        {
+          "text": "Alles sollte so aussehen, als hätte Kuba es getan.",
+          "image": "fake evidence and photos arranged on a table, noir"
+        },
+        {
+          "text": "Der Plan wird von allen Stabschefs unterschrieben und Präsident Kennedys Regierung vorgelegt.",
+          "image": "1960s white house at night, dramatic clouds"
+        },
+        {
+          "text": "Kennedy *lehnt ab*.",
+          "image": "president at a desk in the oval office looking out the window, 1960s"
+        },
+        {
+          "text": "Öffentlich wird das Dokument erst *1997*. Eine Verschwörung – nur eben keine Theorie.",
+          "image": "declassified archive documents being released, flashbulbs"
+        }
       ],
-      "images": [
-        "1960s pentagon war room with generals around a map table, cigarette smoke",
-        "top secret stamped document on a desk under a lamp, cold war, no readable text",
-        "1960s white house at night, dramatic clouds"
-      ],
-      "tags": ["#operationnorthwoods", "#kalterkrieg"]
+      "tags": [
+        "#operationnorthwoods",
+        "#kalterkrieg"
+      ]
     },
     {
       "id": "stargate",
-      "hook": "Die US-Regierung bezahlte jahrzehntelang *Hellseher* als Spione.",
-      "slides": [
-        "Projekt Stargate, ab den 1970ern. Geheimdienst und Armee testen „Remote Viewing“ – Fernwahrnehmung.",
-        "Testpersonen sollten geheime Orte beschreiben, nur mit Koordinaten auf einem Zettel.",
-        "Über 20 Jahre lang, rund 20 Millionen Dollar.",
-        "1995 eingestellt: kein verwertbarer Nutzen. Die Akten sind heute *öffentlich einsehbar*."
+      "hook": {
+        "text": "Die US-Regierung bezahlte jahrzehntelang *Hellseher* als Spione.",
+        "image": "person meditating in a dark room with eyes closed, glowing coordinates projected around, cold war"
+      },
+      "scenes": [
+        {
+          "text": "Die 1970er. Die USA hören Gerüchte: Die Sowjetunion erforscht übersinnliche Kräfte.",
+          "image": "soviet laboratory with scientists observing a person in a chair, 1970s"
+        },
+        {
+          "text": "Also starten Armee und Geheimdienst ihr eigenes Programm. Später bekannt als *Projekt Stargate*.",
+          "image": "secret 1970s military office with psychic drawings pinned on a wall"
+        },
+        {
+          "text": "Die Methode: „Remote Viewing“ – Fernwahrnehmung.",
+          "image": "man sitting in a dark room drawing sketches with closed eyes"
+        },
+        {
+          "text": "Testpersonen bekommen nur Koordinaten auf einem Zettel. Sie sollen beschreiben, was sich dort befindet.",
+          "image": "paper with coordinates and a pencil sketch of a building, lamp light"
+        },
+        {
+          "text": "Militärbasen. Geiseln. Verschwundene Flugzeuge.",
+          "image": "satellite view of a secret base with a glowing target marker, mysterious"
+        },
+        {
+          "text": "Über 20 Jahre läuft das Programm. Kosten: rund *20 Millionen Dollar*.",
+          "image": "stacks of classified reports in a government archive"
+        },
+        {
+          "text": "1995 wird es eingestellt. Ein Gutachten findet keinen verwertbaren Nutzen.",
+          "image": "official closing a file folder with a stamp, 1990s office"
+        },
+        {
+          "text": "Die Akten sind heute *öffentlich einsehbar*. Manche Treffer sind bis heute unerklärt.",
+          "image": "person reading declassified documents on a computer screen at night"
+        }
       ],
-      "images": [
-        "person meditating in a dark room with eyes closed, glowing coordinates projected around, cold war",
-        "secret 1970s military office with psychic drawings pinned on a wall",
-        "satellite view of a secret base with a glowing target marker, mysterious"
-      ],
-      "tags": ["#projectstargate", "#cia"]
+      "tags": [
+        "#projectstargate",
+        "#cia"
+      ]
     },
     {
       "id": "nazca",
-      "hook": "Künstliche Intelligenz hat *über 300 neue Nazca-Linien* entdeckt.",
-      "slides": [
-        "Die Nazca-Linien in Peru: riesige Figuren im Wüstenboden. Ganz erkennbar sind sie erst aus der Luft.",
-        "Ein Kolibri, ein Affe, eine Spinne – geschaffen vor rund 2.000 Jahren.",
-        "2024 fand ein Forschungsteam mithilfe von KI in nur sechs Monaten *303 neue Figuren*. Fast so viele wie in 100 Jahren zuvor.",
-        "Für wen waren sie gedacht – wenn man sie vom Boden kaum sehen kann?"
+      "hook": {
+        "text": "Künstliche Intelligenz hat *über 300 neue Nazca-Linien* entdeckt.",
+        "image": "giant hummingbird geoglyph in the peruvian desert seen from high above, golden hour"
+      },
+      "scenes": [
+        {
+          "text": "Die Wüste von Nazca in Peru. Eine der trockensten Gegenden der Erde.",
+          "image": "vast peruvian desert plain under harsh sun"
+        },
+        {
+          "text": "Hier zeichneten Menschen vor rund 2.000 Jahren *riesige Figuren* in den Boden.",
+          "image": "ancient nazca people drawing huge lines in the desert, wide aerial view"
+        },
+        {
+          "text": "Ein Kolibri, ein Affe, eine Spinne. Manche sind Hunderte Meter groß.",
+          "image": "giant monkey geoglyph in the desert seen from above"
+        },
+        {
+          "text": "Das Rätsel: Richtig erkennbar sind sie erst *aus der Luft*.",
+          "image": "small plane flying over desert lines at sunrise, epic"
+        },
+        {
+          "text": "Für Erich von Däniken waren es Landebahnen für Außerirdische. Forscher sehen eher rituelle Pfade.",
+          "image": "mysterious long straight lines in the desert leading to the horizon, dusk"
+        },
+        {
+          "text": "2024 durchsuchte ein Team mit KI-Hilfe Luftbilder der Region.",
+          "image": "computer screen analyzing aerial desert images with AI highlights"
+        },
+        {
+          "text": "In nur sechs Monaten fanden sie *303 neue Figuren*. Fast so viele wie in 100 Jahren zuvor.",
+          "image": "newly discovered faint geoglyph of a figure in the desert, aerial"
+        },
+        {
+          "text": "Für wen waren sie gedacht – wenn man sie vom Boden aus kaum sehen kann?",
+          "image": "giant spider geoglyph under a starry night sky, mysterious"
+        }
       ],
-      "images": [
-        "giant hummingbird geoglyph in the peruvian desert seen from high above, golden hour",
-        "ancient nazca people drawing huge lines in the desert, wide aerial view",
-        "small plane flying over desert lines at sunrise, epic"
-      ],
-      "tags": ["#nazca", "#peru", "#ki"]
+      "tags": [
+        "#nazca",
+        "#peru",
+        "#ki"
+      ]
     },
     {
       "id": "oumuamua",
-      "hook": "2017 flog ein Objekt durch unser Sonnensystem, das *schneller wurde* – ohne Grund.",
-      "slides": [
-        "Oumuamua: das erste bekannte Objekt, das aus einem anderen Sternensystem zu uns kam.",
-        "Seltsam langgestreckt. Und es beschleunigte, ohne dass man einen Schweif sah wie bei Kometen.",
-        "Ein Harvard-Professor stellte die These auf: vielleicht ein *Lichtsegel* einer fremden Zivilisation.",
-        "Andere Forscher erklären es mit ausgasendem Wasserstoff. Oumuamua ist längst weg. Wir werden es nie genau wissen."
+      "hook": {
+        "text": "2017 flog ein Objekt durch unser Sonnensystem, das *schneller wurde* – ohne Grund.",
+        "image": "elongated reddish interstellar rock tumbling through space near the sun"
+      },
+      "scenes": [
+        {
+          "text": "Oktober 2017. Ein Teleskop auf Hawaii entdeckt ein Objekt, das sich seltsam bewegt.",
+          "image": "large observatory dome on a hawaiian volcano at night with stars"
+        },
+        {
+          "text": "Es kommt nicht aus unserem Sonnensystem. Es ist der *erste bekannte Besucher* von einem anderen Stern.",
+          "image": "object streaking through the solar system on a hyperbolic path, illustration"
+        },
+        {
+          "text": "Man nennt es Oumuamua – hawaiianisch für „Bote aus der Ferne“.",
+          "image": "reddish cigar shaped object in deep space, cinematic"
+        },
+        {
+          "text": "Seine Form: extrem langgestreckt oder flach. Anders als alle bekannten Asteroiden.",
+          "image": "scientists looking at a screen with a strange elongated object"
+        },
+        {
+          "text": "Dann das Rätsel: Es *beschleunigt*, während es sich von der Sonne entfernt.",
+          "image": "object moving away from the sun with motion trail, space"
+        },
+        {
+          "text": "Kometen tun das, weil Gas austritt. Doch bei Oumuamua sah man keinen Schweif.",
+          "image": "comet with a bright tail compared to a tail-less object, space"
+        },
+        {
+          "text": "Ein Harvard-Professor stellte die These auf: vielleicht ein *Lichtsegel* einer fremden Zivilisation.",
+          "image": "thin glowing alien light sail drifting through deep space"
+        },
+        {
+          "text": "Andere Forscher erklären es mit Wasserstoff, der unsichtbar entweicht. Oumuamua ist längst fort. Wir werden es nie genau wissen.",
+          "image": "lonely object disappearing into the dark between stars"
+        }
       ],
-      "images": [
-        "elongated reddish interstellar rock tumbling through space near the sun",
-        "large observatory dome on a hawaiian volcano at night with stars",
-        "thin glowing alien light sail drifting through deep space"
-      ],
-      "tags": ["#oumuamua", "#weltraum", "#aliens"]
+      "tags": [
+        "#oumuamua",
+        "#weltraum",
+        "#aliens"
+      ]
     },
     {
       "id": "rosalind_franklin",
-      "hook": "Ihr Foto entschlüsselte die DNA. Den *Nobelpreis* bekamen andere.",
-      "slides": [
-        "London, 1952. Im Labor von Rosalind Franklin entsteht „Foto 51“ – ein Röntgenbild der DNA.",
-        "Ein Kollege zeigt es Watson und Crick. *Ohne ihr Wissen.* Kurz darauf veröffentlichen sie die Doppelhelix.",
-        "Franklin stirbt 1958 mit nur 37 Jahren an Krebs.",
-        "1962 erhalten Watson, Crick und Wilkins den Nobelpreis. Ihr Name fällt kaum."
+      "hook": {
+        "text": "Ihr Foto entschlüsselte die DNA. Den *Nobelpreis* bekamen andere.",
+        "image": "1950s laboratory with x-ray equipment and a woman scientist silhouette, warm light"
+      },
+      "scenes": [
+        {
+          "text": "London, Anfang der 1950er. Die Chemikerin Rosalind Franklin erforscht die Struktur der DNA.",
+          "image": "woman scientist in a 1950s lab with x-ray equipment, focused"
+        },
+        {
+          "text": "Mit Röntgenstrahlen macht ihr Team Aufnahmen, schärfer als alle zuvor.",
+          "image": "x-ray crystallography machine glowing in a dark 1950s laboratory"
+        },
+        {
+          "text": "1952 entsteht „Foto 51“. Ein X-förmiges Muster, das die *Doppelhelix* verrät.",
+          "image": "old black and white x-ray diffraction photo pinned on a light board, dramatic"
+        },
+        {
+          "text": "Ein Kollege zeigt das Bild James Watson. *Ohne ihr Wissen.*",
+          "image": "two men in 1950s suits looking at a photograph in a corridor, secretive"
+        },
+        {
+          "text": "Kurz darauf veröffentlichen Watson und Crick ihr berühmtes DNA-Modell.",
+          "image": "glowing DNA double helix in darkness, scientific, cinematic"
+        },
+        {
+          "text": "Franklins Daten waren dafür entscheidend. Ihr Beitrag wird nur am Rande erwähnt.",
+          "image": "scientific journal pages on a desk with a small footnote highlighted"
+        },
+        {
+          "text": "1958 stirbt sie an Krebs. Sie wurde nur 37 Jahre alt.",
+          "image": "empty 1950s laboratory bench with a single lamp, melancholic"
+        },
+        {
+          "text": "1962 erhalten Watson, Crick und Wilkins den Nobelpreis. Ihr Name fällt *kaum*.",
+          "image": "nobel prize ceremony hall with chandeliers, 1960s"
+        }
       ],
-      "images": [
-        "1950s laboratory with x-ray equipment and a woman scientist silhouette, warm light",
-        "glowing DNA double helix in darkness, scientific, cinematic",
-        "old black and white x-ray diffraction photo pinned on a light board, dramatic"
-      ],
-      "tags": ["#rosalindfranklin", "#wissenschaft", "#dna"]
+      "tags": [
+        "#rosalindfranklin",
+        "#wissenschaft",
+        "#dna"
+      ]
     }
   ]
 }

@@ -22,7 +22,7 @@ ein fotorealistisches KI-Portrait einer Person, die es nicht gibt, kostenlos üb
 Cloudflare Workers AI (`people_post.yml`, Details unter
 [These people do not exist](#these-people-do-not-exist)).
 
-**Story-Reels (2 Themen-Accounts)** – täglich je ein Text-Reel mit KI-Bildern und Musik:
+**Story-Reels (2 Themen-Accounts)** – täglich je ein ~1-Minuten-Reel mit Sprecher, Szenenbildern und eigenem Song:
 wahre Gruselgeschichten und Rätsel/Verschwörungen mit wahrem Kern (`story_reels.yml`,
 Details unter [Story-Reels](#story-reels-wahre-gruselgeschichten--rätsel--verschwörungen)).
 
@@ -455,18 +455,33 @@ Zwei Themen-Accounts, **täglich je ein Reel**, komplett automatisch und **koste
 | `horror` | Wahre Gruselgeschichten, Paranormales, Kriminalfälle, Unglücke | 20:07 |
 | `mysteries` | Verschwörungen mit wahrem Kern, Ancient Aliens, Rätsel der Geschichte, Weltraum | 18:37 |
 
-### So sieht ein Reel aus (~30-40 s)
+### So sieht ein Reel aus (~1 Minute)
 
-1. **Hook-Folie**: Aufhänger in Akzentfarbe („WAHRE GESCHICHTE“, „Wusstest du…?“,
-   „Was niemand weiß…“) + ein packender Satz.
-2. **3-4 Story-Folien**: kurze Sätze, wichtige Wörter farbig hervorgehoben.
-   Jede Folie bleibt so lange stehen, wie man zum Lesen braucht.
-3. **Folge-Aufruf** mit deinem @Handle (zurück zum Titelbild, so läuft das Reel sauber im Loop).
+1. **Hook** mit Aufhänger in Akzentfarbe („WAHRE GESCHICHTE“, „Wusstest du…?“,
+   „Was niemand weiß…“) und einem packenden Satz.
+2. **8 Szenen**, jede mit **eigenem, passenden KI-Bild**. Die Bilder bekommen einen langsamen
+   Zoom und werden weich überblendet.
+3. **Sprecher**: eine tiefe deutsche Männerstimme liest alles vor. Sie wird zusätzlich
+   tiefer gepitcht und mit Bass und leichtem Hall nachbearbeitet. Der Text steht mit im
+   Bild, gesprochene Wörter leuchten auf, wichtige Wörter sind farbig.
+4. **Folge-Aufruf** mit deinem @Handle (gesprochen + eingeblendet), zurück zum Titelbild,
+   damit das Reel sauber loopt.
+5. **Eigener Titelsong pro Seite** leise unter der Stimme (siehe „Musik“).
 
-Im Hintergrund laufen 2-3 KI-Bilder pro Story (Cloudflare Workers AI, gleiche Secrets
-wie beim People-Account) mit langsamem Zoom und Überblendungen. Bildstil passend zu den
-bisherigen Reels: Grusel = dunkle, realistische Malerei, Rätsel = gemalter Anime-Look.
-Darunter Musik (siehe unten). Caption + Hashtags werden automatisch gebaut.
+Bildstil passend zu den bisherigen Reels: Grusel = dunkle, realistische Malerei,
+Rätsel = gemalter Anime-Look. Caption + Hashtags werden automatisch gebaut.
+
+### Bilder: Kontingent
+
+Pro Reel entstehen 9 Bilder (Hook + 8 Szenen), also 18 pro Tag für beide Seiten.
+**Cloudflare Workers AI reicht dafür aus**: FLUX-2 Klein 4B kostet ca. 160 der 10.000
+kostenlosen Neurons pro Tag und Bild, zusammen also ca. 3.000. Der People-Account braucht
+ca. 4.400. Ist das Kontingent doch einmal leer, wird automatisch FLUX-1 Schnell (ca. 60 pro Bild)
+versucht, danach optional **Pollinations** (kostenloser Schlüssel von
+[enter.pollinations.ai](https://enter.pollinations.ai), als Secret `POLLINATIONS_API_KEY`).
+Erst wenn alles scheitert, kommt ein dunkler Verlaufshintergrund.
+Mehr Bilder? Der Cloudflare-Plan „Workers Paid“ (5 $/Monat) behält die 10.000 Gratis-Neurons
+und berechnet darüber ca. 0,002 $ pro Bild.
 
 ### Einrichtung (einmalig)
 
@@ -484,23 +499,35 @@ Darunter Musik (siehe unten). Caption + Hashtags werden automatisch gebaut.
    Werte von `WEIRDWORLD_IG_ACCESS_TOKEN` / `WEIRDWORLD_IG_ACCOUNT_ID` erneut eintragen.
    Dann aber den TikTok-Workflow für Instagram abschalten, sonst kommen zwei Reels am Tag.
 3. `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` sind schon da (People-Account).
-   Ohne sie wird trotzdem gepostet, dann mit dunklem Verlaufs-Hintergrund statt Bildern.
+   Optional als Reserve: `POLLINATIONS_API_KEY` (siehe „Bilder: Kontingent“).
 4. **Testen**: Actions → *Story Reels (Grusel + Rätsel)* → *Run workflow* → Häkchen
    bei „Auch auf Instagram posten?“ **entfernen**. Dann wird nur das Video gebaut, und
    du kannst es unten im Lauf unter **Artifacts** herunterladen und anschauen.
 
 ### Musik
 
-Lizenzfreie Tracks in `assets/story_music/horror/` bzw. `assets/story_music/mysteries/`
-ablegen (mp3/wav/m4a). Ist der Ordner leer, wird automatisch ein dunkler
-Ambient-Klangteppich erzeugt (synthetisch, also ohne Lizenzprobleme). Musik aus der
-Instagram-App lässt sich über die API leider nicht anhängen.
+Jede Seite hat einen **eigenen Titelsong**, komplett im Code komponiert und gerendert
+(`scripts/compose_theme.py`, keine Samples und damit keine Lizenzfragen):
 
-### Optional: Sprecherstimme
+- **Grusel – „Hinterland“**: D-Moll, 60 BPM. Spieluhr-Wiegenlied mit Tritonus, tiefe
+  Drones, Streicherflächen, Herzschlag, kalter Wind.
+- **Rätsel – „Ancient Signal“**: E-Phrygisch, 90 BPM. Pulsierendes Bass-Arpeggio,
+  Chorflächen, Trommeln, Glocken-Melodie.
 
-In der Account-Datei `"voiceover": true` setzen. Dann liest eine kostenlose
-Microsoft-Stimme (`edge-tts`, z.B. `de-DE-ConradNeural` oder `de-DE-KatjaNeural`) jede
-Folie vor, und die Musik wird darunter leiser gemischt. Der Text bleibt zusätzlich im Bild.
+Die Songs liegen als `assets/story_music/<account>/theme.mp3` und loopen nahtlos. Neu erzeugen
+oder anpassen: `python scripts/compose_theme.py`. Eigene Tracks kannst du zusätzlich in den
+Ordner legen, dann wird pro Reel zufällig gewechselt.
+
+### Sprecher
+
+Standard ist `de-DE-KillianNeural` (die tiefste deutsche Stimme von edge-tts, kostenlos und
+ohne Kontingent), plus Nachbearbeitung im Code (`DARK_VOICE_FILTER` in `story_reel.py`):
+ca. 2,4 Halbtöne tiefer, mehr Bass, Kompressor, leichter Hall. Andere Stimme: in der
+Account-Datei `"voice"` ändern (z.B. `de-DE-ConradNeural`). Ohne Sprecher:
+`"voiceover": false`, dann richten sich die Szenen nach der Lesezeit.
+
+Warum nicht Cloudflare oder Hugging Face? Cloudflare hat keine deutsche Stimme (nur Englisch
+und Spanisch), und die Hugging-Face-Gratis-GPU-Zeit reicht nicht für tägliche Minuten-Reels.
 
 ### Neue Geschichten hinzufügen
 
@@ -509,16 +536,20 @@ Einfach am Ende von `"stories"` in der jeweiligen JSON-Datei einen Eintrag ergä
 ```json
 {
   "id": "eindeutige_id",
-  "hook": "Packender erster Satz mit *hervorgehobenen Wörtern*.",
-  "slides": ["Folie 1 (max. ~30 Wörter)", "Folie 2", "Folie 3", "Auflösung / Twist"],
-  "images": ["englische Bildbeschreibung 1", "Bild 2", "Bild 3"],
+  "hook": {"text": "Packender erster Satz mit *hervorgehobenen Wörtern*.",
+           "image": "englische Bildbeschreibung fürs Titelbild"},
+  "scenes": [
+    {"text": "Szene 1 (ca. 12-25 Wörter)", "image": "englische Bildbeschreibung"},
+    {"text": "Szene 2", "image": "..."},
+    "… insgesamt 6-10 Szenen, zusammen ca. 100-150 Wörter = ~1 Minute"
+  ],
   "tags": ["#extrahashtag"]
 }
 ```
 
 Bildbeschreibungen auf Englisch und ohne Gewalt/Gore (das blockieren die Bildmodelle).
 Neue Einträge kommen der Reihe nach dran. Sind alle Geschichten gepostet, beginnt der
-Zyklus von vorn (die älteste zuerst). Aktuell: 20 Grusel- und 22 Rätsel-Geschichten,
+Zyklus von vorn (die älteste zuerst). Aktuell: 20 Grusel- und 22 Rätsel-Geschichten à 8 Szenen,
 also ca. 3 Wochen ohne Wiederholung.
 
 Lokal testen (ohne API-Aufrufe, Video landet in `assets/story_reels/<account>/`):

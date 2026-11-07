@@ -4,18 +4,18 @@ Verschwoerungen mit wahrem Kern).
 Pro Lauf:
   1. Naechste noch nicht gepostete Story aus content/story_reels/<account>.json waehlen
      (Gedaechtnis: story_reels_posted_log.json; sind alle durch, beginnt der Zyklus neu).
-  2. Pro Story 2-3 Hintergrundbilder ueber Cloudflare Workers AI erzeugen (kostenlos,
-     dieselben Secrets wie beim People-Account). Ohne Zugang / bei Ausfall: dunkler
-     Verlauf als Ersatz, damit trotzdem gepostet werden kann.
-  3. Reel rendern (1080x1920, 30 fps, H.264/AAC):
-       Hook-Folie ("Wusstest du...?" + packender Satz) -> 3-4 Story-Folien -> Folge-Aufruf.
-     Langsamer Zoom auf den Bildern, Ueberblendungen, fette Schrift mit Kontur,
-     *Woerter in Sternchen* werden in der Akzentfarbe hervorgehoben.
-     Die Anzeigedauer jeder Folie richtet sich nach der Textlaenge (Lesezeit).
-  4. Musik: zufaelliger Track aus assets/story_music/<account>/ - ist der Ordner leer,
-     wird ein passender dunkler Ambient-Klangteppich per ffmpeg synthetisiert
-     (komplett lizenzfrei). Optional Sprecherstimme per edge-tts ("voiceover": true).
-  5. next_post.json fuer publish.py schreiben. Das Video selbst liegt nicht in main,
+  2. Fuer JEDE Szene ein eigenes, passendes Bild erzeugen:
+       Cloudflare Workers AI (FLUX-2 Klein 4B, Reserve FLUX-1 Schnell) -> Pollinations
+       (optional, Reserve) -> dunkler Verlauf als letzte Notloesung.
+  3. Sprecher: tiefe deutsche Maennerstimme (edge-tts, kostenlos), zusaetzlich tiefer
+     gepitcht und mit Bass/Hall "dunkel" gemacht. Die Szenen dauern so lange wie gesprochen
+     wird (~1 Minute pro Reel). Der Text steht mit im Bild, gesprochene Woerter leuchten auf.
+  4. Reel rendern (1080x1920, 30 fps, H.264/AAC): Hook ("Wusstest du...?" + packender
+     Satz) -> 7-9 Szenen -> Folge-Aufruf. Langsamer Zoom, Ueberblendungen, fette Schrift
+     mit Kontur, *Woerter in Sternchen* in der Akzentfarbe.
+  5. Musik: eigener Titelsong pro Account (assets/story_music/<account>/theme.mp3, erzeugt
+     von scripts/compose_theme.py), leise unter der Stimme.
+  6. next_post.json fuer publish.py schreiben. Das Video selbst liegt nicht in main,
      sondern wird vom Workflow auf den Branch story-media-<account> gelegt.
 
 Nutzung:
@@ -25,6 +25,7 @@ Nutzung:
   python scripts/story_reel.py --account horror --story dyatlov --preview
                                                     (nur rendern, Log/next_post unveraendert)
 """
+
 import argparse
 import asyncio
 import base64
@@ -39,6 +40,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+import urllib.parse
 from datetime import datetime, timezone
 
 import requests
@@ -55,24 +57,44 @@ ACCOUNTS = ("horror", "mysteries")
 W, H = 1080, 1920
 FPS = 30
 TEXT_MAX_W = 900
-TEXT_CENTER_Y = 860  # etwas oberhalb der Mitte: unten liegen Caption + Buttons von Instagram
-FADE = 0.35
-XFADE = 0.6  # Ueberblendung zwischen zwei Bildern
-CTA_SECONDS = 3.2
+TEXT_CENTER_Y = 1080  # untere Bildhaelfte, aber oberhalb von Caption + Buttons von Instagram
+FADE = 0.3
+XFADE = 0.5  # Ueberblendung zwischen zwei Bildern
+CTA_SECONDS = 3.0
 MUSIC_VOLUME = 0.55
-MUSIC_VOLUME_UNDER_VOICE = 0.16
+MUSIC_VOLUME_UNDER_VOICE = 0.22
 THUMB_OFFSET_MS = 1500  # Titelbild: Hook-Folie
 STATE_HISTORY_LIMIT = 200
+DIM_ALPHA = 120  # noch nicht gesprochene Woerter (0-255)
 
-# Bildmodelle (Cloudflare Workers AI, kostenloses Tageskontingent 10.000 Neurons,
-# geteilt mit dem People-Account): FLUX-2 Klein 4B ~250 Neurons/Bild -> 6 Bilder/Tag ~1.500.
+# ---- Bilder ---------------------------------------------------------------------------
+# Cloudflare Workers AI, kostenloses Tageskontingent 10.000 Neurons (geteilt mit dem
+# People-Account, der ~4.400/Tag braucht). Kosten laut Preisliste:
+#   FLUX-2 Klein 4B: 26 Neurons pro 512er-Kachel -> 768x1344 (6 Kacheln) ~ 160/Bild
+#   FLUX-1 Schnell:  4,8/Kachel + 9,6/Schritt   -> 1024x1024, 4 Schritte ~ 60/Bild
+# 2 Reels x ~10 Bilder = ~3.200 Neurons/Tag -> passt.
 MODEL_CHAIN = [
     "@cf/black-forest-labs/flux-2-klein-4b",
     "@cf/black-forest-labs/flux-1-schnell",
 ]
-GEN_W, GEN_H = 768, 1360  # 9:16, Vielfache von 16
+GEN_W, GEN_H = 768, 1344  # ~9:16, Vielfache von 16
+POLLINATIONS_URL = "https://gen.pollinations.ai/image/{prompt}"
 
-WORDS_PER_SECOND = 2.7  # angenehme Lesegeschwindigkeit auf dem Handy
+# ---- Stimme ---------------------------------------------------------------------------
+DEFAULT_VOICE = "de-DE-KillianNeural"  # tiefste deutsche edge-tts-Stimme (~100 Hz)
+VOICE_RATE = "-6%"
+VOICE_PITCH = "-6Hz"
+PITCH_FACTOR = 0.87  # zusaetzlich ~2,4 Halbtoene tiefer (Tempo bleibt gleich)
+DARK_VOICE_FILTER = (
+    f"asetrate=24000*{PITCH_FACTOR},aresample=44100,atempo={1 / PITCH_FACTOR:.5f},"
+    "equalizer=f=110:t=q:w=1:g=5,equalizer=f=4000:t=q:w=1.5:g=-3,highpass=f=50,"
+    "acompressor=threshold=-20dB:ratio=3:attack=8:release=250:makeup=2,"
+    "aecho=0.85:0.6:70|140:0.16|0.08"
+)
+VOICE_LEAD_IN = 0.25  # Sekunden Stille vor jeder Szene
+VOICE_GAP = 0.35  # Pause nach jeder Szene
+
+WORDS_PER_SECOND = 2.7  # Lesetempo, falls ohne Stimme
 
 
 # --------------------------------------------------------------------------- Inhalte
@@ -102,8 +124,8 @@ def save_state(state, path=STATE_PATH):
 
 def pick_story(stories, account_state, rng=random, story_id=None):
     """Naechste ungepostete Story (in Dateireihenfolge, damit neue Eintraege am Ende
-    planbar nachkommen). Sind alle durch, beginnt der Zyklus von vorn - die zuletzt
-    geposteten werden dabei ans Ende geschoben."""
+    planbar nachkommen). Sind alle durch, beginnt der Zyklus von vorn - mit der Story,
+    die am laengsten nicht gepostet wurde."""
     if story_id:
         for s in stories:
             if s["id"] == story_id:
@@ -113,7 +135,6 @@ def pick_story(stories, account_state, rng=random, story_id=None):
     unused = [s for s in stories if s["id"] not in posted]
     if unused:
         return unused[0]
-    # Neuer Zyklus: die am laengsten nicht gepostete Story zuerst.
     order = {sid: i for i, sid in enumerate(posted)}
     return min(stories, key=lambda s: order.get(s["id"], -1))
 
@@ -124,10 +145,10 @@ def strip_marks(text):
 
 def build_caption(account_cfg, story, rng=random):
     tags = list(dict.fromkeys(story.get("tags", []) + account_cfg["hashtags"]))[:15]
-    teaser = strip_marks(story["slides"][0])
+    teaser = strip_marks(story["scenes"][0]["text"])
     return (
-        f"{strip_marks(story['hook'])}\n\n"
-        f"{teaser}\n\n"
+        f"{strip_marks(story['hook']['text'])}\n\n"
+        f"{teaser} …\n\n"
         f"{rng.choice(account_cfg['caption_cta'])}\n"
         f"Folge {account_cfg['handle']} für mehr.\n\n"
         f"{' '.join(tags)}"
@@ -139,21 +160,21 @@ def reading_seconds(text):
     return max(3.0, min(8.5, 1.3 + words / WORDS_PER_SECOND))
 
 
+def image_prompts(story):
+    return [story["hook"]["image"]] + [s["image"] for s in story["scenes"]]
+
+
 def build_segments(account_cfg, story, rng=random):
-    """Folien: (art, text, bild_index, kicker). Bilder werden gleichmaessig verteilt."""
-    n_img = max(1, len(story.get("images", [])))
+    """Hook (Bild 0) -> eine Szene pro Bild -> Folge-Aufruf (zurueck zu Bild 0 = Loop)."""
     kicker = story.get("kicker") or rng.choice(account_cfg["kickers"])
-    segs = [{"kind": "hook", "text": story["hook"], "kicker": kicker}]
-    for text in story["slides"]:
-        segs.append({"kind": "slide", "text": text})
+    segs = [{"kind": "hook", "text": story["hook"]["text"], "kicker": kicker, "image": 0}]
+    for i, scene in enumerate(story["scenes"]):
+        segs.append({"kind": "scene", "text": scene["text"], "image": i + 1})
     cta_lines = [line.format(handle=account_cfg["handle"]) for line in account_cfg["cta"]]
-    segs.append({"kind": "cta", "text": "\n".join(cta_lines)})
-    body = len(segs) - 1
-    for i, seg in enumerate(segs):
-        if seg["kind"] == "cta":
-            seg["image"] = 0  # zurueck zum Titelbild -> sauberer Loop
-        else:
-            seg["image"] = min(n_img - 1, i * n_img // body)
+    segs.append(
+        {"kind": "cta", "text": "\n".join(cta_lines), "image": 0, "speech": account_cfg.get("cta_voice", "")}
+    )
+    for seg in segs:
         seg["duration"] = CTA_SECONDS if seg["kind"] == "cta" else reading_seconds(seg["text"])
     segs[0]["duration"] = max(segs[0]["duration"], 3.5)
     return segs
@@ -180,10 +201,11 @@ def generate_cloudflare(model, prompt, account_id, api_token, retries=3, seed=No
             form = {"prompt": prompt, "width": str(GEN_W), "height": str(GEN_H)}
             if seed is not None:
                 form["seed"] = str(seed)
-            resp = requests.post(url, headers=headers, files={k: (None, v) for k, v in form.items()},
-                                 timeout=180)
+            resp = requests.post(
+                url, headers=headers, files={k: (None, v) for k, v in form.items()}, timeout=180
+            )
         else:
-            payload = {"prompt": prompt, "steps": 8}
+            payload = {"prompt": prompt, "steps": 4}
             if seed is not None:
                 payload["seed"] = seed
             resp = requests.post(url, headers=headers, json=payload, timeout=180)
@@ -196,18 +218,59 @@ def generate_cloudflare(model, prompt, account_id, api_token, retries=3, seed=No
     raise RuntimeError("unerreichbar")
 
 
-def generate_image(prompt, account_id, api_token, seed=None):
-    errors = []
-    for model in MODEL_CHAIN:
-        try:
-            raw = generate_cloudflare(model, prompt, account_id, api_token, seed=seed)
-            return Image.open(io.BytesIO(raw)).convert("RGB"), model
-        except Exception as exc:  # noqa: BLE001 - naechstes Modell probieren
-            print(f"  {model} fehlgeschlagen: {exc}")
-            errors.append(str(exc))
-            if "daily free allocation" in str(exc):
-                break
-    raise RuntimeError("Alle Bildmodelle fehlgeschlagen: " + " | ".join(errors))
+def generate_pollinations(prompt, seed, api_key="", retries=3):
+    """Reserve-Anbieter (FLUX ueber pollinations.ai). Braucht einen kostenlosen Schluessel
+    von enter.pollinations.ai (Secret POLLINATIONS_API_KEY)."""
+    url = POLLINATIONS_URL.format(prompt=urllib.parse.quote(prompt[:1500], safe=""))
+    params = {"width": GEN_W, "height": GEN_H, "model": "flux", "seed": seed, "nologo": "true"}
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    for attempt in range(retries):
+        resp = requests.get(url, params=params, headers=headers, timeout=180)
+        if resp.ok and resp.headers.get("content-type", "").startswith("image/"):
+            return resp.content
+        if resp.status_code in (402, 429, 500, 502, 503) and attempt < retries - 1:
+            wait = min(90, int(resp.headers.get("Retry-After", "0") or 0) or 45)
+            time.sleep(wait)
+            continue
+        raise RuntimeError(f"Pollinations HTTP {resp.status_code}: {resp.text[:200]}")
+    raise RuntimeError("unerreichbar")
+
+
+class ImageMaker:
+    """Probiert die Anbieter der Reihe nach und merkt sich, welche heute ausgefallen sind
+    (z.B. Cloudflare-Tageskontingent leer -> fuer den Rest des Laufs gleich zur Reserve)."""
+
+    def __init__(self, dry_run=False):
+        self.dry_run = dry_run
+        self.cf = (
+            os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip(),
+            os.environ.get("CLOUDFLARE_API_TOKEN", "").strip(),
+        )
+        self.pollinations_key = os.environ.get("POLLINATIONS_API_KEY", "").strip()
+        self.pollinations_on = bool(self.pollinations_key)
+        self.dead = set()
+
+    def make(self, prompt, seed):
+        if self.dry_run:
+            return None, "fallback"
+        if all(self.cf):
+            for model in MODEL_CHAIN:
+                if model in self.dead or "cloudflare" in self.dead:
+                    continue
+                try:
+                    raw = generate_cloudflare(model, prompt, *self.cf, seed=seed)
+                    return Image.open(io.BytesIO(raw)).convert("RGB"), model.split("/")[-1]
+                except Exception as exc:  # noqa: BLE001 - naechsten Anbieter probieren
+                    print(f"  {model} fehlgeschlagen: {exc}")
+                    self.dead.add("cloudflare" if "daily free allocation" in str(exc) else model)
+        if self.pollinations_on and "pollinations" not in self.dead:
+            try:
+                raw = generate_pollinations(prompt, seed, self.pollinations_key)
+                return Image.open(io.BytesIO(raw)).convert("RGB"), "pollinations"
+            except Exception as exc:  # noqa: BLE001
+                print(f"  Pollinations fehlgeschlagen: {exc}")
+                self.dead.add("pollinations")
+        return None, "fallback"
 
 
 def fallback_background(accent, seed):
@@ -228,13 +291,13 @@ def fallback_background(accent, seed):
 def color_grade(img, grade):
     img = ImageEnhance.Contrast(img).enhance(1.08)
     if grade == "cold":
-        img = ImageEnhance.Color(img).enhance(0.55)
+        img = ImageEnhance.Color(img).enhance(0.6)
         tint = Image.new("RGB", img.size, (20, 40, 70))
     else:
         img = ImageEnhance.Color(img).enhance(0.95)
         tint = Image.new("RGB", img.size, (70, 45, 15))
-    img = Image.blend(img, tint, 0.12)
-    return ImageEnhance.Brightness(img).enhance(0.82)
+    img = Image.blend(img, tint, 0.10)
+    return ImageEnhance.Brightness(img).enhance(0.85)
 
 
 def prepare_base(img, grade):
@@ -252,33 +315,26 @@ def prepare_base(img, grade):
     return color_grade(img, grade)
 
 
-def get_images(account, account_cfg, story, out_dir, dry_run, seed):
-    """Laedt/erzeugt die Hintergrundbilder einer Story (Cache in out_dir)."""
-    prompts = story.get("images") or [story["hook"]]
-    creds = (os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip(),
-             os.environ.get("CLOUDFLARE_API_TOKEN", "").strip())
+def get_images(account_cfg, story, out_dir, dry_run, seed):
+    """Ein Bild pro Szene (Cache in out_dir, damit ein abgebrochener Lauf nichts doppelt kostet)."""
+    maker = ImageMaker(dry_run)
     images, sources = [], []
-    for i, prompt in enumerate(prompts):
+    for i, prompt in enumerate(image_prompts(story)):
         cache = os.path.join(out_dir, f"img_{story['id']}_{i}.jpg")
         if os.path.exists(cache):
             images.append(Image.open(cache).convert("RGB"))
             sources.append("cache")
             continue
-        img, source = None, "fallback"
-        if not dry_run and all(creds):
-            full = f"{prompt}, {account_cfg['image_style']}"
-            try:
-                img, source = generate_image(full, *creds, seed=seed + i)
-                img.save(cache, quality=92)
-            except Exception as exc:  # noqa: BLE001 - lieber Ersatzbild als gar kein Post
-                print(f"::warning::Bild {i + 1} konnte nicht erzeugt werden ({exc}) - nutze Ersatz.")
-        elif not dry_run:
-            print("::warning::CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN fehlen - nutze Ersatzbilder.")
+        img, source = maker.make(f"{prompt}, {account_cfg['image_style']}", seed + i)
         if img is None:
+            if not dry_run:
+                print(f"::warning::Bild {i + 1} konnte nicht erzeugt werden - nutze Ersatzhintergrund.")
             img = fallback_background(account_cfg["accent"], seed + i)
+        else:
+            img.save(cache, quality=92)
         images.append(img)
         sources.append(source)
-        print(f"  Bild {i + 1}/{len(prompts)}: {source}")
+        print(f"  Bild {i + 1}: {source}")
     return images, sources
 
 
@@ -333,47 +389,67 @@ def fit_text(text, weight, size, max_w, max_lines, draw, upper=False):
     return font, layout_lines(words, font, max_w, draw)
 
 
-def render_text_card(seg, accent):
-    """Transparente Ebene mit dem Text einer Folie (wird pro Folie einmal berechnet)."""
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    white = (255, 255, 255, 255)
-    acc = tuple(accent) + (255,)
-    blocks = []  # (font, lines, gap, default_color)
+def count_words(seg):
+    return len(parse_marked(seg["text"].split("\n")[0] if seg["kind"] == "cta" else seg["text"]))
+
+
+def _layout(seg, accent, d):
+    """Textbloecke einer Folie: [(font, lines, gap, default_color, karaoke)]."""
+    white = (255, 255, 255)
+    acc = tuple(accent)
+    blocks = []
     if seg["kind"] == "hook":
         kf, kl = fit_text(seg["kicker"], "Bold", 50, TEXT_MAX_W, 1, d, upper=True)
-        blocks.append((kf, [([(w, True, ww) for w, _, ww in kl[0][0]], kl[0][1])], 34, acc))
-        f, lines = fit_text(seg["text"], "Bold", 82, TEXT_MAX_W, 6, d)
-        blocks.append((f, lines, 0, white))
+        blocks.append((kf, [([(w, True, ww) for w, _, ww in kl[0][0]], kl[0][1])], 30, acc, False))
+        f, lines = fit_text(seg["text"], "Bold", 80, TEXT_MAX_W, 6, d)
+        blocks.append((f, lines, 0, white, True))
     elif seg["kind"] == "cta":
         parts = seg["text"].split("\n")
-        f, lines = fit_text(parts[0], "Bold", 76, TEXT_MAX_W, 2, d)
-        blocks.append((f, [([(w, True, ww) for w, _, ww in ln], lw) for ln, lw in lines], 24, acc))
+        f, lines = fit_text(parts[0], "Bold", 74, TEXT_MAX_W, 2, d)
+        blocks.append((f, [([(w, True, ww) for w, _, ww in ln], lw) for ln, lw in lines], 22, acc, False))
         for p in parts[1:]:
-            f2, l2 = fit_text(p, "SemiBold", 54, TEXT_MAX_W, 3, d)
-            blocks.append((f2, l2, 0, white))
+            f2, l2 = fit_text(p, "SemiBold", 52, TEXT_MAX_W, 3, d)
+            blocks.append((f2, l2, 0, white, False))
     else:
-        f, lines = fit_text(seg["text"], "Bold", 70, TEXT_MAX_W, 7, d)
-        blocks.append((f, lines, 0, white))
+        f, lines = fit_text(seg["text"], "Bold", 66, TEXT_MAX_W, 7, d)
+        blocks.append((f, lines, 0, white, True))
+    return blocks
 
-    line_h = [int(f.size * 1.22) for f, lines, _, _ in blocks for _ in lines]
-    total = sum(line_h) + sum(g for _, _, g, _ in blocks)
+
+def render_text_card(seg, accent, revealed=None):
+    """Transparente Ebene mit dem Text einer Folie. revealed = Anzahl bereits gesprochener
+    Woerter (None = alles voll sichtbar); die uebrigen werden abgedunkelt."""
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    blocks = _layout(seg, accent, d)
+    total = sum(int(f.size * 1.22) * len(lines) + gap for f, lines, gap, _, _ in blocks)
     y = TEXT_CENTER_Y - total // 2
     # Weicher dunkler Schatten hinter dem Textblock fuer Lesbarkeit auf jedem Bild.
     shade = Image.new("L", (W, H), 0)
-    ImageDraw.Draw(shade).rounded_rectangle((60, y - 70, W - 60, y + total + 70), 60, fill=150)
-    shade = shade.filter(ImageFilter.GaussianBlur(60))
-    layer.putalpha(shade)  # schwarz, Deckkraft = weicher Schatten
+    ImageDraw.Draw(shade).rounded_rectangle((50, y - 70, W - 50, y + total + 70), 60, fill=165)
+    layer.putalpha(shade.filter(ImageFilter.GaussianBlur(60)))  # schwarz, Deckkraft = Schatten
     d = ImageDraw.Draw(layer)
-    for font, lines, gap, default in blocks:
+    for font, lines, gap, default, karaoke in blocks:
         stroke = max(3, font.size // 14)
         space = d.textlength(" ", font=font)
+        idx = 0
         for words, lw in lines:
             x = (W - lw) / 2
             for word, hi, ww in words:
-                color = acc if hi else default
-                d.text((x, y), word, font=font, fill=color, stroke_width=stroke, stroke_fill=(0, 0, 0, 255))
+                color = tuple(accent) if hi else default
+                alpha = 255
+                if karaoke and revealed is not None and idx >= revealed:
+                    alpha = DIM_ALPHA
+                d.text(
+                    (x, y),
+                    word,
+                    font=font,
+                    fill=color + (alpha,),
+                    stroke_width=stroke,
+                    stroke_fill=(0, 0, 0, alpha),
+                )
                 x += ww + space
+                idx += 1
             y += int(font.size * 1.22)
         y += gap
     return layer
@@ -382,8 +458,15 @@ def render_text_card(seg, accent):
 def render_handle(handle):
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
-    d.text((W / 2, 200), handle, font=_font("SemiBold", 34), fill=(255, 255, 255, 150), anchor="ma",
-           stroke_width=2, stroke_fill=(0, 0, 0, 120))
+    d.text(
+        (W / 2, 200),
+        handle,
+        font=_font("SemiBold", 34),
+        fill=(255, 255, 255, 150),
+        anchor="ma",
+        stroke_width=2,
+        stroke_fill=(0, 0, 0, 120),
+    )
     return layer
 
 
@@ -397,7 +480,7 @@ def ease(t):
 def kenburns(base, progress, direction):
     """Langsamer Zoom mit leichter Schwenkbewegung (progress 0..1)."""
     bw, bh = base.size
-    zoom = 1.08 + 0.14 * progress
+    zoom = 1.06 + 0.12 * progress
     cw, ch = bw / zoom, bh / zoom
     max_dx, max_dy = (bw - cw) / 2, (bh - ch) / 2
     cx = bw / 2 + direction * max_dx * (progress - 0.5)
@@ -442,7 +525,7 @@ def frame_at(t, spans, bases, black):
             prog = (t - start) / max(0.001, end - start)
             frame = kenburns(bases[idx], min(1.0, prog), 1 if k % 2 == 0 else -1)
             if k + 1 < len(spans) and t > end - XFADE:
-                nidx, nstart, nend = spans[k + 1]
+                nidx = spans[k + 1][0]
                 nxt = kenburns(bases[nidx], 0.0, -1 if k % 2 == 0 else 1)
                 frame = Image.blend(frame, nxt, ease((t - (end - XFADE)) / XFADE))
             return frame
@@ -455,16 +538,47 @@ def text_alpha(t, seg):
     return max(0.0, min(1.0, a_in, a_out))
 
 
+def revealed_words(t, seg):
+    """Wie viele Woerter der Folie zum Zeitpunkt t schon gesprochen wurden (None = kein Effekt)."""
+    times = seg.get("word_times")
+    if not times:
+        return None
+    local = t - seg["start"]
+    return sum(1 for w in times if w <= local + 0.05)
+
+
 def render_video(segments, bases, handle, accent, out_path):
     total = timeline(segments)
     spans = image_spans(segments)
-    cards = [render_text_card(seg, accent) for seg in segments]
+    cards = {}
     handle_layer = render_handle(handle)
     vig = vignette_mask()
     black = Image.new("RGB", (W, H))
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
-           "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-           "-c:v", "libx264", "-preset", "medium", "-crf", "21", "-pix_fmt", "yuv420p", out_path]
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-loglevel",
+        "error",
+        "-f",
+        "rawvideo",
+        "-pix_fmt",
+        "rgb24",
+        "-s",
+        f"{W}x{H}",
+        "-r",
+        str(FPS),
+        "-i",
+        "-",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "medium",
+        "-crf",
+        "21",
+        "-pix_fmt",
+        "yuv420p",
+        out_path,
+    ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     n_frames = int(round(total * FPS))
     seg_i = 0
@@ -478,7 +592,10 @@ def render_video(segments, bases, handle, accent, out_path):
         frame.alpha_composite(handle_layer)
         a = text_alpha(t, seg)
         if a > 0:
-            card = cards[seg_i]
+            key = (seg_i, revealed_words(t, seg))
+            if key not in cards:
+                cards[key] = render_text_card(seg, accent, key[1])
+            card = cards[key]
             if a < 1:
                 rise = int(24 * (1 - ease(a)))
                 faded = card.copy()
@@ -498,7 +615,8 @@ def render_video(segments, bases, handle, accent, out_path):
 
 def pick_music(account, account_state, rng=random):
     files = sorted(
-        f for ext in ("mp3", "wav", "m4a", "aac", "ogg")
+        f
+        for ext in ("mp3", "wav", "m4a", "aac", "ogg")
         for f in glob.glob(os.path.join(MUSIC_ROOT, account, f"*.{ext}"))
     )
     if not files:
@@ -506,45 +624,55 @@ def pick_music(account, account_state, rng=random):
     recent = account_state.get("recent_music", [])
     candidates = [f for f in files if os.path.basename(f) not in recent] or files
     choice = rng.choice(candidates)
-    account_state["recent_music"] = (recent + [os.path.basename(choice)])[-max(1, len(files) - 1):]
+    account_state["recent_music"] = (recent + [os.path.basename(choice)])[-max(1, len(files) - 1) :]
     return choice
 
 
 def synth_ambient(grade, duration, out_path, seed=0):
-    """Dunkler Ambient-Klangteppich (lizenzfrei, rein synthetisch) als Musik-Ersatz."""
+    """Notloesung, falls kein Titelsong da ist: dunkler Ambient-Klangteppich per ffmpeg."""
     rng = random.Random(seed)
-    if grade == "cold":  # Grusel: tiefe, leicht schwebende Moll-Fläche + Rauschen
-        root = rng.choice([49.0, 51.9, 55.0])
-        tones = [(root, 0.30, 0.07), (root * 1.06, 0.12, 0.05), (root * 1.5, 0.12, 0.11),
-                 (root * 2.38, 0.05, 0.03)]
-        noise, lp = 0.05, 900
-    else:  # Mystery: offene Quinten, schimmernde Obertöne
-        root = rng.choice([65.4, 73.4, 61.7])
-        tones = [(root, 0.26, 0.06), (root * 1.5, 0.16, 0.09), (root * 2, 0.10, 0.05), (root * 3, 0.05, 0.13),
-                 (root * 4.5, 0.025, 0.21)]
-        noise, lp = 0.03, 2500
-    expr = "+".join(
-        f"{amp}*sin(2*PI*{f:.3f}*t)*(0.6+0.4*sin(2*PI*{lfo}*t+{rng.uniform(0, 6):.2f}))"
-        for f, amp, lfo in tones
-    )
-    fade_out = max(0.0, duration - 2.5)
+    root = rng.choice([49.0, 55.0]) if grade == "cold" else rng.choice([65.4, 73.4])
+    tones = [(root, 0.3, 0.07), (root * 1.5, 0.14, 0.11), (root * 2, 0.08, 0.05)]
+    expr = "+".join(f"{a}*sin(2*PI*{f:.3f}*t)*(0.6+0.4*sin(2*PI*{lfo}*t))" for f, a, lfo in tones)
     cmd = [
-        "ffmpeg", "-y", "-loglevel", "error",
-        "-f", "lavfi", "-i", f"aevalsrc='{expr}':s=44100:d={duration:.2f}",
-        "-f", "lavfi", "-i", f"anoisesrc=color=brown:amplitude={noise}:d={duration:.2f}:r=44100",
-        "-filter_complex",
-        f"[0][1]amix=inputs=2:normalize=0,lowpass=f={lp},aecho=0.8:0.6:400|900:0.25|0.15,"
-        f"afade=t=in:d=2,afade=t=out:st={fade_out:.2f}:d=2.5,volume=1.6,aformat=channel_layouts=stereo",
-        "-c:a", "aac", "-b:a", "160k", out_path,
+        "ffmpeg",
+        "-y",
+        "-loglevel",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        f"aevalsrc='{expr}':s=44100:d={duration:.2f}",
+        "-af",
+        "lowpass=f=1200,aecho=0.8:0.6:400|900:0.25|0.15,aformat=channel_layouts=stereo",
+        "-c:a",
+        "aac",
+        out_path,
     ]
     subprocess.run(cmd, check=True)
     return out_path
 
 
 async def _tts(text, voice, path):
+    """Sprachausgabe + Wort-Zeitstempel (Sekunden ab Beginn der Datei)."""
     import edge_tts
 
-    await edge_tts.Communicate(text, voice, rate="+5%").save(path)
+    com = edge_tts.Communicate(
+        text,
+        voice,
+        rate=VOICE_RATE,
+        pitch=VOICE_PITCH,
+        boundary="WordBoundary",
+        proxy=os.environ.get("HTTPS_PROXY") or None,
+    )
+    times = []
+    with open(path, "wb") as f:
+        async for chunk in com.stream():
+            if chunk["type"] == "audio":
+                f.write(chunk["data"])
+            elif chunk["type"] == "WordBoundary":
+                times.append(chunk["offset"] / 10_000_000)
+    return times
 
 
 def ffprobe_duration(path):
@@ -553,34 +681,78 @@ def ffprobe_duration(path):
     return float(out.strip())
 
 
-def make_voiceover(segments, voice, work_dir):
-    """Spricht jede Folie (ausser dem Folge-Aufruf) und verlaengert Folien, deren
-    Sprechzeit laenger als die Lesezeit ist. Gibt Pfad zur Sprachspur zurueck."""
+def map_word_times(boundaries, skip, n_display):
+    """Ordnet die Zeitstempel der gesprochenen Woerter den angezeigten Woertern zu.
+    skip = gesprochene Woerter vor dem angezeigten Text (z.B. der Aufhaenger)."""
+    spoken = boundaries[skip:]
+    if not spoken or not n_display:
+        return []
+    return [spoken[min(len(spoken) - 1, int(i * len(spoken) / n_display))] for i in range(n_display)]
+
+
+def make_voiceover(segments, voice, work_dir, tts=None):
+    """Spricht jede Folie (dunkel nachbearbeitet). Die Folien dauern dann so lange wie
+    gesprochen wird. Gibt den Pfad der kompletten Sprachspur zurueck."""
+    tts = tts or _tts
     parts = []
     for i, seg in enumerate(segments):
         if seg["kind"] == "cta":
+            text = seg.get("speech", "")
+        elif seg["kind"] == "hook":
+            text = f"{strip_marks(seg['kicker']).rstrip('…. ')}. {strip_marks(seg['text'])}"
+        else:
+            text = strip_marks(seg["text"])
+        if not text:
             parts.append((None, seg["duration"]))
             continue
-        text = strip_marks(seg["text"])
-        if seg["kind"] == "hook":
-            text = f"{strip_marks(seg['kicker'])} {text}"
-        path = os.path.join(work_dir, f"vo_{i}.mp3")
-        asyncio.run(_tts(text, voice, path))
-        dur = ffprobe_duration(path)
-        seg["duration"] = max(seg["duration"], dur + 0.6)
-        parts.append((path, seg["duration"]))
+        raw = os.path.join(work_dir, f"vo_{i}.mp3")
+        boundaries = asyncio.run(tts(text, voice, raw))
+        dark = os.path.join(work_dir, f"vo_{i}.wav")
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", DARK_VOICE_FILTER, "-ac", "2", dark],
+            check=True,
+        )
+        dur = ffprobe_duration(dark)
+        seg["duration"] = max(dur + VOICE_LEAD_IN + VOICE_GAP, CTA_SECONDS if seg["kind"] == "cta" else 0)
+        if seg["kind"] != "cta":
+            skip = len(strip_marks(seg["kicker"]).split()) if seg["kind"] == "hook" else 0
+            seg["word_times"] = [
+                VOICE_LEAD_IN + b for b in map_word_times(boundaries, skip, count_words(seg))
+            ]
+        parts.append((dark, seg["duration"]))
     inputs, filters = [], []
     for k, (path, dur) in enumerate(parts):
         if path:
             inputs += ["-i", path]
-            filters.append(f"[{len(inputs) // 2 - 1}]adelay=250|250,apad,atrim=0:{dur:.3f},"
-                           f"aformat=sample_rates=44100:channel_layouts=stereo[s{k}]")
+            delay = int(VOICE_LEAD_IN * 1000)
+            filters.append(
+                f"[{len(inputs) // 2 - 1}]adelay={delay}|{delay},apad,atrim=0:{dur:.3f},"
+                f"aformat=sample_rates=44100:channel_layouts=stereo[s{k}]"
+            )
         else:
             filters.append(f"anullsrc=r=44100:cl=stereo,atrim=0:{dur:.3f}[s{k}]")
-    concat = "".join(f"[s{k}]" for k in range(len(parts))) + f"concat=n={len(parts)}:v=0:a=1[out]"
-    out = os.path.join(work_dir, "voice.m4a")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex",
-                    ";".join(filters + [concat]), "-map", "[out]", "-c:a", "aac", out], check=True)
+    concat = (
+        "".join(f"[s{k}]" for k in range(len(parts)))
+        + f"concat=n={len(parts)}:v=0:a=1,loudnorm=I=-15:TP=-1.5[out]"
+    )
+    out = os.path.join(work_dir, "voice.wav")
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            *inputs,
+            "-filter_complex",
+            ";".join(filters + [concat]),
+            "-map",
+            "[out]",
+            "-ar",
+            "44100",
+            out,
+        ],
+        check=True,
+    )
     return out
 
 
@@ -589,19 +761,38 @@ def mux(video, music, voice, duration, out_path):
     fade = f"afade=t=in:d=0.8,afade=t=out:st={max(0.0, duration - 1.8):.2f}:d=1.8"
     if voice:
         cmd += ["-i", voice]
-        fc = (f"[1:a]volume={MUSIC_VOLUME_UNDER_VOICE},atrim=0:{duration:.3f},{fade}[m];"
-              f"[2:a]volume=1.0[v];[m][v]amix=inputs=2:normalize=0:duration=first[a]")
+        fc = (
+            f"[1:a]volume={MUSIC_VOLUME_UNDER_VOICE},atrim=0:{duration:.3f},{fade}[m];"
+            f"[2:a]volume=1.0[v];[m][v]amix=inputs=2:normalize=0:duration=first[a]"
+        )
     else:
         fc = f"[1:a]volume={MUSIC_VOLUME},atrim=0:{duration:.3f},{fade}[a]"
-    cmd += ["-filter_complex", fc, "-map", "0:v", "-map", "[a]", "-c:v", "copy",
-            "-c:a", "aac", "-b:a", "160k", "-t", f"{duration:.3f}", "-movflags", "+faststart", out_path]
+    cmd += [
+        "-filter_complex",
+        fc,
+        "-map",
+        "0:v",
+        "-map",
+        "[a]",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "160k",
+        "-t",
+        f"{duration:.3f}",
+        "-movflags",
+        "+faststart",
+        out_path,
+    ]
     subprocess.run(cmd, check=True)
 
 
 # --------------------------------------------------------------------------- Ablauf
 
 
-def make_reel(account, story_id=None, dry_run=False, preview=False, rng=None):
+def make_reel(account, story_id=None, dry_run=False, preview=False, rng=None, voice=None):
     rng = rng or random.Random()
     account_cfg, stories = load_account(account)
     state = load_state()
@@ -610,34 +801,41 @@ def make_reel(account, story_id=None, dry_run=False, preview=False, rng=None):
     seed = rng.randrange(1_000_000)
     out_dir = os.path.join(OUT_ROOT, account)
     os.makedirs(out_dir, exist_ok=True)
-    print(f"[{account}] Story: {story['id']}")
+    print(f"[{account}] Story: {story['id']} ({len(story['scenes'])} Szenen)")
 
-    images, sources = get_images(account, account_cfg, story, out_dir, dry_run, seed)
+    images, sources = get_images(account_cfg, story, out_dir, dry_run, seed)
     bases = [prepare_base(img, account_cfg.get("grade", "cold")) for img in images]
     segments = build_segments(account_cfg, story, rng)
 
     work = tempfile.mkdtemp(prefix="story_reel_")
     try:
-        voice = None
-        if account_cfg.get("voiceover") and not dry_run:
+        voice_track = None
+        use_voice = account_cfg.get("voiceover", True) if voice is None else voice
+        if use_voice and not dry_run:
             try:
-                voice = make_voiceover(segments, account_cfg.get("voice", "de-DE-ConradNeural"), work)
+                voice_track = make_voiceover(segments, account_cfg.get("voice", DEFAULT_VOICE), work)
             except Exception as exc:  # noqa: BLE001 - dann eben nur Text + Musik
                 print(f"::warning::Sprecherstimme fehlgeschlagen ({exc}) - Reel ohne Stimme.")
-                voice = None
+                for seg in segments:
+                    seg.pop("word_times", None)
+                    seg["duration"] = CTA_SECONDS if seg["kind"] == "cta" else reading_seconds(seg["text"])
+                voice_track = None
         silent = os.path.join(work, "video.mp4")
         duration = render_video(segments, bases, account_cfg["handle"], account_cfg["accent"], silent)
         music = pick_music(account, acc_state, rng)
         if not music:
-            ambient = os.path.join(work, "ambient.m4a")
-            music = synth_ambient(account_cfg.get("grade", "cold"), duration, ambient, seed)
+            music = synth_ambient(
+                account_cfg.get("grade", "cold"), duration, os.path.join(work, "amb.m4a"), seed
+            )
         filename = f"reel_{story['id']}.mp4"
         out_path = os.path.join(out_dir, filename)
-        mux(silent, music, voice, duration, out_path)
+        mux(silent, music, voice_track, duration, out_path)
     finally:
         shutil.rmtree(work, ignore_errors=True)
-    print(f"Reel fertig: {out_path} ({duration:.1f} s, Musik: "
-          f"{os.path.basename(music) if MUSIC_ROOT in music else 'synthetisch'})")
+    print(
+        f"Reel fertig: {out_path} ({duration:.1f} s, Stimme: {'ja' if voice_track else 'nein'}, "
+        f"Musik: {os.path.basename(music) if MUSIC_ROOT in music else 'Notloesung'})"
+    )
 
     if preview:
         return out_path, None
@@ -649,6 +847,7 @@ def make_reel(account, story_id=None, dry_run=False, preview=False, rng=None):
         "caption": build_caption(account_cfg, story, rng),
         "account": account,
         "story_id": story["id"],
+        "duration": round(duration, 1),
         "image_sources": sources,
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
@@ -657,9 +856,9 @@ def make_reel(account, story_id=None, dry_run=False, preview=False, rng=None):
     posted = [s for s in acc_state.get("posted", []) if s != story["id"]] + [story["id"]]
     acc_state["posted"] = posted[-STATE_HISTORY_LIMIT:]
     save_state(state)
-    # Nur die Bilder der letzten Stories behalten.
-    for old in sorted(glob.glob(os.path.join(out_dir, "img_*.jpg")), key=os.path.getmtime)[:-9]:
-        os.remove(old)
+    for old in glob.glob(os.path.join(out_dir, "img_*.jpg")):
+        if not os.path.basename(old).startswith(f"img_{story['id']}_"):
+            os.remove(old)
     for old in glob.glob(os.path.join(out_dir, "reel_*.mp4")):
         if os.path.basename(old) != filename:
             os.remove(old)
@@ -670,10 +869,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--account", required=True, choices=ACCOUNTS)
     parser.add_argument("--story", help="bestimmte Story-ID statt der naechsten")
-    parser.add_argument("--dry-run", action="store_true", help="keine API-Aufrufe (Ersatzbilder)")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="keine API-Aufrufe (Ersatzbilder, keine Stimme)"
+    )
     parser.add_argument("--preview", action="store_true", help="nur rendern, Log bleibt unveraendert")
+    parser.add_argument("--no-voice", action="store_true", help="ohne Sprecher")
     args = parser.parse_args()
-    make_reel(args.account, args.story, args.dry_run, args.preview)
+    make_reel(args.account, args.story, args.dry_run, args.preview, voice=False if args.no_voice else None)
 
 
 if __name__ == "__main__":
