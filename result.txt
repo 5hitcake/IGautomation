@@ -1,0 +1,8 @@
+== HORROR: Token gesetzt: ja, Account-ID gesetzt: ja
+   Token gueltig. Username: @wahre_gruselgeschichten, Typ: MEDIA_CREATOR
+   Account-ID passt zum Token: ja
+   Veroeffentlichen erlaubt (Limit-Abfrage ok): [{"quota_usage": 0, "config": {"quota_total": 100, "quota_duration": 86400}}]
+== MYSTERY: Token gesetzt: ja, Account-ID gesetzt: ja
+   Token gueltig. Username: @imysteryhistoryi, Typ: MEDIA_CREATOR
+   Account-ID passt zum Token: ja
+   Veroeffentlichen erlaubt (Limit-Abfrage ok): [{"quota_usage": 0, "config": {"quota_total": 100, "quota_duration": 86400}}]
