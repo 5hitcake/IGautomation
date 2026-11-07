@@ -55,3 +55,12 @@ jobs:
           python scripts/publish.py --post-file assets/people_generated/next_story.json --dry-run
           python scripts/publish.py --post-file assets/people_generated/next_post.json --dry-run
           git checkout -- . && git clean -fdq assets/people_generated people_posted_log.json
+
+      - name: Dry-Run Story-Reels (kein echter API-Call)
+        run: |
+          python scripts/story_reel.py --account horror --dry-run
+          python scripts/publish.py --post-file assets/story_reels/horror/next_post.json --dry-run
+          python scripts/tiktok_story_publish.py --post-file assets/story_reels/horror/next_post.json --dry-run
+          python scripts/story_reel.py --account mysteries --dry-run
+          python scripts/publish.py --post-file assets/story_reels/mysteries/next_post.json --dry-run
+          git checkout -- . && git clean -fdq assets/story_reels story_reels_posted_log.json

@@ -1,0 +1,1029 @@
+{
+  "account": {
+    "name": "Wahre Gruselgeschichten",
+    "handle": "@wahre_gruselgeschichten",
+    "accent": [
+      215,
+      38,
+      61
+    ],
+    "grade": "cold",
+    "voiceover": true,
+    "voice": "de-DE-KillianNeural",
+    "voice_fx": {
+      "pitch_hz": "-6Hz",
+      "pitch_factor": 0.87,
+      "bass_db": 5,
+      "echo": "0.85:0.6:70|140:0.16|0.08"
+    },
+    "kickers": [
+      "WAHRE GESCHICHTE",
+      "Wusstest du…?",
+      "UNGELÖST",
+      "Was niemand weiß…",
+      "Das ist wirklich passiert"
+    ],
+    "cta": [
+      "Folge {handle}",
+      "für jeden Tag eine wahre Geschichte"
+    ],
+    "caption_cta": [
+      "Hättest du dich getraut? Schreib's in die Kommentare 👇",
+      "Kanntest du diesen Fall? 👇",
+      "Schick das jemandem, der nachts nicht schlafen soll 🕯️",
+      "Was glaubst du, was wirklich passiert ist? 👇"
+    ],
+    "image_style": "dark realistic oil painting, cinematic digital painting, dramatic chiaroscuro lighting, eerie unsettling atmosphere, muted desaturated colors, painterly texture, highly detailed, vertical composition, no gore, no text, no letters, no signature, no watermark",
+    "hashtags": [
+      "#wahregeschichte",
+      "#gruselig",
+      "#truecrime",
+      "#truecrimedeutsch",
+      "#mystery",
+      "#unheimlich",
+      "#paranormal",
+      "#ungelöst",
+      "#gruselgeschichten",
+      "#horror"
+    ],
+    "cta_voice": "Folge uns für jeden Tag eine neue wahre Geschichte.",
+    "writer_theme": "Wahre Gruselgeschichten: unheimliche reale Kriminalfälle (historisch), Spuk- und Poltergeist-Fälle, rätselhaftes Verschwinden, Geisterschiffe, Katastrophen und Unglücke, düstere Orte und Legenden mit wahrem Kern.",
+    "wiki_seeds": [
+      "Jack the Ripper",
+      "Zodiac-Killer",
+      "Axeman of New Orleans",
+      "H. H. Holmes",
+      "Ed Gein",
+      "Karl Denke",
+      "Elisabeth Báthory",
+      "Bestie des Gévaudan",
+      "Peter Stubbe",
+      "Arnold Paole",
+      "Hexenprozesse von Salem",
+      "Hexenprozesse von Pendle",
+      "Spuk von Rosenheim",
+      "Chopper (Spuk)",
+      "Amityville-Horror",
+      "Winchester Mystery House",
+      "Waverly Hills Sanatorium",
+      "Beelitz-Heilstätten",
+      "Eastern State Penitentiary",
+      "Poveglia",
+      "Aokigahara",
+      "Katakomben von Paris",
+      "Mothman",
+      "Carroll A. Deering",
+      "Wunder von Lengede",
+      "Grubenunglück von Courrières",
+      "Untergang der Titanic",
+      "RMS Lusitania",
+      "Wilhelm Gustloff (Schiff)",
+      "Estonia (Schiff)",
+      "LZ 129 Hindenburg",
+      "Explosion von Halifax",
+      "Melassekatastrophe von Boston",
+      "Smog-Katastrophe in London 1952",
+      "Uruguayischer Luftwaffenflug 571",
+      "Kyschtym-Unfall",
+      "Vajont-Staudamm",
+      "Lawinenunglück von Galtür",
+      "ICE-Unfall von Eschede",
+      "Bergsturz von Elm",
+      "Flucht von Alcatraz",
+      "Schwarzer Tod",
+      "Rattenfänger von Hameln",
+      "Schwarze Dahlie",
+      "Dorothea Puente",
+      "Jack Unterweger",
+      "Pfarrhaus von Borley",
+      "Robert (Puppe)",
+      "Unglück am Matterhorn 1865"
+    ],
+    "wiki_queries": [
+      "ungeklärter Mordfall",
+      "Spukhaus",
+      "Poltergeist",
+      "Geisterschiff",
+      "Bergunglück",
+      "Grubenunglück",
+      "Schiffskatastrophe",
+      "spurlos verschwunden",
+      "Serienmörder 19. Jahrhundert",
+      "Lawinenunglück",
+      "Hexenprozess",
+      "Massenhysterie",
+      "Geisterstadt",
+      "Kriminalfall Weimarer Republik",
+      "Kriminalfall Kaiserreich",
+      "Eisenbahnunfall",
+      "Explosionskatastrophe",
+      "Fluch Legende",
+      "Heilanstalt verlassen",
+      "rätselhafter Todesfall"
+    ],
+    "writer_example": "hinterkaifeck"
+  },
+  "stories": [
+    {
+      "id": "dyatlov",
+      "hook": {
+        "text": "9 Wanderer schnitten ihr Zelt *von innen* auf – und rannten barfuß in die Nacht.",
+        "image": "a lone torn tent half buried in snow on a dark mountain slope at night, blizzard"
+      },
+      "scenes": [
+        {
+          "text": "Februar 1959. Neun erfahrene Wanderer brechen ins nördliche Ural-Gebirge auf. Ihr Anführer: der Student Igor Djatlow.",
+          "image": "group of nine hikers with backpacks walking through a snowy forest in 1959, cold light"
+        },
+        {
+          "text": "Sie schlagen ihr Zelt an einem kahlen Hang auf. Die Einheimischen nennen den Berg „Toter Berg“.",
+          "image": "bare snowy mountain slope at dusk with a single tent, ominous sky"
+        },
+        {
+          "text": "Als sie sich nicht melden, beginnt die Suche. Das Zelt wird gefunden – *von innen aufgeschlitzt*.",
+          "image": "search party in 1950s winter clothes discovering a torn tent in the snow"
+        },
+        {
+          "text": "Spuren führen den Hang hinab. Die Wanderer liefen in Socken oder barfuß – bei minus 30 Grad.",
+          "image": "footprints in deep snow leading down a mountain slope towards dark forest"
+        },
+        {
+          "text": "Am Waldrand: die ersten Toten, neben einem erloschenen Feuer. Fast unbekleidet.",
+          "image": "extinguished campfire under a large cedar tree at the edge of a snowy forest, night"
+        },
+        {
+          "text": "Monate später, in einer Schlucht: vier weitere. Mit *schweren inneren Verletzungen*, wie nach einem Autounfall – aber ohne äußere Wunden.",
+          "image": "deep snowy ravine with a frozen stream under heavy snow, eerie blue light"
+        },
+        {
+          "text": "Einer Frau fehlten Zunge und Augen. An einigen Kleidungsstücken wurde Radioaktivität gemessen.",
+          "image": "old soviet investigator with a geiger counter in a dim room, 1959"
+        },
+        {
+          "text": "2020 erklärte Russland: Ein Schneebrett war schuld. Doch viele glauben das bis heute *nicht*.",
+          "image": "avalanche snow slab sliding down a mountain at night, dramatic"
+        }
+      ],
+      "tags": [
+        "#djatlowpass",
+        "#dyatlovpass"
+      ]
+    },
+    {
+      "id": "hinterkaifeck",
+      "hook": {
+        "text": "Tagelang hörte die Familie *Schritte auf dem Dachboden*. Dann waren alle tot.",
+        "image": "isolated old Bavarian farmhouse in winter at dusk, snow, dark forest behind, single dim window light"
+      },
+      "scenes": [
+        {
+          "text": "Hinterkaifeck, ein einsamer Hof in Oberbayern. Frühjahr 1922. Hier lebt die Familie Gruber.",
+          "image": "lonely Bavarian farm surrounded by forest in early spring, grey sky, 1920s"
+        },
+        {
+          "text": "Die alte Magd hat schon vor Monaten gekündigt. Ihre Begründung: *Es spukt.*",
+          "image": "old maid with a bundle leaving a farmhouse on a muddy path, looking back fearfully"
+        },
+        {
+          "text": "Der Bauer findet Fußspuren im Schnee. Sie führen vom Wald zum Hof – aber keine wieder weg.",
+          "image": "footprints in snow leading from the dark forest to a farmhouse door, night"
+        },
+        {
+          "text": "Ein Hausschlüssel verschwindet. Eine fremde Zeitung liegt im Haus. Nachts hört man Schritte über der Decke.",
+          "image": "dusty dark wooden attic with hay and a small window, eerie shadow"
+        },
+        {
+          "text": "Am 31. März kommt eine neue Magd. Noch in derselben Nacht werden alle sechs Bewohner erschlagen.",
+          "image": "dark barn door slightly open at night, lantern light, ominous"
+        },
+        {
+          "text": "Das Unheimlichste kommt danach: Tagelang steigt *Rauch aus dem Kamin*. Jemand füttert das Vieh.",
+          "image": "chimney smoke rising from a lonely farm in a misty winter field at night"
+        },
+        {
+          "text": "Der Täter blieb also im Haus. Mit den Toten. Mehrere Tage lang.",
+          "image": "dim farmhouse kitchen with a single candle and an empty chair, shadows"
+        },
+        {
+          "text": "Über 100 Verdächtige wurden befragt. Der Mord von Hinterkaifeck ist *bis heute ungeklärt*.",
+          "image": "old police files and photographs scattered on a wooden desk, 1920s, lamp light"
+        }
+      ],
+      "tags": [
+        "#hinterkaifeck",
+        "#bayern"
+      ]
+    },
+    {
+      "id": "elisa_lam",
+      "hook": {
+        "text": "Hotelgäste beschwerten sich, dass das Wasser *seltsam schmeckte*.",
+        "image": "old downtown Los Angeles hotel facade at night with neon sign glow, rain"
+      },
+      "scenes": [
+        {
+          "text": "Januar 2013. Die kanadische Studentin Elisa Lam reist allein durch Kalifornien.",
+          "image": "young traveler with a backpack walking alone on a Los Angeles street at dusk, seen from behind"
+        },
+        {
+          "text": "Sie checkt im Cecil Hotel in Los Angeles ein. Ein Haus mit *dunkler Geschichte*.",
+          "image": "old grand hotel lobby with art deco details, dim and empty"
+        },
+        {
+          "text": "Ein Serienmörder wohnte hier schon. Immer wieder gab es Todesfälle in diesem Hotel.",
+          "image": "long dark hotel corridor with flickering lights and numbered doors"
+        },
+        {
+          "text": "Dann verschwindet Elisa. Die Polizei veröffentlicht ein Video aus dem Aufzug.",
+          "image": "empty old hotel elevator with dim flickering fluorescent light, grainy security camera look"
+        },
+        {
+          "text": "Sie drückt alle Knöpfe, versteckt sich, gestikuliert in den Flur – als spräche sie mit *jemandem*. Doch da ist niemand.",
+          "image": "dark hotel hallway seen from inside an elevator, doors open, nobody there"
+        },
+        {
+          "text": "Wochen später: Gäste klagen über schwachen Wasserdruck. Das Wasser ist dunkel und schmeckt seltsam.",
+          "image": "close up of murky dark water running from an old bathroom faucet"
+        },
+        {
+          "text": "Ein Arbeiter steigt aufs Dach und öffnet einen der Wassertanks. Darin liegt Elisa Lam.",
+          "image": "rooftop water tanks on an old city hotel at night, moody city lights"
+        },
+        {
+          "text": "Offiziell: ein tragischer Unfall. Wie sie in den verschlossenen Tank kam, beschäftigt Ermittler bis heute.",
+          "image": "rooftop access ladder and closed metal tank hatch at night, rain"
+        }
+      ],
+      "tags": [
+        "#cecilhotel",
+        "#elisalam"
+      ]
+    },
+    {
+      "id": "mary_celeste",
+      "hook": {
+        "text": "Das Schiff war völlig intakt. Nur die *Menschen* waren weg.",
+        "image": "19th century sailing ship drifting alone on a grey foggy ocean, ghostly"
+      },
+      "scenes": [
+        {
+          "text": "Dezember 1872, mitten im Atlantik. Die Crew der Dei Gratia entdeckt ein Schiff, das seltsam schlingert.",
+          "image": "19th century sailors on deck looking through a spyglass at a distant ship, grey sea"
+        },
+        {
+          "text": "Es ist die Mary Celeste. Niemand steht am Steuer. Niemand antwortet auf Rufe.",
+          "image": "empty ship's wheel on a wooden deck in fog"
+        },
+        {
+          "text": "Die Seeleute gehen an Bord. Die Segel sind teils gesetzt, das Schiff ist seetüchtig.",
+          "image": "sailors climbing aboard an abandoned sailing ship from a small boat, mist"
+        },
+        {
+          "text": "Vorräte für sechs Monate. Persönliche Sachen. Die Ladung: 1.701 Fässer Alkohol, fast unberührt.",
+          "image": "ship cargo hold with rows of old wooden barrels, dim light"
+        },
+        {
+          "text": "Doch das Rettungsboot fehlt. Und mit ihm *alle zehn Menschen* an Bord.",
+          "image": "empty davits where a lifeboat should hang on an old ship, stormy light"
+        },
+        {
+          "text": "Darunter der Kapitän, seine Frau und ihre zweijährige Tochter.",
+          "image": "empty captain's cabin on an old wooden ship, candle, papers, abandoned"
+        },
+        {
+          "text": "Neun Fässer waren leer. Hatte der Kapitän Angst vor einer Explosion und das Schiff überstürzt verlassen?",
+          "image": "small lifeboat alone on a vast dark ocean under storm clouds"
+        },
+        {
+          "text": "Es ist nur eine Theorie. Von den zehn Menschen wurde *nie wieder eine Spur* gefunden.",
+          "image": "ghostly sailing ship disappearing into fog at dusk"
+        }
+      ],
+      "tags": [
+        "#maryceleste",
+        "#geisterschiff"
+      ]
+    },
+    {
+      "id": "flannan_isles",
+      "hook": {
+        "text": "Drei Leuchtturmwärter. Eine einsame Insel. *Keiner* wurde je gefunden.",
+        "image": "lonely stone lighthouse on a steep rocky island in a violent storm, dark sea"
+      },
+      "scenes": [
+        {
+          "text": "Dezember 1900. Die Flannan Isles, ein Felsen weit draußen vor Schottland. Drei Männer bewachen hier den Leuchtturm.",
+          "image": "three lighthouse keepers in 1900 uniforms standing on a rocky island, windy"
+        },
+        {
+          "text": "Kurz vor Weihnachten melden Schiffe: Das Licht ist aus.",
+          "image": "dark lighthouse without light seen from a ship at night, stormy sea"
+        },
+        {
+          "text": "Wegen der Stürme kann das Versorgungsschiff erst Tage später anlegen. Niemand wartet am Anleger.",
+          "image": "small steamship approaching a rocky island landing in rough sea, grey sky"
+        },
+        {
+          "text": "Das Tor und die Tür sind geschlossen. Die Betten sind leer, der Kamin ist längst kalt.",
+          "image": "empty old lighthouse kitchen with table and chairs, cold daylight"
+        },
+        {
+          "text": "Zwei Ölmäntel fehlen. Der dritte hängt noch am Haken. Einer der Männer ging *ohne Mantel* hinaus – in den Sturm.",
+          "image": "single oilskin coat hanging on a hook in a dim stone room"
+        },
+        {
+          "text": "Am Westanleger: verbogenes Geländer, herausgerissene Steine. Spuren einer gewaltigen Kraft.",
+          "image": "damaged iron railing and broken stone steps on a cliff landing, waves"
+        },
+        {
+          "text": "Die Theorie: eine Riesenwelle riss die Männer ins Meer. Aber warum lief der dritte ohne Mantel hinaus?",
+          "image": "massive wave crashing against black cliffs at dusk"
+        },
+        {
+          "text": "Die drei Leuchtturmwärter blieben *für immer verschwunden*.",
+          "image": "lighthouse beam cutting through fog over an empty stormy sea"
+        }
+      ],
+      "tags": [
+        "#leuchtturm",
+        "#schottland"
+      ]
+    },
+    {
+      "id": "somerton_man",
+      "hook": {
+        "text": "Ein Toter am Strand. In seiner Tasche: ein Zettel mit nur *zwei Wörtern*.",
+        "image": "empty beach with sea wall at dawn, grey sky, long shadows, 1940s mood"
+      },
+      "scenes": [
+        {
+          "text": "Adelaide, Australien. 1. Dezember 1948. Spaziergänger finden einen Mann am Somerton Beach. Er ist tot.",
+          "image": "1940s beach at dawn with a man in a suit lying against a sea wall, distant view"
+        },
+        {
+          "text": "Er ist gut gekleidet. Aber er hat keine Papiere, keinen Ausweis, kein Geld.",
+          "image": "1940s suit jacket with empty pockets on a table, police evidence, lamp light"
+        },
+        {
+          "text": "Und jemand hat *alle Etiketten* aus seiner Kleidung herausgeschnitten.",
+          "image": "close up of a coat collar with a label cut out, dramatic light"
+        },
+        {
+          "text": "In einer versteckten Tasche: ein Papierfetzen. Darauf steht „Tamám Shud“ – persisch für „Es ist vollbracht“.",
+          "image": "old torn paper scrap with faded printed words on dark wood, macro, mysterious"
+        },
+        {
+          "text": "Der Zettel stammt aus einem Gedichtband. Das Buch wird gefunden – mit einem *geheimen Code* auf der Rückseite.",
+          "image": "old poetry book lying on a car seat, 1940s, moody light"
+        },
+        {
+          "text": "Dazu eine Telefonnummer. Sie gehört einer Krankenschwester, die nahe am Strand wohnt. Sie bestreitet, ihn zu kennen.",
+          "image": "vintage telephone in a dim 1940s hallway, shadow of a woman"
+        },
+        {
+          "text": "Der Code wurde nie geknackt. Erst 2022 identifizierten Forscher den Toten per DNA als Carl Webb.",
+          "image": "scientist analyzing DNA in a modern lab with blue light"
+        },
+        {
+          "text": "Doch wer ihn tötete – und ob er überhaupt getötet wurde – ist *bis heute unklar*.",
+          "image": "lonely beach at night with waves under moonlight"
+        }
+      ],
+      "tags": [
+        "#somertonman",
+        "#tamamshud"
+      ]
+    },
+    {
+      "id": "isdal_woman",
+      "hook": {
+        "text": "Sie hatte *9 falsche Identitäten* – und niemand weiß, wer sie wirklich war.",
+        "image": "steep foggy Norwegian valley with rocks and birch trees, gloomy, late autumn"
+      },
+      "scenes": [
+        {
+          "text": "November 1970, Bergen in Norwegen. Wanderer finden im Isdalen-Tal eine teilweise verbrannte Frau.",
+          "image": "hikers discovering something among rocks in a misty Norwegian valley, 1970"
+        },
+        {
+          "text": "Die Einheimischen nennen das Tal auch „Tal des Todes“.",
+          "image": "dark misty valley with steep cliffs, dramatic clouds"
+        },
+        {
+          "text": "Neben ihr: Schlaftabletten, eine Thermosflasche, eine Uhr. Alle Etiketten aus ihrer Kleidung sind entfernt.",
+          "image": "thermos flask, pills and a watch on burnt ground, evidence photo style"
+        },
+        {
+          "text": "Am Bahnhof von Bergen finden Ermittler zwei Koffer, die ihr gehören.",
+          "image": "old European train station luggage room, two vintage suitcases, 1970s"
+        },
+        {
+          "text": "Darin: Perücken, Kleidung ohne Etiketten und ein Notizzettel *in einem Code*.",
+          "image": "two vintage suitcases with wigs and folded clothes, dim light, 1970s"
+        },
+        {
+          "text": "Die Spur führt durch halb Europa. Sie reiste unter mindestens neun verschiedenen Namen.",
+          "image": "hotel registration book with different names, fountain pen, lamp light"
+        },
+        {
+          "text": "Spionin? Geschäftsfrau? Opfer? Die Theorien reichen bis zum Kalten Krieg.",
+          "image": "1970s cold war spy silhouette on a foggy European street at night"
+        },
+        {
+          "text": "2017 zeigte eine Analyse ihrer Zähne: Sie wurde wohl um 1930 nahe *Nürnberg* geboren. Ihren Namen kennt bis heute niemand.",
+          "image": "old Nuremberg skyline in fog, historic town, melancholic"
+        }
+      ],
+      "tags": [
+        "#isdalfrau",
+        "#norwegen"
+      ]
+    },
+    {
+      "id": "enfield",
+      "hook": {
+        "text": "Eine Polizistin sah, wie sich ein Stuhl *von selbst* bewegte – und unterschrieb es.",
+        "image": "small 1970s London terraced house at night, single light upstairs window"
+      },
+      "scenes": [
+        {
+          "text": "London, Enfield, August 1977. Eine alleinerziehende Mutter lebt hier mit ihren vier Kindern.",
+          "image": "1970s London living room with old furniture, dim lamp, evening"
+        },
+        {
+          "text": "Eines Nachts klopft es in den Wänden. Eine schwere Kommode rutscht über den Boden.",
+          "image": "heavy wooden chest of drawers in a dark bedroom, motion blur, eerie"
+        },
+        {
+          "text": "Die Mutter ruft die Polizei. Die Beamtin Carolyn Heeps sieht, wie ein Stuhl langsam über den Boden gleitet.",
+          "image": "1970s British policewoman standing in a dark living room staring at a chair"
+        },
+        {
+          "text": "Sie bestätigt es später *schriftlich*.",
+          "image": "typewritten police statement on a desk with a pen, 1970s"
+        },
+        {
+          "text": "Spielzeug fliegt durch die Luft. Eine raue Männerstimme scheint aus einem der Kinder zu sprechen.",
+          "image": "toys floating in a dim child's bedroom, eerie light"
+        },
+        {
+          "text": "Fast zwei Jahre lang dokumentieren Forscher, Fotografen und Reporter hunderte Vorfälle.",
+          "image": "1970s photographer with a camera and flash in a dark staircase"
+        },
+        {
+          "text": "Später gaben die Kinder zu, *manches* nur gespielt zu haben.",
+          "image": "two silhouettes of children sitting on stairs in a dark house"
+        },
+        {
+          "text": "Aber eben nur manches. Der Enfield-Spuk gilt bis heute als einer der berühmtesten Fälle der Welt.",
+          "image": "dark staircase in an old house with a faint shadow on the wall"
+        }
+      ],
+      "tags": [
+        "#enfieldpoltergeist",
+        "#poltergeist"
+      ]
+    },
+    {
+      "id": "tsavo",
+      "hook": {
+        "text": "Zwei Löwen verfolgten Bauarbeiter monatelang – und holten sie *nachts aus den Zelten*.",
+        "image": "african savanna at night with campfire and tents, eyes glowing in the dark bush"
+      },
+      "scenes": [
+        {
+          "text": "Kenia, 1898. Das britische Empire baut eine Eisenbahn quer durch Ostafrika.",
+          "image": "old 1890s railway construction camp in Kenya, dusty, sepia tone"
+        },
+        {
+          "text": "Am Fluss Tsavo soll eine Brücke entstehen. Tausende Arbeiter leben in Zeltlagern.",
+          "image": "large camp of tents near a river in the African bush, sunset"
+        },
+        {
+          "text": "Dann verschwinden die ersten Männer. *Nachts. Aus ihren Zelten.*",
+          "image": "dark tent in the night with a torn canvas flap, moonlight"
+        },
+        {
+          "text": "Zwei mähnenlose Löwen. Sie überwinden Dornenzäune, meiden Fallen und schlagen dort zu, wo niemand sie erwartet.",
+          "image": "maneless lion silhouette in tall dry grass under moonlight"
+        },
+        {
+          "text": "Panik bricht aus. Hunderte Arbeiter fliehen. Der Bau kommt zum Erliegen.",
+          "image": "frightened workers running from a camp at night with torches"
+        },
+        {
+          "text": "Ingenieur John Patterson legt sich nächtelang auf die Lauer. Erst nach neun Monaten erlegt er beide.",
+          "image": "hunter with a rifle sitting on a wooden platform at night in the bush"
+        },
+        {
+          "text": "Patterson sprach von 135 Opfern. Forscher schätzen heute: mindestens 35.",
+          "image": "old leather journal with handwritten notes and a rifle cartridge, lamp light"
+        },
+        {
+          "text": "Die beiden Löwen stehen heute ausgestopft im Field Museum in *Chicago*.",
+          "image": "two maneless lions displayed in a dim natural history museum hall"
+        }
+      ],
+      "tags": [
+        "#tsavo",
+        "#löwen"
+      ]
+    },
+    {
+      "id": "centralia",
+      "hook": {
+        "text": "In dieser Stadt *brennt der Boden* – seit über 60 Jahren.",
+        "image": "cracked abandoned asphalt road with smoke rising from the cracks, foggy"
+      },
+      "scenes": [
+        {
+          "text": "Centralia, Pennsylvania. Eine kleine Bergbaustadt mit rund 1.000 Einwohnern.",
+          "image": "small 1960s american mining town main street, autumn"
+        },
+        {
+          "text": "1962 soll ein Feuer die Müllkippe säubern. Doch es frisst sich in ein Kohleflöz unter der Stadt.",
+          "image": "fire burning in an open pit landfill at night, smoke"
+        },
+        {
+          "text": "Das Feuer breitet sich unterirdisch aus. Keiner kann es löschen.",
+          "image": "underground coal seam glowing red hot, cross section, dark"
+        },
+        {
+          "text": "Rauch steigt aus Rissen in der Straße. Giftige Gase dringen in die Keller.",
+          "image": "steam rising from cracked asphalt road in a grey town"
+        },
+        {
+          "text": "1981 öffnet sich unter einem Jungen ein glühend heißes Loch im Garten. Er kann sich gerade noch festhalten.",
+          "image": "small sinkhole in a backyard with steam rising, dramatic"
+        },
+        {
+          "text": "Die Regierung kauft die Häuser auf. Fast alle Einwohner gehen. Die Häuser werden abgerissen.",
+          "image": "empty abandoned small american town street, overgrown, misty, grey"
+        },
+        {
+          "text": "Heute stehen nur noch wenige Gebäude. Die Postleitzahl wurde gestrichen.",
+          "image": "lonely house standing alone in an empty field, fog"
+        },
+        {
+          "text": "Und das Feuer? Experten glauben, es könnte *noch 250 Jahre* brennen. Centralia inspirierte die Horrorreihe „Silent Hill“.",
+          "image": "steam rising from the ground in a dead winter forest, eerie"
+        }
+      ],
+      "tags": [
+        "#centralia",
+        "#silenthill"
+      ]
+    },
+    {
+      "id": "everest",
+      "hook": {
+        "text": "Am Mount Everest dienen Tote als *Wegweiser*.",
+        "image": "Mount Everest summit ridge at dawn with strong wind blowing snow, cold"
+      },
+      "scenes": [
+        {
+          "text": "Der höchste Berg der Welt: 8.849 Meter. Jedes Jahr wollen Hunderte auf den Gipfel.",
+          "image": "long line of climbers on Everest at sunrise, epic"
+        },
+        {
+          "text": "Über 300 Menschen sind dabei gestorben. Viele von ihnen liegen *noch immer dort oben*.",
+          "image": "lonely ice-covered ridge at high altitude, harsh wind"
+        },
+        {
+          "text": "Über 8.000 Metern beginnt die „Todeszone“. Der Sauerstoff reicht nicht zum Überleben auf Dauer.",
+          "image": "climber with oxygen mask struggling in a snowstorm at high altitude"
+        },
+        {
+          "text": "Eine Bergung ist dort lebensgefährlich und kostet Zehntausende Dollar.",
+          "image": "rescue team carrying equipment on a steep icy slope, storm"
+        },
+        {
+          "text": "Also bleiben die Toten liegen. Bergsteiger müssen an ihnen vorbei.",
+          "image": "climbers' boots passing on a narrow snowy trail, dramatic shadows"
+        },
+        {
+          "text": "Ein Kletterer mit leuchtend grünen Stiefeln lag fast 20 Jahre in einer kleinen Felshöhle am Weg.",
+          "image": "a small rock cave at high altitude covered in snow and ice, dramatic"
+        },
+        {
+          "text": "Bergsteiger nannten die Stelle einfach „Green Boots“. Sie wurde zum Orientierungspunkt.",
+          "image": "snowy rocky route marker at high altitude in fading light"
+        },
+        {
+          "text": "Wer zum Gipfel will, weiß: *Hier oben hilft dir niemand.*",
+          "image": "lone climber on the summit of Everest above the clouds at dusk"
+        }
+      ],
+      "tags": [
+        "#everest",
+        "#bergsteigen"
+      ]
+    },
+    {
+      "id": "tanzwut_1518",
+      "hook": {
+        "text": "1518 tanzten Hunderte Menschen in Straßburg – *bis sie zusammenbrachen*.",
+        "image": "medieval Strasbourg street at dusk with crowd of blurred dancing figures, motion blur"
+      },
+      "scenes": [
+        {
+          "text": "Straßburg, Juli 1518. Eine Frau namens Troffea tritt auf die Straße und beginnt zu tanzen.",
+          "image": "medieval woman dancing alone on a cobblestone street, townspeople watching"
+        },
+        {
+          "text": "Sie hört nicht mehr auf. Stunden. Tage. Bis ihre Füße bluten.",
+          "image": "exhausted medieval woman dancing at night under torchlight"
+        },
+        {
+          "text": "Dann schließen sich andere an. Nach einer Woche tanzen Dutzende.",
+          "image": "group of medieval people dancing frantically in a town square"
+        },
+        {
+          "text": "Nach einem Monat sind es bis zu 400 Menschen. Ohne Musik. Ohne Pause.",
+          "image": "old woodcut style dramatic scene of dancing people in a medieval square, sepia"
+        },
+        {
+          "text": "Der Stadtrat glaubt, die Kranken müssten sich *austanzen*. Er stellt Musiker an und baut eine Bühne.",
+          "image": "medieval musicians with drums and pipes on a wooden stage, crowd"
+        },
+        {
+          "text": "Doch es wird schlimmer. Berichte aus der Zeit sprechen von Toten durch Erschöpfung.",
+          "image": "dark medieval cathedral silhouette over old town rooftops, ominous sky"
+        },
+        {
+          "text": "Schließlich bringt man die Tänzer zu einem Schrein in den Bergen, um für sie zu beten.",
+          "image": "medieval pilgrims walking to a mountain shrine in fog"
+        },
+        {
+          "text": "Was war die Ursache? Massenhysterie durch Hunger und Angst? Eine Vergiftung? *Niemand weiß es sicher.*",
+          "image": "empty medieval square at dawn with fog, haunting"
+        }
+      ],
+      "tags": [
+        "#tanzwut",
+        "#straßburg",
+        "#geschichte"
+      ]
+    },
+    {
+      "id": "elefantenfuss",
+      "hook": {
+        "text": "Unter Tschernobyl liegt etwas, das dich *in Minuten* töten konnte.",
+        "image": "dark concrete basement corridor in a ruined power plant, dim greenish light, pipes"
+      },
+      "scenes": [
+        {
+          "text": "26. April 1986. Reaktor 4 des Kernkraftwerks Tschernobyl explodiert.",
+          "image": "nuclear power plant explosion at night with fire and smoke, 1986"
+        },
+        {
+          "text": "Im Inneren schmilzt der Reaktorkern. Brennstoff, Beton, Sand und Stahl werden zu glühender Lava.",
+          "image": "glowing molten lava flowing through a destroyed concrete room"
+        },
+        {
+          "text": "Die Masse fließt durch Rohre und Gänge in die Keller unter dem Reaktor. Dort erstarrt sie.",
+          "image": "dark concrete basement with solidified black lava flow, eerie"
+        },
+        {
+          "text": "Monate später finden Arbeiter sie. Wegen ihrer faltigen Form nennen sie sie: den „Elefantenfuß“.",
+          "image": "wrinkled dark solidified mass in a dark basement under a flashlight beam"
+        },
+        {
+          "text": "Die Strahlung ist so stark, dass ein Aufenthalt von *wenigen Minuten* tödlich sein kann.",
+          "image": "radiation warning sign in a dark corridor with flickering light"
+        },
+        {
+          "text": "Fotos macht man mit einer Kamera auf Rädern. Später mit Spiegeln um die Ecke.",
+          "image": "small camera on a wheeled cart in a dark corridor, 1980s"
+        },
+        {
+          "text": "Die Stadt Pripjat wurde evakuiert. Bis heute ist sie eine Geisterstadt.",
+          "image": "abandoned city Pripyat with ferris wheel in fog, grey sky"
+        },
+        {
+          "text": "Und der Elefantenfuß? Er liegt noch immer dort unten. *Und er strahlt weiter.*",
+          "image": "dark ruined reactor building covered by a giant steel arch at dusk"
+        }
+      ],
+      "tags": [
+        "#tschernobyl",
+        "#chernobyl"
+      ]
+    },
+    {
+      "id": "bleimasken",
+      "hook": {
+        "text": "Zwei Tote auf einem Hügel. Sie trugen *Masken aus Blei*.",
+        "image": "grassy hill above a brazilian coastal city at dusk, strange light in the sky"
+      },
+      "scenes": [
+        {
+          "text": "Brasilien, August 1966. Ein Jugendlicher lässt auf dem Hügel Morro do Vintém einen Drachen steigen.",
+          "image": "boy flying a kite on a green hill above a coastal city, cloudy day"
+        },
+        {
+          "text": "Er findet zwei Männer. Ordentlich gekleidet, in Anzügen und Regenmänteln, nebeneinander im Gras. Tot.",
+          "image": "two men in suits and raincoats lying in tall grass, seen from distance, gloomy"
+        },
+        {
+          "text": "Über ihren Augen: selbstgebaute *Masken aus Blei*.",
+          "image": "two crude metal eye masks lying on grass, dramatic close-up, moody"
+        },
+        {
+          "text": "Die beiden sind Elektrotechniker. Sie hatten Geld dabei, um etwas zu kaufen. Das Geld ist weg.",
+          "image": "1960s electronics workshop with radio parts and tools, warm light"
+        },
+        {
+          "text": "Neben ihnen ein Zettel: „16:30 am vereinbarten Ort sein. 18:30 Kapseln schlucken. Nach der Wirkung Metalle schützen, auf das Signal warten.“",
+          "image": "handwritten note on old paper in dim light, cinematic macro"
+        },
+        {
+          "text": "Die Obduktion findet *keine Todesursache*. Keine Verletzungen, kein Gift.",
+          "image": "1960s morgue with a doctor examining files under a lamp"
+        },
+        {
+          "text": "Eine Frau sagt aus, sie habe an jenem Abend ein *orangefarbenes Licht* über dem Hügel gesehen.",
+          "image": "glowing orange oval light in the evening sky above a hill"
+        },
+        {
+          "text": "Kontakt mit Außerirdischen? Ein geheimes Experiment? Ein Verbrechen? Der Fall ist bis heute ungelöst.",
+          "image": "dark hill at night under a starry sky with a faint glow"
+        }
+      ],
+      "tags": [
+        "#bleimasken",
+        "#brasilien"
+      ]
+    },
+    {
+      "id": "yuba_county_five",
+      "hook": {
+        "text": "Fünf Freunde ließen ihr Auto stehen – und liefen *in die verschneiten Berge*.",
+        "image": "abandoned 1970s car on a snowy mountain road at night, headlights off"
+      },
+      "scenes": [
+        {
+          "text": "Kalifornien, Februar 1978. Fünf Freunde fahren zu einem Basketballspiel nach Chico.",
+          "image": "five young men in 1970s clothes in a basketball arena crowd"
+        },
+        {
+          "text": "Nach dem Spiel kaufen sie Snacks und machen sich auf den Heimweg. Sie kommen nie an.",
+          "image": "1970s car driving on a dark country road at night"
+        },
+        {
+          "text": "Tage später wird ihr Auto gefunden – hoch in den Bergen, über 70 Kilometer entfernt. In der falschen Richtung.",
+          "image": "snowy mountain road with an abandoned car, pine trees, grey sky"
+        },
+        {
+          "text": "Der Wagen ist fahrbereit. Warum stiegen sie mitten im Schnee aus?",
+          "image": "car door left open on a snowy road, footprints leading into the forest"
+        },
+        {
+          "text": "Im Juni findet man einen von ihnen in einem Wohnwagen tief im Wald.",
+          "image": "old abandoned camping trailer in deep snow in the forest, single window"
+        },
+        {
+          "text": "Er hatte dort wochenlang überlebt. Abgemagert, mit erfrorenen Füßen.",
+          "image": "dim interior of a snowed-in trailer with blankets and candles"
+        },
+        {
+          "text": "In einem Schuppen ganz in der Nähe: Notrationen, die für ein Jahr gereicht hätten. *Ungeöffnet.*",
+          "image": "wooden shed with boxes of military food rations, dust, light beam"
+        },
+        {
+          "text": "Drei weitere Freunde wurden tot gefunden. Der fünfte ist *bis heute verschwunden*.",
+          "image": "snowy pine forest in the sierra mountains, dark, foreboding"
+        }
+      ],
+      "tags": [
+        "#yubacountyfive",
+        "#vermisst"
+      ]
+    },
+    {
+      "id": "kaprun",
+      "hook": {
+        "text": "Ein kleiner Heizlüfter löste eine der *schlimmsten Katastrophen* Österreichs aus.",
+        "image": "long dark mountain railway tunnel with orange smoke haze, ominous"
+      },
+      "scenes": [
+        {
+          "text": "11. November 2000. Kaprun in Österreich. Ein perfekter Tag für den Saisonstart am Gletscher.",
+          "image": "snowy austrian alpine glacier mountain at dawn, ski resort"
+        },
+        {
+          "text": "Morgens steigen über 160 Menschen in die Gletscherbahn. Die meisten sind Skifahrer.",
+          "image": "skiers boarding a funicular train in a mountain station, morning"
+        },
+        {
+          "text": "Der Zug fährt in einen langen Tunnel im Berg. Ziel: das Skigebiet.",
+          "image": "funicular train entering a dark tunnel into a mountain"
+        },
+        {
+          "text": "Im leeren Führerstand am Ende des Zuges fängt ein *defekter Heizlüfter* Feuer.",
+          "image": "small electric heater sparking inside a dark train cabin"
+        },
+        {
+          "text": "Der Zug bleibt im Tunnel stecken. Die Türen lassen sich kaum öffnen. Rauch füllt die Wagen.",
+          "image": "smoke filled train carriage with emergency lights, people silhouettes"
+        },
+        {
+          "text": "Der steile Tunnel wirkt wie ein Kamin. Die meisten flüchten nach oben – direkt in den Rauch.",
+          "image": "steep tunnel with smoke rising upward, dramatic orange glow"
+        },
+        {
+          "text": "Nur zwölf Menschen überleben. Sie liefen *nach unten*, am Feuer vorbei.",
+          "image": "people escaping down a dark tunnel with a flashlight, smoke above"
+        },
+        {
+          "text": "155 Menschen sterben an diesem Tag. Die Gletscherbahn wurde nie wieder in Betrieb genommen.",
+          "image": "candles and memorial in snow at the foot of a mountain, somber"
+        }
+      ],
+      "tags": [
+        "#kaprun",
+        "#österreich"
+      ]
+    },
+    {
+      "id": "nyos",
+      "hook": {
+        "text": "In einer einzigen Nacht starben über 1.700 Menschen. *Lautlos.*",
+        "image": "calm crater lake in Cameroon surrounded by green hills at dawn, eerie stillness"
+      },
+      "scenes": [
+        {
+          "text": "Kamerun, 21. August 1986. Der Nyos-See liegt ruhig in einem alten Vulkankrater.",
+          "image": "beautiful crater lake surrounded by green hills at sunset, peaceful"
+        },
+        {
+          "text": "In den Dörfern rund um den See bereiten sich die Menschen auf die Nacht vor.",
+          "image": "african village huts on a hillside at dusk, cooking fires"
+        },
+        {
+          "text": "Doch tief unten im See hat sich über Jahre *Kohlendioxid* angesammelt.",
+          "image": "underwater view of a dark deep lake with bubbles rising from the bottom"
+        },
+        {
+          "text": "Gegen 21 Uhr entweicht das Gas plötzlich. Eine riesige Wolke steigt aus dem Wasser.",
+          "image": "huge white gas cloud rising from a lake at night, ominous"
+        },
+        {
+          "text": "Kohlendioxid ist schwerer als Luft. Die Wolke fließt die Täler hinab – direkt in die Dörfer.",
+          "image": "low white mist creeping through an african valley village at night"
+        },
+        {
+          "text": "Menschen und Tiere ersticken im Schlaf. Rund 1.746 Menschen und 3.500 Tiere sterben.",
+          "image": "silent village at dawn with mist, empty paths, somber"
+        },
+        {
+          "text": "Am nächsten Morgen ist der See rot gefärbt. Eisenreiches Wasser aus der Tiefe ist aufgestiegen.",
+          "image": "reddish brown crater lake under grey sky, eerie"
+        },
+        {
+          "text": "Das Phänomen heißt *limnische Eruption*. Heute leiten Rohre das Gas kontrolliert aus dem See ab.",
+          "image": "pipe fountain spraying water in the middle of a crater lake"
+        }
+      ],
+      "tags": [
+        "#nyos",
+        "#natur"
+      ]
+    },
+    {
+      "id": "villisca",
+      "hook": {
+        "text": "Der Mörder *verhängte jeden Spiegel* im Haus.",
+        "image": "white wooden farmhouse in small town Iowa at night, 1910s, eerie porch light"
+      },
+      "scenes": [
+        {
+          "text": "Villisca, Iowa, Juni 1912. Die Familie Moore kommt von einer Kirchenveranstaltung nach Hause.",
+          "image": "1910s family walking home on a small town street at night, lanterns"
+        },
+        {
+          "text": "Zwei befreundete Mädchen übernachten bei ihnen. Acht Menschen schlafen in dem kleinen Haus.",
+          "image": "small white wooden house with dark windows at night, 1910s"
+        },
+        {
+          "text": "Am nächsten Morgen bleibt es dort unheimlich still. Eine Nachbarin wird misstrauisch.",
+          "image": "neighbor woman knocking on a door in morning light, 1910s"
+        },
+        {
+          "text": "Die Polizei findet alle acht Bewohner tot. Getötet mit einer Axt.",
+          "image": "dim old bedroom with iron bed and oil lamp, 1910s, shadows"
+        },
+        {
+          "text": "Der Täter hatte *jeden Spiegel* im Haus mit Tüchern verhängt.",
+          "image": "old mirror covered with a white cloth in a dark victorian room"
+        },
+        {
+          "text": "Und vermutlich blieb er nach der Tat noch eine Weile im Haus.",
+          "image": "dark attic with a dusty floor and faint light through boards"
+        },
+        {
+          "text": "Es gab Verdächtige, Prozesse, Gerüchte. Doch der Fall wurde *nie aufgeklärt*.",
+          "image": "1910s courtroom with wooden benches, dramatic light"
+        },
+        {
+          "text": "Heute kann man in dem Haus übernachten. Viele Gäste verlassen es mitten in der Nacht.",
+          "image": "old farmhouse at night with one lit window and a car leaving, rain"
+        }
+      ],
+      "tags": [
+        "#villisca",
+        "#ungeklärt"
+      ]
+    },
+    {
+      "id": "rosalia_lombardo",
+      "hook": {
+        "text": "Seit über 100 Jahren *öffnet* dieses Mädchen angeblich die Augen.",
+        "image": "underground catacomb corridor in Palermo with old stone arches, candlelight"
+      },
+      "scenes": [
+        {
+          "text": "Palermo, Sizilien, 1920. Die zweijährige Rosalia Lombardo stirbt an einer Lungenentzündung.",
+          "image": "old Sicilian city at dusk with church domes, melancholic"
+        },
+        {
+          "text": "Ihr Vater kann den Verlust nicht ertragen. Er bittet einen berühmten Einbalsamierer um Hilfe.",
+          "image": "grieving father in 1920s clothes in a dim room with candles"
+        },
+        {
+          "text": "Das Ergebnis ist so perfekt, dass Rosalia aussieht, als würde sie *nur schlafen*.",
+          "image": "small glass coffin in a dim crypt with soft light from a high window, no face visible"
+        },
+        {
+          "text": "Sie liegt in der Kapuzinergruft von Palermo – zwischen Tausenden Mumien.",
+          "image": "catacomb hall with many mummified figures in old clothes along stone walls, candlelight"
+        },
+        {
+          "text": "Besucher berichten etwas Unheimliches: Im Laufe des Tages scheinen sich ihre *Augen zu öffnen*.",
+          "image": "shaft of light moving across a crypt floor, dust in the air"
+        },
+        {
+          "text": "Videos davon gehen um die Welt. Ist das Kind gar nicht ganz tot?",
+          "image": "eerie candle-lit crypt with shadows on the wall"
+        },
+        {
+          "text": "Die Erklärung: Licht aus den Fenstern fällt im Tagesverlauf anders. Ihre Augen waren *nie ganz geschlossen*.",
+          "image": "old crypt window with sunlight streaming through, dramatic"
+        },
+        {
+          "text": "Die Formel des Einbalsamierers wurde erst Jahrzehnte später in seinen Notizen entdeckt.",
+          "image": "old handwritten notebook with chemical formulas on a desk, 1920s"
+        }
+      ],
+      "tags": [
+        "#palermo",
+        "#katakomben"
+      ]
+    },
+    {
+      "id": "phantom_heilbronn",
+      "hook": {
+        "text": "16 Jahre jagte die Polizei eine Mörderin, die es *nie gab*.",
+        "image": "police crime scene at night in a german city with blue lights and rain"
+      },
+      "scenes": [
+        {
+          "text": "1993. An einem Tatort in Deutschland wird die DNA einer unbekannten Frau gesichert.",
+          "image": "forensic investigator collecting evidence at night, flashlight"
+        },
+        {
+          "text": "In den folgenden Jahren taucht dieselbe DNA immer wieder auf. In Deutschland, Österreich und Frankreich.",
+          "image": "map of central europe with red pins and strings on a wall, police office"
+        },
+        {
+          "text": "Einbrüche. Diebstähle. Sogar Morde. Rund 40 Tatorte.",
+          "image": "dark parking lot at night with a lonely police car, blue tone"
+        },
+        {
+          "text": "2007 wird in Heilbronn eine Polizistin erschossen. Wieder: *dieselbe DNA*.",
+          "image": "rainy german town square at night with police tape"
+        },
+        {
+          "text": "Die Presse nennt die Täterin „Das Phantom von Heilbronn“. Eine Belohnung von 300.000 Euro wird ausgesetzt.",
+          "image": "newspaper headlines on a table about a mysterious phantom, dramatic light"
+        },
+        {
+          "text": "Doch etwas passt nicht. Die DNA taucht an Orten auf, die nichts miteinander zu tun haben.",
+          "image": "detective staring at a wall of evidence in a dark office"
+        },
+        {
+          "text": "2009 die Auflösung: Die DNA stammte von einer Arbeiterin – in der Fabrik, die die *Wattestäbchen verpackte*.",
+          "image": "forensic lab with sterile cotton swabs in plastic packaging, cold light"
+        },
+        {
+          "text": "Das Phantom von Heilbronn hat es nie gegeben. Der Mord an der Polizistin wurde später der Terrorgruppe NSU zugeordnet.",
+          "image": "empty police evidence room with boxes, cold light"
+        }
+      ],
+      "tags": [
+        "#phantomvonheilbronn",
+        "#kriminalfall"
+      ]
+    }
+  ]
+}

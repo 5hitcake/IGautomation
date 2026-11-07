@@ -22,6 +22,10 @@ ein fotorealistisches KI-Portrait einer Person, die es nicht gibt, kostenlos üb
 Cloudflare Workers AI (`people_post.yml`, Details unter
 [These people do not exist](#these-people-do-not-exist)).
 
+**Story-Reels (2 Themen-Accounts)** – täglich je ein ~1-Minuten-Reel mit Sprecher, Szenenbildern und eigenem Song:
+wahre Gruselgeschichten und Rätsel/Verschwörungen mit wahrem Kern (`story_reels.yml`,
+Details unter [Story-Reels](#story-reels-wahre-gruselgeschichten--rätsel--verschwörungen)).
+
 ## Wie es funktioniert
 
 1. GitHub Actions läuft zeitgesteuert (Cron) auf GitHub-Servern – dein PC muss nicht an sein.
@@ -438,6 +442,203 @@ Solange die Instagram-Secrets fehlen, überspringen die Läufe mit einer Warnung
 Ein manueller Lauf (**Run workflow**) fragt per Telegram nach und postet nach der
 eingestellten Bedenkzeit (Standard: 15 Minuten).
 Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieben.
+
+---
+
+## Story-Reels: Wahre Gruselgeschichten + Rätsel & Verschwörungen
+
+Zwei Themen-Accounts, **täglich je zwei Reels**, komplett automatisch und **kostenlos**
+(`story_reels.yml`), mit Vorschau per Telegram und optional zusätzlich auf TikTok:
+
+| Account | Instagram | Inhalt | Uhrzeiten (DE, Winter) | Status |
+|---|---|---|---|---|
+| `horror` | @wahre_gruselgeschichten | Wahre Gruselgeschichten, Paranormales, Kriminalfälle, Unglücke | 14:07 + 20:07 | aktiv |
+| `mysteries` | @imysteryhistoryi | Verschwörungen mit wahrem Kern, Ancient Aliens, Rätsel, Weltraum | 15:37 + 21:37 | pausiert (Song fehlt) |
+
+**Account ein-/ausschalten**: In `.github/workflows/story_reels.yml` **und**
+`.github/workflows/story_health.yml` die Zeile `STORY_ENABLED_ACCOUNTS: "horror"` anpassen,
+z.B. `"horror mysteries"`. Manuelle Läufe über „Run workflow“ gehen immer.
+
+### Ablauf pro Termin
+
+1. **75 Minuten vorher** startet der Lauf und füllt den **Geschichten-Vorrat** auf (siehe unten).
+2. Das Reel wird gerendert und dir als **Video per Telegram** geschickt, mit drei Knöpfen:
+   **✅ Jetzt posten** · **🔄 Andere Geschichte** · **❌ Auslassen**.
+   Ohne Antwort wird es **zum Termin automatisch gepostet**. Verworfene Geschichten kommen nie wieder.
+3. Nach dem Instagram-Post geht das Video optional an TikTok, und du bekommst eine Bestätigung.
+
+Telegram nutzt den vorhandenen Bot (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). Die Vorschau-Zeiten
+überschneiden sich nicht mit den Freigaben des People-Accounts. Wer ganz getrennte Chats möchte, legt
+bei @BotFather einen zweiten Bot an und speichert dessen Token als `STORY_TELEGRAM_BOT_TOKEN`.
+
+### Endlos neue Geschichten (keine Wiederholungen)
+
+`scripts/story_writer.py` sorgt vor jedem Termin dafür, dass mindestens 4 ungenutzte Geschichten
+auf Vorrat sind. Neue Geschichten entstehen so:
+
+1. **Thema finden**: zuerst eine kuratierte Liste echter Fälle (`wiki_seeds` in der Account-Datei,
+   ca. 50-60 je Seite), danach endlos über Suchbegriffe (`wiki_queries`) in der deutschen Wikipedia.
+2. **Fakten**: Der Wikipedia-Artikel ist die einzige Quelle. Die KI (Cloudflare Workers AI, im
+   Gratis-Kontingent, ca. 300-400 Neurons pro Geschichte) darf nichts dazuerfinden.
+3. **Filter**: Die KI lehnt ungeeignete Artikel ab: keine wahre Begebenheit, Kinder als Opfer,
+   sexuelle Gewalt, aktuelle Fälle mit Privatpersonen, menschenverachtende Verschwörungsmythen.
+4. **Prüfung**: Das Ergebnis muss das Reel-Format erfüllen (8 Szenen, ~1 Minute), sonst wird
+   nachgebessert oder der nächste Artikel genommen. Quelle steht in `"source"` der Geschichte.
+
+Du siehst jede Geschichte vor dem Posten in Telegram und kannst sie mit 🔄/❌ aussortieren.
+
+### Benachrichtigungen (`story_health.yml`, täglich)
+
+Meldet sich per Telegram **nur, wenn etwas ansteht**, und montags mit einer kurzen Wochenübersicht:
+
+- **Instagram-Token**: wird täglich automatisch verlängert (falls Meta das zulässt). Sonst kommt ab
+  10 Tage vor Ablauf eine Erinnerung mit Anleitung. Ungültiger Token sofort.
+- **TikTok-Zugang**: ungültig oder läuft in < 30 Tagen ab.
+- **Geschichten-Vorrat** zu klein (z.B. Cloudflare-Kontingent leer).
+- **Kein Reel** in den letzten 26 Stunden.
+- Fehlgeschlagene Posts meldet zusätzlich der Reel-Workflow direkt.
+
+Test: Actions → *Story Reels Wartung* → *Run workflow* (schickt eine Testnachricht).
+
+### So sieht ein Reel aus (~1 Minute)
+
+1. **Hook** mit Aufhänger in Akzentfarbe („WAHRE GESCHICHTE“, „Wusstest du…?“,
+   „Was niemand weiß…“) und einem packenden Satz.
+2. **8 Szenen**, jede mit **eigenem, passenden KI-Bild**. Die Bilder bekommen einen langsamen
+   Zoom und werden weich überblendet.
+3. **Sprecher**: eine tiefe deutsche Männerstimme liest alles vor. Sie wird zusätzlich
+   tiefer gepitcht und mit Bass und leichtem Hall nachbearbeitet. Der Text steht mit im
+   Bild, gesprochene Wörter leuchten auf, wichtige Wörter sind farbig.
+4. **Folge-Aufruf** mit deinem @Handle (gesprochen + eingeblendet), zurück zum Titelbild,
+   damit das Reel sauber loopt.
+5. **Eigener Titelsong pro Seite** leise unter der Stimme (siehe „Musik“).
+
+Bildstil passend zu den bisherigen Reels: Grusel = dunkle, realistische Malerei,
+Rätsel = gemalter Anime-Look. Caption + Hashtags werden automatisch gebaut.
+
+### Bilder: Reihenfolge der Quellen
+
+Pro Reel entstehen 9 Bilder (Hook + 8 Szenen), für beide Seiten also 18 pro Tag:
+
+1. **Pollinations** (FLUX, Secret `POLLI_TOKEN`, Schlüssel von
+   [enter.pollinations.ai](https://enter.pollinations.ai)): zuerst. Getestet, ca. 6-9 s pro Bild,
+   ohne Wasserzeichen.
+2. **Cloudflare Workers AI** FLUX-2 Klein 4B (ca. 160 der 10.000 Gratis-Neurons pro Tag und Bild),
+   danach FLUX-1 Schnell (ca. 60 pro Bild). Springt automatisch ein, wenn Pollinations
+   ausfällt oder sein Kontingent leer ist.
+3. Erst wenn alles scheitert: dunkler Verlaufshintergrund.
+
+Welche Quelle verwendet wurde, steht nach jedem Lauf in `next_post.json` (`image_sources`).
+
+### Einrichtung (einmalig)
+
+1. **Handles eintragen**: In `content/story_reels/horror.json` und `mysteries.json`
+   `"handle"` – bereits eingetragen (@wahre_gruselgeschichten, @imysteryhistoryi).
+2. **Instagram-Zugang pro Account** wie in Schritt 2 oben beschrieben erzeugen
+   (beide Accounts als Tester in derselben Meta-App reicht) und als GitHub Secrets hinterlegen:
+
+| Name | Wert |
+|---|---|
+| `HORROR_IG_ACCESS_TOKEN` / `HORROR_IG_ACCOUNT_ID` | Grusel-Account |
+| `MYSTERY_IG_ACCESS_TOKEN` / `MYSTERY_IG_ACCOUNT_ID` | Rätsel-Account |
+
+   Ist einer der beiden Accounts der bestehende zweite Account (@weirdworld), einfach die
+   Werte von `WEIRDWORLD_IG_ACCESS_TOKEN` / `WEIRDWORLD_IG_ACCOUNT_ID` erneut eintragen.
+   Dann aber den TikTok-Workflow für Instagram abschalten, sonst kommen zwei Reels am Tag.
+3. `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` sind schon da (People-Account).
+   `POLLI_TOKEN` (Pollinations) ist hinterlegt und wird zuerst genutzt (siehe „Bilder“).
+4. **Testen**: Actions → *Story Reels (Grusel + Rätsel)* → *Run workflow* → Häkchen
+   bei „Auch auf Instagram posten?“ **entfernen**. Dann wird nur das Video gebaut, und
+   du kannst es unten im Lauf unter **Artifacts** herunterladen und anschauen.
+
+### Musik
+
+Jede Seite hat einen **eigenen Titelsong**, komplett im Code komponiert und gerendert
+(`scripts/compose_theme.py`, keine Samples und damit keine Lizenzfragen):
+
+- **Grusel – „Hinterland“**: D-Moll, 60 BPM. Spieluhr-Wiegenlied mit Tritonus, tiefe
+  Drones, Streicherflächen, Herzschlag, kalter Wind.
+- **Rätsel – „Beyond the Signal“**: Fis-Moll, 80 BPM, ätherischer Cosmic-/Dream-Synth-Stil,
+  wie er oft unter Mystery- und Alien-Videos liegt: verhallte Synth-Flächen mit
+  Sidechain-Pumpen, „Ooh“-Gesangsmelodie, Glitzer-Arpeggios, 808-Bass, Halftime-Beat.
+  Eine eigene Komposition, also kein Nachbau bekannter Songs.
+
+Die Songs liegen als `assets/story_music/<account>/theme.mp3` und loopen nahtlos. Neu erzeugen
+oder anpassen: `python scripts/compose_theme.py`. Eigene Tracks kannst du zusätzlich in den
+Ordner legen, dann wird pro Reel zufällig gewechselt.
+
+### Sprecher
+
+Beide Seiten nutzen dieselbe Stimme `de-DE-KillianNeural` (edge-tts, kostenlos und ohne
+Kontingent). Den Klang legt `"voice_fx"` in der jeweiligen Account-Datei fest:
+
+| | Grusel | Rätsel |
+|---|---|---|
+| Tonhöhe | tief (ca. 91 Hz): -6 Hz und ca. 2,4 Halbtöne nach unten | natürlich (ca. 105 Hz), nur -3 Hz |
+| Bass | +5 dB | +2 dB |
+| Raum | kurzer, dunkler Hall | trocken, ohne Hall |
+
+Andere Stimme: `"voice"` ändern (z.B. `de-DE-ConradNeural`). Ohne Sprecher:
+`"voiceover": false`, dann richten sich die Szenen nach der Lesezeit.
+Cloudflare hat keine deutsche Stimme (nur Englisch und Spanisch), und die Hugging-Face-Gratis-GPU-Zeit
+reicht nicht für tägliche Minuten-Reels.
+
+### TikTok (optional, pro Account)
+
+Nach dem Instagram-Post wird dasselbe Video zusätzlich zu TikTok geschickt, sobald die Secrets da
+sind. Schlägt TikTok fehl, bleibt der Instagram-Post davon unberührt.
+
+**Einmalige Einrichtung (am PC):**
+1. Auf [developers.tiktok.com](https://developers.tiktok.com) einloggen → **Manage apps** →
+   **Connect an app** (oder die bestehende App von @weirdworld.ai nutzen).
+2. In der App die Produkte **Login Kit** und **Content Posting API** hinzufügen, Scopes
+   `user.info.basic`, `video.upload` und `video.publish` aktivieren.
+3. Unter Login Kit eine **Redirect-URI** eintragen, z.B. `https://github.com/5hitcake/igautomation`
+   (es reicht irgendeine https-Seite, man kopiert danach nur die Adresse aus dem Browser).
+4. Bei GitHub zwei Secrets anlegen: `TIKTOK_CLIENT_KEY` und `TIKTOK_CLIENT_SECRET`
+   (stehen in der App unter „App details“, gelten für beide Accounts).
+5. Am PC: `pip install requests` und `python scripts/tiktok_auth.py`. Client Key/Secret und
+   Redirect-URI eingeben, den angezeigten Link öffnen, **mit dem TikTok-Account einloggen,
+   der posten soll**, zustimmen und die Adresse nach der Weiterleitung einfügen.
+6. Den angezeigten Refresh-Token als Secret speichern: `HORROR_TIKTOK_REFRESH_TOKEN` bzw.
+   `MYSTERY_TIKTOK_REFRESH_TOKEN`. Er hält 365 Tage. Neue Access-Tokens holt sich der
+   Workflow bei jedem Lauf selbst, die 24-Stunden-Grenze spielt also keine Rolle mehr.
+
+**Modus** (`TIKTOK_MODE` im Workflow):
+- `inbox` (Standard): Das Video landet als Entwurf in der TikTok-App (Benachrichtigung), du
+  tippst nur noch auf „Posten“ und kannst dabei einen TikTok-Sound wählen. Funktioniert sofort,
+  ohne Prüfung durch TikTok.
+- `direct`: Das Video wird direkt veröffentlicht. **Öffentlich** geht das erst, wenn TikTok die
+  App geprüft hat (in der App „Submit for review“, dafür sind `PRIVACY.md`/`TERMS.md` im Repo
+  vorhanden). Vorher sind die Videos nur für dich sichtbar.
+
+### Neue Geschichten hinzufügen
+
+Einfach am Ende von `"stories"` in der jeweiligen JSON-Datei einen Eintrag ergänzen:
+
+```json
+{
+  "id": "eindeutige_id",
+  "hook": {"text": "Packender erster Satz mit *hervorgehobenen Wörtern*.",
+           "image": "englische Bildbeschreibung fürs Titelbild"},
+  "scenes": [
+    {"text": "Szene 1 (ca. 12-25 Wörter)", "image": "englische Bildbeschreibung"},
+    {"text": "Szene 2", "image": "..."},
+    "… insgesamt 6-10 Szenen, zusammen ca. 100-150 Wörter = ~1 Minute"
+  ],
+  "tags": ["#extrahashtag"]
+}
+```
+
+Bildbeschreibungen auf Englisch und ohne Gewalt/Gore (das blockieren die Bildmodelle).
+Neue Einträge kommen der Reihe nach dran. Sind alle Geschichten gepostet, beginnt der
+Zyklus von vorn (die älteste zuerst). Aktuell: 20 Grusel- und 22 Rätsel-Geschichten à 8 Szenen.
+Danach schreibt `story_writer.py` automatisch neue Geschichten (siehe oben) - es gibt keine Wiederholungen.
+
+Lokal testen (ohne API-Aufrufe, Video landet in `assets/story_reels/<account>/`):
+```
+python scripts/story_reel.py --account horror --story dyatlov --dry-run --preview
+```
 
 ---
 

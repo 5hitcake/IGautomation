@@ -1,0 +1,232 @@
+name: Story Reels (Grusel + Rätsel)
+
+# Zwei Reels pro Tag und Account. Jeder Lauf startet 75 Minuten vor dem Termin:
+#   1. Geschichten-Vorrat auffüllen (neue Geschichten aus Wikipedia, keine Wiederholungen)
+#   2. Reel rendern und als Vorschau per Telegram schicken (✅ / 🔄 / ❌)
+#   3. Zum Termin posten (ohne Antwort automatisch), danach optional TikTok
+#
+# Termine in UTC (Winter: Deutschland = UTC+1, Argentinien = UTC-3). Die Vorschau-Fenster sind so
+# gelegt, dass sie sich nicht mit den Freigabe-Fenstern des People-Accounts (gleicher Bot) überschneiden.
+#   Grusel:  13:07 + 19:07 UTC  (14:07 + 20:07 DE)   Vorschau ab 11:52 / 17:52
+#   Rätsel:  14:37 + 20:37 UTC  (15:37 + 21:37 DE)   Vorschau ab 13:22 / 19:22
+on:
+  schedule:
+    - cron: "52 11 * * *"
+    - cron: "52 17 * * *"
+    - cron: "22 13 * * *"
+    - cron: "22 19 * * *"
+  workflow_dispatch:
+    inputs:
+      account:
+        description: "Welcher Account?"
+        type: choice
+        default: horror
+        options: [horror, mysteries]
+      story:
+        description: "Optional: bestimmte Story-ID (leer = nächste)"
+        default: ""
+      publish:
+        description: "Posten? (nein = nur Video bauen, Download unter Artifacts)"
+        type: boolean
+        default: false
+      wait_minutes:
+        description: "Nur beim Posten: Minuten Bedenkzeit per Telegram"
+        default: "20"
+
+permissions:
+  contents: write
+
+env:
+  # Accounts, die nach Zeitplan automatisch posten (Leerzeichen-getrennt).
+  # Rätsel ("mysteries") ist pausiert, bis der neue Song fertig ist.
+  STORY_ENABLED_ACCOUNTS: "horror"
+  # TikTok: "inbox" = als Entwurf in die TikTok-App (du tippst auf Posten),
+  #         "direct" = direkt veröffentlichen (öffentlich erst nach App-Prüfung durch TikTok).
+  TIKTOK_MODE: "inbox"
+
+concurrency:
+  group: story-reels
+  cancel-in-progress: false
+
+jobs:
+  reel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 170
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Account und Termin bestimmen
+        id: acc
+        run: |
+          case "${{ github.event.schedule }}" in
+            "52 11 * * *") acc=horror;    target=13:07 ;;
+            "52 17 * * *") acc=horror;    target=19:07 ;;
+            "22 13 * * *") acc=mysteries; target=14:37 ;;
+            "22 19 * * *") acc=mysteries; target=20:37 ;;
+            *)             acc="${{ github.event.inputs.account }}"; target="" ;;
+          esac
+          publish=true
+          [ "${{ github.event_name }}" = "workflow_dispatch" ] && publish="${{ github.event.inputs.publish }}"
+          echo "account=$acc" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "Account: $acc, Termin: ${target:-sofort}, posten: $publish"
+
+      - name: Prüfen, ob gepostet werden darf
+        id: gate
+        env:
+          HAS_HORROR: ${{ secrets.HORROR_IG_ACCESS_TOKEN != '' && secrets.HORROR_IG_ACCOUNT_ID != '' }}
+          HAS_MYSTERY: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN != '' && secrets.MYSTERY_IG_ACCOUNT_ID != '' }}
+        run: |
+          acc="${{ steps.acc.outputs.account }}"
+          has="$HAS_HORROR"; [ "$acc" = "mysteries" ] && has="$HAS_MYSTERY"
+          if [ "${{ steps.acc.outputs.publish }}" = "true" ] && [ "$has" != "true" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Instagram-Secrets für '$acc' fehlen - übersprungen (siehe README, Abschnitt Story-Reels)."
+            exit 0
+          fi
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            case " $STORY_ENABLED_ACCOUNTS " in
+              *" $acc "*) ;;
+              *) echo "run=false" >> "$GITHUB_OUTPUT"; echo "'$acc' ist pausiert (STORY_ENABLED_ACCOUNTS)."; exit 0 ;;
+            esac
+            # Schutz gegen doppelte geplante Läufe
+            last=$(git log -1 --grep="Story-Reel ($acc)" --format=%ct || true)
+            if [ -n "$last" ] && [ $(( $(date +%s) - last )) -lt 14400 ]; then
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "Überspringe: letztes Reel für $acc ist weniger als 4 Stunden her."
+              exit 0
+            fi
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          pip install requests Pillow "edge-tts>=7.3.1"
+
+      - name: Geschichten-Vorrat auffüllen (neue Themen aus Wikipedia)
+        if: steps.gate.outputs.run == 'true' && github.event.inputs.story == ''
+        continue-on-error: true
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: python scripts/story_writer.py --account ${{ steps.acc.outputs.account }} --ensure 4
+
+      - name: Nur Vorschau-Video bauen
+        if: steps.gate.outputs.run == 'true' && steps.acc.outputs.publish != 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLINATIONS_API_KEY: ${{ secrets.POLLI_TOKEN }}
+        run: |
+          args="--account ${{ steps.acc.outputs.account }} --preview"
+          [ -n "${{ github.event.inputs.story }}" ] && args="$args --story ${{ github.event.inputs.story }}"
+          python scripts/story_reel.py $args
+
+      - name: Reel erstellen + Vorschau per Telegram + Freigabe abwarten
+        id: review
+        if: steps.gate.outputs.run == 'true' && steps.acc.outputs.publish == 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLINATIONS_API_KEY: ${{ secrets.POLLI_TOKEN }}
+          STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "${{ steps.acc.outputs.target }}" ]; then
+            when="--target ${{ steps.acc.outputs.target }}"
+          else
+            when="--wait-minutes ${{ github.event.inputs.wait_minutes || '20' }}"
+          fi
+          python scripts/story_review.py --account ${{ steps.acc.outputs.account }} $when
+
+      - name: Video als Download bereitstellen
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-${{ steps.acc.outputs.account }}
+          path: assets/story_reels/${{ steps.acc.outputs.account }}/reel_*.mp4
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Log, neue Geschichten und next_post.json committen
+        if: always() && steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add story_reels_posted_log.json content/story_reels/*.json 2>/dev/null || true
+          if [ "${{ steps.review.outputs.publish }}" = "true" ]; then
+            git add assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
+            msg="Story-Reel (${{ steps.acc.outputs.account }}): $(date -u +'%Y-%m-%d %H:%M')"
+          else
+            msg="Story-Reels: Geschichten/Log aktualisiert (${{ steps.acc.outputs.account }})"
+          fi
+          git commit -m "$msg" || { echo "nichts zu committen"; exit 0; }
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Video auf den Medien-Branch legen (hält main klein)
+        if: steps.review.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACC: ${{ steps.acc.outputs.account }}
+        run: |
+          tmp=$(mktemp -d)
+          cp assets/story_reels/$ACC/reel_*.mp4 "$tmp/"
+          cd "$tmp"
+          git init -q -b "story-media-$ACC"
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Aktuelles Reel"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "story-media-$ACC"
+          sleep 20  # raw.githubusercontent.com braucht einen Moment
+
+      - name: Auf Instagram veröffentlichen
+        id: publish
+        if: steps.review.outputs.publish == 'true'
+        env:
+          IG_ACCESS_TOKEN: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_IG_ACCESS_TOKEN || secrets.MYSTERY_IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_IG_ACCOUNT_ID || secrets.MYSTERY_IG_ACCOUNT_ID }}
+        run: python scripts/publish.py --post-file assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
+
+      - name: Zusätzlich auf TikTok hochladen (optional)
+        id: tiktok
+        if: steps.publish.outcome == 'success'
+        continue-on-error: true
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_TIKTOK_REFRESH_TOKEN || secrets.MYSTERY_TIKTOK_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$TIKTOK_CLIENT_KEY" ] || [ -z "$TIKTOK_REFRESH_TOKEN" ]; then
+            echo "Kein TikTok-Zugang für ${{ steps.acc.outputs.account }} hinterlegt - übersprungen."
+            exit 0
+          fi
+          python scripts/tiktok_story_publish.py --post-file assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
+
+      - name: Ergebnis per Telegram melden
+        if: always() && steps.gate.outputs.run == 'true' && steps.acc.outputs.publish == 'true'
+        env:
+          STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          acc="${{ steps.acc.outputs.account }}"
+          if [ "${{ steps.publish.outcome }}" = "success" ]; then
+            msg="📲 Reel ($acc) ist auf Instagram online"
+            [ "${{ steps.tiktok.outcome }}" = "failure" ] && msg="$msg - ⚠️ TikTok-Upload fehlgeschlagen: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          elif [ "${{ steps.review.outputs.publish }}" = "false" ]; then
+            exit 0  # bewusst ausgelassen
+          else
+            msg="⚠️ Reel ($acc) fehlgeschlagen - Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+          pip install -q requests Pillow 2>/dev/null || true
+          python scripts/story_review.py --notify "$msg"
