@@ -8,12 +8,10 @@ name: These People Do Not Exist
 #   11:13  Post aus der Warteschlange (08:13 AR / 12-13 Uhr DE / 7 Uhr US-Ost)
 #   17:13  Post aus der Warteschlange (14:13 AR / 18-19 Uhr DE / 13 Uhr US-Ost)
 #   20:43  Freigabe -> Post um 23:43 (17:43 -> 20:43 AR / 19-20 Uhr US-Ost)
+# Gestartet werden die Termine vom Cloudflare-Worker cloudflare/people_scheduler
+# (workflow_dispatch mit dem passenden Modus) - GitHub-Crons kamen oft Stunden zu
+# spaet oder gar nicht. Notfalls von Hand per "Run workflow" mit demselben Modus.
 on:
-  schedule:
-    - cron: "30 7 * * *"
-    - cron: "13 11 * * *"
-    - cron: "13 17 * * *"
-    - cron: "43 20 * * *"
   workflow_dispatch:
     inputs:
       mode:
