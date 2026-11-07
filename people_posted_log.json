@@ -1,5 +1,5 @@
 {
-  "count": 12,
+  "count": 13,
   "recent": [
     {
       "gender": "woman",
@@ -144,6 +144,18 @@
         "british"
       ],
       "setting": "on a subway platform"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "Mongolian",
+        "mongolian"
+      ],
+      "setting": "in a bustling night market"
     }
   ],
   "reserve_used": [
