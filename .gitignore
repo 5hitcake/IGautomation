@@ -6,3 +6,7 @@ Thumbs.db
 
 # Reel-Videos liegen auf dem Branch people-media, nicht in main
 assets/people_generated/*.mp4
+
+# Story-Reels: Videos liegen auf den Branches story-media-*, Bilder sind nur Cache
+assets/story_reels/*/*.mp4
+assets/story_reels/*/img_*.jpg

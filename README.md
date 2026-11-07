@@ -22,6 +22,10 @@ ein fotorealistisches KI-Portrait einer Person, die es nicht gibt, kostenlos üb
 Cloudflare Workers AI (`people_post.yml`, Details unter
 [These people do not exist](#these-people-do-not-exist)).
 
+**Story-Reels (2 Themen-Accounts)** – täglich je ein Text-Reel mit KI-Bildern und Musik:
+wahre Gruselgeschichten und Rätsel/Verschwörungen mit wahrem Kern (`story_reels.yml`,
+Details unter [Story-Reels](#story-reels-wahre-gruselgeschichten--rätsel--verschwörungen)).
+
 ## Wie es funktioniert
 
 1. GitHub Actions läuft zeitgesteuert (Cron) auf GitHub-Servern – dein PC muss nicht an sein.
@@ -438,6 +442,89 @@ Solange die Instagram-Secrets fehlen, überspringen die Läufe mit einer Warnung
 Ein manueller Lauf (**Run workflow**) fragt per Telegram nach und postet nach der
 eingestellten Bedenkzeit (Standard: 15 Minuten).
 Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieben.
+
+---
+
+## Story-Reels: Wahre Gruselgeschichten + Rätsel & Verschwörungen
+
+Zwei Themen-Accounts, **täglich je ein Reel**, komplett automatisch und **kostenlos**
+(`story_reels.yml`):
+
+| Account | Inhalt | Uhrzeit (DE, Winter) |
+|---|---|---|
+| `horror` | Wahre Gruselgeschichten, Paranormales, Kriminalfälle, Unglücke | 20:07 |
+| `mysteries` | Verschwörungen mit wahrem Kern, Ancient Aliens, Rätsel der Geschichte, Weltraum | 18:37 |
+
+### So sieht ein Reel aus (~30-40 s)
+
+1. **Hook-Folie**: Aufhänger in Akzentfarbe („WAHRE GESCHICHTE“, „Wusstest du…?“,
+   „Was niemand weiß…“) + ein packender Satz.
+2. **3-4 Story-Folien**: kurze Sätze, wichtige Wörter farbig hervorgehoben.
+   Jede Folie bleibt so lange stehen, wie man zum Lesen braucht.
+3. **Folge-Aufruf** mit deinem @Handle (zurück zum Titelbild, so läuft das Reel sauber im Loop).
+
+Im Hintergrund laufen 2-3 KI-Bilder pro Story (Cloudflare Workers AI, gleiche Secrets
+wie beim People-Account) mit langsamem Zoom und Überblendungen. Bildstil passend zu den
+bisherigen Reels: Grusel = dunkle, realistische Malerei, Rätsel = gemalter Anime-Look.
+Darunter Musik (siehe unten). Caption + Hashtags werden automatisch gebaut.
+
+### Einrichtung (einmalig)
+
+1. **Handles eintragen**: In `content/story_reels/horror.json` und `mysteries.json`
+   jeweils `"handle": "@DEIN_..._ACCOUNT"` durch den echten Account-Namen ersetzen.
+2. **Instagram-Zugang pro Account** wie in Schritt 2 oben beschrieben erzeugen
+   (beide Accounts als Tester in derselben Meta-App reicht) und als GitHub Secrets hinterlegen:
+
+| Name | Wert |
+|---|---|
+| `HORROR_IG_ACCESS_TOKEN` / `HORROR_IG_ACCOUNT_ID` | Grusel-Account |
+| `MYSTERY_IG_ACCESS_TOKEN` / `MYSTERY_IG_ACCOUNT_ID` | Rätsel-Account |
+
+   Ist einer der beiden Accounts der bestehende zweite Account (@weirdworld), einfach die
+   Werte von `WEIRDWORLD_IG_ACCESS_TOKEN` / `WEIRDWORLD_IG_ACCOUNT_ID` erneut eintragen.
+   Dann aber den TikTok-Workflow für Instagram abschalten, sonst kommen zwei Reels am Tag.
+3. `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` sind schon da (People-Account).
+   Ohne sie wird trotzdem gepostet, dann mit dunklem Verlaufs-Hintergrund statt Bildern.
+4. **Testen**: Actions → *Story Reels (Grusel + Rätsel)* → *Run workflow* → Häkchen
+   bei „Auch auf Instagram posten?“ **entfernen**. Dann wird nur das Video gebaut, und
+   du kannst es unten im Lauf unter **Artifacts** herunterladen und anschauen.
+
+### Musik
+
+Lizenzfreie Tracks in `assets/story_music/horror/` bzw. `assets/story_music/mysteries/`
+ablegen (mp3/wav/m4a). Ist der Ordner leer, wird automatisch ein dunkler
+Ambient-Klangteppich erzeugt (synthetisch, also ohne Lizenzprobleme). Musik aus der
+Instagram-App lässt sich über die API leider nicht anhängen.
+
+### Optional: Sprecherstimme
+
+In der Account-Datei `"voiceover": true` setzen. Dann liest eine kostenlose
+Microsoft-Stimme (`edge-tts`, z.B. `de-DE-ConradNeural` oder `de-DE-KatjaNeural`) jede
+Folie vor, und die Musik wird darunter leiser gemischt. Der Text bleibt zusätzlich im Bild.
+
+### Neue Geschichten hinzufügen
+
+Einfach am Ende von `"stories"` in der jeweiligen JSON-Datei einen Eintrag ergänzen:
+
+```json
+{
+  "id": "eindeutige_id",
+  "hook": "Packender erster Satz mit *hervorgehobenen Wörtern*.",
+  "slides": ["Folie 1 (max. ~30 Wörter)", "Folie 2", "Folie 3", "Auflösung / Twist"],
+  "images": ["englische Bildbeschreibung 1", "Bild 2", "Bild 3"],
+  "tags": ["#extrahashtag"]
+}
+```
+
+Bildbeschreibungen auf Englisch und ohne Gewalt/Gore (das blockieren die Bildmodelle).
+Neue Einträge kommen der Reihe nach dran. Sind alle Geschichten gepostet, beginnt der
+Zyklus von vorn (die älteste zuerst). Aktuell: 20 Grusel- und 22 Rätsel-Geschichten,
+also ca. 3 Wochen ohne Wiederholung.
+
+Lokal testen (ohne API-Aufrufe, Video landet in `assets/story_reels/<account>/`):
+```
+python scripts/story_reel.py --account horror --story dyatlov --dry-run --preview
+```
 
 ---
 
