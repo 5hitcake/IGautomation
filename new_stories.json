@@ -1,0 +1,96 @@
+[
+  {
+    "id": "zodiac_killer",
+    "hook": {
+      "text": "Ein Serienmörder tötet mindestens 5 Menschen in der San Francisco Bay Area.",
+      "image": "dark and foggy San Francisco Bay Area night scene with a lonely road and trees"
+    },
+    "scenes": [
+      {
+        "text": "Der Zodiac-Killer terrorisiert die San Francisco Bay Area im Jahr 1968/1969.",
+        "image": "aerial view of San Francisco Bay Area at night with city lights and fog"
+      },
+      {
+        "text": "Seine Opfer sind meist junge Paare, die an einsamen Plätzen angegriffen werden.",
+        "image": "isolated lovers' lane at night with a car parked and a dark figure lurking"
+      },
+      {
+        "text": "Der Täter verwendet verschiedene Waffen und hinterlässt keine klaren Spuren.",
+        "image": "close-up of a pistol and a knife on a dark surface"
+      },
+      {
+        "text": "Die Polizei findet Patronenhülsen und andere Beweise, aber keine Hinweise auf den Täter.",
+        "image": "police officers searching a crime scene with flashlights and collecting evidence"
+      },
+      {
+        "text": "Der Zodiac-Killer sendet bizarre Briefe an Lokalzeitungen mit Symbolen und Drohungen.",
+        "image": "a newspaper clipping with a cryptic message and symbols"
+      },
+      {
+        "text": "Die Briefe enthalten verschlüsselte Texte, von denen zwei erst 2020 entziffert wurden.",
+        "image": "a cryptologist working on a computer with a code-breaking software"
+      },
+      {
+        "text": "Der Täter prahlt mit seinen Verbrechen und behauptet, 37 Morde begangen zu haben.",
+        "image": "a dark figure with a hood and a mask, holding a newspaper clipping with a headline about the Zodiac Killer"
+      },
+      {
+        "text": "Die Identität des Zodiac-Killers bleibt bis heute ein Rätsel.",
+        "image": "a question mark on a dark background with a faint image of a person in the distance"
+      }
+    ],
+    "tags": [
+      "#ZodiacKiller",
+      "#Serienmoerder"
+    ],
+    "source": "https://de.wikipedia.org/wiki/Zodiac-Killer",
+    "generated": "2026-11-07"
+  },
+  {
+    "id": "axeman_of_new_orleans",
+    "hook": {
+      "text": "Ein Serienmörder schlägt in New Orleans mit einer *Axt* zu.",
+      "image": "dark New Orleans street at night, old houses, dim gas lamps"
+    },
+    "scenes": [
+      {
+        "text": "New Orleans, 1911. Ein *Lebensmittelhändler* wird in seinem Bett ermordet.",
+        "image": "old New Orleans house, dark bedroom, single candle light"
+      },
+      {
+        "text": "Der Täter dringt nachts ein, schlägt mit einer Axt zu und lässt keine Spuren zurück.",
+        "image": "broken wooden door, dark hallway, old house"
+      },
+      {
+        "text": "Die Opfer sind zumeist *italienischstämmige Lebensmittelhändler*, aber auch andere Personen.",
+        "image": "old Italian grocery store, New Orleans, daytime"
+      },
+      {
+        "text": "Die Polizei vermutet zunächst eine *Mafia*-Verbindung, aber keine Beweise werden gefunden.",
+        "image": "old police station, New Orleans, detectives at work"
+      },
+      {
+        "text": "Die Morde setzen sich bis 1919 fort, mit einer langen Pause zwischen 1911 und 1918.",
+        "image": "old New Orleans newspaper, headlines about Axeman murders"
+      },
+      {
+        "text": "Einige Opfer überleben und beschreiben den Täter als eine *dunkle Gestalt*.",
+        "image": "old hospital room, New Orleans, patient in bed"
+      },
+      {
+        "text": "Eine Theorie besagt, dass der Täter *Joseph Mumfre* sein könnte, aber keine Beweise werden gefunden.",
+        "image": "old police mugshot, Joseph Mumfre, serious face"
+      },
+      {
+        "text": "Die Morde bleiben *bis heute ungeklärt* und inspirieren Künstler und Schriftsteller.",
+        "image": "old New Orleans street, daytime, jazz musicians playing"
+      }
+    ],
+    "tags": [
+      "#AxtmannVonNewOrleans",
+      "#NewOrleans"
+    ],
+    "source": "https://de.wikipedia.org/wiki/Axeman_of_New_Orleans",
+    "generated": "2026-11-07"
+  }
+]

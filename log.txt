@@ -1,0 +1,24 @@
+Telegram: story-bot=nein, bot=ja, chat=ja
+- Jack the Ripper: abgelehnt: Der Artikel enthält grausame Details und Spekulationen, die nicht für eine Veröffentlichung auf Instagram geeignet sind.
++ Zodiac-Killer: neue Geschichte 'zodiac_killer' (@cf/meta/llama-3.3-70b-instruct-fp8-fast)
++ Axeman of New Orleans: neue Geschichte 'axeman_of_new_orleans' (@cf/meta/llama-3.3-70b-instruct-fp8-fast)
+2 neue Geschichte(n).
+Alles in Ordnung - keine Nachricht nötig.
+• Grusel: 0 Reels in 7 Tagen, 2 Geschichten auf Vorrat, Token noch ~60 Tage
+• Rätsel: pausiert
+[horror] Story: zodiac_killer (8 Szenen)
+  Pollinations fehlgeschlagen: Pollinations HTTP 402: {"success":false,"error":{"message":"Insufficient balance. This request costs ~0.0020 pollen, but your available balance is 0.0005. Top up at https://enter.pollinations.ai/top-up?ref=agent_low_balance
+  Bild 1: flux-2-klein-4b
+  Bild 2: flux-2-klein-4b
+  Bild 3: flux-2-klein-4b
+  Bild 4: flux-2-klein-4b
+  Bild 5: flux-2-klein-4b
+  Bild 6: flux-2-klein-4b
+  Bild 7: flux-2-klein-4b
+  Bild 8: flux-2-klein-4b
+  Bild 9: flux-2-klein-4b
+Reel fertig: /home/runner/work/IGautomation/IGautomation/assets/story_reels/horror/reel_zodiac_killer.mp4 (63.0 s, Stimme: ja, Musik: theme.mp3)
+[horror] Story: zodiac_killer (8 Szenen)
+Reel fertig: /home/runner/work/IGautomation/IGautomation/assets/story_reels/horror/reel_zodiac_killer.mp4 (62.5 s, Stimme: ja, Musik: theme.mp3)
+publish=false
+story=zodiac_killer
