@@ -1,0 +1,3 @@
+OK horror: 768x1280, 294169 Bytes, 8.7s
+OK mysteries: 768x1280, 319250 Bytes, 6.3s
+ERGEBNIS: 2/2 Bilder
