@@ -249,6 +249,19 @@ def build_caption(account_cfg, story, rng=random):
     )
 
 
+def build_tiktok_caption(account_cfg, story, rng=random):
+    """Kuerzere Beschreibung fuer TikTok: Hook, Teaser, Frage, 5 Hashtags (TikTok mag wenige, passende)."""
+    story_tags = story.get("tags", [])[:2]
+    tags = list(dict.fromkeys(story_tags + account_cfg.get("tiktok_hashtags", account_cfg["hashtags"])))[:5]
+    teaser = strip_marks(story["scenes"][0]["text"])
+    return (
+        f"{strip_marks(story['hook']['text'])}\n\n"
+        f"{teaser} …\n\n"
+        f"{rng.choice(account_cfg['caption_cta'])}\n\n"
+        f"{' '.join(tags)}"
+    )[:2200]
+
+
 def reading_seconds(text):
     words = len(strip_marks(text).split())
     return max(3.0, min(8.5, 1.3 + words / WORDS_PER_SECOND))
@@ -946,6 +959,7 @@ def make_reel(account, story_id=None, dry_run=False, preview=False, rng=None, vo
         "branch": f"story-media-{account}",
         "thumb_offset": THUMB_OFFSET_MS,
         "caption": build_caption(account_cfg, story, rng),
+        "tiktok_caption": build_tiktok_caption(account_cfg, story, rng),
         "account": account,
         "story_id": story["id"],
         "duration": round(duration, 1),

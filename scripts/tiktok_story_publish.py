@@ -213,7 +213,7 @@ def main():
     size = os.path.getsize(video_path) if os.path.exists(video_path) else 20_000_000
 
     if args.dry_run:
-        payload = build_payload(mode, size, post["caption"], "SELF_ONLY")
+        payload = build_payload(mode, size, post.get("tiktok_caption", post["caption"]), "SELF_ONLY")
         print(f"[dry-run] Modus {mode}, Video {video_path}")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return
@@ -231,7 +231,7 @@ def main():
     privacy = choose_privacy(token) if mode == "direct" else None
     if privacy:
         print(f"Sichtbarkeit: {privacy}")
-    payload = build_payload(mode, size, post["caption"], privacy)
+    payload = build_payload(mode, size, post.get("tiktok_caption", post["caption"]), privacy)
     endpoint = "inbox/video/init" if mode == "inbox" else "video/init"
     resp = SESSION.post(
         f"{API_BASE}/post/publish/{endpoint}/", headers=auth_headers(token), json=payload, timeout=60

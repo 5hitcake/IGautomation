@@ -231,6 +231,16 @@ jobs:
           fi
           export TIKTOK_EXPECT_NAME=$(python -c "import json;print(json.load(open('content/story_reels/$ACC.json'))['account']['tiktok_name'])")
           python scripts/tiktok_story_publish.py --post-file assets/story_reels/$ACC/next_post.json
+          echo "uploaded=true" >> "$GITHUB_OUTPUT"
+
+      - name: TikTok-Beschreibung per Telegram schicken
+        if: steps.tiktok.outputs.uploaded == 'true'
+        continue-on-error: true
+        env:
+          STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/story_review.py --notify-tiktok assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
 
       - name: Ergebnis per Telegram melden
         if: always() && steps.gate.outputs.run == 'true' && steps.acc.outputs.publish == 'true'
