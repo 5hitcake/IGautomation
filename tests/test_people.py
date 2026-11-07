@@ -55,12 +55,15 @@ def test_regions_rotate_and_western_faces_appear():
         regions.append(pg.REGION_OF[p["heritage"][0]])
         state["recent"].append({k: p[k] for k in ("gender", "age_range", "heritage", "setting")})
     for a, b, c in zip(regions, regions[1:], regions[2:]):
-        assert c not in (a, b)  # gleiche Weltregion erst nach 2 anderen Personen
+        if c != pg.FREQUENT_REGION:
+            assert c not in (a, b)  # andere Regionen erst nach 2 anderen Personen wieder
+        else:
+            assert not (a == b == c)  # Europa/westlich hoechstens 2x am Stueck
     share = regions.count("europe_west") / len(regions)
-    assert 0.18 <= share <= 0.34
+    assert 0.38 <= share <= 0.52
     assert set(regions) == set(pg.REGIONS)
     western = [i for i, r in enumerate(regions) if r == "europe_west"]
-    assert max(b - a for a, b in zip(western, western[1:])) <= 15  # nie lange ohne westliche Person
+    assert max(b - a for a, b in zip(western, western[1:])) <= 10  # nie lange ohne westliche Person
 
 
 def test_every_region_heritage_is_unique():
@@ -278,6 +281,19 @@ def test_ages_lean_young_but_stay_mixed():
         p = pg.roll_persona(state, rng)
         ages.append(p["age"])
         state["recent"].append({k: p[k] for k in ("gender", "age_range", "heritage", "setting")})
-    assert 34 <= sum(ages) / len(ages) <= 44
-    assert sum(a < 40 for a in ages) / len(ages) >= 0.5
+    assert 29 <= sum(ages) / len(ages) <= 38
+    assert sum(a < 30 for a in ages) / len(ages) >= 0.4
     assert any(a >= 60 for a in ages)  # aeltere Gesichter weiter dabei
+
+
+def test_no_aging_features_for_young_people():
+    rng = random.Random(8)
+    for _ in range(400):
+        p = pg.roll_persona({"recent": []}, rng)
+        prompt = pg.build_prompt(p)
+        assert f"looks exactly {p['age']} years old" in prompt
+        if p["age"] < pg.AGING_MIN_AGE:
+            assert not any(w in prompt for w in pg.AGING_WORDS), prompt
+            assert "grey hair" not in prompt
+        if p["age"] < 30:
+            assert f"{p['age']}-year-old young " in prompt
