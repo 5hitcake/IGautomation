@@ -476,8 +476,10 @@ bei @BotFather einen zweiten Bot an und speichert dessen Token als `STORY_TELEGR
 `scripts/story_writer.py` sorgt vor jedem Termin dafür, dass mindestens 4 ungenutzte Geschichten
 auf Vorrat sind. Neue Geschichten entstehen so:
 
-1. **Thema finden**: zuerst eine kuratierte Liste echter Fälle (`wiki_seeds` in der Account-Datei,
-   ca. 50-60 je Seite), danach endlos über Suchbegriffe (`wiki_queries`) in der deutschen Wikipedia.
+1. **Thema finden**: zuerst eine kuratierte Liste echter Fälle (`wiki_seeds` deutsch, `wiki_seeds_en`
+   englisch, abwechselnd), danach endlos über Suchbegriffe (`wiki_queries`, `wiki_queries_en`) in der
+   **deutschen und englischen Wikipedia**. Englische Artikel werden auf Deutsch erzählt. Derselbe Fall
+   kommt nie doppelt (Abgleich über die Sprachverknüpfungen von Wikipedia).
 2. **Fakten**: Der Wikipedia-Artikel ist die einzige Quelle. Die KI (Cloudflare Workers AI, im
    Gratis-Kontingent, ca. 300-400 Neurons pro Geschichte) darf nichts dazuerfinden.
 3. **Filter**: Die KI lehnt ungeeignete Artikel ab: keine wahre Begebenheit, Kinder als Opfer,

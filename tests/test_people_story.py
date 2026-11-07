@@ -14,18 +14,10 @@ def test_main_writes_story_post(tmp_path, monkeypatch):
     gen = tmp_path / "assets" / "people_generated"
     gen.mkdir(parents=True)
     Image.new("RGB", pg.OUTPUT_SIZE).save(gen / "person_20261104_1113_0012.jpg")
-    (gen / "next_post.json").write_text(
-        json.dumps(
-            {
-                "type": "image",
-                "file": "assets/people_generated/person_20261104_1113_0012.jpg",
-                "caption": "x",
-                "number": 12,
-                "name": "Salma",
-                "age": 27,
-            }
-        )
-    )
+    (gen / "next_post.json").write_text(json.dumps({
+        "type": "image", "file": "assets/people_generated/person_20261104_1113_0012.jpg",
+        "caption": "x", "number": 12, "name": "Salma", "age": 27,
+    }))
     monkeypatch.setattr(ps, "ROOT", str(tmp_path))
     monkeypatch.setattr(ps, "GENERATED_DIR", str(gen))
     ps.main()

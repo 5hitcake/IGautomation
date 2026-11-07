@@ -1,5 +1,4 @@
 """Der Cloudflare-Zeitgeber muss zu den Modi von people_post.yml passen."""
-
 import os
 import re
 

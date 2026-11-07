@@ -159,11 +159,8 @@ def test_pollinations_used_when_cloudflare_quota_empty(monkeypatch):
     monkeypatch.setattr(pg, "generate_cloudflare", fake_cf)
     img, model = pg.generate_image("x", "a", "t", polli_token="tok")
     assert img == b"maiimg" and model == "pollinations:microsoft/mai-image-2.6"
-    assert calls == [
-        "@cf/black-forest-labs/flux-2-klein-9b",
-        "polli:tongyi-mai/z-image-turbo",
-        "polli:microsoft/mai-image-2.6",
-    ]
+    assert calls == ["@cf/black-forest-labs/flux-2-klein-9b", "polli:tongyi-mai/z-image-turbo",
+                     "polli:microsoft/mai-image-2.6"]
 
 
 def test_age_hint():
