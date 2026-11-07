@@ -478,7 +478,7 @@ Pro Reel entstehen 9 Bilder (Hook + 8 Szenen), also 18 pro Tag für beide Seiten
 kostenlosen Neurons pro Tag und Bild, zusammen also ca. 3.000. Der People-Account braucht
 ca. 4.400. Ist das Kontingent doch einmal leer, wird automatisch FLUX-1 Schnell (ca. 60 pro Bild)
 versucht, danach optional **Pollinations** (kostenloser Schlüssel von
-[enter.pollinations.ai](https://enter.pollinations.ai), als Secret `POLLINATIONS_API_KEY`).
+[enter.pollinations.ai](https://enter.pollinations.ai), als Secret `POLLI_TOKEN`).
 Erst wenn alles scheitert, kommt ein dunkler Verlaufshintergrund.
 Mehr Bilder? Der Cloudflare-Plan „Workers Paid“ (5 $/Monat) behält die 10.000 Gratis-Neurons
 und berechnet darüber ca. 0,002 $ pro Bild.
@@ -499,7 +499,7 @@ und berechnet darüber ca. 0,002 $ pro Bild.
    Werte von `WEIRDWORLD_IG_ACCESS_TOKEN` / `WEIRDWORLD_IG_ACCOUNT_ID` erneut eintragen.
    Dann aber den TikTok-Workflow für Instagram abschalten, sonst kommen zwei Reels am Tag.
 3. `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` sind schon da (People-Account).
-   Optional als Reserve: `POLLINATIONS_API_KEY` (siehe „Bilder: Kontingent“).
+   Optional als Reserve: `POLLI_TOKEN` (siehe „Bilder: Kontingent“).
 4. **Testen**: Actions → *Story Reels (Grusel + Rätsel)* → *Run workflow* → Häkchen
    bei „Auch auf Instagram posten?“ **entfernen**. Dann wird nur das Video gebaut, und
    du kannst es unten im Lauf unter **Artifacts** herunterladen und anschauen.

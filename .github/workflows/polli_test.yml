@@ -1,0 +1,64 @@
+name: Pollinations-Test (einmalig)
+
+# Prueft, ob mit dem Secret POLLI_TOKEN Bilder erzeugt werden koennen.
+# Das Ergebnis landet auf dem Branch polli-test-result (Bild + Log).
+on:
+  push:
+    branches: [claude/instagram-reels-automation-koceqs]
+    paths: [".github/workflows/polli_test.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests Pillow
+      - name: Bild ueber Pollinations erzeugen
+        env:
+          POLLINATIONS_API_KEY: ${{ secrets.POLLI_TOKEN }}
+        run: |
+          mkdir -p out
+          echo "Token gesetzt: $([ -n "$POLLINATIONS_API_KEY" ] && echo ja || echo NEIN), Laenge ${#POLLINATIONS_API_KEY}"
+          python - <<'PY' 2>&1 | tee out/log.txt
+          import io, os, sys, time
+          sys.path.insert(0, "scripts")
+          import story_reel as sr
+          from PIL import Image
+          key = os.environ.get("POLLINATIONS_API_KEY", "")
+          prompts = [
+              ("horror", "a lone torn tent half buried in snow on a dark mountain slope at night, blizzard, "
+               + sr.load_account("horror")[0]["image_style"]),
+              ("mysteries", "ancient shipwreck on the sea floor with divers and bronze statues, light rays, "
+               + sr.load_account("mysteries")[0]["image_style"]),
+          ]
+          ok = 0
+          for name, prompt in prompts:
+              t = time.time()
+              try:
+                  raw = sr.generate_pollinations(prompt, 42, key)
+                  img = Image.open(io.BytesIO(raw))
+                  img.convert("RGB").save(f"out/{name}.jpg", quality=90)
+                  print(f"OK {name}: {img.size[0]}x{img.size[1]}, {len(raw)} Bytes, {time.time() - t:.1f}s")
+                  ok += 1
+              except Exception as exc:
+                  print(f"FEHLER {name}: {exc}")
+          print(f"ERGEBNIS: {ok}/{len(prompts)} Bilder")
+          PY
+      - name: Ergebnis auf Branch polli-test-result legen
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          git init -q -b polli-test-result
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Pollinations-Test"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" polli-test-result
