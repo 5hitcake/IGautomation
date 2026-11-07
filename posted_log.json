@@ -2,7 +2,8 @@
   "posted_quote_ids": [
     100,
     77,
-    3
+    3,
+    103
   ],
   "posted_reel_ids": [
     5,
@@ -12,11 +13,11 @@
     6
   ],
   "recent_backgrounds": [
-    "bg_07_beach_run.png",
     "bg_04_ocean_waves.png",
     "bg_13_cliff_sunset.png",
     "bg_01_mountain_dawn.png",
-    "bg_15_night_road.png"
+    "bg_15_night_road.png",
+    "bg_02_mountain_climb.png"
   ],
   "recent_bg_videos": [
     "reel_02_ocean_waves.mp4",
