@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok Login</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<nav><a href="./">Story Reels Uploader</a><a href="terms.html">Terms of Service</a><a href="privacy.html">Privacy Policy</a></nav>
+<h1>TikTok login</h1>
+<div class="card" id="box">
+<p id="status">Waiting for TikTok …</p>
+<p>Copy this complete address and paste it into the <code>tiktok_auth.py</code> window:</p>
+<textarea id="url" readonly></textarea>
+<button id="copy" type="button">Copy address</button>
+</div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const status = document.getElementById("status");
+  const field = document.getElementById("url");
+  field.value = location.href;
+  if (params.get("code")) {
+    status.textContent = "Success: TikTok sent a login code.";
+  } else if (params.get("error")) {
+    status.textContent = "TikTok reported an error: " + (params.get("error_description") || params.get("error"));
+  } else {
+    status.textContent = "No login code in this address. Start again with the link from tiktok_auth.py.";
+  }
+  document.getElementById("copy").addEventListener("click", async () => {
+    field.select();
+    try { await navigator.clipboard.writeText(field.value); } catch (e) { document.execCommand("copy"); }
+    document.getElementById("copy").textContent = "Copied";
+  });
+</script>
+</main>
+</body>
+</html>

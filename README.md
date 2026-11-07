@@ -595,8 +595,11 @@ sind. Schlägt TikTok fehl, bleibt der Instagram-Post davon unberührt.
    **Connect an app** (oder die bestehende App von @weirdworld.ai nutzen).
 2. In der App die Produkte **Login Kit** und **Content Posting API** hinzufügen, Scopes
    `user.info.basic`, `video.upload` und `video.publish` aktivieren.
-3. Unter Login Kit eine **Redirect-URI** eintragen, z.B. `https://github.com/5hitcake/igautomation`
-   (es reicht irgendeine https-Seite, man kopiert danach nur die Adresse aus dem Browser).
+3. Unter Login Kit als **Redirect-URI** `https://5hitcake.github.io/IGautomation/callback.html` eintragen.
+   Die Seite liegt in `docs/` (GitHub Pages: Settings → Pages → Branch `main`, Ordner `/docs`) und zeigt
+   nach dem Login die Adresse zum Kopieren an. Dort liegen auch Startseite, `terms.html` und
+   `privacy.html` für die App-Angaben. Die Prüfdatei von TikTok („Verify URL properties“) kommt ebenfalls
+   in `docs/`.
 4. Bei GitHub zwei Secrets anlegen: `TIKTOK_CLIENT_KEY` und `TIKTOK_CLIENT_SECRET`
    (stehen in der App unter „App details“, gelten für beide Accounts).
 5. Am PC: `pip install requests` und `python scripts/tiktok_auth.py`. Client Key/Secret und
