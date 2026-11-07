@@ -13,8 +13,8 @@ import people_generate as pg  # noqa: E402
 
 TOKEN = os.environ["POLLI_TOKEN"]
 OUT = os.path.join(os.path.dirname(__file__), "..", "assets", "polli_test")
-MODELS = ["black-forest-labs/flux.1.1-pro", "tongyi-mai/z-image-turbo",
-          "microsoft/mai-image-2.6", "black-forest-labs/flux.2-klein-4b"]
+MODELS = ["black-forest-labs/flux.1.1-pro", "microsoft/mai-image-2.6"]
+BAL = {}
 
 
 def get(url, timeout=180):
@@ -28,7 +28,7 @@ def balance():
     for path in ("/account/balance", "/account/profile"):
         try:
             _, _, body = get("https://gen.pollinations.ai" + path, 30)
-            print(f"{path}: {body[:400].decode('utf-8', 'replace')}")
+            BAL.setdefault(path, []).append(body[:400].decode("utf-8", "replace"))
         except Exception as e:  # noqa: BLE001
             print(f"{path}: {e}")
 
@@ -40,7 +40,7 @@ os.makedirs(OUT, exist_ok=True)
 balance()
 results = {}
 for model in MODELS:
-    q = urllib.parse.urlencode({"model": model, "width": 1080, "height": 1350, "seed": 42, "nologo": "true"})
+    q = urllib.parse.urlencode({"model": model, "width": 1088, "height": 1344, "seed": 42, "nologo": "true"})
     url = f"https://gen.pollinations.ai/image/{urllib.parse.quote(prompt)}?{q}"
     t = time.time()
     try:
@@ -56,4 +56,4 @@ for model in MODELS:
     print(model, "->", results[model])
 balance()
 with open(os.path.join(OUT, "results.json"), "w", encoding="utf-8") as f:
-    json.dump({"prompt": prompt, "results": results}, f, ensure_ascii=False, indent=2)
+    json.dump({"prompt": prompt, "results": results, "balance": BAL}, f, ensure_ascii=False, indent=2)
