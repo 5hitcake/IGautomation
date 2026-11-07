@@ -1,8 +1,10 @@
 name: Daily TikTok Post
 
 on:
-  schedule:
-    - cron: "38 15 * * *"  # ~16-17 Uhr deutsche Zeit (MEZ/MESZ), unrunde Minute gegen GitHub-Lastspitzen
+  # Zeitplan abgeschaltet: Der TikTok-Account @weirdworld.ai wird zur Mystery-Seite und bekommt
+  # kuenftig die Story-Reels (story_reels.yml). Manuell ist dieser Workflow weiter startbar.
+  # schedule:
+  #   - cron: "38 15 * * *"
   workflow_dispatch:
     inputs:
       regenerate:
