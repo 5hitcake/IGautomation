@@ -65,7 +65,7 @@ MUSIC_VOLUME = 0.55
 MUSIC_VOLUME_UNDER_VOICE = 0.22
 THUMB_OFFSET_MS = 1500  # Titelbild: Hook-Folie
 STATE_HISTORY_LIMIT = 200
-DIM_ALPHA = 120  # noch nicht gesprochene Woerter (0-255)
+DIM_FACTOR = 0.55  # Helligkeit noch nicht gesprochener Woerter (Kontur bleibt voll)
 
 # ---- Bilder ---------------------------------------------------------------------------
 # Cloudflare Workers AI, kostenloses Tageskontingent 10.000 Neurons (geteilt mit dem
@@ -82,7 +82,7 @@ POLLINATIONS_URL = "https://gen.pollinations.ai/image/{prompt}"
 
 # ---- Stimme ---------------------------------------------------------------------------
 DEFAULT_VOICE = "de-DE-KillianNeural"  # tiefste deutsche edge-tts-Stimme (~100 Hz)
-VOICE_RATE = "-6%"
+VOICE_RATE = "+4%"
 VOICE_PITCH = "-6Hz"
 PITCH_FACTOR = 0.87  # zusaetzlich ~2,4 Halbtoene tiefer (Tempo bleibt gleich)
 DARK_VOICE_FILTER = (
@@ -91,8 +91,8 @@ DARK_VOICE_FILTER = (
     "acompressor=threshold=-20dB:ratio=3:attack=8:release=250:makeup=2,"
     "aecho=0.85:0.6:70|140:0.16|0.08"
 )
-VOICE_LEAD_IN = 0.25  # Sekunden Stille vor jeder Szene
-VOICE_GAP = 0.35  # Pause nach jeder Szene
+VOICE_LEAD_IN = 0.15  # Sekunden Stille vor jeder Szene
+VOICE_GAP = 0.25  # Pause nach jeder Szene
 
 WORDS_PER_SECOND = 2.7  # Lesetempo, falls ohne Stimme
 
@@ -353,7 +353,10 @@ def parse_marked(text):
             accent = not accent
             continue
         for w in part.split():
-            words.append((w, accent))
+            if words and all(ch in ".,;:!?…“”\"')" for ch in w):
+                words[-1] = (words[-1][0] + w, words[-1][1])  # Satzzeichen ans vorige Wort haengen
+            else:
+                words.append((w, accent))
     return words
 
 
@@ -437,16 +440,15 @@ def render_text_card(seg, accent, revealed=None):
             x = (W - lw) / 2
             for word, hi, ww in words:
                 color = tuple(accent) if hi else default
-                alpha = 255
                 if karaoke and revealed is not None and idx >= revealed:
-                    alpha = DIM_ALPHA
+                    color = tuple(int(c * DIM_FACTOR) for c in color)
                 d.text(
                     (x, y),
                     word,
                     font=font,
-                    fill=color + (alpha,),
+                    fill=color + (255,),
                     stroke_width=stroke,
-                    stroke_fill=(0, 0, 0, alpha),
+                    stroke_fill=(0, 0, 0, 255),
                 )
                 x += ww + space
                 idx += 1

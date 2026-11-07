@@ -130,3 +130,13 @@ def test_image_maker_dry_run_and_fallback(monkeypatch):
     monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
     monkeypatch.delenv("POLLINATIONS_API_KEY", raising=False)
     assert sr.ImageMaker().make("x", 1) == (None, "fallback")
+
+
+def test_parse_marked_attaches_punctuation():
+    assert sr.parse_marked("Zelt *aufgeschlitzt*. Ende – gut") == [
+        ("Zelt", False),
+        ("aufgeschlitzt.", True),
+        ("Ende", False),
+        ("–", False),
+        ("gut", False),
+    ]
