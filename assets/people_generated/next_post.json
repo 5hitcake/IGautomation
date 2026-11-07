@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261106_2343_0010.mp4",
-  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0010 · \"Ayu\", 26\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #generativeai #twinstranger #notreal #fakeface #peopleofinstagram",
-  "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 26-year-old Southeast Asian woman with hair tucked under a beanie, dark red lipstick and dimples, wearing a sequined party top, a slight smirk, on a mountain trail, neon city lights at night, shot on Fujifilm X-T4, 56mm f/1.2, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 10,
-  "name": "Ayu",
-  "age": 26,
-  "image": "assets/people_generated/person_20261106_2343_0010.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "type": "image",
+  "file": "assets/people_generated/person_20261107_1121_0011.jpg",
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0011 · \"Arjun\", 26\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #generativeai #digitalhuman #artificialintelligence #peopleofinstagram #fakeface #streetportrait",
+  "model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "prompt": "Close-up headshot photo of a 26-year-old South Asian man with short dreadlocks dyed platinum blonde, a goatee, round tinted sunglasses and rosy cheeks, wearing a wool coat and scarf, a warm genuine smile, in a cozy living room, afternoon sunlight through a window, shot on Fujifilm X-T4, 56mm f/1.2, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 11,
+  "name": "Arjun",
+  "age": 26
 }
