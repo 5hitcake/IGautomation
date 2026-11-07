@@ -1,4 +1,4 @@
-name: Musik-Test ACE-Step (temporaer)
+name: Musik-Test ACE-Step (temporaer, anonym)
 on:
   push:
     branches: [claude/instagram-reels-automation-koceqs]
@@ -26,7 +26,7 @@ jobs:
           prompt = ("witch house, ethereal dream pop, hazy lo-fi electronic, distorted warm synth pads, bitcrushed glittering "
                     "arpeggio, deep heavy sub bass, steady four-on-the-floor kick, wordless dreamy female vocal chops drenched "
                     "in reverb, nostalgic, hypnotic, mysterious, cosmic, starts immediately with full beat, no intro, instrumental")
-          token = os.environ.get("HF_TOKEN") or None
+          token = None  # anonym testen
           c = Client("ACE-Step/Ace-Step-v1.5", verbose=False, **({"token": token} if token else {}))
           args = dict(selected_model="acestep-v15-xl-turbo", generation_mode="custom", simple_query_input="",
                       simple_vocal_language="unknown", param_4=prompt, param_5="[Instrumental]", param_6=136,
