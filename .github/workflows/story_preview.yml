@@ -1,6 +1,6 @@
 name: Story-Reel Vorschau (temporaer)
 
-# Rendert ein Vorschau-Reel mit echten Bildern/Stimme und legt es auf den Branch story-preview.
+# (Lauf 2) Rendert ein Vorschau-Reel mit echten Bildern/Stimme und legt es auf den Branch story-preview.
 on:
   push:
     branches: [claude/instagram-reels-automation-koceqs]
@@ -20,7 +20,7 @@ jobs:
           python-version: "3.12"
       - run: |
           command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
-          pip install requests Pillow edge-tts==7.2.8
+          pip install requests Pillow "edge-tts>=7.3.1"
       - name: Reel rendern
         env:
           POLLINATIONS_API_KEY: ${{ secrets.POLLI_TOKEN }}

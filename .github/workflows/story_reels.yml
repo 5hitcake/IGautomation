@@ -85,7 +85,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: |
           command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
-          pip install requests Pillow edge-tts==7.2.8
+          pip install requests Pillow "edge-tts>=7.3.1"
 
       - name: Reel erzeugen (Szenenbilder, Sprecher, Text, Musik)
         if: steps.gate.outputs.run == 'true'
