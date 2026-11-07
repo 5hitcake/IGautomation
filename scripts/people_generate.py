@@ -77,15 +77,17 @@ GENDERS = ["woman", "man"]
 AGE_RANGES = [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69), (70, 85)]
 # Wuerfel-Gewichte: Schwerpunkt auf dem Alter typischer Instagram-Nutzer,
 # aeltere Gesichter weiter dabei, aber seltener.
-AGE_WEIGHTS = {(20, 29): 0.40, (30, 39): 0.32, (40, 49): 0.14, (50, 59): 0.08, (60, 69): 0.04, (70, 85): 0.02}
+AGE_WEIGHTS = {
+    (20, 29): 0.55, (30, 39): 0.28, (40, 49): 0.09, (50, 59): 0.04, (60, 69): 0.025, (70, 85): 0.015,
+}
 
 # Weltregionen mit Wuerfel-Gewicht und ihren Herkuenften
 # (Beschreibung fuer den Prompt, Namensgruppe). Erst wird die Region gewuerfelt,
 # dann die Herkunft darin - sonst dominieren Regionen mit vielen Untergruppen.
-# Durch die Sperre gleicher Regionen ergibt sich real: Europa/westlich ~25 %,
-# Afrika, Lateinamerika, Ostasien je ~13 %, Nahost ~12 %, Suedasien ~10 %, Rest ~6 %.
+# Real (simuliert): Europa/westlich ~45 %, Lateinamerika ~14 %, Afrika ~11 %,
+# Ostasien ~10 %, Nahost ~8 %, Suedasien ~7 %, gemischt ~4 %, Indigene ~2 %.
 REGIONS = {
-    "europe_west": (0.40, [
+    "europe_west": (0.45, [
         ("Northern European", "northern_european"),
         ("Southern European", "southern_european"),
         ("Eastern European", "eastern_european"),
@@ -98,20 +100,20 @@ REGIONS = {
         ("white Australian", "white_australian"),
         ("Sámi", "sami"),
     ]),
-    "africa": (0.14, [
+    "africa": (0.10, [
         ("West African", "west_african"),
         ("East African", "east_african"),
         ("Afro-Caribbean", "caribbean"),
         ("African American", "african_american"),
         ("Malagasy", "malagasy"),
     ]),
-    "latin_america": (0.14, [
+    "latin_america": (0.15, [
         ("Latin American", "latin_american"),
         ("Brazilian", "brazilian"),
         ("Mexican", "mexican"),
         ("Indigenous Andean", "andean"),
     ]),
-    "east_asia": (0.12, [
+    "east_asia": (0.10, [
         ("East Asian", "east_asian"),
         ("Korean", "korean"),
         ("Japanese", "japanese"),
@@ -119,30 +121,34 @@ REGIONS = {
         ("Filipino", "filipino"),
         ("Mongolian", "mongolian"),
     ]),
-    "mena": (0.11, [
+    "mena": (0.08, [
         ("Middle Eastern", "middle_eastern"),
         ("North African", "north_african"),
         ("Turkish", "turkish"),
         ("Persian", "persian"),
     ]),
-    "south_central_asia": (0.08, [
+    "south_central_asia": (0.06, [
         ("South Asian", "south_asian"),
         ("Nepali", "nepali"),
         ("Central Asian", "central_asian"),
     ]),
-    "indigenous_pacific": (0.05, [
+    "indigenous_pacific": (0.02, [
         ("Native American", "native_american"),
         ("Pacific Islander", "pacific_islander"),
         ("Aboriginal Australian", "aboriginal_australian"),
         ("Inuit", "inuit"),
     ]),
-    "mixed": (0.06, [
+    "mixed": (0.04, [
         ("mixed-race", "mixed"),
     ]),
 }
 HERITAGES = [h for _, hs in REGIONS.values() for h in hs]
 REGION_OF = {h[0]: region for region, (_, hs) in REGIONS.items() for h in hs}
-AVOID_RECENT_REGIONS = 2  # dieselbe Weltregion fruehestens nach 2 anderen Personen wieder
+AVOID_RECENT_REGIONS = 2  # dieselbe Weltregion fruehestens nach 2 anderen Personen wieder ...
+FREQUENT_REGION = "europe_west"  # ... ausser Europa/westlich: darf direkt wieder, max. 2x am Stueck
+# Merkmale, die Gesichter aelter wirken lassen - erst ab diesem Alter.
+AGING_MIN_AGE = 40
+AGING_WORDS = ("laugh lines", "crow's feet", "thinning hair", "sun-weathered", "silver")
 
 FIRST_NAMES = {
     "west_african": (
@@ -486,13 +492,16 @@ def roll_persona(state, rng=random):
     letzten AVOID_RECENT Personen werden vermieden; dieselbe Weltregion kommt fruehestens
     nach AVOID_RECENT_REGIONS anderen Personen wieder (Gewichte siehe REGIONS)."""
     recent = state.get("recent", [])[-AVOID_RECENT:]
-    recent_regions = {REGION_OF.get(r["heritage"][0]) for r in recent[-AVOID_RECENT_REGIONS:]}
-    regions = [r for r in REGIONS if r not in recent_regions] or list(REGIONS)
+    last = [REGION_OF.get(r["heritage"][0]) for r in recent[-AVOID_RECENT_REGIONS:]]
+    blocked = {r for r in last if r != FREQUENT_REGION}
+    if len(last) == AVOID_RECENT_REGIONS and all(r == FREQUENT_REGION for r in last):
+        blocked.add(FREQUENT_REGION)
+    regions = [r for r in REGIONS if r not in blocked] or list(REGIONS)
     region = rng.choices(regions, [REGIONS[r][0] for r in regions])[0]
     heritage, name_group = _pick_avoiding(rng, REGIONS[region][1], [tuple(r["heritage"]) for r in recent])
 
     combos = [(g, a) for g in GENDERS for a in AGE_RANGES]
-    recent_combos = [(r["gender"], tuple(r["age_range"])) for r in recent]
+    recent_combos = [(r["gender"], tuple(r["age_range"])) for r in recent[-1:]]
     combos = [c for c in combos if c not in recent_combos] or combos
     gender, age_range = rng.choices(combos, [AGE_WEIGHTS[a] for _, a in combos])[0]
     # Nicht dreimal hintereinander dasselbe Geschlecht.
@@ -508,9 +517,9 @@ def roll_persona(state, rng=random):
         "age_range": list(age_range),
         "heritage": [heritage, name_group],
         "name": rng.choice(women if gender == "woman" else men),
-        "hair": rng.choice(HAIR[gender]),
+        "hair": rng.choice(_age_ok(HAIR[gender], age)),
         "facial_hair": rng.choice(FACIAL_HAIR) if gender == "man" else None,
-        "detail": rng.choice(DETAILS),
+        "detail": rng.choice(_age_ok(DETAILS, age)),
         "clothing": rng.choice(CLOTHING if gender == "woman" else MENSWEAR),
         "setting": setting,
         "lighting": rng.choice(INDOOR_LIGHTING if setting in INDOOR_SETTINGS else OUTDOOR_LIGHTING),
@@ -524,10 +533,18 @@ def roll_persona(state, rng=random):
     return persona
 
 
+def _age_ok(options, age):
+    """Unter AGING_MIN_AGE keine Merkmale, die das Gesicht aelter machen."""
+    if age >= AGING_MIN_AGE:
+        return list(options)
+    return [o for o in options if not any(w in o for w in AGING_WORDS)] or list(options)
+
+
 def _dye_hair(persona, colors, rng):
     hair = persona["hair"]
     if persona.get("headwear") or "shaved" in hair or "under a" in hair:
         return False
+    colors = _age_ok(colors, persona["age"])
     persona["hair"] = f"{hair} dyed {rng.choice(colors)}".replace("grey hair", "hair")
     return True
 
@@ -550,7 +567,7 @@ def add_traits(persona, rng=random):
             if not _dye_hair(persona, SUBTLE_HAIR_COLORS, rng):
                 continue
         else:
-            persona["traits"].append(rng.choice(SUBTLE_TRAITS[kind]))
+            persona["traits"].append(rng.choice(_age_ok(SUBTLE_TRAITS[kind], persona["age"])))
         used.add(kind)
 
     if rng.random() < BOLD_CHANCE:
@@ -573,11 +590,13 @@ def build_prompt(p):
     for trait in p.get("traits", []):
         looks += f", {trait}"
     article = "an" if str(p["age"]).startswith("8") else "a"
+    young = "young " if p["age"] < 30 else ""
     return (
         f"{p['framing'].capitalize()} photo of {article} {p['age']}-year-old "
-        f"{p['heritage'][0]} {p['gender']} "
+        f"{young}{p['heritage'][0]} {p['gender']} "
         f"with {looks} and {p['detail']}, wearing {p['clothing']}, {p['expression']}, "
-        f"{p['setting']}, {p['lighting']}, {p['camera']}, {PROMPT_TAIL}"
+        f"{p['setting']}, {p['lighting']}, {p['camera']}, "
+        f"{AGE_HINT.format(age=p['age'])}{PROMPT_TAIL}"
     )
 
 
@@ -626,7 +645,7 @@ def generate_cloudflare(model, prompt, account_id, api_token, retries=3):
 def with_age_hint(prompt):
     """'...a 25-year-old...photorealistic...' -> Alterszusatz vor 'photorealistic'."""
     m = re.search(r"(\d+)-year-old", prompt)
-    if not m or "photorealistic" not in prompt:
+    if not m or "photorealistic" not in prompt or "looks exactly" in prompt:
         return prompt
     return prompt.replace("photorealistic", AGE_HINT.format(age=m.group(1)) + "photorealistic", 1)
 
