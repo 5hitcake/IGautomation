@@ -1,5 +1,6 @@
 import asyncio
 import random
+import shutil
 
 import pytest
 import story_reel as sr
@@ -72,6 +73,7 @@ def test_map_word_times():
     assert sr.map_word_times([], 0, 3) == []
 
 
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg nicht installiert")
 def test_voiceover_sets_durations_and_word_times(tmp_path):
     import subprocess
 
