@@ -173,9 +173,16 @@ def run(today=None, http=requests, weekly=None):
             msg, days_left = check_instagram(account, token, state, today, http)
             if msg:
                 problems.append(msg)
-        msg = check_tiktok(account, os.environ.get(f"{prefix}_TIKTOK_REFRESH_TOKEN", "").strip(), http)
+        tt_token = os.environ.get(f"{prefix}_TIKTOK_REFRESH_TOKEN", "").strip()
+        msg = check_tiktok(account, tt_token, http)
         if msg:
             problems.append(msg)
+        tt_ready = tt_token and os.environ.get("TIKTOK_CLIENT_KEY") and os.environ.get("TIKTOK_CLIENT_SECRET")
+        tiktok = (
+            "TikTok: Problem (siehe oben)"
+            if msg
+            else ("TikTok: verbunden" if tt_ready else "TikTok: nicht eingerichtet")
+        )
         if account in enabled:
             _, stories = sr.load_account(account)
             unused = sr.unused_count(stories, sr.load_state().get(account, {}))
@@ -195,10 +202,10 @@ def run(today=None, http=requests, weekly=None):
             token_info += " (verlängert sich automatisch)" if auto else ""
             summary.append(
                 f"• {NAMES[account]}: {posts_last_days(account)} Reels in 7 Tagen, "
-                f"{unused} Geschichten auf Vorrat{token_info}"
+                f"{unused} Geschichten auf Vorrat{token_info}, {tiktok}"
             )
         else:
-            summary.append(f"• {NAMES[account]}: pausiert")
+            summary.append(f"• {NAMES[account]}: pausiert, {tiktok}")
     save_state(state)
     weekly = today.weekday() == 0 if weekly is None else weekly
     return problems, summary, weekly

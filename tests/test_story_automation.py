@@ -158,6 +158,7 @@ def test_health_run_reports_low_story_pool(tmp_state, monkeypatch):
     problems, summary, weekly = sh.run(today=date(2027, 1, 4), http=FakeHTTP())
     assert any("Geschichte" in p for p in problems)
     assert weekly and "14 Reels" in summary[0] and "pausiert" in summary[1]
+    assert "TikTok: nicht eingerichtet" in summary[0]
 
 
 # --------------------------------------------------------------------------- Geschichten-Schreiber
@@ -209,6 +210,7 @@ def test_generate_appends_story_and_marks_article(tmp_state, tmp_path, monkeypat
     content.mkdir()
     data = json.load(open(f"{sr.CONTENT_DIR}/horror.json", encoding="utf-8"))
     data["account"]["wiki_seeds"] = ["Fall A", "Fall B"]
+    data["account"]["wiki_seeds_en"] = []
     (content / "horror.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     monkeypatch.setattr(sr, "CONTENT_DIR", str(content))
     monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "a")
@@ -216,13 +218,16 @@ def test_generate_appends_story_and_marks_article(tmp_state, tmp_path, monkeypat
     monkeypatch.setattr(
         sw,
         "wiki_article",
-        lambda t: None if t == "Fall A" else (t, "x" * 3000, "https://de.wikipedia.org/wiki/B"),
+        lambda t: (
+            None if t == "Fall A" else (t, t, "x" * 3000, "https://de.wikipedia.org/wiki/B", {"en:Case B"})
+        ),
     )
     monkeypatch.setattr(sw, "write_story", lambda *a, **k: (dict(make_story_json()), "m1"))
+    monkeypatch.setattr(sw, "wiki_search", lambda *a, **k: [])
     assert sw.generate("horror", 1) == 1
     new = json.load(open(content / "horror.json", encoding="utf-8"))["stories"][-1]
     assert new["id"] == "neuer_fall" and new["source"].endswith("/B")
-    assert sr.load_state()["horror"]["wiki_used"] == ["Fall A", "Fall B"]
+    assert sr.load_state()["horror"]["wiki_used"] == ["Fall A", "Fall B", "en:Case B"]
     assert sr.validate_story({k: new[k] for k in ("id", "hook", "scenes", "tags")}) == []
 
 
@@ -249,3 +254,40 @@ def test_tidy_and_validate_ai_formatting():
         sc["image"] = "Eine dunkle Zelle mit einem alten Mann und der Tür"
     problems = " ".join(sr.validate_story({k: story[k] for k in ("id", "hook", "scenes", "tags")}))
     assert "Englisch" in problems and "Hervorhebungen" in problems
+
+
+def test_split_lang_and_mixed_candidates():
+    assert sw.split_lang("en:Zodiac Killer") == ("en", "Zodiac Killer")
+    assert sw.split_lang("Zodiac-Killer") == ("de", "Zodiac-Killer")
+    assert sw.split_lang("Operation: Mindfall") == ("de", "Operation: Mindfall")
+    cfg = {"wiki_seeds": ["A", "B", "C"], "wiki_seeds_en": ["en:X"], "wiki_queries": []}
+    assert list(sw.candidates(cfg, {"wiki_used": ["B"]}, None)) == ["A", "en:X", "C"]
+    assert sw.is_listish("en:List of ghost ships") and not sw.is_listish("en:Bell Witch")
+
+
+def test_same_case_in_other_language_is_skipped(tmp_state, tmp_path, monkeypatch):
+    content = tmp_path / "content"
+    content.mkdir()
+    data = json.load(open(f"{sr.CONTENT_DIR}/horror.json", encoding="utf-8"))
+    data["account"]["wiki_seeds"] = ["Zodiac-Killer"]
+    data["account"]["wiki_seeds_en"] = ["en:Zodiac Killer"]
+    (content / "horror.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(sr, "CONTENT_DIR", str(content))
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "a")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "t")
+    links = {"Zodiac-Killer": {"en:Zodiac Killer"}, "en:Zodiac Killer": {"Zodiac-Killer"}}
+    monkeypatch.setattr(sw, "wiki_article", lambda t: (t, t, "x" * 3000, "u", links[t]))
+    monkeypatch.setattr(sw, "wiki_search", lambda *a, **k: [])
+    calls = []
+    monkeypatch.setattr(
+        sw, "write_story", lambda *a, **k: calls.append(a[1]) or (dict(make_story_json()), "m")
+    )
+    assert sw.generate("horror", 2) == 1
+    assert calls == ["Zodiac-Killer"]
+
+
+def test_english_article_prompt_asks_for_german():
+    assert "DEUTSCH" in sw.article_prompt(
+        "Bell Witch", "The Bell Witch was a legend and the family was haunted."
+    )
+    assert "DEUTSCH" not in sw.article_prompt("Spuk", "Der Spuk war in der Stadt und die Leute hatten Angst.")

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<nav><a href="./">Story Reels Uploader</a><a href="terms.html">Terms of Service</a><a href="privacy.html">Privacy Policy</a></nav>
+<h1>Privacy Policy</h1>
+<p class="muted">Last updated: 2026-11-07</p>
+<p>Story Reels Uploader ("the App") is a personal automation tool that publishes short-form videos to social media accounts owned by the developer.</p>
+<h2>What data the App handles</h2>
+<ul>
+<li><strong>Access tokens</strong> for TikTok and Instagram are stored as encrypted GitHub Actions secrets. They are never committed to the repository or shown in logs, and are used only to publish content to the developer's own connected accounts.</li>
+<li><strong>Basic account info</strong> (<code>user.info.basic</code>) is used only to confirm which of the developer's accounts is connected. It is not stored or shared.</li>
+<li><strong>Generated content</strong>: videos, images and captions created by the App. They contain no personal data about third parties.</li>
+<li><strong>No end-user data</strong>: the App does not collect, process or store data of any TikTok or Instagram user other than the developer's own connected accounts.</li>
+</ul>
+<h2>Third-party services</h2>
+<p>The App uses the TikTok Content Posting API, the Instagram Graph API (Meta), Cloudflare Workers AI and Pollinations for image and text generation, Microsoft Edge text-to-speech, and Wikipedia as a source of facts. Each service processes data under its own privacy policy.</p>
+<h2>Data retention and deletion</h2>
+<p>Access can be revoked at any time in the TikTok or Instagram app settings; the stored tokens are then deleted from the GitHub secrets.</p>
+<h2>Contact</h2>
+<p>Questions can be raised via <a href="https://github.com/5hitcake/IGautomation/issues">GitHub Issues</a>.</p>
+</main>
+</body>
+</html>

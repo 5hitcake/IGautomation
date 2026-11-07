@@ -137,15 +137,16 @@ def load_account(account):
     return data["account"], data["stories"]
 
 
-def load_state(path=STATE_PATH):
+def load_state(path=None):
+    path = path or STATE_PATH  # erst beim Aufruf auswerten (Tests biegen STATE_PATH um)
     if not os.path.exists(path):
         return {}
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def save_state(state, path=STATE_PATH):
-    with open(path, "w", encoding="utf-8") as f:
+def save_state(state, path=None):
+    with open(path or STATE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
         f.write("\n")
 

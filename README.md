@@ -476,8 +476,10 @@ bei @BotFather einen zweiten Bot an und speichert dessen Token als `STORY_TELEGR
 `scripts/story_writer.py` sorgt vor jedem Termin dafür, dass mindestens 4 ungenutzte Geschichten
 auf Vorrat sind. Neue Geschichten entstehen so:
 
-1. **Thema finden**: zuerst eine kuratierte Liste echter Fälle (`wiki_seeds` in der Account-Datei,
-   ca. 50-60 je Seite), danach endlos über Suchbegriffe (`wiki_queries`) in der deutschen Wikipedia.
+1. **Thema finden**: zuerst eine kuratierte Liste echter Fälle (`wiki_seeds` deutsch, `wiki_seeds_en`
+   englisch, abwechselnd), danach endlos über Suchbegriffe (`wiki_queries`, `wiki_queries_en`) in der
+   **deutschen und englischen Wikipedia**. Englische Artikel werden auf Deutsch erzählt. Derselbe Fall
+   kommt nie doppelt (Abgleich über die Sprachverknüpfungen von Wikipedia).
 2. **Fakten**: Der Wikipedia-Artikel ist die einzige Quelle. Die KI (Cloudflare Workers AI, im
    Gratis-Kontingent, ca. 300-400 Neurons pro Geschichte) darf nichts dazuerfinden.
 3. **Filter**: Die KI lehnt ungeeignete Artikel ab: keine wahre Begebenheit, Kinder als Opfer,
@@ -593,8 +595,11 @@ sind. Schlägt TikTok fehl, bleibt der Instagram-Post davon unberührt.
    **Connect an app** (oder die bestehende App von @weirdworld.ai nutzen).
 2. In der App die Produkte **Login Kit** und **Content Posting API** hinzufügen, Scopes
    `user.info.basic`, `video.upload` und `video.publish` aktivieren.
-3. Unter Login Kit eine **Redirect-URI** eintragen, z.B. `https://github.com/5hitcake/igautomation`
-   (es reicht irgendeine https-Seite, man kopiert danach nur die Adresse aus dem Browser).
+3. Unter Login Kit als **Redirect-URI** `https://5hitcake.github.io/IGautomation/callback.html` eintragen.
+   Die Seite liegt in `docs/` (GitHub Pages: Settings → Pages → Branch `main`, Ordner `/docs`) und zeigt
+   nach dem Login die Adresse zum Kopieren an. Dort liegen auch Startseite, `terms.html` und
+   `privacy.html` für die App-Angaben. Die Prüfdatei von TikTok („Verify URL properties“) kommt ebenfalls
+   in `docs/`.
 4. Bei GitHub zwei Secrets anlegen: `TIKTOK_CLIENT_KEY` und `TIKTOK_CLIENT_SECRET`
    (stehen in der App unter „App details“, gelten für beide Accounts).
 5. Am PC: `pip install requests` und `python scripts/tiktok_auth.py`. Client Key/Secret und

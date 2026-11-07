@@ -23,13 +23,17 @@ import requests
 AUTH_URL = "https://www.tiktok.com/v2/auth/authorize/"
 TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"
 DEFAULT_SCOPES = "user.info.basic,video.upload,video.publish"
+DEFAULT_REDIRECT = "https://5hitcake.github.io/IGautomation/callback.html"
 
 
 def main():
     print(__doc__)
     client_key = input("Client Key: ").strip()
     client_secret = input("Client Secret: ").strip()
-    redirect_uri = input("Redirect-URI (genau wie in der App eingetragen): ").strip()
+    redirect_uri = (
+        input(f"Redirect-URI (genau wie in der App eingetragen) [{DEFAULT_REDIRECT}]: ").strip()
+        or DEFAULT_REDIRECT
+    )
     scopes = input(f"Scopes [{DEFAULT_SCOPES}]: ").strip() or DEFAULT_SCOPES
     state = secrets.token_urlsafe(16)
     params = {
