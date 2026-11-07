@@ -138,7 +138,7 @@ def test_pollinations_first_then_cloudflare(monkeypatch):
     monkeypatch.setattr(pg, "generate_pollinations", fake_polli)
     monkeypatch.setattr(pg, "generate_cloudflare", fake_cf)
     img, model = pg.generate_image("x", "a", "t", polli_token="tok")
-    assert calls == ["polli:microsoft/mai-image-2.6", "@cf/black-forest-labs/flux-2-klein-9b"]
+    assert calls == ["@cf/black-forest-labs/flux-2-klein-9b"]  # Cloudflare zuerst
     assert model == "@cf/black-forest-labs/flux-2-klein-9b"
 
 
@@ -147,9 +147,9 @@ def test_pollinations_used_when_cloudflare_quota_empty(monkeypatch):
 
     def fake_polli(model, prompt, token):
         calls.append("polli:" + model)
-        if "mai-image" in model:
+        if "z-image" in model:
             raise RuntimeError("HTTP 500: upstream")
-        return b"zimg"
+        return b"maiimg"
 
     def fake_cf(model, prompt, account_id, api_token):
         calls.append(model)
@@ -158,9 +158,16 @@ def test_pollinations_used_when_cloudflare_quota_empty(monkeypatch):
     monkeypatch.setattr(pg, "generate_pollinations", fake_polli)
     monkeypatch.setattr(pg, "generate_cloudflare", fake_cf)
     img, model = pg.generate_image("x", "a", "t", polli_token="tok")
-    assert img == b"zimg" and model == "pollinations:tongyi-mai/z-image-turbo"
-    assert calls == ["polli:microsoft/mai-image-2.6", "@cf/black-forest-labs/flux-2-klein-9b",
-                     "polli:tongyi-mai/z-image-turbo"]
+    assert img == b"maiimg" and model == "pollinations:microsoft/mai-image-2.6"
+    assert calls == ["@cf/black-forest-labs/flux-2-klein-9b", "polli:tongyi-mai/z-image-turbo",
+                     "polli:microsoft/mai-image-2.6"]
+
+
+def test_age_hint():
+    p = "photo of a 25-year-old man, shot on iPhone, photorealistic, real photograph"
+    out = pg.with_age_hint(p)
+    assert "looks exactly 25 years old" in out and out.index("looks exactly") < out.index("photorealistic")
+    assert pg.with_age_hint("no age here") == "no age here"
 
 
 def test_main_dry_run_writes_post(tmp_path, monkeypatch):
