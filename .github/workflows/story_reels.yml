@@ -1,12 +1,15 @@
 name: Story Reels (Grusel + Rätsel)
 
-# Täglich ein Reel pro Account. Zeiten in UTC (Winter: Deutschland = UTC+1):
-#   17:37 UTC -> 18:37 Uhr DE   Rätsel & Verschwörungen
-#   19:07 UTC -> 20:07 Uhr DE   Wahre Gruselgeschichten (abends wirkt Grusel besser)
+# Zwei Reels pro Tag und Account. Zeiten in UTC (Winter: Deutschland = UTC+1):
+#   11:07 + 19:07 UTC -> 12:07 + 20:07 Uhr DE   Wahre Gruselgeschichten
+#   12:37 + 17:37 UTC -> 13:37 + 18:37 Uhr DE   Rätsel & Verschwörungen
+# Welche Accounts automatisch posten, steht unten in STORY_ENABLED_ACCOUNTS.
 on:
   schedule:
-    - cron: "37 17 * * *"
+    - cron: "7 11 * * *"
     - cron: "7 19 * * *"
+    - cron: "37 12 * * *"
+    - cron: "37 17 * * *"
   workflow_dispatch:
     inputs:
       account:
@@ -25,6 +28,14 @@ on:
 permissions:
   contents: write
 
+env:
+  # Accounts, die nach Zeitplan automatisch posten (Leerzeichen-getrennt).
+  # Rätsel ("mysteries") ist pausiert, bis der neue Song fertig ist.
+  STORY_ENABLED_ACCOUNTS: "horror"
+  # TikTok: "inbox" = als Entwurf in die TikTok-App (du tippst auf Posten),
+  #         "direct" = direkt veröffentlichen (öffentlich erst nach App-Prüfung durch TikTok).
+  TIKTOK_MODE: "inbox"
+
 concurrency:
   group: story-reels
   cancel-in-progress: false
@@ -42,8 +53,8 @@ jobs:
         id: acc
         run: |
           case "${{ github.event.schedule }}" in
-            "37 17 * * *") acc=mysteries ;;
-            "7 19 * * *")  acc=horror ;;
+            "7 11 * * *"|"7 19 * * *")   acc=horror ;;
+            "37 12 * * *"|"37 17 * * *") acc=mysteries ;;
             *)             acc="${{ github.event.inputs.account }}" ;;
           esac
           echo "account=$acc" >> "$GITHUB_OUTPUT"
@@ -65,12 +76,16 @@ jobs:
             echo "::warning::Instagram-Secrets für '$acc' fehlen - übersprungen (siehe README, Abschnitt Story-Reels)."
             exit 0
           fi
-          # Schutz gegen doppelte geplante Läufe
           if [ "${{ github.event_name }}" = "schedule" ]; then
+            case " $STORY_ENABLED_ACCOUNTS " in
+              *" $acc "*) ;;
+              *) echo "run=false" >> "$GITHUB_OUTPUT"; echo "'$acc' ist pausiert (STORY_ENABLED_ACCOUNTS)."; exit 0 ;;
+            esac
+            # Schutz gegen doppelte geplante Läufe
             last=$(git log -1 --grep="Story-Reel ($acc)" --format=%ct || true)
-            if [ -n "$last" ] && [ $(( $(date +%s) - last )) -lt 36000 ]; then
+            if [ -n "$last" ] && [ $(( $(date +%s) - last )) -lt 14400 ]; then
               echo "run=false" >> "$GITHUB_OUTPUT"
-              echo "Überspringe: letztes Reel für $acc ist weniger als 10 Stunden her."
+              echo "Überspringe: letztes Reel für $acc ist weniger als 4 Stunden her."
               exit 0
             fi
           fi
@@ -139,6 +154,21 @@ jobs:
           IG_ACCOUNT_ID: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_IG_ACCOUNT_ID || secrets.MYSTERY_IG_ACCOUNT_ID }}
         run: python scripts/publish.py --post-file assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
 
+      - name: Zusätzlich auf TikTok hochladen (optional)
+        id: tiktok
+        if: steps.publish.outcome == 'success'
+        continue-on-error: true
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_TIKTOK_REFRESH_TOKEN || secrets.MYSTERY_TIKTOK_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$TIKTOK_CLIENT_KEY" ] || [ -z "$TIKTOK_REFRESH_TOKEN" ]; then
+            echo "Kein TikTok-Zugang für ${{ steps.acc.outputs.account }} hinterlegt - übersprungen."
+            exit 0
+          fi
+          python scripts/tiktok_story_publish.py --post-file assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
+
       - name: Ergebnis per Telegram melden (optional)
         if: always() && steps.gate.outputs.run == 'true' && steps.acc.outputs.publish == 'true'
         env:
@@ -147,7 +177,8 @@ jobs:
         run: |
           [ -z "$TELEGRAM_BOT_TOKEN" ] && exit 0
           if [ "${{ steps.publish.outcome }}" = "success" ]; then
-            msg="🎬 Story-Reel (${{ steps.acc.outputs.account }}) ist online"
+            msg="🎬 Story-Reel (${{ steps.acc.outputs.account }}) ist auf Instagram online"
+            [ "${{ steps.tiktok.outcome }}" = "failure" ] && msg="$msg - ⚠️ TikTok-Upload fehlgeschlagen"
           else
             msg="⚠️ Story-Reel (${{ steps.acc.outputs.account }}) fehlgeschlagen: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
