@@ -98,14 +98,24 @@ DEFAULT_VOICE_FX = {  # "dunkel": tiefe Erzaehlerstimme (Grusel)
 
 
 def voice_filter(fx=None):
+    """ffmpeg-Filterkette fuer die Stimme. pitch_factor 1.0 = keine Tonverschiebung,
+    echo leer = trocken (kein Hall)."""
     fx = {**DEFAULT_VOICE_FX, **(fx or {})}
     pf = float(fx["pitch_factor"])
-    return (
-        f"asetrate=24000*{pf},aresample=44100,atempo={1 / pf:.5f},"
-        f"equalizer=f=110:t=q:w=1:g={fx['bass_db']},equalizer=f=4000:t=q:w=1.5:g=-3,highpass=f=50,"
-        "acompressor=threshold=-20dB:ratio=3:attack=8:release=250:makeup=2,"
-        f"aecho={fx['echo']}"
-    )
+    chain = []
+    if abs(pf - 1.0) > 1e-3:
+        chain.append(f"asetrate=24000*{pf},aresample=44100,atempo={1 / pf:.5f}")
+    else:
+        chain.append("aresample=44100")
+    chain += [
+        f"equalizer=f=110:t=q:w=1:g={fx['bass_db']}",
+        f"equalizer=f=4000:t=q:w=1.5:g={fx.get('presence_db', -3)}",
+        "highpass=f=50",
+        "acompressor=threshold=-20dB:ratio=3:attack=8:release=250:makeup=2",
+    ]
+    if fx.get("echo"):
+        chain.append(f"aecho={fx['echo']}")
+    return ",".join(chain)
 
 
 DARK_VOICE_FILTER = voice_filter()

@@ -531,7 +531,7 @@ Kontingent). Den Klang legt `"voice_fx"` in der jeweiligen Account-Datei fest:
 |---|---|---|
 | Tonhöhe | tief (ca. 91 Hz): -6 Hz und ca. 2,4 Halbtöne nach unten | natürlich (ca. 105 Hz), nur -3 Hz |
 | Bass | +5 dB | +2 dB |
-| Raum | kurzer, dunkler Hall | weiter, schwebender Hall (mysteriös) |
+| Raum | kurzer, dunkler Hall | trocken, ohne Hall |
 
 Andere Stimme: `"voice"` ändern (z.B. `de-DE-ConradNeural`). Ohne Sprecher:
 `"voiceover": false`, dann richten sich die Szenen nach der Lesezeit.

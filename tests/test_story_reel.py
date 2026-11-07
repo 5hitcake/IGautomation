@@ -140,3 +140,10 @@ def test_parse_marked_attaches_punctuation():
         ("–", False),
         ("gut", False),
     ]
+
+
+def test_voice_filter_dry_and_dark():
+    dry = sr.voice_filter({"pitch_factor": 1.0, "echo": ""})
+    assert "aecho" not in dry and "asetrate" not in dry
+    dark = sr.voice_filter()
+    assert "aecho" in dark and "asetrate" in dark
