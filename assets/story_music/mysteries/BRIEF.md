@@ -19,8 +19,10 @@ Song selbst ist urheberrechtlich geschützt und wird nicht kopiert.
 witch house, ethereal dream pop, hazy lo-fi electronic, 136 bpm, key of C,
 distorted warm synth pads, bitcrushed glittering arpeggio, deep heavy sub bass,
 steady soft four-on-the-floor kick, wordless dreamy female vocal chops drenched in reverb,
-nostalgic, hypnotic, mysterious, cosmic, muffled highs, instrumental, no lyrics
+nostalgic, hypnotic, mysterious, cosmic, muffled highs, instrumental, no lyrics,
+starts immediately with full beat and hook, no intro
 ```
 
-Länge: 70 s, Intro 15 s ruhig, dann voller Beat. Unter der Stimme muss es leise funktionieren
+Länge: 70 s. **Kein Intro**: ab Sekunde 0 voller Beat, Bass und Hook, weil die Reels nur ca. 1 Minute
+dauern und sofort packen müssen. Unter der Stimme muss es leise funktionieren
 (keine dominanten Leadstimmen im Sprachbereich).
