@@ -171,22 +171,47 @@ Format (nur JSON, nichts anderes):
  "tags": ["#hashtag1", "#hashtag2"]}}
 
 Regeln fuer den Text:
-- Hook: 1 packender Satz, max. 16 Woerter, macht neugierig (z.B. eine verstoerende Tatsache).
+- Hook: 1 packender Satz, max. 16 Woerter, der sofort schockiert oder neugierig macht - KEINE
+  Zusammenfassung ("Ein Serienmoerder terrorisiert...") sondern die verstoerendste Tatsache des Falls.
 - 8 Szenen, je 12-22 Woerter, zusammen mit dem Hook 100-150 Woerter. Spannender Bogen:
   Ort/Zeit -> Ereignis -> unheimliche Details -> Ermittlungen/Theorien -> offenes Ende oder Twist.
 - Kurze, klare Saetze zum Vorlesen. Zahlen als Ziffern. Keine Emojis.
-- Pro Szene hoechstens 1-3 besonders wichtige Woerter in *Sternchen* (werden farbig hervorgehoben).
+- Pro Szene hoechstens 1-2 besonders wichtige Woerter in *Sternchen* (werden farbig hervorgehoben),
+  nicht in jeder Szene. Jeder Satz endet mit Punkt, Fragezeichen oder Ausrufezeichen.
 - Respektvoll gegenueber Opfern, keine blutigen Details.
-- "image": englische Bildbeschreibung (10-25 Woerter) der Szene: Ort, Stimmung, Licht, Objekte.
+- "image": Bildbeschreibung AUF ENGLISCH (10-25 Woerter, keine Sternchen): Ort, Stimmung, Licht, Objekte.
   Keine erkennbaren realen Personen (lieber Silhouetten, Orte, Gegenstaende), kein Text, kein Blut.
 - "tags": 2-3 passende deutsche Hashtags zum konkreten Fall.
 - "id": 3-40 Zeichen, nur a-z, 0-9 und Unterstrich."""
 
 
+def style_example(account_cfg):
+    """Eine handgeschriebene Geschichte desselben Accounts als Stilvorbild."""
+    example_id = account_cfg.get("writer_example")
+    path = os.path.join(sr.CONTENT_DIR, f"{account_cfg.get('key', '')}.json")
+    if not example_id or not os.path.exists(path):
+        return ""
+    with open(path, "r", encoding="utf-8") as f:
+        stories = json.load(f)["stories"]
+    ex = next((s for s in stories if s["id"] == example_id), None)
+    if not ex:
+        return ""
+    ex = {k: ex[k] for k in ("id", "hook", "scenes", "tags")}
+    return (
+        "\n\nSO SOLL ES KLINGEN (Beispiel einer fertigen Geschichte, anderer Fall - nur Stil und Aufbau "
+        "uebernehmen, NICHT den Inhalt). Achte auf den packenden Hook, kurze Saetze mit Punkt, "
+        "max. 1-2 *Hervorhebungen* pro Szene und englische Bildbeschreibungen:\n"
+        + json.dumps({"suitable": True, "reason": "Beispiel", **ex}, ensure_ascii=False)
+    )
+
+
 def write_story(account_cfg, title, text, covered, creds, models=None):
     theme = account_cfg.get("writer_theme", account_cfg["name"])
     messages = [
-        {"role": "system", "content": SYSTEM.format(theme=theme, covered=covered)},
+        {
+            "role": "system",
+            "content": SYSTEM.format(theme=theme, covered=covered) + style_example(account_cfg),
+        },
         {"role": "user", "content": f'Wikipedia-Artikel "{title}":\n\n{text}'},
     ]
     errors = []
@@ -201,7 +226,7 @@ def write_story(account_cfg, title, text, covered, creds, models=None):
                 continue
             if not story.get("suitable", True):
                 return None, f"abgelehnt: {story.get('reason', '')}"
-            story = {k: story[k] for k in ("id", "hook", "scenes", "tags") if k in story}
+            story = sr.tidy_story({k: story[k] for k in ("id", "hook", "scenes", "tags") if k in story})
             problems = sr.validate_story(story)
             if not problems:
                 return story, model
@@ -222,6 +247,7 @@ def generate(account, count, dry_run=False, rng=None):
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     account_cfg, stories = data["account"], data["stories"]
+    account_cfg["key"] = account
     state = sr.load_state()
     acc_state = state.setdefault(account, {"posted": [], "recent_music": []})
     creds = (

@@ -224,3 +224,28 @@ def test_generate_appends_story_and_marks_article(tmp_state, tmp_path, monkeypat
     assert new["id"] == "neuer_fall" and new["source"].endswith("/B")
     assert sr.load_state()["horror"]["wiki_used"] == ["Fall A", "Fall B"]
     assert sr.validate_story({k: new[k] for k in ("id", "hook", "scenes", "tags")}) == []
+
+
+def test_review_without_working_telegram_still_posts(tmp_state, monkeypatch):
+    monkeypatch.setattr(rv.time, "sleep", lambda s: None)
+
+    class Broken(FakeTG):
+        def send_video(self, *a):
+            raise TimeoutError("telegram down")
+
+    assert rv.review("horror", deadline(), Broken([]), make=fake_make(["a"])) == (True, "a")
+
+
+def test_tidy_and_validate_ai_formatting():
+    story = make_story_json()
+    story["scenes"][0]["text"] = "Ohne Punkt am Ende  hier"
+    story["scenes"][1]["image"] = "*dark* forest"
+    story["tags"] = ["grusel", "#a", "#b", "#c"]
+    sr.tidy_story(story)
+    assert story["scenes"][0]["text"].endswith("hier.") and "*" not in story["scenes"][1]["image"]
+    assert story["tags"] == ["#grusel", "#a", "#b"]
+    story["scenes"][2]["text"] = "*eins* *zwei* *drei* und noch mehr Woerter fuer die Szene hier."
+    for sc in story["scenes"]:
+        sc["image"] = "Eine dunkle Zelle mit einem alten Mann und der Tür"
+    problems = " ".join(sr.validate_story({k: story[k] for k in ("id", "hook", "scenes", "tags")}))
+    assert "Englisch" in problems and "Hervorhebungen" in problems

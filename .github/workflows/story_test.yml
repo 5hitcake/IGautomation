@@ -1,4 +1,4 @@
-name: Story-Automation Test (temporaer)
+name: Story-Automation Test (temporaer, Lauf 2)
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
           PY
       - name: 2) Wartung + Telegram-Testnachricht
         continue-on-error: true
-        run: python scripts/story_health.py --test 2>&1 | tee -a out/log.txt
+        run: python scripts/story_health.py 2>&1 | tee -a out/log.txt
       - name: 3) Neue Geschichte als Video
         continue-on-error: true
         run: |

@@ -448,16 +448,57 @@ Token-Erneuerung alle ~50 Tage wie unter „Wartung“ beschrieben.
 ## Story-Reels: Wahre Gruselgeschichten + Rätsel & Verschwörungen
 
 Zwei Themen-Accounts, **täglich je zwei Reels**, komplett automatisch und **kostenlos**
-(`story_reels.yml`), optional zusätzlich auf TikTok:
+(`story_reels.yml`), mit Vorschau per Telegram und optional zusätzlich auf TikTok:
 
 | Account | Instagram | Inhalt | Uhrzeiten (DE, Winter) | Status |
 |---|---|---|---|---|
-| `horror` | @wahre_gruselgeschichten | Wahre Gruselgeschichten, Paranormales, Kriminalfälle, Unglücke | 12:07 + 20:07 | aktiv |
-| `mysteries` | @imysteryhistoryi | Verschwörungen mit wahrem Kern, Ancient Aliens, Rätsel, Weltraum | 13:37 + 18:37 | pausiert (Song fehlt) |
+| `horror` | @wahre_gruselgeschichten | Wahre Gruselgeschichten, Paranormales, Kriminalfälle, Unglücke | 14:07 + 20:07 | aktiv |
+| `mysteries` | @imysteryhistoryi | Verschwörungen mit wahrem Kern, Ancient Aliens, Rätsel, Weltraum | 15:37 + 21:37 | pausiert (Song fehlt) |
 
-**Account ein-/ausschalten**: In `.github/workflows/story_reels.yml` die Zeile
-`STORY_ENABLED_ACCOUNTS: "horror"` anpassen, z.B. `"horror mysteries"`. Manuelle Läufe über
-„Run workflow“ gehen immer, auch für pausierte Accounts.
+**Account ein-/ausschalten**: In `.github/workflows/story_reels.yml` **und**
+`.github/workflows/story_health.yml` die Zeile `STORY_ENABLED_ACCOUNTS: "horror"` anpassen,
+z.B. `"horror mysteries"`. Manuelle Läufe über „Run workflow“ gehen immer.
+
+### Ablauf pro Termin
+
+1. **75 Minuten vorher** startet der Lauf und füllt den **Geschichten-Vorrat** auf (siehe unten).
+2. Das Reel wird gerendert und dir als **Video per Telegram** geschickt, mit drei Knöpfen:
+   **✅ Jetzt posten** · **🔄 Andere Geschichte** · **❌ Auslassen**.
+   Ohne Antwort wird es **zum Termin automatisch gepostet**. Verworfene Geschichten kommen nie wieder.
+3. Nach dem Instagram-Post geht das Video optional an TikTok, und du bekommst eine Bestätigung.
+
+Telegram nutzt den vorhandenen Bot (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). Die Vorschau-Zeiten
+überschneiden sich nicht mit den Freigaben des People-Accounts. Wer ganz getrennte Chats möchte, legt
+bei @BotFather einen zweiten Bot an und speichert dessen Token als `STORY_TELEGRAM_BOT_TOKEN`.
+
+### Endlos neue Geschichten (keine Wiederholungen)
+
+`scripts/story_writer.py` sorgt vor jedem Termin dafür, dass mindestens 4 ungenutzte Geschichten
+auf Vorrat sind. Neue Geschichten entstehen so:
+
+1. **Thema finden**: zuerst eine kuratierte Liste echter Fälle (`wiki_seeds` in der Account-Datei,
+   ca. 50-60 je Seite), danach endlos über Suchbegriffe (`wiki_queries`) in der deutschen Wikipedia.
+2. **Fakten**: Der Wikipedia-Artikel ist die einzige Quelle. Die KI (Cloudflare Workers AI, im
+   Gratis-Kontingent, ca. 300-400 Neurons pro Geschichte) darf nichts dazuerfinden.
+3. **Filter**: Die KI lehnt ungeeignete Artikel ab: keine wahre Begebenheit, Kinder als Opfer,
+   sexuelle Gewalt, aktuelle Fälle mit Privatpersonen, menschenverachtende Verschwörungsmythen.
+4. **Prüfung**: Das Ergebnis muss das Reel-Format erfüllen (8 Szenen, ~1 Minute), sonst wird
+   nachgebessert oder der nächste Artikel genommen. Quelle steht in `"source"` der Geschichte.
+
+Du siehst jede Geschichte vor dem Posten in Telegram und kannst sie mit 🔄/❌ aussortieren.
+
+### Benachrichtigungen (`story_health.yml`, täglich)
+
+Meldet sich per Telegram **nur, wenn etwas ansteht**, und montags mit einer kurzen Wochenübersicht:
+
+- **Instagram-Token**: wird täglich automatisch verlängert (falls Meta das zulässt). Sonst kommt ab
+  10 Tage vor Ablauf eine Erinnerung mit Anleitung. Ungültiger Token sofort.
+- **TikTok-Zugang**: ungültig oder läuft in < 30 Tagen ab.
+- **Geschichten-Vorrat** zu klein (z.B. Cloudflare-Kontingent leer).
+- **Kein Reel** in den letzten 26 Stunden.
+- Fehlgeschlagene Posts meldet zusätzlich der Reel-Workflow direkt.
+
+Test: Actions → *Story Reels Wartung* → *Run workflow* (schickt eine Testnachricht).
 
 ### So sieht ein Reel aus (~1 Minute)
 
@@ -592,7 +633,7 @@ Einfach am Ende von `"stories"` in der jeweiligen JSON-Datei einen Eintrag ergä
 Bildbeschreibungen auf Englisch und ohne Gewalt/Gore (das blockieren die Bildmodelle).
 Neue Einträge kommen der Reihe nach dran. Sind alle Geschichten gepostet, beginnt der
 Zyklus von vorn (die älteste zuerst). Aktuell: 20 Grusel- und 22 Rätsel-Geschichten à 8 Szenen.
-Bei 2 Reels pro Tag reicht das für ca. 10 bzw. 11 Tage ohne Wiederholung.
+Danach schreibt `story_writer.py` automatisch neue Geschichten (siehe oben) - es gibt keine Wiederholungen.
 
 Lokal testen (ohne API-Aufrufe, Video landet in `assets/story_reels/<account>/`):
 ```

@@ -172,6 +172,21 @@ def strip_marks(text):
     return text.replace("*", "")
 
 
+GERMAN_HINTS = {"der", "die", "das", "und", "mit", "ein", "eine", "einem", "einer", "auf", "im", "dem", "den"}
+
+
+def tidy_story(story):
+    """Kleine Formfehler von KI-Texten automatisch korrigieren (Satzende, Leerzeichen)."""
+    for part in [story.get("hook", {})] + list(story.get("scenes", [])):
+        text = re.sub(r"\s+", " ", str(part.get("text", ""))).strip()
+        if text and text[-1] not in '.!?…“"':
+            text += "."
+        part["text"] = text
+        part["image"] = re.sub(r"\s+", " ", str(part.get("image", "")).replace("*", "")).strip()
+    story["tags"] = [t if t.startswith("#") else f"#{t}" for t in story.get("tags", [])][:3]
+    return story
+
+
 def validate_story(story):
     """Prueft eine Geschichte auf das Reel-Format. Gibt eine Liste von Problemen zurueck
     (leer = in Ordnung). Wird fuer handgeschriebene und KI-geschriebene Geschichten genutzt."""
@@ -196,6 +211,18 @@ def validate_story(story):
         words = sum(len(strip_marks(t).split()) for t in texts)
         if not 85 <= words <= 170:
             problems.append(f"{words} Woerter (Ziel 100-150 fuer ~1 Minute)")
+        images = [hook.get("image", "")] + [sc.get("image", "") for sc in scenes]
+        for img in images:
+            if "*" in img:
+                problems.append("Bildbeschreibungen ohne Sternchen")
+                break
+        german = sum(1 for img in images for w in re.findall(r"\w+", img.lower()) if w in GERMAN_HINTS)
+        if german > len(images):
+            problems.append("Bildbeschreibungen muessen auf Englisch sein")
+        for t in texts:
+            if t.count("*") > 4:
+                problems.append(f"zu viele Hervorhebungen (max. 2 pro Szene): {t[:40]}")
+                break
         for tag in story.get("tags", []):
             if not re.fullmatch(r"#[\wäöüÄÖÜß]+", tag):
                 problems.append(f"ungueltiger Hashtag: {tag}")

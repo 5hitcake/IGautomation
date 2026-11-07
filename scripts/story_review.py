@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import secrets
+import time
 from datetime import datetime, timedelta, timezone
 
 import people_review as pr
@@ -82,6 +83,18 @@ def telegram_from_env():
     return StoryTelegram(token, chat_id) if token and chat_id else None
 
 
+def retry(func, what, attempts=3, fallback=None, sleep=None):
+    """Telegram ist manchmal kurz nicht erreichbar - ein paar Mal versuchen, dann aufgeben."""
+    for i in range(attempts):
+        try:
+            return func()
+        except Exception as exc:  # noqa: BLE001
+            print(f"Telegram ({what}) fehlgeschlagen, Versuch {i + 1}/{attempts}: {exc}")
+            if i < attempts - 1:
+                (sleep or time.sleep)(10 * (i + 1))
+    return fallback
+
+
 def mark_skipped(account, story_id):
     state = sr.load_state()
     acc = state.setdefault(account, {})
@@ -98,7 +111,7 @@ def review(account, deadline, tg, dry_run=False, make=None, now=None, test=False
     now = now or (lambda: datetime.now(timezone.utc))
     cfg, _ = sr.load_account(account)
     if tg:
-        tg.skip_old_updates()
+        retry(tg.skip_old_updates, "alte Klicks verwerfen", fallback=None)
     for attempt in range(MAX_REROLLS + 1):
         path, post = make(account, dry_run=dry_run)
         if not tg:
@@ -108,7 +121,10 @@ def review(account, deadline, tg, dry_run=False, make=None, now=None, test=False
             f"🎬 Vorschau {cfg['handle']} ({post.get('duration', '?')} s)\n"
             f"🕒 Wird um {pr.local_time(deadline)} Uhr gepostet - ohne Antwort automatisch.\n\n"
         )
-        msg_id = tg.send_video(path, header + post["caption"], token)
+        msg_id = retry(lambda: tg.send_video(path, header + post["caption"], token), "Vorschau senden")
+        if msg_id is None:
+            print("::warning::Telegram nicht erreichbar - es wird ohne Vorschau gepostet.")
+            return True, post["story_id"]
         decision = tg.wait_for_decision(token, deadline, now=now)
         if decision in (None, pr.APPROVE):
             label = "✅ Freigegeben" if decision else "⏰ Keine Antwort - wird gepostet"
