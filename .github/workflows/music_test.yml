@@ -1,4 +1,4 @@
-name: Musik-Test ACE-Step (temporaer, anonym)
+name: Musik-Test ACE-Step (temporaer, wirklich anonym)
 on:
   push:
     branches: [claude/instagram-reels-automation-koceqs]
@@ -15,9 +15,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -q gradio_client
       - name: Song erzeugen
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          unset HF_TOKEN HUGGING_FACE_HUB_TOKEN
           mkdir -p out
           echo "HF_TOKEN gesetzt: $([ -n "$HF_TOKEN" ] && echo ja || echo nein)" | tee out/log.txt
           cat > gen.py <<'PY'
