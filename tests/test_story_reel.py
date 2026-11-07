@@ -160,3 +160,14 @@ def test_voice_filter_dry_and_dark():
     assert "aecho" not in dry and "asetrate" not in dry
     dark = sr.voice_filter()
     assert "aecho" in dark and "asetrate" in dark
+
+
+@pytest.mark.parametrize("account", sr.ACCOUNTS)
+def test_tiktok_caption(account):
+    cfg, stories = sr.load_account(account)
+    for story in stories[:5]:
+        cap = sr.build_tiktok_caption(cfg, story, random.Random(1))
+        assert "*" not in cap and len(cap) <= 2200
+        tags = [w for w in cap.split() if w.startswith("#")]
+        assert 3 <= len(tags) <= 5 and len(set(tags)) == len(tags)
+        assert cap.startswith(sr.strip_marks(story["hook"]["text"]))

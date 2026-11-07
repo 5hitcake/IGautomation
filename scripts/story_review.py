@@ -150,10 +150,24 @@ def main():
     group.add_argument("--target", help="Posting-Termin HH:MM in UTC")
     group.add_argument("--wait-minutes", type=float)
     group.add_argument("--notify", help="nur diese Nachricht per Telegram schicken")
+    group.add_argument(
+        "--notify-tiktok", metavar="POST_FILE", help="TikTok-Beschreibung zum Kopieren schicken"
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--test", action="store_true", help="Testlauf: Vorschau schicken, nie posten")
     args = parser.parse_args()
     tg = telegram_from_env()
+    if args.notify_tiktok:
+        with open(args.notify_tiktok, "r", encoding="utf-8") as f:
+            post = json.load(f)
+        text = post.get("tiktok_caption") or post["caption"]
+        msg = "📋 Text für TikTok - lange drücken, kopieren, beim Posten einfügen:"
+        if tg:
+            tg.send_text(msg)
+            tg.send_text(text)
+        else:
+            print(f"(kein Telegram) {msg}\n{text}")
+        return
     if args.notify is not None:
         if tg:
             tg.send_text(args.notify)
