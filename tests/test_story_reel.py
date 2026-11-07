@@ -75,7 +75,7 @@ def test_map_word_times():
 def test_voiceover_sets_durations_and_word_times(tmp_path):
     import subprocess
 
-    async def fake_tts(text, voice, path):
+    async def fake_tts(text, voice, path, pitch=None):
         n = len(text.split())
         subprocess.run(
             [

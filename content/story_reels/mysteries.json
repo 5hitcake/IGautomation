@@ -10,6 +10,12 @@
     "grade": "warm",
     "voiceover": true,
     "voice": "de-DE-KillianNeural",
+    "voice_fx": {
+      "pitch_hz": "-3Hz",
+      "pitch_factor": 1.0,
+      "bass_db": 2,
+      "echo": "0.8:0.7:90|190|330:0.22|0.13|0.07"
+    },
     "kickers": [
       "Wusstest du…?",
       "Was niemand weiß…",

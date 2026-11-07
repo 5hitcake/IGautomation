@@ -84,13 +84,31 @@ POLLINATIONS_URL = "https://gen.pollinations.ai/image/{prompt}"
 DEFAULT_VOICE = "de-DE-KillianNeural"  # tiefste deutsche edge-tts-Stimme (~100 Hz)
 VOICE_RATE = "+4%"
 VOICE_PITCH = "-6Hz"
-PITCH_FACTOR = 0.87  # zusaetzlich ~2,4 Halbtoene tiefer (Tempo bleibt gleich)
-DARK_VOICE_FILTER = (
-    f"asetrate=24000*{PITCH_FACTOR},aresample=44100,atempo={1 / PITCH_FACTOR:.5f},"
-    "equalizer=f=110:t=q:w=1:g=5,equalizer=f=4000:t=q:w=1.5:g=-3,highpass=f=50,"
-    "acompressor=threshold=-20dB:ratio=3:attack=8:release=250:makeup=2,"
-    "aecho=0.85:0.6:70|140:0.16|0.08"
-)
+# Klang der Stimme pro Account (in content/story_reels/<account>.json -> "voice_fx"):
+#   pitch_hz:     Tonhoehe direkt bei edge-tts
+#   pitch_factor: zusaetzliche Tonverschiebung im Nachgang (<1 = tiefer, Tempo bleibt gleich)
+#   bass_db:      Bass-Anhebung bei 110 Hz
+#   echo:         Hall/Echo (ffmpeg aecho: in_gain:out_gain:delays:decays)
+DEFAULT_VOICE_FX = {  # "dunkel": tiefe Erzaehlerstimme (Grusel)
+    "pitch_hz": "-6Hz",
+    "pitch_factor": 0.87,
+    "bass_db": 5,
+    "echo": "0.85:0.6:70|140:0.16|0.08",
+}
+
+
+def voice_filter(fx=None):
+    fx = {**DEFAULT_VOICE_FX, **(fx or {})}
+    pf = float(fx["pitch_factor"])
+    return (
+        f"asetrate=24000*{pf},aresample=44100,atempo={1 / pf:.5f},"
+        f"equalizer=f=110:t=q:w=1:g={fx['bass_db']},equalizer=f=4000:t=q:w=1.5:g=-3,highpass=f=50,"
+        "acompressor=threshold=-20dB:ratio=3:attack=8:release=250:makeup=2,"
+        f"aecho={fx['echo']}"
+    )
+
+
+DARK_VOICE_FILTER = voice_filter()
 VOICE_LEAD_IN = 0.15  # Sekunden Stille vor jeder Szene
 VOICE_GAP = 0.25  # Pause nach jeder Szene
 
@@ -237,8 +255,9 @@ def generate_pollinations(prompt, seed, api_key="", retries=3):
 
 
 class ImageMaker:
-    """Probiert die Anbieter der Reihe nach und merkt sich, welche heute ausgefallen sind
-    (z.B. Cloudflare-Tageskontingent leer -> fuer den Rest des Laufs gleich zur Reserve)."""
+    """Probiert die Anbieter der Reihe nach: Pollinations (falls Schluessel da) -> Cloudflare
+    FLUX-2 Klein -> Cloudflare FLUX-1 Schnell. Merkt sich, welche in diesem Lauf ausgefallen sind
+    (z.B. Kontingent leer) und springt dann fuer die restlichen Bilder gleich zum naechsten."""
 
     def __init__(self, dry_run=False):
         self.dry_run = dry_run
@@ -253,6 +272,13 @@ class ImageMaker:
     def make(self, prompt, seed):
         if self.dry_run:
             return None, "fallback"
+        if self.pollinations_on and "pollinations" not in self.dead:
+            try:
+                raw = generate_pollinations(prompt, seed, self.pollinations_key)
+                return Image.open(io.BytesIO(raw)).convert("RGB"), "pollinations"
+            except Exception as exc:  # noqa: BLE001
+                print(f"  Pollinations fehlgeschlagen: {exc}")
+                self.dead.add("pollinations")
         if all(self.cf):
             for model in MODEL_CHAIN:
                 if model in self.dead or "cloudflare" in self.dead:
@@ -263,13 +289,6 @@ class ImageMaker:
                 except Exception as exc:  # noqa: BLE001 - naechsten Anbieter probieren
                     print(f"  {model} fehlgeschlagen: {exc}")
                     self.dead.add("cloudflare" if "daily free allocation" in str(exc) else model)
-        if self.pollinations_on and "pollinations" not in self.dead:
-            try:
-                raw = generate_pollinations(prompt, seed, self.pollinations_key)
-                return Image.open(io.BytesIO(raw)).convert("RGB"), "pollinations"
-            except Exception as exc:  # noqa: BLE001
-                print(f"  Pollinations fehlgeschlagen: {exc}")
-                self.dead.add("pollinations")
         return None, "fallback"
 
 
@@ -655,7 +674,7 @@ def synth_ambient(grade, duration, out_path, seed=0):
     return out_path
 
 
-async def _tts(text, voice, path):
+async def _tts(text, voice, path, pitch=VOICE_PITCH):
     """Sprachausgabe + Wort-Zeitstempel (Sekunden ab Beginn der Datei)."""
     import edge_tts
 
@@ -663,7 +682,7 @@ async def _tts(text, voice, path):
         text,
         voice,
         rate=VOICE_RATE,
-        pitch=VOICE_PITCH,
+        pitch=pitch,
         boundary="WordBoundary",
         proxy=os.environ.get("HTTPS_PROXY") or None,
     )
@@ -692,10 +711,12 @@ def map_word_times(boundaries, skip, n_display):
     return [spoken[min(len(spoken) - 1, int(i * len(spoken) / n_display))] for i in range(n_display)]
 
 
-def make_voiceover(segments, voice, work_dir, tts=None):
-    """Spricht jede Folie (dunkel nachbearbeitet). Die Folien dauern dann so lange wie
+def make_voiceover(segments, voice, work_dir, tts=None, fx=None):
+    """Spricht jede Folie (Klang laut fx, siehe DEFAULT_VOICE_FX). Die Folien dauern dann so lange wie
     gesprochen wird. Gibt den Pfad der kompletten Sprachspur zurueck."""
     tts = tts or _tts
+    fx = {**DEFAULT_VOICE_FX, **(fx or {})}
+    vfilter = voice_filter(fx)
     parts = []
     for i, seg in enumerate(segments):
         if seg["kind"] == "cta":
@@ -708,10 +729,10 @@ def make_voiceover(segments, voice, work_dir, tts=None):
             parts.append((None, seg["duration"]))
             continue
         raw = os.path.join(work_dir, f"vo_{i}.mp3")
-        boundaries = asyncio.run(tts(text, voice, raw))
+        boundaries = asyncio.run(tts(text, voice, raw, fx["pitch_hz"]))
         dark = os.path.join(work_dir, f"vo_{i}.wav")
         subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", DARK_VOICE_FILTER, "-ac", "2", dark],
+            ["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", vfilter, "-ac", "2", dark],
             check=True,
         )
         dur = ffprobe_duration(dark)
@@ -815,7 +836,9 @@ def make_reel(account, story_id=None, dry_run=False, preview=False, rng=None, vo
         use_voice = account_cfg.get("voiceover", True) if voice is None else voice
         if use_voice and not dry_run:
             try:
-                voice_track = make_voiceover(segments, account_cfg.get("voice", DEFAULT_VOICE), work)
+                voice_track = make_voiceover(
+                    segments, account_cfg.get("voice", DEFAULT_VOICE), work, fx=account_cfg.get("voice_fx")
+                )
             except Exception as exc:  # noqa: BLE001 - dann eben nur Text + Musik
                 print(f"::warning::Sprecherstimme fehlgeschlagen ({exc}) - Reel ohne Stimme.")
                 for seg in segments:

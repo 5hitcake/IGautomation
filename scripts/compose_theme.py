@@ -3,8 +3,10 @@
 
   horror    "Hinterland"  - D-Moll, 60 BPM: Spieluhr-Motiv mit Tritonus, tiefe Drones,
                             Streicherflaechen, Herzschlag, kalter Wind.
-  mysteries "Ancient Signal" - E-Phrygisch, 90 BPM: pulsierendes Bass-Arpeggio,
-                            Choir-Flaechen, Trommeln, Glocken-Melodie.
+  mysteries "Beyond the Signal" - Fis-Moll, 80 BPM, aetherischer Cosmic-/Dream-Synth-Stil
+                            (wie er oft unter Mystery-/Alien-Edits liegt): verhallte Supersaw-
+                            Flaechen mit Sidechain-Pumpen, "Ooh"-Gesangsmelodie, Glitzer-Arps,
+                            808-Bass, Halftime-Beat. Eigene Komposition.
 
 Beide Stuecke sind ~64 s lang und so gebaut, dass sie nahtlos loopen (Reels > 64 s).
 
@@ -105,7 +107,7 @@ def saw_pad(freq, dur, attack=2.0, release=2.0, harmonics=14, detune=0.004, brig
     return out / 3 * env_adsr(dur, attack, 1.0, 1.0, release) * vib
 
 
-def choir(freq, dur, vowel="a"):
+def choir(freq, dur, vowel="a", attack=1.8, release=1.8):
     """'Aah'-Chor: Obertoene, gewichtet nach Formanten."""
     formants = {"a": (730, 1090, 2440), "o": (570, 840, 2410), "u": (300, 870, 2240)}[vowel]
     t = t_axis(dur)
@@ -118,7 +120,7 @@ def choir(freq, dur, vowel="a"):
         w = sum(np.exp(-(((f - fm) / 110) ** 2)) * g for fm, g in zip(formants, (1.0, 0.6, 0.25)))
         w += 0.04 / k
         out += w * np.sin(2 * np.pi * f * t * (1 + vib))
-    return out * env_adsr(dur, 1.8, 1.0, 1.0, 1.8)
+    return out * env_adsr(dur, attack, 1.0, 1.0, release)
 
 
 def drum(dur=1.2, f_start=110, f_end=45, noise=0.25, seed=0):
@@ -213,74 +215,183 @@ def horror():
     return reverb(tr.buf, 3.8, 0.38)
 
 
+def highpass(sig, cutoff):
+    spec = np.fft.rfft(sig)
+    f = np.fft.rfftfreq(len(sig), 1 / SR)
+    spec *= 1 / np.sqrt(1 + (cutoff / np.maximum(f, 1)) ** 4)
+    return np.fft.irfft(spec, len(sig))
+
+
+def supersaw(freq, dur, voices=7, spread=0.012, attack=0.6, release=1.2, cutoff=3000, seed=0):
+    """Breite, schwebende Synth-Flaeche (mehrere verstimmte Saegezaehne, links/rechts verteilt)."""
+    t = t_axis(dur)
+    rng = np.random.default_rng(seed)
+    left, right = np.zeros_like(t), np.zeros_like(t)
+    for v in range(voices):
+        det = 1 + spread * (v / (voices - 1) - 0.5)
+        f0 = freq * det
+        ph = rng.uniform(0, 2 * np.pi)
+        wave = np.zeros_like(t)
+        for k in range(1, 40):
+            if f0 * k > cutoff * 2.5:
+                break
+            wave += np.sin(2 * np.pi * f0 * k * t + ph * k) / k / (1 + (f0 * k / cutoff) ** 2)
+        pan = v / (voices - 1)
+        left += wave * np.cos(pan * np.pi / 2)
+        right += wave * np.sin(pan * np.pi / 2)
+    env = env_adsr(dur, attack, 1.0, 1.0, release)
+    return np.stack([left, right]) * env / voices
+
+
+def sub808(freq, dur=1.6):
+    t = t_axis(dur)
+    f = freq * (1 + 1.5 * np.exp(-t * 35))
+    phase = 2 * np.pi * np.cumsum(f) / SR
+    sig = np.sin(phase) * np.exp(-t * 1.6) * np.minimum(1, t / 0.002)
+    return np.tanh(sig * 1.8) / np.tanh(1.8)
+
+
+def clap(seed=0):
+    rng = np.random.default_rng(seed)
+    n = int(0.45 * SR)
+    t = np.arange(n) / SR
+    noise = highpass(lowpass(rng.standard_normal(n), 3500), 900)
+    env = np.zeros(n)
+    for off in (0.0, 0.011, 0.023):
+        env += np.where(t >= off, np.exp(-(t - off) * (60 if off < 0.02 else 14)), 0)
+    return noise * env * 0.6
+
+
+def hat(open_=False, seed=0):
+    rng = np.random.default_rng(seed)
+    dur = 0.18 if open_ else 0.05
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    return highpass(rng.standard_normal(n), 7000) * np.exp(-t * (18 if open_ else 70)) * 0.5
+
+
+def riser(dur, seed=3):
+    rng = np.random.default_rng(seed)
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    noise = highpass(rng.standard_normal(n), 2500)
+    return noise * (t / dur) ** 2.5 * 0.5
+
+
+def stereo(sig, pan=0.0):
+    return np.stack([sig * np.cos((pan + 1) * np.pi / 4), sig * np.sin((pan + 1) * np.pi / 4)])
+
+
+def place(bus, start, sig2):
+    i = int(start * SR)
+    if i >= bus.shape[1]:
+        return
+    sig2 = sig2[:, : bus.shape[1] - i]
+    bus[:, i : i + sig2.shape[1]] += sig2
+
+
+def delay_fx(bus, beat, feedback=0.35, mix=0.35):
+    """Ping-Pong-Delay (punktierte Achtel)."""
+    d = int(beat * 0.75 * SR)
+    out = bus.copy()
+    echo = bus.copy()
+    for k in range(1, 5):
+        echo = np.roll(echo, d, axis=1) * feedback
+        echo[:, :d] = 0
+        out[(k % 2)] += echo[(k % 2)] * mix / feedback
+    return out
+
+
 def mysteries():
-    bpm, bars = 90, 24
+    bpm, bars = 80, 22
     beat = 60 / bpm
     total = bars * 4 * beat
-    tr = Track(total)
-    t = t_axis(total)
-    tr.add(0, np.sin(2 * np.pi * hz("E1") * t) * (0.7 + 0.3 * np.sin(2 * np.pi * t / 10.6)), 0.12)
-    tr.add(0, wind(total, 1200, 3), 0.025)
-    # Akkorde (Phrygisch): Em - F - Em - D, je 2 Takte
-    roots = [
-        ("E", ("E3", "G3", "B3")),
-        ("F", ("F3", "A3", "C4")),
-        ("E", ("E3", "G3", "B3")),
-        ("D", ("D3", "F#3", "A3")),
+    n = int(total * SR)
+    pads, vox, arps, drums, bass = (np.zeros((2, n)) for _ in range(5))
+    # Akkorde (je 1 Takt): F#m - Dmaj7 - Bm7 - C#m7
+    chords = [
+        ("F#3", "A3", "C#4", "E4"),
+        ("D3", "F#3", "A3", "C#4"),
+        ("B2", "D3", "F#3", "A3"),
+        ("C#3", "E3", "G#3", "B3"),
     ]
-    bass = {"E": ["E2", "B2", "E3", "G3"], "F": ["F2", "C3", "F3", "A3"], "D": ["D2", "A2", "D3", "F#3"]}
-    for bar in range(0, bars, 2):
-        root, chord = roots[(bar // 2) % 4]
+    roots = ["F#1", "D1", "B0", "C#1"]
+    arp_notes = [
+        ["F#4", "A4", "C#5", "E5"],
+        ["D4", "F#4", "A4", "C#5"],
+        ["B3", "D4", "F#4", "A4"],
+        ["C#4", "E4", "G#4", "B4"],
+    ]
+    drop = lambda b: 4 <= b < 12 or 16 <= b < 21  # noqa: E731
+    for bar in range(bars):
         start = bar * 4 * beat
-        # Pulsierendes Arpeggio (Achtel) ab Takt 3
-        if bar >= 2:
-            pattern = bass[root] + bass[root][::-1]
-            for k in range(16):
-                f = hz(pattern[k % 8])
-                pluck = saw_pad(f, beat * 0.55, 0.005, 0.15, harmonics=10, bright=0.35)
-                tr.add(start + k * beat / 2, pluck, 0.05, pan=-0.3 if k % 2 else 0.3)
-        # Chor-Flaeche
-        for i, n in enumerate(chord):
-            tr.add(
-                start, choir(hz(n), 8 * beat + 1.5, "a" if bar % 4 == 0 else "o"), 0.022, pan=(i - 1) * 0.6
-            )
-        # Trommeln
+        ci = bar % 4
+        cutoff = 900 if bar < 4 else (1800 if 12 <= bar < 16 else 3200)
+        for i, note in enumerate(chords[ci]):
+            place(pads, start, supersaw(hz(note), 4 * beat + 1.0, cutoff=cutoff, seed=bar * 7 + i) * 0.5)
+        # Gesangsflaeche "ooh" eine Oktave hoeher
+        for note in chords[ci][1:3]:
+            f = hz(note) * 2
+            place(vox, start, stereo(choir(f, 4 * beat + 1.2, "u", attack=1.0, release=1.5) * 0.18))
+        # Glitzer-Arpeggio (Sechzehntel) ausser im Intro
         if bar >= 4:
-            tr.add(start, drum(1.6, 120, 42, 0.3, bar), 0.5)
-            tr.add(start + 3 * beat, drum(1.0, 140, 60, 0.2, bar + 1), 0.25)
-            tr.add(start + 4 * beat, drum(1.6, 120, 42, 0.3, bar + 2), 0.4)
-            tr.add(start + 6.5 * beat, drum(0.8, 160, 70, 0.2, bar + 3), 0.2)
-    # Glocken-Melodie ab Takt 9
-    melody = [
-        ("B4", 2),
-        ("C5", 1),
-        ("B4", 1),
-        ("G4", 2),
-        ("E4", 2),
-        ("F4", 2),
-        ("E4", 2),
-        ("D4", 2),
-        ("E4", 2),
-        ("B4", 2),
-        ("C5", 1),
-        ("D5", 1),
-        ("E5", 2),
-        ("D5", 1),
-        ("C5", 1),
-        ("B4", 4),
-        ("A4", 2),
-        ("B4", 2),
+            for k in range(16):
+                f = hz(arp_notes[ci][k % 4]) * (2 if k % 8 >= 4 else 1)
+                place(
+                    arps, start + k * beat / 4, stereo(bell(f, 0.6, 0.5) * 0.12, pan=0.6 if k % 2 else -0.6)
+                )
+        if drop(bar):
+            place(bass, start, stereo(sub808(hz(roots[ci]) * 2, 2.2) * 0.9))
+            place(bass, start + 2.5 * beat, stereo(sub808(hz(roots[ci]) * 2, 1.2) * 0.6))
+            place(drums, start + 2 * beat, stereo(clap(bar)))
+            for k in range(8):
+                if bar % 4 == 3 and k >= 6:  # Triolen-Roll am Ende jeder Phrase
+                    for tri in range(3):
+                        place(
+                            drums,
+                            start + (k + tri / 3) * beat / 2,
+                            stereo(hat(seed=bar * 50 + k * 3 + tri), 0.3),
+                        )
+                else:
+                    place(drums, start + k * beat / 2, stereo(hat(open_=(k == 7), seed=bar * 50 + k), 0.3))
+        if bar in (3, 15):
+            place(drums, start, stereo(riser(4 * beat)))
+    # Gesangsmelodie ("ooh", eigene Melodie) in den Drops
+    phrase = [
+        [("C#5", 1.5), ("B4", 0.5), ("A4", 1.0), ("F#4", 1.0)],
+        [("A4", 1.0), ("B4", 1.0), ("C#5", 1.0), ("E5", 1.0)],
+        [("D5", 2.0), ("C#5", 1.0), ("B4", 1.0)],
+        [("C#5", 3.0), ("G#4", 1.0)],
     ]
-    pos = 8 * 4 * beat
-    for rep in range(2):
-        p = pos + rep * 8 * 4 * beat
-        for n, length in melody:
-            if p >= total - 4 * beat:
-                break
-            tr.add(p, bell(hz(n), 3.5, 0.6), 0.07, pan=0.2)
-            tr.add(p, choir(hz(n) / 2, length * beat + 0.8, "u") * 0.6, 0.02)
-            p += length * beat
-    return reverb(tr.buf, 3.0, 0.33)
+    for first in (4, 8, 16):
+        for pb, notes in enumerate(phrase):
+            pos = (first + pb) * 4 * beat
+            for note, length in notes:
+                v = choir(
+                    hz(note), length * beat + 0.4, "a" if first == 16 else "u", attack=0.08, release=0.4
+                )
+                place(vox, pos, stereo(v * 0.55, pan=0.05))
+                pos += length * beat
+    # Sidechain: Flaechen "pumpen" mit der Kick (Viertel im Drop)
+    duck = np.ones(n)
+    for bar in range(bars):
+        if not drop(bar):
+            continue
+        for b in range(4):
+            i = int((bar * 4 + b) * beat * SR)
+            m = int(0.38 * SR)
+            if i + m <= n:
+                duck[i : i + m] = np.minimum(duck[i : i + m], 0.3 + 0.7 * np.linspace(0, 1, m) ** 0.6)
+    pads *= duck
+    arps *= 0.6 + 0.4 * duck
+    mix = (
+        reverb(pads, 4.5, 0.5, 11) * 1.0
+        + reverb(delay_fx(vox, beat), 5.0, 0.55, 12) * 1.0
+        + reverb(delay_fx(arps, beat, 0.4, 0.5), 3.5, 0.45, 13) * 0.9
+        + reverb(drums, 1.6, 0.18, 14) * 0.8
+        + bass * 0.9
+    )
+    return np.tanh(mix * 1.2)
 
 
 def export(buf, path):

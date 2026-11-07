@@ -471,17 +471,19 @@ Zwei Themen-Accounts, **täglich je ein Reel**, komplett automatisch und **koste
 Bildstil passend zu den bisherigen Reels: Grusel = dunkle, realistische Malerei,
 Rätsel = gemalter Anime-Look. Caption + Hashtags werden automatisch gebaut.
 
-### Bilder: Kontingent
+### Bilder: Reihenfolge der Quellen
 
-Pro Reel entstehen 9 Bilder (Hook + 8 Szenen), also 18 pro Tag für beide Seiten.
-**Cloudflare Workers AI reicht dafür aus**: FLUX-2 Klein 4B kostet ca. 160 der 10.000
-kostenlosen Neurons pro Tag und Bild, zusammen also ca. 3.000. Der People-Account braucht
-ca. 4.400. Ist das Kontingent doch einmal leer, wird automatisch FLUX-1 Schnell (ca. 60 pro Bild)
-versucht, danach optional **Pollinations** (kostenloser Schlüssel von
-[enter.pollinations.ai](https://enter.pollinations.ai), als Secret `POLLI_TOKEN`).
-Erst wenn alles scheitert, kommt ein dunkler Verlaufshintergrund.
-Mehr Bilder? Der Cloudflare-Plan „Workers Paid“ (5 $/Monat) behält die 10.000 Gratis-Neurons
-und berechnet darüber ca. 0,002 $ pro Bild.
+Pro Reel entstehen 9 Bilder (Hook + 8 Szenen), für beide Seiten also 18 pro Tag:
+
+1. **Pollinations** (FLUX, Secret `POLLI_TOKEN`, Schlüssel von
+   [enter.pollinations.ai](https://enter.pollinations.ai)): zuerst. Getestet, ca. 6-9 s pro Bild,
+   ohne Wasserzeichen.
+2. **Cloudflare Workers AI** FLUX-2 Klein 4B (ca. 160 der 10.000 Gratis-Neurons pro Tag und Bild),
+   danach FLUX-1 Schnell (ca. 60 pro Bild). Springt automatisch ein, wenn Pollinations
+   ausfällt oder sein Kontingent leer ist.
+3. Erst wenn alles scheitert: dunkler Verlaufshintergrund.
+
+Welche Quelle verwendet wurde, steht nach jedem Lauf in `next_post.json` (`image_sources`).
 
 ### Einrichtung (einmalig)
 
@@ -499,7 +501,7 @@ und berechnet darüber ca. 0,002 $ pro Bild.
    Werte von `WEIRDWORLD_IG_ACCESS_TOKEN` / `WEIRDWORLD_IG_ACCOUNT_ID` erneut eintragen.
    Dann aber den TikTok-Workflow für Instagram abschalten, sonst kommen zwei Reels am Tag.
 3. `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` sind schon da (People-Account).
-   Optional als Reserve: `POLLI_TOKEN` (siehe „Bilder: Kontingent“).
+   `POLLI_TOKEN` (Pollinations) ist hinterlegt und wird zuerst genutzt (siehe „Bilder“).
 4. **Testen**: Actions → *Story Reels (Grusel + Rätsel)* → *Run workflow* → Häkchen
    bei „Auch auf Instagram posten?“ **entfernen**. Dann wird nur das Video gebaut, und
    du kannst es unten im Lauf unter **Artifacts** herunterladen und anschauen.
@@ -511,8 +513,10 @@ Jede Seite hat einen **eigenen Titelsong**, komplett im Code komponiert und gere
 
 - **Grusel – „Hinterland“**: D-Moll, 60 BPM. Spieluhr-Wiegenlied mit Tritonus, tiefe
   Drones, Streicherflächen, Herzschlag, kalter Wind.
-- **Rätsel – „Ancient Signal“**: E-Phrygisch, 90 BPM. Pulsierendes Bass-Arpeggio,
-  Chorflächen, Trommeln, Glocken-Melodie.
+- **Rätsel – „Beyond the Signal“**: Fis-Moll, 80 BPM, ätherischer Cosmic-/Dream-Synth-Stil,
+  wie er oft unter Mystery- und Alien-Videos liegt: verhallte Synth-Flächen mit
+  Sidechain-Pumpen, „Ooh“-Gesangsmelodie, Glitzer-Arpeggios, 808-Bass, Halftime-Beat.
+  Eine eigene Komposition, also kein Nachbau bekannter Songs.
 
 Die Songs liegen als `assets/story_music/<account>/theme.mp3` und loopen nahtlos. Neu erzeugen
 oder anpassen: `python scripts/compose_theme.py`. Eigene Tracks kannst du zusätzlich in den
@@ -520,14 +524,19 @@ Ordner legen, dann wird pro Reel zufällig gewechselt.
 
 ### Sprecher
 
-Standard ist `de-DE-KillianNeural` (die tiefste deutsche Stimme von edge-tts, kostenlos und
-ohne Kontingent), plus Nachbearbeitung im Code (`DARK_VOICE_FILTER` in `story_reel.py`):
-ca. 2,4 Halbtöne tiefer, mehr Bass, Kompressor, leichter Hall. Andere Stimme: in der
-Account-Datei `"voice"` ändern (z.B. `de-DE-ConradNeural`). Ohne Sprecher:
-`"voiceover": false`, dann richten sich die Szenen nach der Lesezeit.
+Beide Seiten nutzen dieselbe Stimme `de-DE-KillianNeural` (edge-tts, kostenlos und ohne
+Kontingent). Den Klang legt `"voice_fx"` in der jeweiligen Account-Datei fest:
 
-Warum nicht Cloudflare oder Hugging Face? Cloudflare hat keine deutsche Stimme (nur Englisch
-und Spanisch), und die Hugging-Face-Gratis-GPU-Zeit reicht nicht für tägliche Minuten-Reels.
+| | Grusel | Rätsel |
+|---|---|---|
+| Tonhöhe | tief (ca. 91 Hz): -6 Hz und ca. 2,4 Halbtöne nach unten | natürlich (ca. 105 Hz), nur -3 Hz |
+| Bass | +5 dB | +2 dB |
+| Raum | kurzer, dunkler Hall | weiter, schwebender Hall (mysteriös) |
+
+Andere Stimme: `"voice"` ändern (z.B. `de-DE-ConradNeural`). Ohne Sprecher:
+`"voiceover": false`, dann richten sich die Szenen nach der Lesezeit.
+Cloudflare hat keine deutsche Stimme (nur Englisch und Spanisch), und die Hugging-Face-Gratis-GPU-Zeit
+reicht nicht für tägliche Minuten-Reels.
 
 ### Neue Geschichten hinzufügen
 

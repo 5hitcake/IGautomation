@@ -1,0 +1,43 @@
+name: Story-Reel Vorschau (temporaer)
+
+# Rendert ein Vorschau-Reel mit echten Bildern/Stimme und legt es auf den Branch story-preview.
+on:
+  push:
+    branches: [claude/instagram-reels-automation-koceqs]
+    paths: [".github/workflows/story_preview.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          pip install requests Pillow edge-tts==7.2.8
+      - name: Reel rendern
+        env:
+          POLLINATIONS_API_KEY: ${{ secrets.POLLI_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          mkdir -p out
+          python scripts/story_reel.py --account mysteries --story antikythera --preview 2>&1 | tee out/log.txt
+          cp assets/story_reels/mysteries/reel_antikythera.mp4 out/
+          cp assets/story_reels/mysteries/img_*.jpg out/ || true
+      - name: Ergebnis auf Branch story-preview legen
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          git init -q -b story-preview
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Vorschau"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" story-preview

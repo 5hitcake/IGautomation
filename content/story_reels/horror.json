@@ -10,6 +10,12 @@
     "grade": "cold",
     "voiceover": true,
     "voice": "de-DE-KillianNeural",
+    "voice_fx": {
+      "pitch_hz": "-6Hz",
+      "pitch_factor": 0.87,
+      "bass_db": 5,
+      "echo": "0.85:0.6:70|140:0.16|0.08"
+    },
     "kickers": [
       "WAHRE GESCHICHTE",
       "Wusstest du…?",
