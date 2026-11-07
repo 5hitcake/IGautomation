@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261107_1121_0011.jpg",
-  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0011 · \"Arjun\", 26\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #generativeai #digitalhuman #artificialintelligence #peopleofinstagram #fakeface #streetportrait",
-  "model": "@cf/black-forest-labs/flux-2-klein-4b",
-  "prompt": "Close-up headshot photo of a 26-year-old South Asian man with short dreadlocks dyed platinum blonde, a goatee, round tinted sunglasses and rosy cheeks, wearing a wool coat and scarf, a warm genuine smile, in a cozy living room, afternoon sunlight through a window, shot on Fujifilm X-T4, 56mm f/1.2, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 11,
-  "name": "Arjun",
-  "age": 26
+  "type": "reel",
+  "file": "reel_20261107_1713_0012.mp4",
+  "caption": "This face belongs to no one.\n\nPerson No. 0012 · \"Lucy\", 39\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #fluxai #fakeface #faces #artificialintelligence #digitalhuman",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "prompt": "Close-up headshot photo of a 39-year-old British woman with a short pixie cut, several small ear piercings and a gap between the front teeth, wearing a football jersey, looking slightly away from the camera, on a subway platform, dim moody ambient light, shot on Kodak Portra 400 film, 35mm, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 12,
+  "name": "Lucy",
+  "age": 39,
+  "image": "assets/people_generated/person_20261107_1713_0012.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
