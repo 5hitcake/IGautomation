@@ -1,0 +1,26 @@
+name: Pollinations test (temporaer)
+on:
+  push:
+    branches: [ccr-178c7728-27xf6u]
+    paths: [".github/workflows/polli_test.yml"]
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests Pillow
+      - run: python tools/polli_age_test.py
+        env:
+          POLLI_TOKEN: ${{ secrets.POLLI_TOKEN }}
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/polli_test
+          git commit -m "Pollinations-Test: Ergebnisse"
+          git push
