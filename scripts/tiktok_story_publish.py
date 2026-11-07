@@ -92,6 +92,24 @@ def refresh_access_token(client_key, client_secret, refresh_token):
     return data["access_token"]
 
 
+def check_account(token, expected):
+    """Bricht ab, wenn der Token zu einem anderen TikTok-Account gehoert als erwartet."""
+    resp = SESSION.get(
+        f"{API_BASE}/user/info/",
+        params={"fields": "display_name"},
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=30,
+    )
+    actual = (_check(resp, "Account-Abfrage").get("data", {}).get("user", {}) or {}).get("display_name", "")
+    if actual.strip().lower() != expected.strip().lower():
+        raise RuntimeError(
+            f"Falscher TikTok-Account: Token gehoert zu '{actual}', erwartet '{expected}'. "
+            "Es wurde NICHT hochgeladen - Refresh-Token pruefen "
+            "(Anzeigename geaendert? -> tiktok_name anpassen)."
+        )
+    print(f"Account-Check ok: {actual}")
+
+
 def auth_headers(token):
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json; charset=UTF-8"}
 
@@ -207,6 +225,9 @@ def main():
     if not all(creds):
         sys.exit("TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET und TIKTOK_REFRESH_TOKEN muessen gesetzt sein.")
     token = refresh_access_token(*creds)
+    expected = os.environ.get("TIKTOK_EXPECT_NAME", "").strip()
+    if expected:
+        check_account(token, expected)
     privacy = choose_privacy(token) if mode == "direct" else None
     if privacy:
         print(f"Sichtbarkeit: {privacy}")

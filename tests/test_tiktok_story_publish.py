@@ -76,3 +76,13 @@ def test_choose_privacy(monkeypatch):
         lambda *a, **k: FakeResp({"data": {"privacy_level_options": ["SELF_ONLY"]}, "error": {"code": "ok"}}),
     )
     assert tt.choose_privacy("t") == "SELF_ONLY"
+
+
+def test_check_account(monkeypatch):
+    def fake_get(url, params=None, headers=None, timeout=None):
+        return FakeResp({"data": {"user": {"display_name": "Gruselgeschichten"}}, "error": {"code": "ok"}})
+
+    monkeypatch.setattr(tt.SESSION, "get", fake_get)
+    tt.check_account("t", "gruselgeschichten")  # Gross/klein egal
+    with pytest.raises(RuntimeError, match="NICHT hochgeladen"):
+        tt.check_account("t", "MYSTERY=HISTORY")
