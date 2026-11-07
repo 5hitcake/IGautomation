@@ -1,0 +1,66 @@
+name: Musik-Test ACE-Step (temporaer)
+on:
+  push:
+    branches: [claude/instagram-reels-automation-koceqs]
+    paths: [".github/workflows/music_test.yml"]
+permissions:
+  contents: write
+jobs:
+  music:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q gradio_client
+      - name: Song erzeugen
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          mkdir -p out
+          echo "HF_TOKEN gesetzt: $([ -n "$HF_TOKEN" ] && echo ja || echo nein)" | tee out/log.txt
+          cat > gen.py <<'PY'
+          import os, shutil, sys, time
+          from gradio_client import Client
+          prompt = ("witch house, ethereal dream pop, hazy lo-fi electronic, distorted warm synth pads, bitcrushed glittering "
+                    "arpeggio, deep heavy sub bass, steady four-on-the-floor kick, wordless dreamy female vocal chops drenched "
+                    "in reverb, nostalgic, hypnotic, mysterious, cosmic, starts immediately with full beat, no intro, instrumental")
+          token = os.environ.get("HF_TOKEN") or None
+          c = Client("ACE-Step/Ace-Step-v1.5", verbose=False, **({"token": token} if token else {}))
+          args = dict(selected_model="acestep-v15-xl-turbo", generation_mode="custom", simple_query_input="",
+                      simple_vocal_language="unknown", param_4=prompt, param_5="[Instrumental]", param_6=136,
+                      param_7="C major", param_8="4", param_9="unknown", param_10=8, param_11=7.0, param_12=True,
+                      param_13="-1", param_14=None, param_15=70, param_16=2, param_17=None, param_18="",
+                      param_19=0.0, param_20=-1, param_22=1.0, param_23="text2music", param_24=False, param_25=0.0,
+                      param_26=1.0, param_27=3.0, param_28="ode", param_29="", param_30="mp3", param_31=0.85,
+                      param_32=True, param_33=2.0, param_34=0, param_35=0.9, param_36="NO USER INPUT",
+                      param_47="synth", param_48=[])
+          for attempt in range(3):
+              try:
+                  t = time.time()
+                  res = c.predict(api_name="/generation_wrapper", **args)
+                  break
+              except Exception as e:
+                  print("Versuch", attempt + 1, "fehlgeschlagen:", str(e)[:300])
+                  time.sleep(30)
+          else:
+              sys.exit(1)
+          print("Dauer", round(time.time() - t), "s")
+          n = 0
+          for r in res[:8]:
+              path = r.get("value") if isinstance(r, dict) else r
+              if path:
+                  n += 1
+                  shutil.copy(path, f"out/ace_{n}.mp3")
+          print("Dateien:", n)
+          print("Status:", str(res[10])[:300])
+          print("Details:", str(res[9])[:800])
+          PY
+          python gen.py 2>&1 | tee -a out/log.txt
+      - if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out && git init -q -b music-test-result && git add . && git -c user.name=bot -c user.email=bot@x commit -qm music
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" music-test-result
