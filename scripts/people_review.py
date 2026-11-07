@@ -192,7 +192,7 @@ def review(tg, state, deadline, dry_run=False, sleep=time.sleep, now=None):
             raise
         if cand.get("reserve"):
             offered_reserve.add(cand["reserve"])
-            source = "♻️ Reservebild (Cloudflare-Kontingent leer)"
+            source = "♻️ Reservebild (alle Bildquellen leer)"
         else:
             source = f"Modell: {cand['model'].split('/')[-1]}"
         token = f"{cand['number']}-{rerolls}-{int(time.time())}"
@@ -223,7 +223,7 @@ def review(tg, state, deadline, dry_run=False, sleep=time.sleep, now=None):
 
 def _source(cand):
     if cand.get("reserve"):
-        return "♻️ Reservebild (Cloudflare-Kontingent leer)"
+        return "♻️ Reservebild (alle Bildquellen leer)"
     return f"Modell: {cand['model'].split('/')[-1]}"
 
 

@@ -104,8 +104,9 @@ def test_model_fallback(monkeypatch):
         return b"img"
 
     monkeypatch.setattr(pg, "generate_cloudflare", fake)
-    img, model = pg.generate_image("x", "a", "t")
-    assert img == b"img" and calls == pg.MODEL_CHAIN[:2] and model == pg.MODEL_CHAIN[1]
+    img, model = pg.generate_image("x", "a", "t", polli_token="")
+    cf = [m for m in pg.MODEL_CHAIN if not m.startswith(pg.POLLI_PREFIX)]
+    assert img == b"img" and calls == cf[:2] and model == cf[1]
 
 
 def test_quota_exhausted_stops_early(monkeypatch):
@@ -117,10 +118,49 @@ def test_quota_exhausted_stops_early(monkeypatch):
 
     monkeypatch.setattr(pg, "generate_cloudflare", fake)
     try:
-        pg.generate_image("x", "a", "t")
+        pg.generate_image("x", "a", "t", polli_token="")
     except RuntimeError:
         pass
     assert len(calls) == 1
+
+
+def test_pollinations_first_then_cloudflare(monkeypatch):
+    calls = []
+
+    def fake_polli(model, prompt, token):
+        calls.append("polli:" + model)
+        raise RuntimeError("HTTP 402: insufficient pollen")
+
+    def fake_cf(model, prompt, account_id, api_token):
+        calls.append(model)
+        return b"img"
+
+    monkeypatch.setattr(pg, "generate_pollinations", fake_polli)
+    monkeypatch.setattr(pg, "generate_cloudflare", fake_cf)
+    img, model = pg.generate_image("x", "a", "t", polli_token="tok")
+    assert calls == ["polli:microsoft/mai-image-2.6", "@cf/black-forest-labs/flux-2-klein-9b"]
+    assert model == "@cf/black-forest-labs/flux-2-klein-9b"
+
+
+def test_pollinations_used_when_cloudflare_quota_empty(monkeypatch):
+    calls = []
+
+    def fake_polli(model, prompt, token):
+        calls.append("polli:" + model)
+        if "mai-image" in model:
+            raise RuntimeError("HTTP 500: upstream")
+        return b"zimg"
+
+    def fake_cf(model, prompt, account_id, api_token):
+        calls.append(model)
+        raise RuntimeError("HTTP 429: daily free allocation used up")
+
+    monkeypatch.setattr(pg, "generate_pollinations", fake_polli)
+    monkeypatch.setattr(pg, "generate_cloudflare", fake_cf)
+    img, model = pg.generate_image("x", "a", "t", polli_token="tok")
+    assert img == b"zimg" and model == "pollinations:tongyi-mai/z-image-turbo"
+    assert calls == ["polli:microsoft/mai-image-2.6", "@cf/black-forest-labs/flux-2-klein-9b",
+                     "polli:tongyi-mai/z-image-turbo"]
 
 
 def test_main_dry_run_writes_post(tmp_path, monkeypatch):
