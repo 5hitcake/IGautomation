@@ -84,14 +84,21 @@ def setup(monkeypatch):
 
         def fake_candidate(state, dry_run=False, skip_reserve=()):
             counter["n"] += 1
-            return {"number": 7, "model": "@cf/x/flux-2-klein-9b", "caption": f"cap{counter['n']}",
-                    "jpeg": b"jpg", "persona": {}, "prompt": "p"}
+            return {
+                "number": 7,
+                "model": "@cf/x/flux-2-klein-9b",
+                "caption": f"cap{counter['n']}",
+                "jpeg": b"jpg",
+                "persona": {},
+                "prompt": "p",
+            }
 
         monkeypatch.setattr(pr.pg, "create_candidate", fake_candidate)
         deadline = clock[0] + timedelta(hours=3)
         slept = []
         result = pr.review(tg, {}, deadline, sleep=slept.append, now=lambda: clock[0])
         return tg, result, slept
+
     return run
 
 
@@ -172,18 +179,32 @@ def batch(monkeypatch):
 
         def fake_candidate(state, dry_run=False, skip_reserve=()):
             n["i"] += 1
-            persona = {"gender": "woman", "age_range": [20, 29], "heritage": ["X", "x"], "setting": "s",
-                       "name": f"P{n['i']}", "age": 25}
-            return {"number": state.get("count", 0) + 1, "model": "@cf/x/m", "persona": persona,
-                    "caption": f"Person No. {state.get('count', 0) + 1:04d} cap{n['i']}",
-                    "jpeg": b"jpg", "prompt": "p"}
+            persona = {
+                "gender": "woman",
+                "age_range": [20, 29],
+                "heritage": ["X", "x"],
+                "setting": "s",
+                "name": f"P{n['i']}",
+                "age": 25,
+            }
+            return {
+                "number": state.get("count", 0) + 1,
+                "model": "@cf/x/m",
+                "persona": persona,
+                "caption": f"Person No. {state.get('count', 0) + 1:04d} cap{n['i']}",
+                "jpeg": b"jpg",
+                "prompt": "p",
+            }
 
         monkeypatch.setattr(pr.pg, "create_candidate", fake_candidate)
-        slots = [datetime(2026, 11, 4, 11, 13, tzinfo=timezone.utc),
-                 datetime(2026, 11, 4, 17, 13, tzinfo=timezone.utc)]
+        slots = [
+            datetime(2026, 11, 4, 11, 13, tzinfo=timezone.utc),
+            datetime(2026, 11, 4, 17, 13, tzinfo=timezone.utc),
+        ]
         state = {"count": 4, "recent": []}
         res = pr.review_batch(tg, state, slots, slots[0], now=lambda: clock[0])
         return tg, res, state
+
     return run
 
 
@@ -204,8 +225,14 @@ def test_batch_timeout_approves_rest_and_reroll_replaces(batch):
 
 def test_queue_roundtrip_renumbers(tmp_path, monkeypatch):
     monkeypatch.setattr(pr, "QUEUE_DIR", str(tmp_path))
-    cand = {"persona": {"name": "A"}, "prompt": "p", "model": "m", "reserve": None,
-            "caption": "Hook\n\nPerson No. 0005 · \"A\", 30", "jpeg": b"jpg"}
+    cand = {
+        "persona": {"name": "A"},
+        "prompt": "p",
+        "model": "m",
+        "reserve": None,
+        "caption": 'Hook\n\nPerson No. 0005 · "A", 30',
+        "jpeg": b"jpg",
+    }
     pr.save_to_queue("11:13", cand)
     pr.save_to_queue("17:13", None)
     got, status = pr.load_from_queue("11:13", {"count": 7})

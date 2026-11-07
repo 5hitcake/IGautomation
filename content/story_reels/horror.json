@@ -121,7 +121,38 @@
       "Heilanstalt verlassen",
       "rätselhafter Todesfall"
     ],
-    "writer_example": "hinterkaifeck"
+    "writer_example": "hinterkaifeck",
+    "wiki_seeds_en": [
+      "en:Mary Reeser",
+      "en:Hexham Heads",
+      "en:Lizzie Borden",
+      "en:Albert Johnson (criminal)",
+      "en:Lord Lucan",
+      "en:Overtoun Bridge",
+      "en:Island of the Dolls",
+      "en:Bhangarh Fort",
+      "en:SS Baychimo",
+      "en:MV Joyita",
+      "en:Bell Witch",
+      "en:Gef (mongoose)",
+      "en:Bridgewater Triangle",
+      "en:Disappearance of Dorothy Arnold",
+      "en:Eastern Air Lines Flight 401"
+    ],
+    "wiki_queries_en": [
+      "unsolved murder 19th century",
+      "haunted house",
+      "poltergeist",
+      "ghost ship",
+      "mining disaster",
+      "unsolved disappearance",
+      "mass hysteria",
+      "abandoned asylum",
+      "shipwreck mystery",
+      "cursed object legend",
+      "unexplained death",
+      "axe murders unsolved"
+    ]
   },
   "stories": [
     {

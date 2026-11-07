@@ -22,10 +22,18 @@ def test_main_renders_reel_and_switches_post(tmp_path, monkeypatch):
     gen.mkdir(parents=True)
     Image.new("RGB", pg.OUTPUT_SIZE).save(gen / "person_20261104_1113_0012.jpg")
     post_file = gen / "next_post.json"
-    post_file.write_text(json.dumps({
-        "type": "image", "file": "assets/people_generated/person_20261104_1113_0012.jpg",
-        "caption": "x", "number": 12, "name": "Salma", "age": 27,
-    }))
+    post_file.write_text(
+        json.dumps(
+            {
+                "type": "image",
+                "file": "assets/people_generated/person_20261104_1113_0012.jpg",
+                "caption": "x",
+                "number": 12,
+                "name": "Salma",
+                "age": 27,
+            }
+        )
+    )
     monkeypatch.setattr(pr, "ROOT", str(tmp_path))
     monkeypatch.setattr(pr, "GENERATED_DIR", str(gen))
     monkeypatch.setattr(pr, "MUSIC_DIR", str(tmp_path / "no_music"))

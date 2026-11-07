@@ -30,7 +30,8 @@ from datetime import datetime, timezone
 import requests
 import story_reel as sr
 
-WIKI_API = "https://de.wikipedia.org/w/api.php"
+WIKI_API = "https://{lang}.wikipedia.org/w/api.php"
+LANGS = ("de", "en")
 USER_AGENT = "IGautomation-StoryBot/1.0 (https://github.com/5hitcake/igautomation)"
 LLM_MODELS = [
     "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
@@ -47,10 +48,16 @@ HTTP.headers["User-Agent"] = USER_AGENT
 # --------------------------------------------------------------------------- Wikipedia
 
 
-def wiki_get(params, retries=5):
+def split_lang(key):
+    """'en:Zodiac Killer' -> ('en', 'Zodiac Killer'); ohne Praefix ist es Deutsch."""
+    lang, sep, title = key.partition(":")
+    return (lang, title) if sep and lang in LANGS else ("de", key)
+
+
+def wiki_get(params, lang="de", retries=5):
     params = {"format": "json", "formatversion": 2, **params}
     for attempt in range(retries):
-        resp = HTTP.get(WIKI_API, params=params, timeout=30)
+        resp = HTTP.get(WIKI_API.format(lang=lang), params=params, timeout=30)
         if resp.status_code == 429 or resp.status_code >= 500:
             time.sleep(min(60, int(resp.headers.get("Retry-After", "0") or 0) or 5 * (attempt + 1)))
             continue
@@ -59,7 +66,7 @@ def wiki_get(params, retries=5):
     raise RuntimeError("Wikipedia nicht erreichbar (zu viele Anfragen)")
 
 
-def wiki_search(query, offset=0, limit=20):
+def wiki_search(query, offset=0, limit=20, lang="de"):
     data = wiki_get(
         {
             "action": "query",
@@ -68,23 +75,29 @@ def wiki_search(query, offset=0, limit=20):
             "srnamespace": 0,
             "sroffset": offset,
             "srlimit": limit,
-        }
+        },
+        lang,
     )
-    return [hit["title"] for hit in data.get("query", {}).get("search", [])]
+    prefix = "" if lang == "de" else f"{lang}:"
+    return [prefix + hit["title"] for hit in data.get("query", {}).get("search", [])]
 
 
-def wiki_article(title):
-    """(Titel, Klartext, URL) oder None, wenn es den Artikel nicht gibt / Begriffsklaerung ist."""
+def wiki_article(key):
+    """(Schluessel, Titel, Klartext, URL, Schluessel in den anderen Sprachen) oder None, wenn es den
+    Artikel nicht gibt oder er eine Begriffsklaerung ist."""
+    lang, title = split_lang(key)
     data = wiki_get(
         {
             "action": "query",
-            "prop": "extracts|pageprops|info",
+            "prop": "extracts|pageprops|info|langlinks",
             "explaintext": 1,
             "redirects": 1,
             "titles": title,
             "inprop": "url",
             "ppprop": "disambiguation",
-        }
+            "lllimit": 50,
+        },
+        lang,
     )
     pages = data.get("query", {}).get("pages", [])
     if not pages or pages[0].get("missing") or "disambiguation" in pages[0].get("pageprops", {}):
@@ -92,28 +105,50 @@ def wiki_article(title):
     page = pages[0]
     text = re.sub(r"\n{3,}", "\n\n", page.get("extract", "")).strip()
     # Literatur/Weblinks/Einzelnachweise am Ende abschneiden
-    text = re.split(r"\n== (Literatur|Weblinks|Einzelnachweise|Rezeption|Filme?|Dokumentation)", text)[0]
-    return page["title"], text[:MAX_ARTICLE_CHARS], page.get("fullurl", "")
+    text = re.split(
+        r"\n== (Literatur|Weblinks|Einzelnachweise|Rezeption|Filme?|Dokumentation|References|External links|"
+        r"Further reading|See also|In popular culture|Notes)",
+        text,
+    )[0]
+    prefix = "" if lang == "de" else f"{lang}:"
+    others = {
+        (f"{ll['lang']}:" if ll["lang"] != "de" else "") + ll["title"]
+        for ll in page.get("langlinks", [])
+        if ll.get("lang") in LANGS
+    }
+    return prefix + page["title"], page["title"], text[:MAX_ARTICLE_CHARS], page.get("fullurl", ""), others
 
 
-def is_listish(title):
-    return title.startswith(("Liste ", "Portal:", "Kategorie:")) or "(Begriffsklärung)" in title
+def is_listish(key):
+    title = split_lang(key)[1]
+    return (
+        title.startswith(("Liste ", "List of ", "Portal:", "Kategorie:", "Category:"))
+        or "(Begriffsklärung)" in title
+    )
 
 
 def candidates(account_cfg, account_state, rng):
-    """Erst die kuratierten Seeds, dann endlos ueber Suchbegriffe."""
+    """Erst die kuratierten Seeds (deutsch und englisch gemischt), dann endlos ueber Suchbegriffe
+    in der deutschen und englischen Wikipedia."""
     used = set(account_state.get("wiki_used", []))
-    for title in account_cfg.get("wiki_seeds", []):
-        if title not in used:
-            yield title
-    queries = list(account_cfg.get("wiki_queries", []))
+    seeds = list(account_cfg.get("wiki_seeds", []))
+    en_seeds = [k for k in account_cfg.get("wiki_seeds_en", [])]
+    # abwechselnd deutsch/englisch, damit beide Quellen frueh dran kommen
+    mixed = (
+        [k for pair in zip(seeds, en_seeds) for k in pair] + seeds[len(en_seeds) :] + en_seeds[len(seeds) :]
+    )
+    for key in mixed:
+        if key not in used:
+            yield key
+    searches = [(q, "de") for q in account_cfg.get("wiki_queries", [])]
+    searches += [(q, "en") for q in account_cfg.get("wiki_queries_en", [])]
     for _ in range(12):
-        if not queries:
+        if not searches:
             return
-        query = rng.choice(queries)
-        for title in wiki_search(query, offset=rng.choice([0, 0, 20, 40, 60])):
-            if title not in used and not is_listish(title):
-                yield title
+        query, lang = rng.choice(searches)
+        for key in wiki_search(query, offset=rng.choice([0, 0, 20, 40, 60]), lang=lang):
+            if key not in used and not is_listish(key):
+                yield key
 
 
 # --------------------------------------------------------------------------- KI
@@ -205,6 +240,17 @@ def style_example(account_cfg):
     )
 
 
+def article_prompt(title, text):
+    if re.search(r"\b(the|and|was|were|which)\b", text[:2000]) and not re.search(
+        r"\b(und|der|die|das)\b", text[:2000]
+    ):
+        return (
+            f'Englischer Wikipedia-Artikel "{title}". Schreibe das Reel trotzdem auf DEUTSCH '
+            f"(Bildbeschreibungen auf Englisch). Uebersetze Fakten genau, erfinde nichts dazu:\n\n{text}"
+        )
+    return f'Wikipedia-Artikel "{title}":\n\n{text}'
+
+
 def write_story(account_cfg, title, text, covered, creds, models=None):
     theme = account_cfg.get("writer_theme", account_cfg["name"])
     messages = [
@@ -212,7 +258,7 @@ def write_story(account_cfg, title, text, covered, creds, models=None):
             "role": "system",
             "content": SYSTEM.format(theme=theme, covered=covered) + style_example(account_cfg),
         },
-        {"role": "user", "content": f'Wikipedia-Artikel "{title}":\n\n{text}'},
+        {"role": "user", "content": article_prompt(title, text)},
     ]
     errors = []
     for model in models or LLM_MODELS:
@@ -263,12 +309,20 @@ def generate(account, count, dry_run=False, rng=None):
         if made >= count or tried >= MAX_CANDIDATES_PER_RUN:
             break
         tried += 1
-        acc_state.setdefault("wiki_used", []).append(title)
+        used = acc_state.setdefault("wiki_used", [])
+        seen_before = set(used)
+        used.append(title)
         article = wiki_article(title)
-        if not article or len(article[1]) < MIN_ARTICLE_CHARS:
+        if not article or len(article[2]) < MIN_ARTICLE_CHARS:
             print(f"- {title}: uebersprungen (kein/zu kurzer Artikel)")
             continue
-        real_title, text, url = article
+        key, real_title, text, url, others = article
+        if key != title:
+            used.append(key)
+        if others & seen_before:
+            print(f"- {title}: uebersprungen (in anderer Sprache schon verwendet)")
+            continue
+        used.extend(sorted(others - set(used)))
         if dry_run:
             print(f"- {real_title}: wuerde Geschichte schreiben ({len(text)} Zeichen)")
             made += 1
