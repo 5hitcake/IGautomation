@@ -193,9 +193,20 @@ jobs:
         id: publish
         if: steps.review.outputs.publish == 'true'
         env:
-          IG_ACCESS_TOKEN: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_IG_ACCESS_TOKEN || secrets.MYSTERY_IG_ACCESS_TOKEN }}
-          IG_ACCOUNT_ID: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_IG_ACCOUNT_ID || secrets.MYSTERY_IG_ACCOUNT_ID }}
-        run: python scripts/publish.py --post-file assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
+          ACC: ${{ steps.acc.outputs.account }}
+          HORROR_IG_ACCESS_TOKEN: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
+          HORROR_IG_ACCOUNT_ID: ${{ secrets.HORROR_IG_ACCOUNT_ID }}
+          MYSTERY_IG_ACCESS_TOKEN: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN }}
+          MYSTERY_IG_ACCOUNT_ID: ${{ secrets.MYSTERY_IG_ACCOUNT_ID }}
+        run: |
+          # Eindeutige Zuordnung: Grusel nur mit Grusel-Zugang, Rätsel nur mit Rätsel-Zugang.
+          case "$ACC" in
+            horror)    export IG_ACCESS_TOKEN="$HORROR_IG_ACCESS_TOKEN" IG_ACCOUNT_ID="$HORROR_IG_ACCOUNT_ID" ;;
+            mysteries) export IG_ACCESS_TOKEN="$MYSTERY_IG_ACCESS_TOKEN" IG_ACCOUNT_ID="$MYSTERY_IG_ACCOUNT_ID" ;;
+            *) echo "Unbekannter Account $ACC"; exit 1 ;;
+          esac
+          expected=$(python -c "import json;print(json.load(open('content/story_reels/$ACC.json'))['account']['instagram_username'])")
+          python scripts/publish.py --post-file assets/story_reels/$ACC/next_post.json --expect-username "$expected"
 
       - name: Zusätzlich auf TikTok hochladen (optional)
         id: tiktok
@@ -204,13 +215,22 @@ jobs:
         env:
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
-          TIKTOK_REFRESH_TOKEN: ${{ steps.acc.outputs.account == 'horror' && secrets.HORROR_TIKTOK_REFRESH_TOKEN || secrets.MYSTERY_TIKTOK_REFRESH_TOKEN }}
+          ACC: ${{ steps.acc.outputs.account }}
+          HORROR_TIKTOK_REFRESH_TOKEN: ${{ secrets.HORROR_TIKTOK_REFRESH_TOKEN }}
+          MYSTERY_TIKTOK_REFRESH_TOKEN: ${{ secrets.MYSTERY_TIKTOK_REFRESH_TOKEN }}
         run: |
+          # Eindeutige Zuordnung: Grusel-Reel nur auf Grusel-TikTok, Rätsel-Reel nur auf Rätsel-TikTok.
+          case "$ACC" in
+            horror)    export TIKTOK_REFRESH_TOKEN="$HORROR_TIKTOK_REFRESH_TOKEN" ;;
+            mysteries) export TIKTOK_REFRESH_TOKEN="$MYSTERY_TIKTOK_REFRESH_TOKEN" ;;
+            *) echo "Unbekannter Account $ACC"; exit 1 ;;
+          esac
           if [ -z "$TIKTOK_CLIENT_KEY" ] || [ -z "$TIKTOK_REFRESH_TOKEN" ]; then
-            echo "Kein TikTok-Zugang für ${{ steps.acc.outputs.account }} hinterlegt - übersprungen."
+            echo "Kein TikTok-Zugang für $ACC hinterlegt - übersprungen."
             exit 0
           fi
-          python scripts/tiktok_story_publish.py --post-file assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
+          export TIKTOK_EXPECT_NAME=$(python -c "import json;print(json.load(open('content/story_reels/$ACC.json'))['account']['tiktok_name'])")
+          python scripts/tiktok_story_publish.py --post-file assets/story_reels/$ACC/next_post.json
 
       - name: Ergebnis per Telegram melden
         if: always() && steps.gate.outputs.run == 'true' && steps.acc.outputs.publish == 'true'

@@ -141,6 +141,21 @@ def publish_media(ig_account_id, access_token, creation_id, dry_run):
     print(f"Veroeffentlicht: {resp.json()}")
 
 
+def check_account(access_token, expected):
+    """Bricht ab, wenn der Token zu einem anderen Instagram-Account gehoert als erwartet."""
+    resp = SESSION.get(
+        f"{GRAPH_API_BASE}/me", params={"fields": "username", "access_token": access_token}, timeout=30
+    )
+    raise_with_details(resp)
+    actual = resp.json().get("username", "")
+    if actual.lower() != expected.lstrip("@").lower():
+        raise SystemExit(
+            f"Falscher Instagram-Account: Token gehoert zu @{actual}, erwartet @{expected.lstrip('@')}. "
+            "Es wurde NICHT gepostet - Secrets pruefen."
+        )
+    print(f"Account-Check ok: @{actual}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
@@ -153,6 +168,10 @@ def main():
             "Instagram-Account mit anderem Content verwenden, z.B. "
             "assets/tiktok_generated/next_post.json."
         ),
+    )
+    parser.add_argument(
+        "--expect-username",
+        help="Sicherheitscheck: nur posten, wenn der Token zu diesem Instagram-Account gehoert (ohne @).",
     )
     args = parser.parse_args()
 
@@ -172,6 +191,9 @@ def main():
     if not args.dry_run and (not access_token or not ig_account_id):
         print("IG_ACCESS_TOKEN und IG_ACCOUNT_ID muessen gesetzt sein (siehe README Setup).")
         sys.exit(1)
+
+    if args.expect_username and not args.dry_run:
+        check_account(access_token, args.expect_username)
 
     creation_id = create_media_container(ig_account_id, access_token, post, args.dry_run)
     wait_for_media_ready(creation_id, access_token, args.dry_run)
