@@ -2,31 +2,33 @@
   "slot": "17:13",
   "rejected": false,
   "persona": {
-    "gender": "man",
-    "age": 37,
+    "gender": "woman",
+    "age": 39,
     "age_range": [
       30,
       39
     ],
     "heritage": [
-      "Persian",
-      "persian"
+      "British",
+      "british"
     ],
-    "name": "Babak",
-    "hair": "a neat side part",
-    "facial_hair": "light stubble",
-    "detail": "crow's feet around the eyes",
-    "clothing": "a linen shirt",
-    "setting": "at a beach at dusk",
-    "lighting": "bright midday sun with hard shadows",
+    "name": "Lucy",
+    "hair": "a short pixie cut",
+    "facial_hair": null,
+    "detail": "a gap between the front teeth",
+    "clothing": "a football jersey",
+    "setting": "on a subway platform",
+    "lighting": "dim moody ambient light",
     "camera": "shot on Kodak Portra 400 film, 35mm",
     "framing": "close-up headshot",
-    "expression": "a tired but friendly look",
-    "traits": [],
+    "expression": "looking slightly away from the camera",
+    "traits": [
+      "several small ear piercings"
+    ],
     "bold": false
   },
-  "prompt": "Close-up headshot photo of a 37-year-old Persian man with a neat side part, light stubble and crow's feet around the eyes, wearing a linen shirt, a tired but friendly look, at a beach at dusk, bright midday sun with hard shadows, shot on Kodak Portra 400 film, 35mm, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "prompt": "Close-up headshot photo of a 39-year-old British woman with a short pixie cut, several small ear piercings and a gap between the front teeth, wearing a football jersey, looking slightly away from the camera, on a subway platform, dim moody ambient light, shot on Kodak Portra 400 film, 35mm, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
   "reserve": null,
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0010 · \"Babak\", 37\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #fakeface #portrait #peopleofinstagram #fluxai #streetportrait"
+  "caption": "This face belongs to no one.\n\nPerson No. 0012 · \"Lucy\", 39\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #fluxai #fakeface #faces #artificialintelligence #digitalhuman"
 }
