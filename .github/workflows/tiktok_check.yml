@@ -1,4 +1,4 @@
-name: TikTok-Zugang pruefen (temporaer, Lauf 2)
+name: TikTok-Zugang pruefen (temporaer, Lauf 3)
 on:
   push:
     branches: [claude/instagram-reels-automation-koceqs]
@@ -42,13 +42,15 @@ jobs:
               if "access_token" not in r:
                   print(f"{name}_TIKTOK_REFRESH_TOKEN: FEHLER -> {r.get('error')} {r.get('error_description', '')}")
                   continue
-              req = urllib.request.Request("https://open.tiktokapis.com/v2/user/info/?fields=display_name,username",
+              req = urllib.request.Request("https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name",
                                            headers={"Authorization": f"Bearer {r['access_token']}"})
               try:
-                  user = json.load(urllib.request.urlopen(req, timeout=30)).get("data", {}).get("user", {})
-              except Exception as e:
-                  user = {"fehler": str(e)}
-              print(f"{name}_TIKTOK_REFRESH_TOKEN: gueltig, Scopes: {r.get('scope')}, Account: @{user.get('username')} ({user.get('display_name')}), noch {int(r.get('refresh_expires_in', 0))//86400} Tage")
+                  raw = json.load(urllib.request.urlopen(req, timeout=30))
+              except urllib.error.HTTPError as e:
+                  raw = {"http": e.code, "body": e.read().decode()[:200]}
+              user = raw.get("data", {}).get("user", {}) if isinstance(raw.get("data"), dict) else {}
+              oid = str(r.get("open_id", ""))
+              print(f"{name}: Anzeigename='{user.get('display_name')}', Konto-ID endet auf ...{oid[-6:]}, API-Antwort-Fehler: {raw.get('error', raw.get('http'))}")
           PY
       - if: always()
         env:
