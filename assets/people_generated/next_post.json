@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261107_2343_0013.mp4",
-  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0013 · \"Bilguun\", 30\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiart #notreal #streetportrait #portraitphotography #lookalike #faces",
+  "type": "image",
+  "file": "assets/people_generated/person_20261108_1114_0014.jpg",
+  "caption": "Say hi to someone who was never born.\n\nPerson No. 0014 · \"Felix\", 42\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #artificialintelligence #faces #lookalike #notreal #fluxai",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a 30-year-old Mongolian man with messy medium-length hair, a short boxed beard and rosy cheeks, wearing a linen shirt, a warm genuine smile, in a bustling night market, neon city lights at night, shot on Kodak Portra 400 film, 35mm, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 13,
-  "name": "Bilguun",
-  "age": 30,
-  "image": "assets/people_generated/person_20261107_2343_0013.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Head and shoulders portrait photo of a 42-year-old German man with a neat side part, a full beard and crow's feet around the eyes, wearing a leather jacket, a tired but friendly look, on a mountain trail, soft golden hour light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 42 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 14,
+  "name": "Felix",
+  "age": 42
 }

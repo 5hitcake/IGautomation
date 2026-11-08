@@ -1,5 +1,5 @@
 {
-  "count": 13,
+  "count": 14,
   "recent": [
     {
       "gender": "woman",
@@ -156,6 +156,18 @@
         "mongolian"
       ],
       "setting": "in a bustling night market"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        40,
+        49
+      ],
+      "heritage": [
+        "German",
+        "german"
+      ],
+      "setting": "on a mountain trail"
     }
   ],
   "reserve_used": [
