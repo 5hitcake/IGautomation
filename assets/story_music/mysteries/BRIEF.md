@@ -26,3 +26,10 @@ starts immediately with full beat and hook, no intro
 Länge: 70 s. **Kein Intro**: ab Sekunde 0 voller Beat, Bass und Hook, weil die Reels nur ca. 1 Minute
 dauern und sofort packen müssen. Unter der Stimme muss es leise funktionieren
 (keine dominanten Leadstimmen im Sprachbereich).
+
+## Aktueller Song (theme.mp3)
+
+Erzeugt am 08.11.2026 über Pollinations mit **ElevenLabs Eleven Music v2.5** (Variante „B verträumt“,
+vom Nutzer ausgewählt): obiger Prompt plus „Emphasize the floating ethereal pads and the glittering
+arpeggio, softer drums.“, 70 s, instrumental. Danach auf -16 LUFS normalisiert, 3 s Ausblende am Ende.
+Kosten ca. 0,18 Pollen pro Song.
