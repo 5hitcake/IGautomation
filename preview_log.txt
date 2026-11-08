@@ -1,0 +1,11 @@
+[mysteries] Story: antikythera (8 Szenen)
+  Bild 1: pollinations
+  Bild 2: pollinations
+  Bild 3: pollinations
+  Bild 4: pollinations
+  Bild 5: pollinations
+  Bild 6: pollinations
+  Bild 7: pollinations
+  Bild 8: pollinations
+  Bild 9: pollinations
+Reel fertig: /home/runner/work/IGautomation/IGautomation/assets/story_reels/mysteries/reel_antikythera.mp4 (65.2 s, Stimme: ja, Musik: theme.mp3)
