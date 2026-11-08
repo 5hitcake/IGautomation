@@ -4,6 +4,7 @@
 let ctx = null;
 let master = null;
 let enabled = true;
+let adPlaying = false; // während einer Werbung bleibt das Spiel stumm
 
 export function setSoundEnabled(on) {
   enabled = on;
@@ -28,7 +29,7 @@ export function unlockAudio() {
 
 /** Tonausgabe wieder anwerfen, falls sie angehalten wurde (nur wenn die App sichtbar ist). */
 export function resumeAudio() {
-  if (!ctx || document.hidden) return;
+  if (!ctx || document.hidden || adPlaying) return;
   if (ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume().catch(() => {});
 }
 
@@ -135,6 +136,14 @@ export const sfx = {
 
 export function vibrate(ms) {
   try { navigator.vibrate?.(ms); } catch { /* nicht unterstützt */ }
+}
+
+/** Während eine Werbung läuft, schweigt das Spiel (die Werbung hat eigenen Ton). */
+export function setAdPlaying(on) {
+  adPlaying = on;
+  if (!ctx) return;
+  if (on) ctx.suspend().catch(() => {});
+  else resumeAudio();
 }
 
 /** Für die Musik (src/services/music.js): gemeinsamer AudioContext und Ausgang. */

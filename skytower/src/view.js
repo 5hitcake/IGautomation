@@ -5,8 +5,10 @@ import { WORLD_W } from './config.js';
 // scharf bleibt, läuft die Canvas in echter Pixelauflösung und jede Kamera
 // zoomt um ZOOM (siehe setupCamera).
 
-const innerW = window.innerWidth || 390;
-const innerH = window.innerHeight || 844;
+// Maßgeblich ist der Spielbereich ohne Statusleiste und Kamera-Aussparung (siehe index.html)
+const area = document.getElementById('game');
+const innerW = area?.clientWidth || window.innerWidth || 390;
+const innerH = area?.clientHeight || window.innerHeight || 844;
 
 export const W = WORLD_W;
 export const VIEW_H = Math.round(Math.min(1700, Math.max(1100, (W * innerH) / innerW)));

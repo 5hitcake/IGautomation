@@ -40,13 +40,13 @@ Auf Etage 1000 wartet das Himmelstor. Wer es erreicht, erlebt eine kleine Szene 
 Kaufe Skins mit gesammelten Münzen, schalte weitere über Erfolge frei – und entdecke geheime Skins, die erst erscheinen, wenn du sie verdient hast. Mit Regenbogen-, Sternschnuppen- und Sternenstaub-Schweif!
 
 ☂️ Power-ups
-Raketen-Wolke, Münz-Magnet, Warp-Sterne und der Regenschirm, der dich einmal vor dem Absturz rettet.
+Raketen-Wolke, Münz-Magnet, Warp-Sterne und der Regenschirm, der dich vor dem Absturz rettet – einmal pro Runde gratis, danach per freiwilliger Werbung.
 
 🎵 Musik, die mitwächst
 Die Hintergrundmusik wird mit jeder Stufe schneller und voller und klingt in jeder Zone anders.
 
 ✔ Steuerung wählbar: Tippen oder Neigen
-✔ Kostenlos, ohne Werbung, ohne Anmeldung
+✔ Kostenlos, ohne Anmeldung – Werbung nur freiwillig zum Weiterspielen
 ✔ Funktioniert offline
 ✔ Auf Deutsch und Englisch
 
@@ -83,13 +83,13 @@ Skip floors, bounce off the walls and build huge combos – "Super!", "Fantastic
 Buy skins with the coins you collect, unlock more through achievements – and discover secret skins that only appear once you've earned them. With rainbow, shooting-star and stardust trails!
 
 ☂️ Power-ups
-Rocket cloud, coin magnet, warp stars and the umbrella that saves you from one fall.
+Rocket cloud, coin magnet, warp stars and the umbrella that saves you from a fall – once per round for free, then by watching an optional ad.
 
 🎵 Music that grows with you
 The soundtrack gets faster and fuller with every level and sounds different in every zone.
 
 ✔ Choose your controls: touch or tilt
-✔ Free, no ads, no sign-up
+✔ Free, no sign-up – ads only if you choose to watch one to keep playing
 ✔ Works offline
 ✔ In English and German
 
@@ -102,19 +102,26 @@ The soundtrack gets faster and fuller with every level and sounds different in e
 
 **Datenschutzerklärung (URL):** Pflicht. Text: `datenschutz.html` in diesem Ordner, muss öffentlich erreichbar sein (siehe ANLEITUNG-PLAY-CONSOLE.md).
 
-**Datensicherheit** (App-Inhalte → Datensicherheit)
-- Erhebt oder teilt die App Nutzerdaten? → **Nein**
-  (Spielstand, Rekorde und Einstellungen bleiben nur auf dem Gerät; keine Analyse, keine Werbung, kein Konto.)
-- Daten werden bei der Übertragung verschlüsselt? → entfällt (keine Übertragung)
-- Nutzer können das Löschen ihrer Daten beantragen? → entfällt; Deinstallieren oder „Speicher leeren“ löscht alles.
+**Datensicherheit** (App-Inhalte → Datensicherheit) – ab Version 0.11 mit Werbung (Google AdMob)
+- Erhebt oder teilt die App Nutzerdaten? → **Ja**
+- Werden alle Daten bei der Übertragung verschlüsselt? → **Ja**
+- Können Nutzer das Löschen ihrer Daten beantragen? → **Nein** (das Spiel speichert nichts auf Servern; Werbe-ID über Android-Einstellungen)
+- Datentypen (jeweils **erhoben** und **geteilt**, **nicht** freiwillig abwählbar außer Personalisierung, Zweck **Werbung oder Marketing**, **Betrugsprävention**, **Analysen**):
+  - **Geräte- oder andere IDs** (Werbe-ID)
+  - **App-Aktivitäten → App-Interaktionen** (ob eine Werbung angesehen wurde)
+  - **App-Info und -Leistung → Absturzprotokolle, Diagnosedaten**
+  - **Standort → Ungefährer Standort** (aus der IP-Adresse)
 
-**Werbung** (App-Inhalte → Anzeigen): Enthält die App Werbung? → **Nein**
+**Werbung** (App-Inhalte → Anzeigen): Enthält die App Werbung? → **Ja**
 
-**Zielgruppe und Inhalte:** Altersgruppen **13–15, 16–17, 18+** (nicht unter 13).
-Spricht die App Kinder an? → **Nein** (bzw. „Kein besonderer Reiz für Kinder“ ist nicht nötig, weil keine Kinder-Altersgruppe gewählt ist)
+**Werbe-ID** (App-Inhalte → Werbe-ID): Verwendet die App eine Werbe-ID? → **Ja**, Zweck **Werbung oder Marketing**
+
+**Zielgruppe und Inhalte:** Altersgruppen **13–15, 16–17, 18+** (nicht unter 13). Werbung ist in AdMob auf „Teen“ begrenzt.
+Spricht die App Kinder an? → **Nein**
 
 **Einstufung des Inhalts (IARC-Fragebogen):** Kategorie „Spiel“. Alle Fragen zu Gewalt, Angst,
 Sexualität, Glücksspiel, Drogen, Sprache, Nutzerinteraktion, Standort, digitalen Käufen → **Nein**.
+(Werbung ist kein eigener Punkt im IARC-Fragebogen; nichts ändern.)
 Erwartetes Ergebnis: USK 0 / PEGI 3.
 
 **App-Zugriff:** Alle Funktionen ohne Einschränkungen verfügbar (keine Anmeldung).

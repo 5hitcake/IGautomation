@@ -11,6 +11,7 @@ import { skinById } from '../systems/progress.js';
 import { tr, num } from '../i18n.js';
 import { TEST_TOOLS } from '../config.js';
 import { startTilt, tiltAvailable } from '../services/tilt.js';
+import { adsStarted, needsPrivacyButton, showPrivacyOptions } from '../services/ads.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -117,6 +118,15 @@ export class MenuScene extends Phaser.Scene {
         sfx.click();
       }, { w: 220, h: 64, size: 24, fill: 0xfff3a0 });
     }
+
+    // Werbe-Einwilligung nachträglich ändern (Pflicht in der EU, nur wenn Google es verlangt)
+    adsStarted().then(() => {
+      if (!this.scene.isActive() || !needsPrivacyButton()) return;
+      button(this, W - 128, 70, tr('Datenschutz', 'Privacy'), () => {
+        sfx.click();
+        showPrivacyOptions();
+      }, { w: 220, h: 64, size: 24, fill: 0xd8ecff });
+    });
 
     txt(this, W / 2, VIEW_H - 70, `v${__APP_VERSION__}`, 24, { strokeThickness: 5, color: '#e8f4ff' });
   }

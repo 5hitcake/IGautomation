@@ -147,13 +147,17 @@ export const POWERUPS = {
 };
 
 // Weiterspielen nach einem Absturz: ein Regenschirm fängt Wolki auf.
-// Zum Start ohne Werbung: 1× pro Runde gratis. Später (AdMob, Phase 6) per
-// belohnter Werbung: dann viaAd: true und z. B. max: 3.
-// Test-Versionen: wie später mit AdMob – bis 3× per (3-s-Test-)Werbung.
-// Store-Version: 1× gratis, ohne Werbung.
-export const REVIVE = TEST_TOOLS
-  ? { max: 3, viaAd: true, fakeAdSeconds: 3 }
-  : { max: 1, viaAd: false, fakeAdSeconds: 3 };
+// Pro Runde bis zu `max`-mal: das erste Mal gratis, danach per belohnter Werbung.
+// In Test-Versionen ersetzt eine 3-s-Test-Werbung die echte, wenn es keine gibt (Browser).
+export const REVIVE = { max: 3, free: 1, fakeAdSeconds: 3 };
+
+// Google AdMob (nur Android-App). Die IDs sind nicht geheim, sie stehen in jeder App.
+export const ADS = {
+  appId: 'ca-app-pub-6235633578293475~9791759258', // auch in AndroidManifest.xml
+  rewardedId: 'ca-app-pub-6235633578293475/5380731799', // Anzeigenblock „Regenschirm“
+  testRewardedId: 'ca-app-pub-3940256099942544/5224354917', // Googles Test-Werbung
+  loadTimeoutMs: 6000,
+};
 // Countdown nach „Weiterspielen per Werbung“: 3 – 2 – 1 – Los!
 export const COUNTDOWN = { from: 3, stepMs: 800 };
 

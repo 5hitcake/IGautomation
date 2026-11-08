@@ -4,6 +4,7 @@ import { sfx } from '../services/audio.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
 import { TEST_TOOLS, REVIVE } from '../config.js';
+import { adsSupported, showRewardedAd } from '../services/ads.js';
 import { tr, num } from '../i18n.js';
 import { skinById } from '../systems/progress.js';
 
@@ -119,31 +120,52 @@ export class GameOverScene extends Phaser.Scene {
     }, { fill: 0xbfe6ff, h: 88, size: 38 });
 
     // Weiterspielen: ein Regenschirm fängt Wolki auf und die Runde geht an derselben
-    // Stelle weiter (zum Start gratis, später per belohnter Werbung – siehe REVIVE)
+    // Stelle weiter (das erste Mal gratis, danach per belohnter Werbung – siehe REVIVE)
     {
       const by = y + 760 + (unlocked.length ? 28 + unlockedH + 56 : 84);
       const revives = this.scene.get('Game').revives ?? 0;
-      if (revives < REVIVE.max) this.reviveOffer(by, REVIVE.max - revives);
-      else txt(this, W / 2, by, tr('Keine Rettung mehr in dieser Runde', 'No more rescues this round'), 28, { color: '#e8f4ff', strokeThickness: 6 }).setDepth(12);
+      const free = revives < REVIVE.free;
+      const canAd = adsSupported() || TEST_TOOLS; // Browser-Test: Platzhalter-Werbung
+      if (revives < REVIVE.max && (free || canAd)) this.reviveOffer(by, REVIVE.max - revives, !free);
+      else if (revives > 0) txt(this, W / 2, by, tr('Keine Rettung mehr in dieser Runde', 'No more rescues this round'), 28, { color: '#e8f4ff', strokeThickness: 6 }).setDepth(12);
     }
   }
 
-  reviveOffer(by, left) {
+  reviveOffer(by, left, viaAd) {
     const go = () => {
       this.scene.stop();
       this.scene.get('Game').revive();
     };
-    const viaAd = REVIVE.viaAd && TEST_TOOLS; // echte Werbung kommt mit AdMob (Phase 6)
-    button(this, W / 2, by, viaAd ? tr('Weiterspielen per Werbung', 'Continue (watch ad)') : tr('Weiterspielen', 'Continue'), () => {
+    let busy = false;
+    const btn = button(this, W / 2, by, viaAd ? tr('▶ Weiterspielen per Werbung', '▶ Continue (watch ad)') : tr('Weiterspielen', 'Continue'), async () => {
+      if (busy) return;
       sfx.click();
-      if (viaAd) this.playFakeAd(go); else go();
-    }, { w: 520, h: 80, size: 30, fill: 0x9ff0b0 }).setDepth(12);
-    this.add.image(W / 2 - 215, by - 2, 'pu_shield').setScale(0.7 / ZOOM).setDepth(13);
-    const sub = REVIVE.max > 1 ? tr(`noch ${left}×`, `${left}× left`) : tr('1× pro Runde', 'once per round');
-    txt(this, W / 2, by + 62, tr('Ein Regenschirm fängt dich auf', 'An umbrella catches you') + ` · ${sub}${viaAd ? tr(' · Test-Werbung', ' · test ad') : ''}`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
+      if (!viaAd) { go(); return; }
+      if (!adsSupported()) { this.playFakeAd(go); return; }
+      busy = true;
+      btn.setAlpha(0.6);
+      const result = await showRewardedAd();
+      if (!this.scene.isActive()) return;
+      busy = false;
+      btn.setAlpha(1);
+      if (result === 'reward') { sfx.shield(); go(); }
+      else if (result === 'unavailable') {
+        // Keine Werbung zu bekommen (offline, nichts verfügbar): dann eben geschenkt
+        this.toast(tr('Gerade keine Werbung da – diesmal gratis!', 'No ad right now – this one is free!'));
+        this.time.delayedCall(900, go);
+      } else this.toast(tr('Werbung abgebrochen – kein Regenschirm', 'Ad closed early – no umbrella'));
+    }, { w: 560, h: 80, size: 30, fill: 0x9ff0b0 }).setDepth(12);
+    this.add.image(W / 2 - 235, by - 2, 'pu_shield').setScale(0.7 / ZOOM).setDepth(13);
+    const sub = tr(`noch ${left}×`, `${left}× left`);
+    txt(this, W / 2, by + 62, tr('Ein Regenschirm fängt dich auf', 'An umbrella catches you') + ` · ${sub}${viaAd && !adsSupported() ? tr(' · Test-Werbung', ' · test ad') : ''}`, 24, { color: '#e8f4ff', strokeThickness: 5 }).setDepth(12);
   }
 
-  /** Platzhalter für eine belohnte Werbung (wird in Phase 6 durch AdMob ersetzt) */
+  toast(msg) {
+    const t = txt(this, W / 2, VIEW_H - 120, msg, 30, { color: '#ffe066', strokeThickness: 7, wrap: W - 60 }).setDepth(60);
+    this.tweens.add({ targets: t, alpha: 0, delay: 1600, duration: 400, onComplete: () => t.destroy() });
+  }
+
+  /** Platzhalter-Werbung für Test-Versionen im Browser (dort gibt es kein AdMob) */
   playFakeAd(onReward) {
     const layer = this.add.container(0, 0).setDepth(50);
     layer.add(this.add.rectangle(0, 0, W, VIEW_H, 0x10183a, 0.94).setOrigin(0).setInteractive());

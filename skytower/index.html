@@ -11,12 +11,16 @@
     html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg);
       overscroll-behavior: none; -webkit-tap-highlight-color: transparent;
       -webkit-user-select: none; user-select: none; touch-action: none; }
-    #game { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+    /* Android 15+ zeichnet randlos: die App reicht unter Statusleiste und Kamera-Aussparung.
+       Capacitor meldet deren Größe als --safe-area-inset-*, dort bleibt nur Himmel zu sehen. */
+    #game { position: fixed; display: flex; align-items: center; justify-content: center;
+      top: var(--safe-area-inset-top, 0px); bottom: var(--safe-area-inset-bottom, 0px);
+      left: var(--safe-area-inset-left, 0px); right: var(--safe-area-inset-right, 0px); }
     canvas { display: block; touch-action: none; }
   </style>
 </head>
 <body>
   <div id="game"></div>
-  <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/boot.js"></script>
 </body>
 </html>

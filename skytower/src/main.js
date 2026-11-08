@@ -7,6 +7,7 @@ import { GameScene } from './scenes/Game.js';
 import { PauseScene, GameOverScene } from './scenes/Overlays.js';
 import { ShopScene } from './scenes/Shop.js';
 import { setupNative } from './services/native.js';
+import { initAds } from './services/ads.js';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -24,6 +25,9 @@ const game = new Phaser.Game({
 });
 
 setupNative(game);
+// Die randlosen Ränder meldet Android erst nach dem Start: dann neu einpassen
+if (window.ResizeObserver) new ResizeObserver(() => game.scale.refresh()).observe(document.getElementById('game'));
+initAds();
 
 // Für automatisierte Tests im Browser
 window.__skytower = game;
