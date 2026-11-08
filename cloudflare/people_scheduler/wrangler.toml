@@ -1,7 +1,7 @@
 # Zuverlaessiger Zeitgeber fuer "These people do not exist".
 # GitHub-Crons starten oft Stunden zu spaet oder gar nicht; Cloudflare-Cron-Trigger
-# sind puenktlich und im Gratis-Tarif enthalten (max. 5 pro Konto, hier 4).
-# Der Worker startet zu jedem Termin people_post.yml per workflow_dispatch.
+# sind puenktlich und im Gratis-Tarif enthalten (max. 5 pro Konto, hier 5).
+# Der Worker startet zu jedem Termin people_post.yml bzw. story_reels.yml per workflow_dispatch.
 # Deploy: .github/workflows/people_scheduler_deploy.yml (bei Aenderungen hier).
 name = "people-scheduler"
 main = "src/index.js"
@@ -15,6 +15,7 @@ crons = [
   "13 11 * * *",  # 08:13 AR  Bild aus der Warteschlange
   "13 17 * * *",  # 14:13 AR  Reel aus der Warteschlange
   "43 20 * * *",  # 17:43 AR  Abend-Freigabe -> Reel um 20:43
+  "22,52 11,13,17,19 * * *",  # Story-Reels: Grusel 11:52 + 17:52, Raetsel 13:22 + 19:22
 ]
 
 [vars]

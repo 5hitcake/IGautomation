@@ -459,6 +459,11 @@ Zwei Themen-Accounts, **täglich je zwei Reels**, komplett automatisch und **kos
 `.github/workflows/story_health.yml` die Zeile `STORY_ENABLED_ACCOUNTS: "horror"` anpassen,
 z.B. `"horror mysteries"`. Manuelle Läufe über „Run workflow“ gehen immer.
 
+**Zeitgeber**: Die Termine startet der Cloudflare-Worker `cloudflare/people_scheduler` pünktlich
+(ein Cron-Trigger `22,52 11,13,17,19 * * *`, Zuordnung in `STORY_SLOTS`), weil GitHub-Crons oft
+Stunden zu spät oder gar nicht kamen. Kann der Worker einen Lauf nicht starten, kommt eine
+Telegram-Warnung.
+
 ### Ablauf pro Termin
 
 1. **75 Minuten vorher** startet der Lauf und füllt den **Geschichten-Vorrat** auf (siehe unten).

@@ -9,12 +9,9 @@ name: Story Reels (Grusel + Rätsel)
 # gelegt, dass sie sich nicht mit den Freigabe-Fenstern des People-Accounts (gleicher Bot) überschneiden.
 #   Grusel:  13:07 + 19:07 UTC  (14:07 + 20:07 DE)   Vorschau ab 11:52 / 17:52
 #   Rätsel:  14:37 + 20:37 UTC  (15:37 + 21:37 DE)   Vorschau ab 13:22 / 19:22
+# Gestartet wird pünktlich vom Cloudflare-Zeitgeber (cloudflare/people_scheduler) per
+# workflow_dispatch mit "slot" - GitHub-Crons kamen oft Stunden zu spät oder gar nicht.
 on:
-  schedule:
-    - cron: "52 11 * * *"
-    - cron: "52 17 * * *"
-    - cron: "22 13 * * *"
-    - cron: "22 19 * * *"
   workflow_dispatch:
     inputs:
       account:
@@ -32,6 +29,9 @@ on:
       wait_minutes:
         description: "Nur beim Posten: Minuten Bedenkzeit per Telegram"
         default: "20"
+      slot:
+        description: "Nur für den Zeitgeber - leer lassen"
+        default: ""
 
 permissions:
   contents: write
@@ -59,16 +59,20 @@ jobs:
 
       - name: Account und Termin bestimmen
         id: acc
+        env:
+          SLOT: ${{ github.event.inputs.slot }}
         run: |
-          case "${{ github.event.schedule }}" in
+          case "$SLOT" in
             "52 11 * * *") acc=horror;    target=13:07 ;;
             "52 17 * * *") acc=horror;    target=19:07 ;;
             "22 13 * * *") acc=mysteries; target=14:37 ;;
             "22 19 * * *") acc=mysteries; target=20:37 ;;
             *)             acc="${{ github.event.inputs.account }}"; target="" ;;
           esac
-          publish=true
-          [ "${{ github.event_name }}" = "workflow_dispatch" ] && publish="${{ github.event.inputs.publish }}"
+          publish="${{ github.event.inputs.publish }}"
+          scheduled=false
+          [ -n "$target" ] && publish=true && scheduled=true
+          echo "scheduled=$scheduled" >> "$GITHUB_OUTPUT"
           echo "account=$acc" >> "$GITHUB_OUTPUT"
           echo "target=$target" >> "$GITHUB_OUTPUT"
           echo "publish=$publish" >> "$GITHUB_OUTPUT"
@@ -87,7 +91,7 @@ jobs:
             echo "::warning::Instagram-Secrets für '$acc' fehlen - übersprungen (siehe README, Abschnitt Story-Reels)."
             exit 0
           fi
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "${{ steps.acc.outputs.scheduled }}" = "true" ]; then
             case " $STORY_ENABLED_ACCOUNTS " in
               *" $acc "*) ;;
               *) echo "run=false" >> "$GITHUB_OUTPUT"; echo "'$acc' ist pausiert (STORY_ENABLED_ACCOUNTS)."; exit 0 ;;
