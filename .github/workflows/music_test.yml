@@ -38,7 +38,7 @@ jobs:
               t = time.time()
               r = requests.post("https://gen.pollinations.ai/v1/audio/speech", headers=h, timeout=600,
                                 json={"model": "elevenlabs/music-v2.5", "input": prompt, "duration": 70,
-                                      "instrumental": True, "response_format": "mp3", "seed": 136 + i})
+                                      "instrumental": True, "response_format": "mp3"})
               ct = r.headers.get("content-type", "")
               print(name, r.status_code, ct, len(r.content), "Bytes", round(time.time() - t), "s")
               if r.ok and ct.startswith("audio"):
