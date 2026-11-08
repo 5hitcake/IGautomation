@@ -1,5 +1,5 @@
 {
-  "count": 15,
+  "count": 16,
   "recent": [
     {
       "gender": "woman",
@@ -180,6 +180,18 @@
         "southern_european"
       ],
       "setting": "at a train station"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "mixed-race",
+        "mixed"
+      ],
+      "setting": "on a rooftop"
     }
   ],
   "reserve_used": [

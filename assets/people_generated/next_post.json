@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261108_1714_0015.mp4",
-  "caption": "This person does not exist.\n\nPerson No. 0015 · \"Inês\", 28\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #digitalhuman #notreal #portraitphotography #portrait #aiart",
+  "file": "reel_20261108_2343_0016.mp4",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0016 · \"Noah\", 26\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #digitalhuman #aiphotography #twinstranger #lookalike #faces",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 28-year-old young Southern European woman with a voluminous afro and a gap between the front teeth, wearing a flannel shirt, a calm neutral expression, at a train station, neon city lights at night, shot on Canon EOS R5, 85mm f/1.4, looks exactly 28 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 15,
-  "name": "Inês",
-  "age": 28,
-  "image": "assets/people_generated/person_20261108_1714_0015.jpg",
+  "prompt": "Close-up headshot photo of a 26-year-old young mixed-race man with a high fade dyed bleached blonde with dark roots, a trimmed moustache, glitter makeup on the cheekbones and slightly sunburned nose, wearing a leather jacket, a slight smirk, on a rooftop, warm evening light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 16,
+  "name": "Noah",
+  "age": 26,
+  "image": "assets/people_generated/person_20261108_2343_0016.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
