@@ -312,9 +312,7 @@ def generate_cloudflare(model, prompt, account_id, api_token, retries=3, seed=No
                 url, headers=headers, files={k: (None, v) for k, v in form.items()}, timeout=180
             )
         else:
-            payload = {"prompt": prompt, "steps": 4}
-            if seed is not None:
-                payload["seed"] = seed
+            payload = {"prompt": prompt, "steps": 4}  # FLUX-1 Schnell erlaubt keinen "seed"
             resp = requests.post(url, headers=headers, json=payload, timeout=180)
         if resp.ok:
             return _decode_image(resp)
@@ -343,6 +341,9 @@ def generate_pollinations(prompt, seed, api_key="", retries=3):
     raise RuntimeError("unerreichbar")
 
 
+MAX_FALLBACK_IMAGES = 2  # mehr Ersatzhintergruende -> Reel abbrechen statt bildlos posten
+
+
 class ImageMaker:
     """Probiert die Anbieter der Reihe nach: Pollinations (falls Schluessel da) -> Cloudflare
     FLUX-2 Klein -> Cloudflare FLUX-1 Schnell. Merkt sich, welche in diesem Lauf ausgefallen sind
@@ -357,6 +358,7 @@ class ImageMaker:
         self.pollinations_key = os.environ.get("POLLINATIONS_API_KEY", "").strip()
         self.pollinations_on = bool(self.pollinations_key)
         self.dead = set()
+        self.errors = set()
 
     def make(self, prompt, seed):
         if self.dry_run:
@@ -367,6 +369,7 @@ class ImageMaker:
                 return Image.open(io.BytesIO(raw)).convert("RGB"), "pollinations"
             except Exception as exc:  # noqa: BLE001
                 print(f"  Pollinations fehlgeschlagen: {exc}")
+                self.errors.add(f"Pollinations: {str(exc)[:80]}")
                 self.dead.add("pollinations")
         if all(self.cf):
             for model in MODEL_CHAIN:
@@ -377,6 +380,7 @@ class ImageMaker:
                     return Image.open(io.BytesIO(raw)).convert("RGB"), model.split("/")[-1]
                 except Exception as exc:  # noqa: BLE001 - naechsten Anbieter probieren
                     print(f"  {model} fehlgeschlagen: {exc}")
+                    self.errors.add(f"Cloudflare: {str(exc)[:80]}")
                     self.dead.add("cloudflare" if "daily free allocation" in str(exc) else model)
         return None, "fallback"
 
@@ -443,6 +447,13 @@ def get_images(account_cfg, story, out_dir, dry_run, seed):
         images.append(img)
         sources.append(source)
         print(f"  Bild {i + 1}: {source}")
+    missing = sources.count("fallback")
+    if not dry_run and missing > MAX_FALLBACK_IMAGES:
+        raise RuntimeError(
+            f"{missing} von {len(sources)} Bildern konnten nicht erzeugt werden "
+            f"({', '.join(sorted(maker.errors)) or 'kein Bild-Anbieter erreichbar'}). "
+            "Reel wurde NICHT gepostet, die Geschichte bleibt im Vorrat."
+        )
     return images, sources
 
 

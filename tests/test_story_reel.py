@@ -171,3 +171,13 @@ def test_tiktok_caption(account):
         tags = [w for w in cap.split() if w.startswith("#")]
         assert 3 <= len(tags) <= 5 and len(set(tags)) == len(tags)
         assert cap.startswith(sr.strip_marks(story["hook"]["text"]))
+
+
+def test_get_images_aborts_without_ai_images(tmp_path, monkeypatch):
+    """Ohne Bild-Anbieter (Kontingent leer) kein bildloses Reel posten, sondern abbrechen."""
+    monkeypatch.setattr(sr.ImageMaker, "make", lambda self, prompt, seed: (None, "fallback"))
+    cfg, stories = sr.load_account("horror")
+    with pytest.raises(RuntimeError, match="NICHT gepostet"):
+        sr.get_images(cfg, stories[0], str(tmp_path), dry_run=False, seed=1)
+    images, sources = sr.get_images(cfg, stories[0], str(tmp_path), dry_run=True, seed=1)
+    assert sources.count("fallback") == len(images)
