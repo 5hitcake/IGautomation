@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261108_1114_0014.jpg",
-  "caption": "Say hi to someone who was never born.\n\nPerson No. 0014 · \"Felix\", 42\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #artificialintelligence #faces #lookalike #notreal #fluxai",
+  "type": "reel",
+  "file": "reel_20261108_1714_0015.mp4",
+  "caption": "This person does not exist.\n\nPerson No. 0015 · \"Inês\", 28\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #digitalhuman #notreal #portraitphotography #portrait #aiart",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a 42-year-old German man with a neat side part, a full beard and crow's feet around the eyes, wearing a leather jacket, a tired but friendly look, on a mountain trail, soft golden hour light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 42 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 14,
-  "name": "Felix",
-  "age": 42
+  "prompt": "Waist-up portrait photo of a 28-year-old young Southern European woman with a voluminous afro and a gap between the front teeth, wearing a flannel shirt, a calm neutral expression, at a train station, neon city lights at night, shot on Canon EOS R5, 85mm f/1.4, looks exactly 28 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 15,
+  "name": "Inês",
+  "age": 28,
+  "image": "assets/people_generated/person_20261108_1714_0015.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
