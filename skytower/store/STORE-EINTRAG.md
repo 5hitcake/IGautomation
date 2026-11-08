@@ -19,34 +19,34 @@ Neu erzeugen: `PLAYWRIGHT=… node scripts/make-store-assets.mjs` (Icon und Tite
 Wolki: Sky Climber
 
 **Kurzbeschreibung** (max. 80 Zeichen)
-Hüpf mit Wolki durch 10 Himmelszonen zum Himmelstor – schaffst du Etage 1000?
+Hüpf mit Wolki durch 10 Himmelszonen zum Himmelstor — schaffst du Etage 1000?
 
 **Vollständige Beschreibung** (max. 4000 Zeichen)
 
 Wolki ist ein kleines Wölkchen mit einem großen Traum: ganz nach oben, bis zum Himmelstor!
 
-Halte links oder rechts gedrückt oder neige einfach dein Handy – Wolki springt von selbst. Je mehr Anlauf, desto höher der Sprung. Überspringe mehrere Etagen auf einmal für Combos und sammle Punkte, bis der Bildschirm dich einholt. Denn der Himmel wird immer schneller!
+Halte links oder rechts gedrückt oder neige einfach dein Handy — Wolki springt von selbst. Je mehr Anlauf, desto höher der Sprung. Überspringe mehrere Etagen auf einmal für Combos und sammle Punkte, bis der Bildschirm dich einholt. Denn der Himmel wird immer schneller!
 
 ☁️ 10 Himmelszonen + Himmelreich
-Von den Dächern der Stadt über Wolkenmeer, Sonnenuntergang und Gewitterfront bis in Mondnacht, Polarlicht, Stratosphäre, Weltall, Asteroidengürtel und Galaxie. Jede Zone hat eigene Plattformen, eigene Musik – und eigene Überraschungen: Blitze, glattes Eis, Wind, Meteoriten und Warp-Sterne.
+Von den Dächern der Stadt über Wolkenmeer, Sonnenuntergang und Gewitterfront bis in Mondnacht, Polarlicht, Stratosphäre, Weltall, Asteroidengürtel und Galaxie. Jede Zone hat eigene Plattformen, eigene Musik — und eigene Überraschungen: Blitze, glattes Eis, Wind, Meteoriten und Warp-Sterne.
 
 🚪 Ein echtes Ziel
 Auf Etage 1000 wartet das Himmelstor. Wer es erreicht, erlebt eine kleine Szene und schaltet einen ganz besonderen Skin frei. Und wer es sogar ohne einen einzigen Regenschirm schafft, bekommt einen Extra-Bonus … Dahinter geht es endlos weiter ins Himmelreich: Wolken, die nach jedem Sprung verpuffen, und Münzen, so weit das Auge reicht.
 
 ⭐ Combos wie früher
-Überspringe Etagen, prall von den Wänden ab und bau riesige Combos – „Super!“, „Fantastisch!“, „Himmlisch!“, „LEGENDE!“
+Überspringe Etagen, prall von den Wänden ab und bau riesige Combos — „Super!“, „Fantastisch!“, „Himmlisch!“, „LEGENDE!“
 
 🎨 16 Skins
-Kaufe Skins mit gesammelten Münzen, schalte weitere über Erfolge frei – und entdecke geheime Skins, die erst erscheinen, wenn du sie verdient hast. Mit Regenbogen-, Sternschnuppen- und Sternenstaub-Schweif!
+Kaufe Skins mit gesammelten Münzen, schalte weitere über Erfolge frei — und entdecke geheime Skins, die erst erscheinen, wenn du sie verdient hast. Mit Regenbogen-, Sternschnuppen- und Sternenstaub-Schweif!
 
 ☂️ Power-ups
-Raketen-Wolke, Münz-Magnet, Warp-Sterne und der Regenschirm, der dich vor dem Absturz rettet – einmal pro Runde gratis, danach per freiwilliger Werbung.
+Raketen-Wolke, Münz-Magnet, Warp-Sterne und der Regenschirm, der dich vor dem Absturz rettet — einmal pro Runde gratis, danach per freiwilliger Werbung.
 
 🎵 Musik, die mitwächst
 Die Hintergrundmusik wird mit jeder Stufe schneller und voller und klingt in jeder Zone anders.
 
 ✔ Steuerung wählbar: Tippen oder Neigen
-✔ Kostenlos, ohne Anmeldung – Werbung nur freiwillig zum Weiterspielen
+✔ Kostenlos, ohne Anmeldung — Werbung nur freiwillig zum Weiterspielen
 ✔ Funktioniert offline
 ✔ Auf Deutsch und Englisch
 
@@ -62,34 +62,34 @@ Die Hintergrundmusik wird mit jeder Stufe schneller und voller und klingt in jed
 Wolki: Sky Climber
 
 **Short description** (max. 80 characters)
-Hop with Wolki through 10 sky zones to the Heaven Gate – reach floor 1000!
+Hop with Wolki through 10 sky zones to the Heaven Gate — reach floor 1000!
 
 **Full description** (max. 4000 characters)
 
 Wolki is a tiny cloud with a big dream: all the way up to the Heaven Gate!
 
-Hold left or right, or simply tilt your phone – Wolki jumps on its own. The longer the run-up, the higher the jump. Skip several floors at once for combos and rack up points before the screen catches you. Because the sky keeps getting faster!
+Hold left or right, or simply tilt your phone — Wolki jumps on its own. The longer the run-up, the higher the jump. Skip several floors at once for combos and rack up points before the screen catches you. Because the sky keeps getting faster!
 
 ☁️ 10 sky zones + Heaven
-From the city rooftops through the sea of clouds, sunset and thunderstorm to moonlit night, northern lights, stratosphere, outer space, asteroid belt and galaxy. Every zone has its own platforms, its own music – and its own surprises: lightning, slippery ice, wind, meteorites and warp stars.
+From the city rooftops through the sea of clouds, sunset and thunderstorm to moonlit night, northern lights, stratosphere, outer space, asteroid belt and galaxy. Every zone has its own platforms, its own music — and its own surprises: lightning, slippery ice, wind, meteorites and warp stars.
 
 🚪 A real goal
 The Heaven Gate awaits on floor 1000. Reach it to see a little scene and unlock a very special skin. And if you make it without a single umbrella, there's an extra bonus … Beyond it, the climb goes on forever into Heaven: clouds that go poof after every jump, and coins as far as the eye can see.
 
 ⭐ Classic combos
-Skip floors, bounce off the walls and build huge combos – "Super!", "Fantastic!", "Heavenly!", "LEGENDARY!"
+Skip floors, bounce off the walls and build huge combos — "Super!", "Fantastic!", "Heavenly!", "LEGENDARY!"
 
 🎨 16 skins
-Buy skins with the coins you collect, unlock more through achievements – and discover secret skins that only appear once you've earned them. With rainbow, shooting-star and stardust trails!
+Buy skins with the coins you collect, unlock more through achievements — and discover secret skins that only appear once you've earned them. With rainbow, shooting-star and stardust trails!
 
 ☂️ Power-ups
-Rocket cloud, coin magnet, warp stars and the umbrella that saves you from a fall – once per round for free, then by watching an optional ad.
+Rocket cloud, coin magnet, warp stars and the umbrella that saves you from a fall — once per round for free, then by watching an optional ad.
 
 🎵 Music that grows with you
 The soundtrack gets faster and fuller with every level and sounds different in every zone.
 
 ✔ Choose your controls: touch or tilt
-✔ Free, no sign-up – ads only if you choose to watch one to keep playing
+✔ Free, no sign-up — ads only if you choose to watch one to keep playing
 ✔ Works offline
 ✔ In English and German
 
@@ -102,7 +102,7 @@ The soundtrack gets faster and fuller with every level and sounds different in e
 
 **Datenschutzerklärung (URL):** Pflicht. Text: `datenschutz.html` in diesem Ordner, muss öffentlich erreichbar sein (siehe ANLEITUNG-PLAY-CONSOLE.md).
 
-**Datensicherheit** (App-Inhalte → Datensicherheit) – ab Version 0.11 mit Werbung (Google AdMob)
+**Datensicherheit** (App-Inhalte → Datensicherheit) — ab Version 0.11 mit Werbung (Google AdMob)
 - Erhebt oder teilt die App Nutzerdaten? → **Ja**
 - Werden alle Daten bei der Übertragung verschlüsselt? → **Ja**
 - Können Nutzer das Löschen ihrer Daten beantragen? → **Nein** (das Spiel speichert nichts auf Servern; Werbe-ID über Android-Einstellungen)
