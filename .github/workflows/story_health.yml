@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 env:
-  STORY_ENABLED_ACCOUNTS: "horror"
+  STORY_ENABLED_ACCOUNTS: "horror mysteries"
 
 jobs:
   check:

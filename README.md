@@ -453,7 +453,7 @@ Zwei Themen-Accounts, **täglich je zwei Reels**, komplett automatisch und **kos
 | Account | Instagram | Inhalt | Uhrzeiten (DE, Winter) | Status |
 |---|---|---|---|---|
 | `horror` | @wahre_gruselgeschichten | Wahre Gruselgeschichten, Paranormales, Kriminalfälle, Unglücke | 14:07 + 20:07 | aktiv |
-| `mysteries` | @imysteryhistoryi | Verschwörungen mit wahrem Kern, Ancient Aliens, Rätsel, Weltraum | 15:37 + 21:37 | pausiert (Song fehlt) |
+| `mysteries` | @imysteryhistoryi | Verschwörungen mit wahrem Kern, Ancient Aliens, Rätsel, Weltraum | 15:37 + 21:37 | aktiv |
 
 **Account ein-/ausschalten**: In `.github/workflows/story_reels.yml` **und**
 `.github/workflows/story_health.yml` die Zeile `STORY_ENABLED_ACCOUNTS: "horror"` anpassen,
@@ -560,18 +560,17 @@ Welche Quelle verwendet wurde, steht nach jedem Lauf in `next_post.json` (`image
 
 ### Musik
 
-Jede Seite hat einen **eigenen Titelsong**, komplett im Code komponiert und gerendert
-(`scripts/compose_theme.py`, keine Samples und damit keine Lizenzfragen):
+Jede Seite hat einen **eigenen Titelsong**:
 
-- **Grusel – „Hinterland“**: D-Moll, 60 BPM. Spieluhr-Wiegenlied mit Tritonus, tiefe
+- **Grusel – „Hinterland“**: D-Moll, 60 BPM, komplett im Code komponiert
+  (`scripts/compose_theme.py`, keine Samples). Spieluhr-Wiegenlied mit Tritonus, tiefe
   Drones, Streicherflächen, Herzschlag, kalter Wind.
-- **Rätsel – „Beyond the Signal“**: Fis-Moll, 80 BPM, ätherischer Cosmic-/Dream-Synth-Stil,
-  wie er oft unter Mystery- und Alien-Videos liegt: verhallte Synth-Flächen mit
-  Sidechain-Pumpen, „Ooh“-Gesangsmelodie, Glitzer-Arpeggios, 808-Bass, Halftime-Beat.
-  Eine eigene Komposition, also kein Nachbau bekannter Songs.
+- **Rätsel**: Witch House / Dream Pop, 136 BPM, instrumental, ohne Intro. Erzeugt mit KI über
+  Pollinations (ElevenLabs Eleven Music v2.5, ca. 0,18 Pollen pro Song). Prompt und Details in
+  `assets/story_music/mysteries/BRIEF.md`. `compose_theme.py` bitte nur für Grusel ausführen,
+  sonst wird dieser Song überschrieben.
 
-Die Songs liegen als `assets/story_music/<account>/theme.mp3` und loopen nahtlos. Neu erzeugen
-oder anpassen: `python scripts/compose_theme.py`. Eigene Tracks kannst du zusätzlich in den
+Die Songs liegen als `assets/story_music/<account>/theme.mp3`. Eigene Tracks kannst du zusätzlich in den
 Ordner legen, dann wird pro Reel zufällig gewechselt.
 
 ### Sprecher

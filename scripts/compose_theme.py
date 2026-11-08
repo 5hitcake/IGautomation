@@ -429,7 +429,8 @@ def export(buf, path):
 
 
 def main():
-    which = sys.argv[1:] or ["horror", "mysteries"]
+    # Standard nur Grusel: der Raetsel-Song kommt inzwischen von Eleven Music (siehe BRIEF.md)
+    which = sys.argv[1:] or ["horror"]
     for name in which:
         buf = {"horror": horror, "mysteries": mysteries}[name]()
         export(buf, os.path.join(ROOT, "assets", "story_music", name, "theme.mp3"))

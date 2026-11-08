@@ -38,8 +38,7 @@ permissions:
 
 env:
   # Accounts, die nach Zeitplan automatisch posten (Leerzeichen-getrennt).
-  # Rätsel ("mysteries") ist pausiert, bis der neue Song fertig ist.
-  STORY_ENABLED_ACCOUNTS: "horror"
+  STORY_ENABLED_ACCOUNTS: "horror mysteries"
   # TikTok: "inbox" = als Entwurf in die TikTok-App (du tippst auf Posten),
   #         "direct" = direkt veröffentlichen (öffentlich erst nach App-Prüfung durch TikTok).
   TIKTOK_MODE: "inbox"
