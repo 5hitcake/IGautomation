@@ -1,0 +1,3 @@
+A_ausgewogen 200 audio/mpeg 1680812 Bytes 11 s
+B_vertraeumt 200 audio/mpeg 1680812 Bytes 11 s
+C_dunkel 200 audio/mpeg 1680812 Bytes 10 s
