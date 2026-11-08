@@ -11,7 +11,8 @@
     4,
     2,
     3,
-    6
+    6,
+    7
   ],
   "recent_backgrounds": [
     "bg_13_cliff_sunset.png",
@@ -21,10 +22,10 @@
     "bg_09_starry_sky.png"
   ],
   "recent_bg_videos": [
-    "reel_02_ocean_waves.mp4",
     "reel_01_mountain_drone.mp4",
     "reel_05_rain_window.mp4",
     "reel_03_city_timelapse.mp4",
-    "reel_07_rooftop.mp4"
+    "reel_07_rooftop.mp4",
+    "reel_04_mountain_walk.mp4"
   ]
 }
