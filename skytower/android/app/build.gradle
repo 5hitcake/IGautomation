@@ -47,6 +47,11 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            // Test-App mit eigenem Paketnamen: lässt sich neben der Play-Version installieren
+            applicationIdSuffix ".test"
+            versionNameSuffix "-test"
+            resValue "string", "app_name", "Wolki Test"
+            resValue "string", "title_activity_main", "Wolki Test"
         }
         release {
             if (releaseStore) signingConfig signingConfigs.release
