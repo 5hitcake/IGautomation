@@ -1,0 +1,55 @@
+name: Musik-Test Pollinations (temporaer)
+on:
+  push:
+    branches: [claude/instagram-reels-automation-koceqs]
+    paths: [".github/workflows/music_test.yml"]
+permissions:
+  contents: write
+jobs:
+  music:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests
+      - name: Songs erzeugen (Eleven Music v2.5)
+        env:
+          POLLI: ${{ secrets.POLLI_TOKEN }}
+        run: |
+          mkdir -p out
+          cat > gen.py <<'PY'
+          import os, requests, time
+          base = ("Instrumental witch house / ethereal dream pop track at 136 BPM in C major. "
+                  "Starts IMMEDIATELY at full energy on beat one: no intro, no fade-in, no build-up. "
+                  "Hazy lo-fi electronic production with muffled highs, distorted warm synth pads, "
+                  "a bitcrushed glittering arpeggio hook, deep heavy sub bass and a steady soft four-on-the-floor kick. "
+                  "Wordless dreamy female vocal chops drenched in reverb, no lyrics. "
+                  "Nostalgic, hypnotic, mysterious, cosmic. Constant hypnotic groove for the whole track, "
+                  "leaves room for a spoken voice-over in the mid range. ")
+          variants = {
+              "A_ausgewogen": base,
+              "B_vertraeumt": base + "Emphasize the floating ethereal pads and the glittering arpeggio, softer drums.",
+              "C_dunkel": base + "Darker and heavier: emphasize the distorted sub bass and a gritty, eerie atmosphere.",
+          }
+          h = {"Authorization": f"Bearer {os.environ['POLLI']}", "Content-Type": "application/json"}
+          for i, (name, prompt) in enumerate(variants.items()):
+              t = time.time()
+              r = requests.post("https://gen.pollinations.ai/v1/audio/speech", headers=h, timeout=600,
+                                json={"model": "elevenlabs/music-v2.5", "input": prompt, "duration": 70,
+                                      "instrumental": True, "response_format": "mp3", "seed": 136 + i})
+              ct = r.headers.get("content-type", "")
+              print(name, r.status_code, ct, len(r.content), "Bytes", round(time.time() - t), "s")
+              if r.ok and ct.startswith("audio"):
+                  open(f"out/mystery_{name}.mp3", "wb").write(r.content)
+              else:
+                  print("  ", r.text[:400])
+          PY
+          python gen.py 2>&1 | tee out/log.txt
+      - if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out && git init -q -b music-test-result && git add . && git -c user.name=bot -c user.email=bot@x commit -qm music
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" music-test-result
