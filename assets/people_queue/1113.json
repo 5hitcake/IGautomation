@@ -1,0 +1,32 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 42,
+    "age_range": [
+      40,
+      49
+    ],
+    "heritage": [
+      "German",
+      "german"
+    ],
+    "name": "Felix",
+    "hair": "a neat side part",
+    "facial_hair": "a full beard",
+    "detail": "crow's feet around the eyes",
+    "clothing": "a leather jacket",
+    "setting": "on a mountain trail",
+    "lighting": "soft golden hour light",
+    "camera": "shot on Leica M6, 35mm, Ilford HP5 black and white film",
+    "framing": "head and shoulders portrait",
+    "expression": "a tired but friendly look",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Head and shoulders portrait photo of a 42-year-old German man with a neat side part, a full beard and crow's feet around the eyes, wearing a leather jacket, a tired but friendly look, on a mountain trail, soft golden hour light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 42 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Say hi to someone who was never born.\n\nPerson No. 0014 · \"Felix\", 42\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #artificialintelligence #faces #lookalike #notreal #fluxai"
+}

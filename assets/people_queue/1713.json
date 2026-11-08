@@ -1,0 +1,32 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 28,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "Southern European",
+      "southern_european"
+    ],
+    "name": "Inês",
+    "hair": "a voluminous afro",
+    "facial_hair": null,
+    "detail": "a gap between the front teeth",
+    "clothing": "a flannel shirt",
+    "setting": "at a train station",
+    "lighting": "neon city lights at night",
+    "camera": "shot on Canon EOS R5, 85mm f/1.4",
+    "framing": "waist-up portrait",
+    "expression": "a calm neutral expression",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Waist-up portrait photo of a 28-year-old young Southern European woman with a voluminous afro and a gap between the front teeth, wearing a flannel shirt, a calm neutral expression, at a train station, neon city lights at night, shot on Canon EOS R5, 85mm f/1.4, looks exactly 28 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This person does not exist.\n\nPerson No. 0015 · \"Inês\", 28\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #digitalhuman #notreal #portraitphotography #portrait #aiart"
+}
