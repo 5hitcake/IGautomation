@@ -1,0 +1,65 @@
+name: TikTok nachholen (Story-Reel)
+
+# Lädt das zuletzt gepostete Story-Reel eines Accounts noch einmal als Entwurf zu TikTok hoch,
+# falls der automatische Upload fehlgeschlagen ist (Telegram meldet dann "TikTok-Upload fehlgeschlagen").
+# Start: Actions -> "TikTok nachholen (Story-Reel)" -> Run workflow -> Account wählen.
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: "Welcher Account?"
+        type: choice
+        default: horror
+        options: [horror, mysteries]
+
+permissions:
+  contents: read
+
+jobs:
+  tiktok:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests
+      - name: Video vom Medien-Branch holen
+        env:
+          ACC: ${{ github.event.inputs.account }}
+        run: |
+          file=$(python -c "import json;print(json.load(open('assets/story_reels/$ACC/next_post.json'))['file'])")
+          git fetch -q --depth 1 origin "story-media-$ACC"
+          git show "origin/story-media-$ACC:$file" > "assets/story_reels/$ACC/$file"
+          ls -la "assets/story_reels/$ACC/$file"
+      - name: Auf TikTok hochladen
+        id: tiktok
+        env:
+          ACC: ${{ github.event.inputs.account }}
+          TIKTOK_MODE: inbox
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          HORROR_TIKTOK_REFRESH_TOKEN: ${{ secrets.HORROR_TIKTOK_REFRESH_TOKEN }}
+          MYSTERY_TIKTOK_REFRESH_TOKEN: ${{ secrets.MYSTERY_TIKTOK_REFRESH_TOKEN }}
+        run: |
+          # Eindeutige Zuordnung: Grusel-Reel nur auf Grusel-TikTok, Rätsel-Reel nur auf Rätsel-TikTok.
+          case "$ACC" in
+            horror)    export TIKTOK_REFRESH_TOKEN="$HORROR_TIKTOK_REFRESH_TOKEN" ;;
+            mysteries) export TIKTOK_REFRESH_TOKEN="$MYSTERY_TIKTOK_REFRESH_TOKEN" ;;
+            *) echo "Unbekannter Account $ACC"; exit 1 ;;
+          esac
+          export TIKTOK_EXPECT_NAME=$(python -c "import json;print(json.load(open('content/story_reels/$ACC.json'))['account']['tiktok_name'])")
+          python scripts/tiktok_story_publish.py --post-file assets/story_reels/$ACC/next_post.json
+      - name: TikTok-Beschreibung per Telegram schicken
+        env:
+          ACC: ${{ github.event.inputs.account }}
+          STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          pip install -q Pillow
+          python scripts/story_review.py --notify "📲 Nachgeholt: Reel ($ACC) liegt jetzt als Entwurf in TikTok"
+          python scripts/story_review.py --notify-tiktok assets/story_reels/$ACC/next_post.json

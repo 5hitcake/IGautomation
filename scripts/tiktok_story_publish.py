@@ -33,7 +33,8 @@ from urllib3.util.retry import Retry
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 API_BASE = "https://open.tiktokapis.com/v2"
 POLL_INTERVAL_SECONDS = 10
-MAX_POLL_ATTEMPTS = 36
+MAX_POLL_ATTEMPTS = 60  # 10 Minuten
+UPLOAD_ATTEMPTS = 2  # haengt TikTok bei PROCESSING_UPLOAD, einmal komplett neu hochladen
 MAX_TITLE = 2200
 CHUNK_MAX = 64 * 1024 * 1024
 
@@ -196,6 +197,29 @@ def wait_for_status(token, publish_id, mode):
     raise TimeoutError("TikTok hat das Video nicht rechtzeitig verarbeitet.")
 
 
+def publish_once(token, video_path, payload, mode):
+    endpoint = "inbox/video/init" if mode == "inbox" else "video/init"
+    resp = SESSION.post(
+        f"{API_BASE}/post/publish/{endpoint}/", headers=auth_headers(token), json=payload, timeout=60
+    )
+    data = _check(resp, "Upload-Start")["data"]
+    upload(data["upload_url"], video_path, payload)
+    return wait_for_status(token, data["publish_id"], mode)
+
+
+def publish_with_retry(token, video_path, payload, mode, attempts=UPLOAD_ATTEMPTS):
+    for attempt in range(1, attempts + 1):
+        try:
+            return publish_once(token, video_path, payload, mode)
+        except TimeoutError:
+            if attempt == attempts:
+                raise
+            print(
+                f"::warning::TikTok verarbeitet den Upload nicht - neuer Versuch ({attempt + 1}/{attempts})."
+            )
+    raise RuntimeError("unerreichbar")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--post-file", required=True)
@@ -232,13 +256,7 @@ def main():
     if privacy:
         print(f"Sichtbarkeit: {privacy}")
     payload = build_payload(mode, size, post.get("tiktok_caption", post["caption"]), privacy)
-    endpoint = "inbox/video/init" if mode == "inbox" else "video/init"
-    resp = SESSION.post(
-        f"{API_BASE}/post/publish/{endpoint}/", headers=auth_headers(token), json=payload, timeout=60
-    )
-    data = _check(resp, "Upload-Start")["data"]
-    upload(data["upload_url"], video_path, payload)
-    status = wait_for_status(token, data["publish_id"], mode)
+    status = publish_with_retry(token, video_path, payload, mode)
     if status == "SEND_TO_USER_INBOX":
         print("Fertig: Das Video liegt als Entwurf in deiner TikTok-App (Benachrichtigungen) - dort posten.")
     else:
