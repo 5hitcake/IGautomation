@@ -31,7 +31,7 @@ ganzer Körper, gleich groß, mit viel Weiß dazwischen. Ich schneide sie aus.
 
 | Ort | Name | Merkmal | Akzentfarbe |
 |---|---|---|---|
-| Opas Schuppen | Opa Bolzen | Brille wie zwei Untertassen, großer Schraubenschlüssel in der Hand | Ölgrün |
+| Opas Schuppen | Opa Kolben | Brille wie zwei Untertassen, großer Schraubenschlüssel in der Hand | Ölgrün |
 | Schrottplatz | Knut Kurbel | riesiger Schnurrbart, der bis zu den Schultern reicht | Rostorange |
 | Bauernhof | Bäuerin Hilde | Strohhut, so breit wie ein Wagenrad | Weizengelb |
 | Försterhütte | Förster Moos | Bart wie ein Vogelnest, ein Vogel wohnt darin | Tannengrün |
@@ -53,7 +53,7 @@ Jeder Prompt ist vollständig und kann so kopiert werden. Wichtig ist der Satz m
 Cartoon character model sheet of ONE character: a tall thin old junkyard owner, drawn four times in a 2x2 grid with wide empty white space between the four drawings. Every drawing shows the full body from the top of the head to the shoes, all four at exactly the same size, facing the viewer. Top left: waving hello with one raised hand, friendly smile. Top right: scratching his head with one hand, puzzled face, one eyebrow raised. Bottom left: pointing firmly to the left side with a long outstretched arm, giving an order. Bottom right: laughing with mouth open and a big thumbs up. Appearance: bald shiny head with a few grey hairs at the sides, an enormous bushy grey walrus moustache that hangs down over his mouth and reaches his chest, a long pointy red nose, tiny round wire glasses, big ears, a long patched rust orange work coat down to his knees with oil stains and a rag in the pocket, grey baggy trousers, oversized worn brown boots. Important: the enormous grey walrus moustache is clearly visible in every drawing, also while laughing. It must look exactly the same in all four drawings, same clothes, same colours, same face, nothing missing. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, rubbery bendy limbs, big expressive hands with four fingers, exaggerated cartoon proportions with a large head, fully coloured with warm flat watercolour-like colours and a light paper texture. Plain white background, no text, no speech bubbles, no frames, no ground except a small solid black scribbled shadow under the feet.
 ```
 
-### Opa Bolzen (Opas Schuppen)
+### Opa Kolben (Opas Schuppen)
 
 ```
 Cartoon character model sheet of ONE character: a small round old grandpa mechanic, drawn four times in a 2x2 grid with wide empty white space between the four drawings. Every drawing shows the full body from the top of the head to the shoes, all four at exactly the same size, facing the viewer. Top left: waving hello with one raised hand, friendly smile. Top right: scratching his head with one hand, puzzled face, one eyebrow raised. Bottom left: pointing firmly to the left side with a long outstretched arm, giving an order. Bottom right: laughing with mouth open and a big thumbs up. Appearance: short and chubby, enormous thick black-rimmed glasses as big as saucers that make his eyes look huge, white fluffy hair tufts on the sides of a bald head, a small white moustache, holding a big shiny steel wrench in his right hand in every pose (nothing behind his ears), olive green work jacket with oil stains and rolled up sleeves, brown trousers, grey slippers. Important: the huge saucer glasses and the big wrench in his right hand are clearly visible in every drawing. It must look exactly the same in all four drawings, same clothes, same colours, same face, nothing missing. Style: vintage 1930s newspaper comic strip, loose scratchy black ink pen outlines, rubbery bendy limbs, big expressive hands with four fingers, exaggerated cartoon proportions with a large head, fully coloured with warm flat watercolour-like colours and a light paper texture. Plain white background, no text, no speech bubbles, no frames, no ground except a small solid black scribbled shadow under the feet.
@@ -288,6 +288,17 @@ Nachtbild mit der Vorlage „Nachtbilder“, `[ORT]`: `A red lamp above the gara
 
 Später (Dorf-Slalom und Donnerkeil-Sitz) kommen noch der Sitz als Teil und Pylonen von oben dazu.
 
+### Förster Moos ohne Pieps (`moos_ohne`, G4)
+
+Solange Pieps ausgebüxt ist, zeigt das Gespräch Moos mit leerem Nest im Bart. Mit dem Moos-Bogen
+(`assets/charaktere/roh/moos.jpg`) als Vorlage:
+
+```
+Use the attached image as the reference: the exact same character model sheet, the same old forester drawn four times in the same 2x2 grid with the same four poses, same size, same clothes, same colours, same face, same style. Change only one thing: the bird nest beard is empty in all four drawings, there is NO little blue bird in the beard, just the empty round nest shape of brown beard hair with a small dark hollow where the bird used to sit. Everything else stays exactly the same. Plain white background, no text, no speech bubbles, no frames, no ground except a small solid black scribbled shadow under the feet.
+```
+
+Ausschneiden: `python klapperkiste/tools/charakter.py assets/charaktere/roh/moos_ohne.jpg moos_ohne`
+
 ## Ausschneiden, Sonderfälle
 
 - **Direktorin Zylinda:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/zylinda.jpg zylinda --saum hallo --loch nachdenken:0.81,0.387`
@@ -297,7 +308,7 @@ Später (Dorf-Slalom und Donnerkeil-Sitz) kommen noch der Sitz als Teil und Pylo
   schließt das Werkzeug inzwischen immer von selbst.
 - **Kapitänin Kiel:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/kiel.jpg kiel --loch nachdenken:0.768,0.486`
   (Lücke zwischen Arm in der Hüfte und Körper).
-- **Opa Bolzen:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/opa.jpg opa --loch nachdenken:0.80,0.27`
+- **Opa Kolben:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/opa.jpg opa --loch nachdenken:0.80,0.27`
 - **Anglerin Rosi:** `python klapperkiste/tools/charakter.py assets/charaktere/roh/rosi.jpg rosi --loch hallo:0.825,0.315 --loch auftrag:0.296,0.446`
   (Lücke zwischen erhobenem Arm und Hut, Lücke unter dem Zeigearm).
   (Lücke zwischen erhobenem Arm und Kopf).

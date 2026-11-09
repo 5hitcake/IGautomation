@@ -34,6 +34,7 @@ window.Werkstatt = function (opt = {}) {
     { id: "sofasessel", kat: "sitz", name: "Ohrensessel" },
     { id: "traktorsitz", kat: "sitz", name: "Traktorsitz" },
     { id: "rennschale", kat: "sitz", name: "Rennschale" },
+    { id: "donnerkeilsitz", kat: "sitz", name: "Donnerkeil-Sitz" },
     { id: "fahrradlenker", kat: "lenkung", name: "Fahrradlenker" },
     { id: "bus_lenkrad", kat: "lenkung", name: "Bus-Lenkrad" },
     { id: "steuerrad", kat: "lenkung", name: "Schiffs-Steuerrad" },

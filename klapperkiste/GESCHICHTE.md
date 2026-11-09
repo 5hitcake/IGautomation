@@ -194,7 +194,7 @@ habe sie falsch angesagt. Zustand `spiel.neben.muehle`.
    nachts aus dem alten Rahmen neu gebaut hat (Donnerkeil-Teil 2/8, Teil `donnerkeilrahmen`).
    Den Bolzen behalten beide, abwechselnd (`versoehnt`).
 
-## Das Dorffest (G11, Entwurf)
+## Das Dorffest (G11)
 
 Die Karte ist nach Osten auf 480 × 320 m gewachsen. Östlich der Weide führt die **Landstraße**
 zum Ortseingang von **Klappertal-Dorf** (`LANDSTRASSE`, Gebiet `landstrasse`). Moos zeichnet sie
@@ -223,6 +223,20 @@ um ihn herum), Feuerwache und ein Dorfhaus an der Dorfstraße (`DORF`, `DORFSTRA
    erkennt ihn (Spur für später: Wer hat die Teile damals verkauft?).
 
 Bilder: siehe [`CHARAKTERE.md`](CHARAKTERE.md), Abschnitt „Klappertal-Dorf (G11)“.
+
+Umsetzung Hütchen und Slalom: `spiel.neben.slalom` (`huetchen` → `offen` → `medaille`), sechs Hütchen
+(`HUETCHEN`, liegen umgeweht im Gras, nah ranfahren sammelt sie ein). Der Slalom ist die Rallye im
+Modus `art: "slalom"` (`design/rallye.js`): 240 m Kopfsteinpflaster, alle 12 m eine Pylone, abwechselnd
+vorbei (grüner Pfeil), umgefahren +1 s, Tor verpasst +3 s, scharf lenken kostet Tempo. Zeiten
+🥇 27 s, 🥈 37 s, 🥉 45 s (Fahrer-Simulation: Mähmotor knapp Bronze, Mopedmotor ≈ 36 s, Gold nur mit
+Donnerkeil-Motor und wendiger Lenkung). Erste Medaille: 30 Münzen und der **Donnerkeil-Sitz** (Teil
+`donnerkeilsitz`, Komfort 5, 6 kg); Opa erkennt ihn in der Werkstatt (`opaSitz`).
+
+**Aufträge in einem Zug:** Hat eine Figur nach einem erledigten Auftrag gleich den nächsten, erzählt
+sie ihn im selben Besuch (`ketteWeiter`: nach dem Gespräch weiter, solange der Ort noch leuchtet und
+sich der Spielstand geändert hat, höchstens dreimal).
+
+**Name:** Opa heißt **Opa Kolben** (früher Opa Bolzen; „Bolzen“ ist nur noch das Teil vom Ostufer).
 
 ## Rennen über das Spiel verteilt
 
@@ -315,4 +329,4 @@ Die Werte des Autos zählen jedes Mal (siehe `design/teilwerte.js`).
 | G8 | Die Lichter am Waldsee, erste Spur zu Kauz | ✅ |
 | G9 | Kauz finden: Hildes Mähbalken, Schilf mähen, Kauz' Werkstatt | ✅ |
 | G10 | Die Mühlenkurve: Botengänge, Mühle mit Brücke (Gewicht), Foto, Versöhnung, Donnerkeil-Rahmen | ✅ |
-| G11 | Das Dorffest: Landstraße, Funke, Ginos Eis-Express, Hütchen, Dorf-Slalom, Donnerkeil-Sitz | Landstraße, Dorf, Funke, Eis-Express ✅; Hütchen, Slalom, Sitz offen |
+| G11 | Das Dorffest: Landstraße, Funke, Ginos Eis-Express, Hütchen, Dorf-Slalom, Donnerkeil-Sitz | ✅ |

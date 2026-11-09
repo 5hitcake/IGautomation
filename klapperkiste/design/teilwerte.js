@@ -55,6 +55,8 @@ window.TEILWERTE = (function () {
     traktorsitz: { komfort: 5, gewicht: 12, text: "Ein gefederter Blechsitz vom Traktor. Schluckt die gröbsten Stöße.", extras: ["Gefedert"] },
     sofasessel: { komfort: 9, gewicht: 30, text: "Opas Ohrensessel. Herrlich gemütlich, aber schwer wie ein Sack Kartoffeln.", extras: ["Gemütlich", "Schwer"] },
     rennschale: { komfort: 4, gewicht: 8, text: "Ein Sitz aus dem Rennwagen. Hält dich in jeder Kurve fest.", extras: ["Kurvenhalt"] },
+    // Donnerkeil-Teil (3/8): stand als Sessel in der Wachstube der Feuerwache, Belohnung im Dorf-Slalom
+    donnerkeilsitz: { komfort: 5, gewicht: 6, text: "Der Sitz vom Donnerkeil, weiches Leder mit Opas Blitz auf der Lehne. Bequem wie ein Sessel, hält dich in jeder Kurve fest.", extras: ["Donnerkeil", "Kurvenhalt"] },
 
     fahrradlenker: { wendig: 4, gewicht: 2, text: "Ein Fahrradlenker mit Klingel. Lenkt sich ein bisschen zappelig.", extras: ["Klingel"] },
     bus_lenkrad: { wendig: 6, gewicht: 6, text: "Ein riesiges Lenkrad aus einem alten Bus. Ruhig und sicher.", extras: [] },

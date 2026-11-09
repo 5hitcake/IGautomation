@@ -138,8 +138,8 @@ body { position: fixed; inset: 0; }
 <!-- Opas altes Foto vom Donnerkeil, groß -->
 <div id="foto" hidden role="dialog" aria-label="Opas altes Foto">
   <div class="foto-box">
-    <img alt="Altes Foto: der junge Opa Bolzen und ein großer, dünner Mann mit Werkzeuggürtel halten einen Pokal, daneben der silberne Rennwagen mit Blitz.">
-    <div class="foto-text"><strong>Opa Bolzen</strong>
+    <img alt="Altes Foto: der junge Opa Kolben und ein großer, dünner Mann mit Werkzeuggürtel halten einen Pokal, daneben der silberne Rennwagen mit Blitz.">
+    <div class="foto-text"><strong>Opa Kolben</strong>
       <p>Das bin ich, mit dem Donnerkeil, nach dem dritten Sieg. Was haben wir gefeiert!</p>
       <p>Der Lange daneben? Ach … lassen wir das. Lange her.</p>
       <button type="button" class="knopf" id="fotoZu">Zurück in die Werkstatt</button></div>
@@ -225,7 +225,7 @@ body { position: fixed; inset: 0; }
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
-  const OPA = "Opa Bolzen";
+  const OPA = "Opa Kolben";
   // Einstieg (für alle gleich, bevor es mehrere Wege gibt): 0 Begrüßung, 1 Rad einbauen,
   // 2 Rest einbauen, 3 Losfahren, 4 Ziel wählen, 5 unterwegs, 6 fertig (frei spielen)
   let schritt = 0;
@@ -298,7 +298,7 @@ body { position: fixed; inset: 0; }
     $("s-karte").hidden = name !== "karte";
     if (name === "werkstatt") {
       W.refresh(); K.musik("werkstatt"); K.beiOpa();
-      if (!imEinstieg()) { W.say("Zurück in Opas Werkstatt."); setTimeout(() => K.opaEis() || K.opaLenkrad() || K.opaBolzen() || K.opaMuehle() || K.opaErzaehlt(() => {
+      if (!imEinstieg()) { W.say("Zurück in Opas Werkstatt."); setTimeout(() => K.opaEis() || K.opaSitz() || K.opaLenkrad() || K.opaBolzen() || K.opaMuehle() || K.opaErzaehlt(() => {
         W.say("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Anmeldung zur Waldrallye.", "ok");
         fotoZeigen();
       }), 400); }
@@ -408,7 +408,7 @@ body { position: fixed; inset: 0; }
     if (location.hash === "#knut") return setTimeout(direktZuKnut, 200);
     // Los geht's: Opa begrüßt in der Werkstatt
     setTimeout(() => schritt === 0 && K.gespraech("opa", OPA, "werkstatt", [
-      ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Bolzen, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
+      ["hallo", "Da bist du ja! Willkommen in meiner Werkstatt. Ich bin Opa Kolben, und das da auf der Hebebühne ist die gute alte Klapperkiste."],
       ["nachdenken", "Na ja, „Kiste“ ist geschmeichelt. Rahmen und Achsen sind schon dran, der Rest liegt noch hier im Regal herum."],
       ["auftrag", "Fang mit den Rädern an: Tipp das leuchtende Rad an, dann baust du es ein. Noch ein Tipp, und es ist wieder ab."],
     ], () => {

@@ -6,22 +6,28 @@
 // gibt; sonst sind sie einfach gezeichnet.
 // Die Werte des Autos zählen: Tempo, Gewicht (Beschleunigung), Lenkung, Grip (Pfützen).
 //
-// window.Rallye({ eltern, bilder, werte }) gibt { starten(fertig) } zurück.
+// Mit art: "slalom" ist es der Dorf-Slalom (G11) auf dem Marktplatz: Pylonen in einer Reihe, abwechselnd
+// rechts und links vorbei (grüner Pfeil zeigt die Seite). Umgefahren: +1 s, Tor verpasst: +3 s.
+// Starkes Lenken bremst; mit wendiger Lenkung (Wert wendig) verliert man weniger Tempo.
+//
+// window.Rallye({ eltern, bilder, werte, art }) gibt { starten(fertig) } zurück.
 //   bilder: { auto: {img, laenge}, walddach, erde, fels, nadelbaum } (Image-Objekte)
 //   werte(): Werte des Autos wie in der Werkstatt (tempo, gewicht, wendig, grip)
 //   fertig({ zeit, medaille, muenzen }) nach „Fertig“; medaille: "gold" | "silber" | "bronze" | null
 window.Rallye = function (opt) {
-  const LAENGE = 480; // Meter
-  const BAHN = 4.2; // halbe Breite der Fahrbahn in Metern
+  const SLALOM = opt.art === "slalom";
+  const LAENGE = SLALOM ? 240 : 480; // Meter
+  const BAHN = SLALOM ? 4.6 : 4.2; // halbe Breite der Fahrbahn in Metern
   // Sekunden. Nachgerechnet mit Fahrer-Simulation: Rasenmäher-Auto schafft Bronze nur mit fehlerfreier Runde,
   // Silber braucht einen schnelleren Motor (Moped mit guter Runde), Gold schafft man mit Opas
   // Donnerkeil-Motor (82 km/h) nur mit perfekter Runde und mit der Rakete bei mittlerer Runde knapp.
-  const ZEITEN = { gold: 38, silber: 62, bronze: 75 };
+  const ZEITEN = SLALOM ? opt.zeiten || { gold: 24, silber: 33, bronze: 42 } : { gold: 38, silber: 62, bronze: 75 };
+  const NAME = SLALOM ? "Dorf-Slalom" : "Waldrallye";
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const box = document.createElement("div");
-  box.id = "rallye"; box.hidden = true;
-  box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Waldrallye");
+  box.id = SLALOM ? "slalom" : "rallye"; box.hidden = true;
+  box.setAttribute("role", "dialog"); box.setAttribute("aria-label", NAME);
   box.innerHTML = '<canvas aria-label="Rennstrecke. Finger auf die Bahn halten, um nach oben oder unten zu lenken."></canvas>' +
     '<div class="r-hud"><span class="r-zeit">0,0 s</span><span class="r-ziele"></span></div>' +
     '<div class="r-bar"><i></i></div><div class="r-zahl" hidden></div><div class="r-meldung" hidden></div>' +
@@ -36,8 +42,18 @@ window.Rallye = function (opt) {
   // das nie die ganze Breite sperrt; dazwischen Münzen.
   let s = 7;
   const zufall = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
-  const DINGE = [], BAEUME = [];
-  for (let x = 30; x < LAENGE - 15; x += 9 + zufall() * 7) {
+  const DINGE = [], BAEUME = [], STAENDE = [];
+  if (SLALOM) {
+    // Pylonen in der Mitte, alle 12 m; tor = Seite, auf der man vorbeifahren muss (-1 oben, 1 unten)
+    let i = 0;
+    for (let x = 22; x < LAENGE - 14; x += 12, i++) {
+      DINGE.push({ art: "pylone", x, y: (zufall() - 0.5) * 0.8, b: 0.8, h: 0.8, tor: i % 2 ? 1 : -1 });
+      if (i % 3 === 1) DINGE.push({ art: "muenze", x: x + 6, y: (i % 2 ? -1 : 1) * 2.6, b: 1, h: 1 });
+    }
+    // Marktstände und Zuschauer-Bänke an beiden Rändern
+    for (let x = -10; x < LAENGE + 30; x += 7 + zufall() * 5) STAENDE.push({ x, seite: zufall() < 0.5 ? -1 : 1, farbe: zufall() < 0.5 ? "#c8402e" : "#3f8a4a", w: 3.6 + zufall() * 1.6 });
+  }
+  for (let x = 30; !SLALOM && x < LAENGE - 15; x += 9 + zufall() * 7) {
     const r = zufall(), y = (zufall() * 2 - 1) * (BAHN - 1.3);
     const art = r < 0.26 ? "pfuetze" : r < 0.46 ? "wurzel" : r < 0.66 ? "schlagloch" : r < 0.84 ? "stamm" : "stein";
     const d = { pfuetze: [3.2, 1.7], wurzel: [1.3, 3.6], schlagloch: [2, 1.3], stamm: [1.2, 4.4], stein: [1.6, 1.6] }[art];
@@ -52,7 +68,7 @@ window.Rallye = function (opt) {
     const [a, b] = RAND[seite > 0 ? 1 : 0];
     return BAHN + 0.35 + Math.sin(x / 9 + a) * 0.55 + Math.sin(x / 3.7 + b) * 0.25;
   };
-  for (let x = -20; x < LAENGE + 40; x += 2.6 + zufall() * 2.4) {
+  for (let x = -20; !SLALOM && x < LAENGE + 40; x += 2.6 + zufall() * 2.4) {
     for (const seite of [-1, 1]) {
       // ab und zu ragt eine Krone weit über den Wegrand (wie an einem echten Waldweg)
       const ueber = zufall() < 0.3 ? zufall() * 2.2 : 0;
@@ -61,7 +77,7 @@ window.Rallye = function (opt) {
   }
   // Hasen: sitzen am Wegrand und hoppeln über die Bahn, wenn das Auto näher kommt
   const HASEN = [];
-  for (let x = 60; x < LAENGE - 30; x += 55 + zufall() * 45) HASEN.push({ x0: x, seite: zufall() < 0.5 ? -1 : 1 });
+  for (let x = 60; !SLALOM && x < LAENGE - 30; x += 55 + zufall() * 45) HASEN.push({ x0: x, seite: zufall() < 0.5 ? -1 : 1 });
 
   let lauf = null, fertigFn = null, zuletzt = 0;
   const finger = { y: null };
@@ -74,9 +90,9 @@ window.Rallye = function (opt) {
       x: 0, y: 0, v: 0, zeit: 0, phase: "ampel", ampel: 0, gruen: 3, lenkwinkel: 0,
       vmax: 5 + (w.tempo || 15) / 10, acc: Math.max(1.4, 4.5 - (w.gewicht || 90) / 100) + (w.schub || 1) * 0.6,
       rakete: (w.schub || 1) >= 8,
-      lenk: 5 + (w.wendig || 4) * 0.6 + (5 + (w.tempo || 15) / 10) * 0.3, grip: w.grip || 2, muenzen: 0, fehl: 0, steht: 0, wackel: 0, spritz: 0, gesehen: new Set(),
+      lenk: SLALOM ? 1.6 + (w.wendig || 4) * 0.45 : 5 + (w.wendig || 4) * 0.6 + (5 + (w.tempo || 15) / 10) * 0.3, grip: w.grip || 2, muenzen: 0, fehl: 0, steht: 0, wackel: 0, spritz: 0, gesehen: new Set(),
     };
-    for (const d of DINGE) d.weg = false;
+    for (const d of DINGE) { d.weg = false; d.vorbei = false; }
     for (const h of HASEN) Object.assign(h, { x: h.x0, y: h.seite * (BAHN + 1.5), los: false, getroffen: false, sprung: 0 });
     box.hidden = false; $(".r-ende").hidden = true; $(".r-meldung").hidden = true;
     zuletzt = performance.now();
@@ -141,12 +157,20 @@ window.Rallye = function (opt) {
     L.y = Math.max(-BAHN + 0.9, Math.min(BAHN - 0.9, L.y));
     // nach einem harten Zusammenstoß steht das Auto kurz, bevor es wieder anfährt
     if (L.steht > 0) { L.steht -= dt; L.v = 0; } else L.v = Math.min(L.vmax, L.v + L.acc * dt);
+    if (SLALOM && dt > 0) { // scharf lenken kostet Tempo, eine wendige Lenkung weniger
+      const f = Math.min(1, Math.abs(L.y - yAlt) / dt / L.lenk), cap = L.vmax * (1 - 0.55 * f);
+      if (L.v > cap) L.v -= (L.v - cap) * Math.min(1, dt * 4);
+    }
     L.x += L.v * dt;
     L.wackel *= Math.pow(0.02, dt); L.spritz = Math.max(0, L.spritz - dt);
     // Zusammenstöße (Auto als Rechteck 3,4 × 1,6 m)
     for (const d of DINGE) {
-      if (d.weg || Math.abs(d.x - L.x) > (d.b / 2 + 1.7) || Math.abs(d.y - L.y) > (d.h / 2 + 0.8)) continue;
+      if (d.weg || Math.abs(d.x - L.x) > (d.art === "pylone" ? 1.4 : d.b / 2 + 1.7) || Math.abs(d.y - L.y) > (d.art === "pylone" ? 1.05 : d.h / 2 + 0.8)) continue;
       if (d.art === "muenze") { d.weg = true; L.muenzen++; continue; }
+      if (d.art === "pylone") {
+        d.weg = true; L.v *= 0.55; L.zeit += 1; L.wackel = 0.2; meldung("Hütchen umgefahren! +1 s", 900);
+        continue;
+      }
       d.weg = true; // jedes Hindernis wirkt nur einmal
       if (d.art === "pfuetze") { L.v *= 0.35 + Math.min(0.5, L.grip * 0.05); L.spritz = 0.6; meldung("Platsch!", 700); }
       if (d.art === "wurzel") { L.v *= 0.6; L.wackel = 0.25; meldung("Rumpel!", 700); }
@@ -155,6 +179,12 @@ window.Rallye = function (opt) {
         L.v *= 0.15; L.steht = Math.max(L.steht, 1); L.wackel = 0.5; meldung(d.art === "stamm" ? "Rumms! Ein Stamm!" : "Autsch, ein Stein!", 900);
         if (navigator.vibrate) { try { navigator.vibrate(60); } catch { /* egal */ } }
       }
+    }
+    // Slalom: an jeder Pylone auf der richtigen Seite vorbei, sonst +3 s
+    if (SLALOM) for (const d of DINGE) {
+      if (d.art !== "pylone" || d.vorbei || L.x < d.x) continue;
+      d.vorbei = true;
+      if (!d.weg && (L.y - d.y) * d.tor <= 0) { L.zeit += 3; d.verpasst = true; meldung("Tor verpasst! +3 s", 1000); }
     }
     for (const h of HASEN) {
       if (!h.los && h.x0 - L.x < 16 + L.v * 0.6) h.los = true;
@@ -179,6 +209,7 @@ window.Rallye = function (opt) {
     e.querySelector("strong").textContent = medaille ? { gold: "🥇 Gold!", silber: "🥈 Silber!", bronze: "🥉 Bronze!" }[medaille] : "Zu langsam …";
     e.querySelector(".r-text").textContent = `Zeit: ${zeit.toLocaleString("de-DE")} s · 🪙 ${L.muenzen} eingesammelt`;
     e.querySelector(".r-tab").textContent = medaille ? "Damit bist du für das Klappertal-Rennen qualifiziert!"
+      : SLALOM ? `Für Bronze brauchst du höchstens ${ZEITEN.bronze} Sekunden. Eine wendigere Lenkung und ein leichtes Auto helfen.`
       : `Für Bronze brauchst du höchstens ${ZEITEN.bronze} Sekunden. Ein schnellerer Motor oder ein leichteres Auto helfen.`;
     setTimeout(() => { e.hidden = false; }, 600);
   }
@@ -194,7 +225,32 @@ window.Rallye = function (opt) {
   // Grund (Waldboden, Weg mit gewelltem Rand) ändert sich nie: in 12-m-Kacheln vormalen
   const KACHEL = 12, kacheln = new Map();
   let kachelPx = 0, kachelHoch = 0;
+  // Kopfsteinpflaster für den Slalom: ein 2 × 2 m großes Muster, einmal gemalt
+  let pflaster = null;
+  function pflasterMuster() {
+    if (pflaster) return pflaster;
+    const c = document.createElement("canvas"); c.width = 128; c.height = 128;
+    const g = c.getContext("2d");
+    g.fillStyle = "#6f6a60"; g.fillRect(0, 0, 128, 128);
+    let q = 3; const z = () => { q = (q * 16807) % 2147483647; return (q - 1) / 2147483646; };
+    for (let r = 0; r < 8; r++) for (let k = 0; k < 9; k++) {
+      const x = k * 16 + (r % 2) * 8 - 8, y = r * 16 + 8, hell = 150 + Math.floor(z() * 40);
+      g.fillStyle = `rgb(${hell},${hell - 6},${hell - 16})`; g.beginPath(); g.ellipse(x + 8, y, 7, 6.2, z(), 0, Math.PI * 2); g.fill();
+      g.fillStyle = "rgba(255,255,255,0.18)"; g.beginPath(); g.ellipse(x + 6, y - 2, 3, 2, 0, 0, Math.PI * 2); g.fill();
+    }
+    pflaster = c;
+    return c;
+  }
   function grundZeichnen(x0, x1, y0, y1, pxProM) {
+    if (SLALOM) {
+      const p = ctx.createPattern(pflasterMuster(), "repeat");
+      p.setTransform(new DOMMatrix().scale(2 / 128));
+      ctx.fillStyle = p; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+      ctx.fillStyle = "rgba(20,15,10,0.25)"; ctx.fillRect(x0, y0, x1 - x0, -BAHN - 0.3 - y0); ctx.fillRect(x0, BAHN + 0.3, x1 - x0, y1 - BAHN);
+      ctx.strokeStyle = "rgba(255,250,235,0.85)"; ctx.lineWidth = 0.15; ctx.setLineDash([1, 0.8]);
+      ctx.beginPath(); ctx.moveTo(x0, -BAHN); ctx.lineTo(x1, -BAHN); ctx.moveTo(x0, BAHN); ctx.lineTo(x1, BAHN); ctx.stroke(); ctx.setLineDash([]);
+      return;
+    }
     const dach = musterVon("walddach"), erde = musterVon("erde");
     if (!dach || !erde) { ctx.fillStyle = "#1f3a26"; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.fillStyle = "#7a5434"; ctx.fillRect(x0, -BAHN, x1 - x0, BAHN * 2); return; }
     const hoch = Math.ceil(y1 - y0) + 2, px = Math.ceil(KACHEL * pxProM);
@@ -224,6 +280,44 @@ window.Rallye = function (opt) {
       ctx.drawImage(c, k * KACHEL, ky0, KACHEL + 1 / pxProM, hoch);
     }
   }
+  function pyloneZeichnen(d, t) {
+    // grüner Pfeil auf der Seite, auf der man vorbei muss (bis man vorbei ist)
+    if (!d.vorbei) {
+      const py = d.y + d.tor * 2, puls = reduce ? 0.8 : 0.6 + Math.sin(t * 5) * 0.25;
+      ctx.fillStyle = `rgba(70,200,100,${puls})`; ctx.strokeStyle = "rgba(10,40,20,0.8)"; ctx.lineWidth = 0.08;
+      ctx.beginPath(); ctx.moveTo(d.x + 0.9, py); ctx.lineTo(d.x - 0.5, py - 0.7); ctx.lineTo(d.x - 0.2, py); ctx.lineTo(d.x - 0.5, py + 0.7); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    const b = opt.bilder.pylone;
+    ctx.save(); ctx.translate(d.x, d.y);
+    if (d.weg) ctx.rotate(1.3); // umgefahren: liegt
+    if (b && b.complete && b.naturalWidth) {
+      const bw = 1.1, bh = bw * b.naturalHeight / b.naturalWidth;
+      ctx.globalAlpha = d.weg ? 0.75 : 1; ctx.drawImage(b, -bw / 2, -bh * 0.6, bw, bh);
+    } else {
+      ctx.fillStyle = "#f07020"; ctx.beginPath(); ctx.arc(0, 0, 0.45, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, 0, 0.25, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function staendeZeichnen(x0, x1) {
+    for (const s of STAENDE) {
+      if (s.x + s.w < x0 || s.x > x1) continue;
+      const y = s.seite * (BAHN + 2.6);
+      ctx.fillStyle = "rgba(10,10,10,0.3)"; ctx.fillRect(s.x + 0.3, y - 1.2 + 0.3, s.w, 2.4);
+      ctx.fillStyle = "#8a6440"; ctx.fillRect(s.x, y - 1.2, s.w, 2.4);
+      for (let i = 0; i < 6; i++) { ctx.fillStyle = i % 2 ? "#f4f1ea" : s.farbe; ctx.fillRect(s.x + i * s.w / 6, y - 1.3, s.w / 6, 1.5); }
+      ctx.strokeStyle = "#1d140a"; ctx.lineWidth = 0.08; ctx.strokeRect(s.x, y - 1.3, s.w, 2.5);
+    }
+    // Wimpelketten quer über die Strecke
+    for (let x = Math.floor(x0 / 30) * 30 + 15; x < x1 + 2; x += 30) {
+      ctx.strokeStyle = "rgba(40,30,20,0.6)"; ctx.lineWidth = 0.05; ctx.beginPath(); ctx.moveTo(x - 1, -BAHN - 2); ctx.lineTo(x + 1, BAHN + 2); ctx.stroke();
+      for (let k = 0; k < 9; k++) {
+        const yy = -BAHN - 2 + k * (2 * BAHN + 4) / 9, xx = x - 1 + k * 2 / 9;
+        ctx.fillStyle = ["#e04b3a", "#f2c230", "#3f8ad0", "#46a35a"][k % 4];
+        ctx.beginPath(); ctx.moveTo(xx, yy); ctx.lineTo(xx + 0.6, yy + 0.3); ctx.lineTo(xx, yy + 0.6); ctx.closePath(); ctx.fill();
+      }
+    }
+  }
   function zeichnen() {
     const L = lauf;
     const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(700000 / Math.max(1, cv.clientWidth * cv.clientHeight))));
@@ -246,6 +340,7 @@ window.Rallye = function (opt) {
     const t = performance.now() / 1000;
     for (const d of DINGE) {
       if (d.x < x0 - 3 || d.x > x1 + 3 || (d.weg && d.art === "muenze")) continue;
+      if (d.art === "pylone") { pyloneZeichnen(d, t); continue; }
       ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot || 0);
       const bild = opt.bilder[d.art === "stamm" ? "ast" : d.art];
       if (d.art !== "stein" && d.art !== "muenze" && bild && bild.complete && bild.naturalWidth) {
@@ -319,6 +414,7 @@ window.Rallye = function (opt) {
       ctx.drawImage(pose.img, -pose.b / 2, -pose.h / 2, pose.b, pose.h);
       ctx.restore();
     }
+    if (SLALOM) staendeZeichnen(x0, x1);
     // Bäume am Rand (über allem, wie Kronen)
     const baum = opt.bilder.nadelbaum;
     if (baum && baum.complete && baum.naturalWidth) {
@@ -335,7 +431,7 @@ window.Rallye = function (opt) {
         ctx.beginPath(); ctx.arc(bx + 30 + i * 45, by + 28, 17, 0, Math.PI * 2); ctx.fill();
       }
       ctx.fillStyle = "#fffaf0"; ctx.font = "800 14px Nunito, sans-serif"; ctx.textAlign = "center";
-      ctx.fillText("Finger auf die Bahn: dorthin lenkt das Auto", w / 2, by + 78);
+      ctx.fillText(SLALOM ? "Abwechselnd an den Hütchen vorbei: der grüne Pfeil zeigt die Seite" : "Finger auf die Bahn: dorthin lenkt das Auto", w / 2, by + 78);
     }
     $(".r-zeit").textContent = `⏱ ${L.zeit.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s · 🪙 ${L.muenzen}`;
     $(".r-bar i").style.width = `${Math.min(100, (L.x / LAENGE) * 100)}%`;
@@ -350,5 +446,5 @@ window.Rallye = function (opt) {
     requestAnimationFrame(bild);
   }
 
-  return { starten, ZEITEN, get offen() { return !box.hidden; }, get tempo() { return lauf && lauf.phase === "fahrt" ? lauf.v / lauf.vmax * 6.2 : 0; } };
+  return { starten, ZEITEN, DINGE, get lauf() { return lauf; }, get offen() { return !box.hidden; }, get tempo() { return lauf && lauf.phase === "fahrt" ? lauf.v / lauf.vmax * 6.2 : 0; } };
 };

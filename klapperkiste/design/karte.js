@@ -518,11 +518,14 @@ window.Karte = function (opt = {}) {
   // pieps (Moos, G4): null | "suchen" (Pieps ist ausgebüxt) | "dabei" (sitzt auf dem Auto) | "erledigt";
   //   piepsOrt: wo er sitzt (Index in PIEPS_ORTE)
   // dorf (G11): null | "offen" (Funke hat die Absperrung geöffnet)
+  // slalom (Funke, G11): null | "huetchen" (6 Hütchen suchen, genommene in huetchenWeg) | "offen" (Strecke steht)
+  //   | "medaille" (erste Medaille, Donnerkeil-Sitz bekommen); slalomBest, slalomMedaille; opaSitz: Opa hat ihn gesehen
   // eis (Gino, G11): null | "opa" (Erdbeerbecher unterwegs) | "neu1" (geschmolzen, zurück zu Gino) | "gino2" |
   //   "zweit" (Vanillebecher zu eisZiel: "muellerin" oder "hilde") | "neu2" | "dank" | "erledigt"; eisRest: 0 … 100
   function nebenStart() {
     return { kuh: null, vogelhaus: null, motor: null, lichter: null, kauz: null, maehbalken: null, muehle: null, pieps: null, piepsOrt: 0,
-      dorf: null, eis: null, eisRest: 100, eisZiel: null };
+      dorf: null, eis: null, eisRest: 100, eisZiel: null,
+      slalom: null, huetchenWeg: [], slalomBest: null, slalomMedaille: null, opaSitz: false };
   }
   function verbrauchStart() {
     return { sprit: null, strom: 100, platt: false, vorrat: { flickzeug: 0, kanister: 0 },
@@ -715,6 +718,12 @@ window.Karte = function (opt = {}) {
       get hase() { return TIERBILD.hase; } },
     werte: () => (opt.werte ? opt.werte() : { tempo: 15, gewicht: 87, wendig: 4, grip: 2 }),
   }) : null;
+  // Dorf-Slalom (G11) auf dem Marktplatz: gleiche Steuerung wie die Rallye
+  const SLALOM = window.Rallye ? window.Rallye({
+    eltern: $("karte").parentElement, art: "slalom", zeiten: { gold: 27, silber: 37, bronze: 45 },
+    bilder: { get auto() { return autoWahl; }, get pylone() { return OBJ.pylone && OBJ.pylone.img; } },
+    werte: () => (opt.werte ? opt.werte() : { tempo: 15, gewicht: 87, wendig: 4, grip: 2 }),
+  }) : null;
   const rallyeMoeglich = () => RALLYE && spiel.holzweg && spiel.moosRallye && spiel.rosi;
   function rallyeAnbieten() {
     if (!rallyeMoeglich()) return;
@@ -723,7 +732,8 @@ window.Karte = function (opt = {}) {
     f.querySelector("p").textContent = nacht ? "Nachts fährt keiner die Rallye, man sieht ja die Hand vor Augen nicht. Komm bei Tag wieder!"
       : `Einmal den alten Holzweg entlang, so schnell du kannst. Für Bronze brauchst du höchstens ${RALLYE.ZEITEN.bronze} Sekunden.` +
         (spiel.rallye ? ` Deine Bestzeit: ${spiel.rallye.best.toLocaleString("de-DE")} s.` : "");
-    f.querySelector(".r-los").hidden = nacht;
+    f.querySelector("strong").textContent = "🏁 Waldrallye";
+    const los = f.querySelector(".r-los"); los.hidden = nacht; los.onclick = rallyeStarten;
     f.hidden = false;
   }
   function rallyeStarten() {
@@ -743,7 +753,7 @@ window.Karte = function (opt = {}) {
           ["juhu", `Wahnsinn! ${e.zeit.toLocaleString("de-DE")} Sekunden, Moos hat's gestoppt! Damit bist du beim Klappertal-Rennen dabei!`],
           ["auftrag", "Hier, 30 Münzen Preisgeld. Und der Sieger kriegt bei uns traditionell was aus meiner Hütte …"],
           ["nachdenken", "Dieses alte Lenkrad mit dem Blitz drauf hing da schon, als ich den Platz übernommen hab. Sieht aus wie von einem Rennwagen."],
-          ["juhu", "Zeig's doch mal Opa Bolzen, vielleicht weiß der, wo es herkommt!"],
+          ["juhu", "Zeig's doch mal Opa Kolben, vielleicht weiß der, wo es herkommt!"],
         ], () => toast("⚡ Donnerkeil-Teil gefunden: das Lenkrad (1/8)! Steht im Auftragsbuch.", 5000));
       } else if (e.medaille === "gold" && alt < 3) {
         spiel.geld += 20;
@@ -816,7 +826,7 @@ window.Karte = function (opt = {}) {
     if (n.muehle === "muellerin") {
       return muellerin([
         ["hallo", "Besuch! Und das über meine wacklige Brücke. Du musst ja ein Federgewicht von Auto haben. Ich bin die Müllerin Mehlich."],
-        ["nachdenken", "Die Mühlenkurve? Ach du liebe Zeit, das ist vierzig Jahre her. Bolzen und Kauz im Donnerkeil … und dann haben die beiden sich so zerstritten."],
+        ["nachdenken", "Die Mühlenkurve? Ach du liebe Zeit, das ist vierzig Jahre her. Kolben und Kauz im Donnerkeil … und dann haben die beiden sich so zerstritten."],
         ["juhu", "Ich stand damals genau da als Streckenposten. Und ich hab sogar ein Foto gemacht! Irgendwo in der Mühle muss es noch sein."],
         ["auftrag", "Aber erst muss mein Mühlrad wieder laufen, es quietscht und hakt. Bring mir 2 Federn und 2 Schrauben, dann such ich dir das Foto raus."],
       ], () => { n.muehle = "mrad"; fundeVerteilen(); hudNeu(); });
@@ -829,11 +839,11 @@ window.Karte = function (opt = {}) {
       return muellerin([
         ["juhu", "Federn und Schrauben! Zack, eingebaut … hörst du? Das Mühlrad klappert wieder ganz gemütlich."],
         ["auftrag", "Und hier, das Foto. Ich hab's in der alten Keksdose gefunden. Schau's dir genau an!", ...fotoBild()],
-        ["nachdenken", "Na? Siehst du's? Bring das mal den beiden Streithähnen. Am besten zuerst Kauz, der lacht lieber als Bolzen."],
+        ["nachdenken", "Na? Siehst du's? Bring das mal den beiden Streithähnen. Am besten zuerst Kauz, der lacht lieber als Kolben."],
       ], () => { n.muehle = "foto"; hudNeu(); toast("📷 Altes Foto von der Mühlenkurve eingesteckt. Zeig es Kauz!", 5000); });
     }
     muellerin([["hallo", n.muehle === "versoehnt"
-      ? "Bolzen und Kauz schrauben wieder zusammen? Das ist ja schöner als frisches Brot! Grüß die beiden von mir."
+      ? "Kolben und Kauz schrauben wieder zusammen? Das ist ja schöner als frisches Brot! Grüß die beiden von mir."
       : "Schön, dass du vorbeischaust! Das Mühlrad klappert wieder, und das Mehl wird so fein wie lange nicht."]]);
   }
   // G9: Kauz in seiner versteckten Werkstatt im Schilf
@@ -845,17 +855,17 @@ window.Karte = function (opt = {}) {
         ["nachdenken", "Wer da? … Ein Auto mit Mähbalken, mitten durchs Schilf? Na, du traust dich was."],
         ["auftrag", "Ich bin Kauz. Tüftler. Und das hier ist meine Werkstatt, die eigentlich keiner finden soll. Also: Was willst du?"],
         ["nachdenken", "Einen Bolzen mit Blitz hast du gefunden? Den hab ich neulich nachts verloren, als ich meine Lampen ausprobiert hab. Und wo ist er jetzt?"],
-        ["nachdenken", "Bei Bolzen?! Ausgerechnet. Hmpf. Dann hat dich der alte Sturkopf geschickt, was?"],
+        ["nachdenken", "Bei Kolben?! Ausgerechnet. Hmpf. Dann hat dich der alte Sturkopf geschickt, was?"],
         ["auftrag", "Na gut, ich sag dir was: Unter der Plane da steht der Rahmen vom Donnerkeil. Den hab ich damals gerettet. Ich bau daraus was Neues, nachts, damit's keiner merkt."],
-        ["nachdenken", "Ob ich mich bei Bolzen blicken lasse? Erst, wenn er zugibt, dass er in der Mühlenkurve zu spät gebremst hat!"],
-        ["juhu", "Aber du gefällst mir. Wer selbst schraubt, ist hier willkommen. Komm wieder, ich hab bestimmt bald was für dich."],
+        ["nachdenken", "Ob ich mich bei Kolben blicken lasse? Erst, wenn er zugibt, dass er in der Mühlenkurve zu spät gebremst hat!"],
+        ["juhu", "Aber du gefällst mir. Wer selbst schraubt, ist hier willkommen."],
       ], () => { n.kauz = "gefunden"; hudNeu(); toast("🦉 Kauz gefunden! Seine Hütte im Schilf steht jetzt auf der Karte.", 5000); });
     }
     const m10 = n.muehle;
     if (!m10) {
       return kauz([
-        ["nachdenken", "Da bist du ja wieder. Sag mal … der Bolzen mit dem Blitz. Den brauch ich! Ohne den hält die Hinterachse vom neuen Rahmen nicht."],
-        ["auftrag", "Hol ihn mir bei Bolzen zurück, ja? Aber sag ihm nicht, dass ich drum gebeten hab. Sag einfach … er gehört mir!"],
+        ["nachdenken", "Ach, und noch was … der Bolzen mit dem Blitz. Den brauch ich! Ohne den hält die Hinterachse vom neuen Rahmen nicht."],
+        ["auftrag", "Hol ihn mir bei Kolben zurück, ja? Aber sag ihm nicht, dass ich drum gebeten hab. Sag einfach … er gehört mir!"],
       ], () => { n.muehle = "opa1"; hudNeu(); toast("🔩 Neuer Auftrag: Die Mühlenkurve. Steht im Auftragsbuch.", 4500); });
     }
     if (m10 === "kauz") {
@@ -870,14 +880,14 @@ window.Karte = function (opt = {}) {
         ["nachdenken", "Ein Foto von der Mühlenkurve? Von der Müllerin? Zeig her …", ...fotoBild()],
         ["juhu", "Eine KUH! Mitten auf der Strecke! Hahaha! Deshalb hat er gebremst! Und ich hab gebrüllt, er soll Gas geben!", ...fotoBild()],
         ["juhu", "Vierzig Jahre streiten wir uns wegen einer Kuh. Ich lach mich kaputt."],
-        ["auftrag", "Weißt du was? Bring Bolzen das Foto. Ich … komm dann nach. Vielleicht. Mit was Schönem für dich."],
+        ["auftrag", "Weißt du was? Bring Kolben das Foto. Ich … komm dann nach. Vielleicht. Mit was Schönem für dich."],
       ], () => { n.muehle = "kauzlacht"; hudNeu(); });
     }
     if (m10 === "opa1" || m10 === "opa2" || m10 === "kauzlacht") {
       return kauz([["nachdenken", "Na, was sagt der alte Sturkopf? Fahr ruhig zu ihm, ich warte hier. Ich hab eh zu tun."]]);
     }
     kauz([["nachdenken", istNacht()
-      ? "Psst, nicht so laut, ich teste gerade die Lampen. Bolzen hat nicht zufällig nach mir gefragt? … Nein? Hmpf."
+      ? "Psst, nicht so laut, ich teste gerade die Lampen. Kolben hat nicht zufällig nach mir gefragt? … Nein? Hmpf."
       : "Na, wieder da? Ich hab die ganze Nacht geschraubt, jetzt brauch ich erst mal einen Kaffee. Komm bald wieder!"]]);
   }
   function beiMoos() {
@@ -890,7 +900,7 @@ window.Karte = function (opt = {}) {
     if (spiel.opa === "rennen" && !spiel.moosRallye) {
       // Opa hat vom Rennen erzählt: Moos weiß von der ersten Vorrunde, und von den Lichtern
       zeilen.push(
-        ["nachdenken", moosKennt ? "Die Waldrallye? Ja freilich! Hat dir Opa Bolzen davon erzählt?" : "Opa Bolzen schickt dich wegen der Waldrallye? Ja freilich!"],
+        ["nachdenken", moosKennt ? "Die Waldrallye? Ja freilich! Hat dir Opa Kolben davon erzählt?" : "Opa Kolben schickt dich wegen der Waldrallye? Ja freilich!"],
         ["auftrag", "Die erste Vorrunde zum Klappertal-Rennen fährt dieses Jahr bei uns im Wald, auf dem alten Holzweg hinter meiner Hütte."],
         ["nachdenken", "Nur liegen da noch umgestürzte Bäume drauf. Sobald der Weg frei ist, trag ich dich als Fahrer ein, versprochen."],
         ["auftrag", "Mit meinem Seilzug könnt ich die Stämme wegziehen. Aber das Seil ist gerissen und die Feder ausgeleiert. Bringst du mir 2 Kabel und 2 Federn? Die liegen manchmal am Wegrand."],
@@ -932,7 +942,7 @@ window.Karte = function (opt = {}) {
     } else if (spiel.neben.lichter === "auftrag") {
       zeilen.push(["nachdenken", "Warst du schon am Ostufer? Nimm den alten Anglerpfad südlich von Opas Schuppen. Die Lichter tanzen dort nur, wenn es richtig dunkel ist."]);
     } else if (spiel.neben.lichter === "bolzen") {
-      zeilen.push(["nachdenken", "Ein Bolzen mit einem Blitz drauf? Zeig den mal Opa Bolzen. Der weiß bestimmt, wo der herkommt."]);
+      zeilen.push(["nachdenken", "Ein Bolzen mit einem Blitz drauf? Zeig den mal Opa Kolben. Der weiß bestimmt, wo der herkommt."]);
     } else if (spiel.neben.lichter === "erledigt" && spiel.neben.pieps !== "erledigt") {
       piepsBeiMoos(zeilen);
     } else if (moosKennt) {
@@ -945,7 +955,9 @@ window.Karte = function (opt = {}) {
     }
     if (!moosKennt) zeilen.push(["juhu", "Und fahr vorsichtig, hier laufen nachts die Hasen über den Weg!"]);
     moosKennt = true;
-    gespraech("moos", "Förster Moos", "foersterhuette", zeilen, () => hudNeu());
+    // Solange Pieps ausgebüxt ist, ist das Nest im Bart leer (Figur moos_ohne, falls es sie gibt)
+    const n = spiel.neben, ohne = n.lichter === "erledigt" && n.pieps === "suchen" && (D.figuren || {}).moos_ohne;
+    gespraech(ohne ? "moos_ohne" : "moos", "Förster Moos", "foersterhuette", zeilen, () => hudNeu());
   }
 
   // --- G11: Klappertal-Dorf ------------------------------------------------------
@@ -964,13 +976,83 @@ window.Karte = function (opt = {}) {
     });
   }
   function beiFunke() {
-    gespraech("funke", "Hauptfrau Funke", "feuerwache", [
-      ["hallo", "Na, Helfer? Willkommen auf der Wache! Das da drin ist unser Löschwagen, Baujahr Uroma."],
-      ["auftrag", "Zum Dorffest gehört der Dorf-Slalom auf dem Marktplatz, die zweite Vorrunde zum Klappertal-Rennen. Ich stecke gerade die Strecke ab."],
-      ["nachdenken", spiel.neben.eis === "erledigt"
-        ? "Danke, dass du Gino geholfen hast! Nur sind mir beim Sturm die Hütchen davongeflogen … Die suchen wir als Nächstes."
-        : "Nur sind mir beim Sturm die Hütchen davongeflogen … Hilf erst mal Gino, dann sehen wir weiter!"],
-    ], () => hudNeu());
+    const n = spiel.neben, funke = (zeilen, danach) => gespraech("funke", "Hauptfrau Funke", "feuerwache", zeilen, danach || (() => hudNeu()));
+    if (!n.slalom) {
+      return funke([
+        ["hallo", "Na, Helfer? Willkommen auf der Wache! Das da drin ist unser Löschwagen, Baujahr Uroma."],
+        ["auftrag", "Zum Dorffest gehört der Dorf-Slalom auf dem Marktplatz, die zweite Vorrunde zum Klappertal-Rennen."],
+        ["nachdenken", "Nur hat mir der Sturm letzte Nacht die Hütchen für die Strecke davongeweht. Sechs Stück! Die liegen jetzt überall im Dorf und an der Landstraße."],
+        ["auftrag", "Sammelst du sie ein? Einfach nah ranfahren, dann hüpfen sie aufs Auto. Dann stecke ich die Strecke ab."],
+      ], () => { n.slalom = "huetchen"; n.huetchenWeg = []; hudNeu(); setTimeout(() => toast("🔶 Neuer Auftrag: Funkes Hütchen. 6 Stück im Dorf und an der Landstraße.", 4500), 300); });
+    }
+    if (n.slalom === "huetchen") {
+      const fehlt = HUETCHEN.length - n.huetchenWeg.length;
+      if (fehlt > 0) return funke([["nachdenken", `Noch ${fehlt} Hütchen fehlen. Schau im Dorf und an der Landstraße, die leuchten orange im Gras.`]]);
+      return funke([
+        ["juhu", "Alle sechs Hütchen! Zack, zack, die Strecke steht. Der Marktplatz ist bereit!"],
+        ["auftrag", "Immer abwechselnd an den Hütchen vorbei, der grüne Pfeil zeigt die Seite. Umgefahren kostet eine Sekunde, ein verpasstes Tor drei."],
+        ["nachdenken", "Wendig muss das Auto sein, und leicht. Wer zu scharf lenkt, wird langsam."],
+      ], () => { n.slalom = "offen"; hudNeu(); slalomAnbieten(); });
+    }
+    funke([["hallo", n.slalom === "medaille" ? "Na, Champion? Noch eine Runde Slalom, für die Bestzeit?" : "Bereit für den Dorf-Slalom? Die Hütchen stehen!"]], () => { hudNeu(); slalomAnbieten(); });
+  }
+  // Funkes Hütchen: liegen am Wegrand im Dorf und an der Landstraße, nah ranfahren sammelt sie ein
+  const HUETCHEN = [[328, 248.2], [351, 241.6], [372, 251], [419, 257.6], [452, 252.6], [474, 247.4]];
+  function huetchenSchritt() {
+    const n = spiel.neben;
+    if (n.slalom !== "huetchen") return;
+    HUETCHEN.forEach(([x, y], i) => {
+      if (n.huetchenWeg.includes(i) || Math.hypot(auto.x - x, auto.y - y) > 4) return;
+      n.huetchenWeg.push(i); hudNeu();
+      const fehlt = HUETCHEN.length - n.huetchenWeg.length;
+      toast(fehlt ? `🔶 Hütchen eingesammelt! (${n.huetchenWeg.length}/${HUETCHEN.length})` : "🔶 Alle 6 Hütchen! Bring sie Funke auf die Wache.", 3000);
+    });
+  }
+  function huetchenZeichnen(sicht) {
+    const n = spiel.neben, b = OBJ.pylone;
+    if (n.slalom !== "huetchen" || !b || !b.img.complete) return;
+    HUETCHEN.forEach(([x, y], i) => {
+      if (n.huetchenWeg.includes(i) || !imBild(x, y, sicht)) return;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(i % 2 ? 1.2 : -0.9); // umgeweht: liegt im Gras
+      ctx.drawImage(b.img, -b.b / 2, -b.h / 2, b.b, b.h); ctx.restore();
+    });
+  }
+  function slalomAnbieten() {
+    if (!SLALOM) return;
+    const f = $("rallyeFrage"), n = spiel.neben;
+    f.querySelector("strong").textContent = "🏁 Dorf-Slalom";
+    f.querySelector("p").textContent = `Abwechselnd an den Hütchen vorbei, so schnell du kannst. Für Bronze brauchst du höchstens ${SLALOM.ZEITEN.bronze} Sekunden.` +
+      (n.slalomBest ? ` Deine Bestzeit: ${n.slalomBest.toLocaleString("de-DE")} s.` : "");
+    const los = f.querySelector(".r-los"); los.hidden = false; los.onclick = slalomStarten;
+    f.hidden = false;
+  }
+  function slalomStarten() {
+    $("rallyeFrage").hidden = true;
+    SLALOM.starten((e) => {
+      if (!e) return;
+      const n = spiel.neben, rang = { gold: 3, silber: 2, bronze: 1 }, alt = n.slalomMedaille ? rang[n.slalomMedaille] : 0;
+      n.slalomBest = n.slalomBest ? Math.min(n.slalomBest, e.zeit) : e.zeit;
+      if ((rang[e.medaille] || 0) > alt) n.slalomMedaille = e.medaille;
+      spiel.geld += e.muenzen;
+      if (e.medaille && n.slalom !== "medaille") {
+        n.slalom = "medaille"; spiel.geld += 30;
+        if (!spiel.donnerkeil.includes("sitz")) spiel.donnerkeil.push("sitz");
+        spiel.teile.add("donnerkeilsitz"); if (opt.belohnung) opt.belohnung("donnerkeilsitz");
+        gespraech("funke", "Hauptfrau Funke", "feuerwache", [
+          ["juhu", `${e.zeit.toLocaleString("de-DE")} Sekunden! Damit hast du die zweite Vorrunde geschafft! 30 Münzen Preisgeld!`],
+          ["auftrag", "Und jetzt die Überraschung: der alte Sessel aus unserer Wachstube. Ein Rennsitz mit einem Blitz drauf."],
+          ["nachdenken", "Den hat mein Vorgänger mal beim Sperrmüll-Händler gekauft, für fünf Mark. Ich glaub, der gehört eher in ein Auto als in eine Wache."],
+          ["juhu", "Nimm ihn mit! Und grüß mir Opa Kolben."],
+        ], () => { hudNeu(); toast("⚡ Donnerkeil-Teil gefunden: der Sitz (3/8)! Liegt in Opas Werkstatt (Sitz).", 5500); });
+      } else if (e.medaille === "gold" && alt < 3) {
+        spiel.geld += 20;
+        gespraech("funke", "Hauptfrau Funke", "feuerwache", [["juhu", "GOLD! So schnell ist hier noch keiner um die Hütchen gewedelt. 20 Münzen extra!"]], () => hudNeu());
+      } else {
+        toast(e.medaille ? `🏁 ${e.zeit.toLocaleString("de-DE")} s. Bestzeit: ${n.slalomBest.toLocaleString("de-DE")} s` : "🏁 Knapp daneben! Eine wendigere Lenkung oder ein leichteres Auto helfen.", 4000);
+        hudNeu();
+      }
+      if (e.muenzen) setTimeout(() => toast(`🪙 ${e.muenzen} Münzen auf der Strecke eingesammelt.`), 4200);
+    });
   }
   // Ginos Eis-Express: Becher ausliefern, bevor sie schmelzen
   const EIS_SEKUNDEN = 110; // so lange hält ein Becher (Fahrzeit auf der Karte)
@@ -1000,7 +1082,7 @@ window.Karte = function (opt = {}) {
       return gino([
         ["hallo", "Buongiorno! Ein Auto! Endlich! Ich bin Gino, Gino Gelato. Das beste Eis im ganzen Klappertal!"],
         ["nachdenken", "Aber eine Katastrophe: Meine Kühltruhe ist kaputt! Heute Abend ist Dorffest und das Eis schmilzt mir unter den Händen weg."],
-        ["auftrag", "Die Bestellungen müssen raus, sofort! Opa Bolzen kriegt jedes Jahr einen Becher Erdbeere. Fahr schnell, bevor er schmilzt!"],
+        ["auftrag", "Die Bestellungen müssen raus, sofort! Opa Kolben kriegt jedes Jahr einen Becher Erdbeere. Fahr schnell, bevor er schmilzt!"],
       ], () => { eisBecher("opa"); toastNeu("🍦 Neuer Auftrag: Ginos Eis-Express. Erdbeere für Opa, schnell!"); });
     }
     if (n.eis === "neu1" || n.eis === "neu2") {
@@ -1010,12 +1092,12 @@ window.Karte = function (opt = {}) {
         : "Geschmolzen? Mamma mia! Hier, ein neuer Becher Erdbeere für Opa. Diesmal: Vollgas!"]], () => eisBecher(zweit ? "zweit" : "opa"));
     }
     if (n.eis === "opa" || n.eis === "zweit") {
-      return gino([["nachdenken", `Was stehst du noch hier? Das Eis schmilzt! Ab zu ${n.eis === "opa" ? "Opa Bolzen" : eisZielName()}!`]]);
+      return gino([["nachdenken", `Was stehst du noch hier? Das Eis schmilzt! Ab zu ${n.eis === "opa" ? "Opa Kolben" : eisZielName()}!`]]);
     }
     if (n.eis === "gino2") {
       const muehle = GEBIETE.find((g) => g.id === "muehle").offen;
       return gino([
-        ["juhu", "Opa Bolzen hat sich gefreut? Wunderbar! Er war früher mein bester Kunde."],
+        ["juhu", "Opa Kolben hat sich gefreut? Wunderbar! Er war früher mein bester Kunde."],
         ["auftrag", muehle
           ? "Jetzt die schwierige Lieferung: Vanille für die Müllerin. Die Mühle ist weit und die Brücke morsch. Leicht und schnell muss dein Auto sein!"
           : "Jetzt Vanille für Bäuerin Hilde auf dem Bauernhof. Das ist ein Stück, also gib Gas!"],
@@ -1196,11 +1278,11 @@ window.Karte = function (opt = {}) {
     if (spiel.hilde === "frei") offen.push({ ...schafe, stand: "Weg ist frei", text: "Die Schafe sind auf der Wiese. Erzähl es Hilde auf dem Bauernhof.", ziel: zielVon("bauernhof") });
     if (spiel.hilde === "erledigt") erledigt.push(schafe);
     if (spiel.opa === "rennen") {
-      const opa = { figur: "opa", wer: "Opa Bolzen" };
+      const opa = { figur: "opa", wer: "Opa Kolben" };
       offen.push({ ...opa, titel: "Opas Donnerkeil", stand: `${spiel.donnerkeil.length}/${DONNERKEIL_TEILE} Teile`,
         text: "Mit dem Donnerkeil hat Opa das Klappertal-Rennen dreimal gewonnen. Er ist zerlegt, die Teile sind im ganzen Tal verstreut.",
         belohnung: "Opas Rennwagen", ziel: null,
-        fehlt: spiel.donnerkeil.length ? `Gefunden: ${spiel.donnerkeil.map((t) => ({ lenkrad: "Lenkrad mit Blitz", rahmen: "Donnerkeil-Rahmen" }[t] || t)).join(", ")}. Wo die anderen wohl sind?`
+        fehlt: spiel.donnerkeil.length ? `Gefunden: ${spiel.donnerkeil.map((t) => ({ lenkrad: "Lenkrad mit Blitz", rahmen: "Donnerkeil-Rahmen", sitz: "Donnerkeil-Sitz" }[t] || t)).join(", ")}. Wo die anderen wohl sind?`
           : "Noch keine Spur. Die Leute im Tal wissen bestimmt mehr." });
       if (!spiel.moosRallye) {
         const licht = hatTeilEingebaut("licht");
@@ -1260,13 +1342,21 @@ window.Karte = function (opt = {}) {
     if (n.vogelhaus === "erledigt") erledigt.push(vogel);
     const eisA = { figur: "gino", wer: "Gino Gelato", titel: "Ginos Eis-Express", belohnung: "Eiswagen-Karosserie und 30 Münzen" };
     const EIS = {
-      opa: ["🍦 Erdbeere für Opa", () => `Bring Opa Bolzen den Erdbeerbecher, bevor er schmilzt (noch ${Math.ceil(n.eisRest)} %).`, "schuppen"],
+      opa: ["🍦 Erdbeere für Opa", () => `Bring Opa Kolben den Erdbeerbecher, bevor er schmilzt (noch ${Math.ceil(n.eisRest)} %).`, "schuppen"],
       neu1: ["💧 geschmolzen", () => "Das Eis ist geschmolzen. Hol bei Gino einen neuen Becher.", "eisdiele"],
       gino2: ["🍦 zurück zu Gino", () => "Opa hat sein Eis. Gino hat noch eine Bestellung.", "eisdiele"],
       zweit: [`🍦 Vanille für ${n.eisZiel === "muellerin" ? "die Müllerin" : "Hilde"}`, () => `Bring ${eisZielName()} den Vanillebecher, bevor er schmilzt (noch ${Math.ceil(n.eisRest)} %).`, n.eisZiel === "muellerin" ? "muehle" : "bauernhof"],
       neu2: ["💧 geschmolzen", () => "Das Eis ist geschmolzen. Hol bei Gino einen neuen Becher.", "eisdiele"],
       dank: ["✅ alles geliefert", () => "Alle Becher sind angekommen. Gino wartet in der Eisdiele.", "eisdiele"],
     };
+    const slalomA = { figur: "funke", wer: "Hauptfrau Funke", titel: "Der Dorf-Slalom", belohnung: "zweite Vorrunde, 30 Münzen und eine Überraschung" };
+    if (n.slalom === "huetchen") {
+      const genug = n.huetchenWeg.length >= HUETCHEN.length;
+      offen.push({ ...slalomA, stand: `🔶 ${n.huetchenWeg.length}/${HUETCHEN.length} Hütchen`, text: genug ? "Alle Hütchen sind da. Bring sie Funke auf die Feuerwache."
+        : "Der Sturm hat Funkes Hütchen im Dorf und an der Landstraße verteilt. Nah ranfahren, dann sammelst du sie ein.", ziel: genug ? zielVon("feuerwache") : null });
+    }
+    if (n.slalom === "offen") offen.push({ ...slalomA, stand: SLALOM ? `höchstens ${SLALOM.ZEITEN.bronze} s` : "", text: "Die Strecke auf dem Marktplatz steht. Frag Funke auf der Feuerwache nach dem Start. Wendig und leicht hilft.", ziel: zielVon("feuerwache") });
+    if (n.slalom === "medaille") erledigt.push(slalomA);
     if (EIS[n.eis]) { const [stand, text, ziel] = EIS[n.eis]; offen.push({ ...eisA, stand, text: text(), ziel: zielVon(ziel) }); }
     if (n.eis === "erledigt") erledigt.push(eisA);
     if (spiel.neben.lichter === "erledigt" && spiel.neben.pieps === "erledigt" && !n.dorf) offen.push({ figur: "funke", wer: "Hauptfrau Funke", titel: "Das Dorffest", stand: "🏘️ Landstraße",
@@ -1282,7 +1372,7 @@ window.Karte = function (opt = {}) {
     if (n.lichter === "bolzen") offen.push({ ...lichter, stand: "🔩 Bolzen dabei",
       text: "Am Ostufer lag ein Bolzen mit einem Blitz drauf. Zeig ihn Opa in der Werkstatt.", ziel: zielVon("schuppen") });
     if (n.lichter === "erledigt") erledigt.push(lichter);
-    const kauzA = { figur: "opa", wer: "Opa Bolzen", titel: "Wo steckt Kauz?", belohnung: "?" };
+    const kauzA = { figur: "opa", wer: "Opa Kolben", titel: "Wo steckt Kauz?", belohnung: "?" };
     if (n.kauz === "suchen") {
       const maeht = hatTeilEingebaut("vorne");
       offen.push({ ...kauzA, stand: maeht ? "🌾 Mähbalken dran" : "🔍 Spur im Schilf",
@@ -1349,6 +1439,7 @@ window.Karte = function (opt = {}) {
     if (n.vogelhaus === "erledigt" && !n.lichter) orte.add("foersterhuette");
     if (n.lichter === "erledigt" && !n.pieps) orte.add("foersterhuette");
     if (n.dorf && (!n.eis || ["neu1", "neu2", "gino2", "dank"].includes(n.eis))) orte.add("eisdiele");
+    if (n.dorf && (!n.slalom || (n.slalom === "huetchen" && n.huetchenWeg.length >= HUETCHEN.length))) orte.add("feuerwache");
     if (n.kauz === "gefunden" && !n.muehle) orte.add("kauz");
     if (spiel.donnerkeil.includes("lenkrad") && !spiel.opaLenkrad) orte.add("schuppen");
     if (!spiel.opa && ["batterie", "erledigt"].includes(spiel.auftrag)) orte.add("schuppen");
@@ -1436,7 +1527,7 @@ window.Karte = function (opt = {}) {
     return 5 + (t - TAG - ABEND - NACHT) / MORGEN;
   }
   function fensterZu() {
-    return ["gespraech", "laden", "buch", "beutel", "grosskarte", "meldung", "leer", "dunkel", "rallyeFrage", "rallye"].every((id) => !$(id) || $(id).hidden);
+    return ["gespraech", "laden", "buch", "beutel", "grosskarte", "meldung", "leer", "dunkel", "rallyeFrage", "rallye", "slalom"].every((id) => !$(id) || $(id).hidden);
   }
   function zeitSchritt(dt) {
     if (!zeit.laeuft || !fensterZu()) return;
@@ -1808,6 +1899,7 @@ window.Karte = function (opt = {}) {
     $("gespraech").hidden = true;
     if (Ton) Ton.leise(false);
     if (gEnde) gEnde();
+    setTimeout(ketteWeiter, 300);
   }
   const tonKnopf = document.createElement("button");
   tonKnopf.type = "button"; tonKnopf.className = "g-ton";
@@ -2075,7 +2167,19 @@ window.Karte = function (opt = {}) {
   function schilfZeichnen(sicht, t) {
     const n = spiel.neben, h = HINDERNISSE.find((q) => q.id === "schilf");
     const hk = OBJ.kauzwerkstatt;
-    if (n.kauz && hk && hk.img.complete && hk.img.naturalWidth) ctx.drawImage(hk.img, KAUZ.X, KAUZ.Y, hk.b, hk.h);
+    if (n.kauz && hk && hk.img.complete && hk.img.naturalWidth) {
+      ctx.drawImage(hk.img, KAUZ.X, KAUZ.Y, hk.b, hk.h);
+      // Übergang: der Weg läuft weich über den grasigen Rand des Bilds in den Hof hinein
+      const p = musterVon("erde");
+      if (p) {
+        ctx.save(); ctx.strokeStyle = p; ctx.lineCap = "round";
+        for (const [b, al, x0] of [[WEG_BREITE + 1.4, 0.3, 111.8], [WEG_BREITE, 0.75, 112.4], [WEG_BREITE - 1.2, 0.9, 113.2]]) {
+          ctx.globalAlpha = al; ctx.lineWidth = b;
+          ctx.beginPath(); ctx.moveTo(117.5, 279.2); ctx.lineTo(x0, 279.6); ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
     const [kx0, ky0, kx1, ky1] = KAUZ.bereich;
     ctx.save(); ctx.lineCap = "round";
     for (const b of SCHILF) {
@@ -2110,6 +2214,37 @@ window.Karte = function (opt = {}) {
     toast("🌾 Ratatatat! Der Mähbalken schneidet eine Schneise ins Schilf.", 4000);
     if (navigator.vibrate) { try { navigator.vibrate([30, 30, 30, 30, 30]); } catch { /* egal */ } }
   }
+  // Ankunft an einem Ziel: der Ort reagiert (Gespräch, Werkstatt, Meldung)
+  function zielHandeln(z) {
+    const id = z.id;
+    if (id === "schrottplatz") { if (!besucht) ankunft(); else beiKnut(); }
+    else if (id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
+    else if (id === "bauernhof") beiHilde();
+    else if (id === "foersterhuette") beiMoos();
+    else if (id === "camping") beiRosi(rallyeAnbieten);
+    else if (id === "ostufer") amOstufer();
+    else if (id === "kauz") beiKauz();
+    else if (id === "muehle") beiMuellerin();
+    else if (id === "eisdiele") beiGino();
+    else if (id === "feuerwache") beiFunke();
+    else if (id === "felder" && !hatTeil("muehlweg")) toast("Hier endet der Feldweg an einem verschlossenen Gatter: „Privatweg zur Mühle. Nur mit Einladung!“", 5500);
+    else toast(`Angekommen: ${z.name}`);
+  }
+  // Hat eine Figur nach einem erledigten Auftrag gleich den nächsten, erzählt sie ihn im selben
+  // Besuch: Nach dem Gespräch wird geprüft, ob der Ort weiter leuchtet und sich etwas getan hat.
+  let kette = null;
+  const standJetzt = () => JSON.stringify([spiel.neben, spiel.hilde, spiel.rosi, spiel.auftrag, spiel.moosSeil, spiel.opa,
+    spiel.knutMoped, spiel.moosRallye, spiel.holzweg, spiel.donnerkeil]);
+  function ketteWeiter() {
+    const k = kette;
+    if (!k || route || !fensterZu() || k.n >= 3) return;
+    const s = standJetzt();
+    if (s === k.stand) { kette = null; return; }
+    k.stand = s; k.n++; aufgabenCache = null;
+    const z = aufgabenOrte().find((q) => q.id === k.id);
+    if (!z || Math.hypot(z.x - auto.x, z.y - auto.y) > 6 || k.id === "schuppen") { kette = null; return; }
+    zielHandeln(z);
+  }
   function steuerAuto(dt) {
     if (!route) return null;
     const voraus = 1.8 + Math.max(0, auto.v) * 0.35; // langsam: kurz vorausschauen, damit Ecken nicht geschnitten werden
@@ -2118,18 +2253,8 @@ window.Karte = function (opt = {}) {
     const rest = Math.hypot(ende[0] - auto.x, ende[1] - auto.y);
     if (rest < 1.5) {
       route = null;
-      if (zielWahl.id === "schrottplatz") { if (!besucht) ankunft(); else beiKnut(); }
-      else if (zielWahl.id === "schuppen" && opt.zurWerkstatt) opt.zurWerkstatt();
-      else if (zielWahl.id === "bauernhof") beiHilde();
-      else if (zielWahl.id === "foersterhuette") beiMoos();
-      else if (zielWahl.id === "camping") beiRosi(rallyeAnbieten);
-      else if (zielWahl.id === "ostufer") amOstufer();
-      else if (zielWahl.id === "kauz") beiKauz();
-      else if (zielWahl.id === "muehle") beiMuellerin();
-      else if (zielWahl.id === "eisdiele") beiGino();
-      else if (zielWahl.id === "feuerwache") beiFunke();
-      else if (zielWahl.id === "felder" && !hatTeil("muehlweg")) toast("Hier endet der Feldweg an einem verschlossenen Gatter: „Privatweg zur Mühle. Nur mit Einladung!“", 5500);
-      else toast(`Angekommen: ${zielWahl.name}`);
+      kette = { id: zielWahl.id, n: 0, stand: standJetzt() };
+      zielHandeln(zielWahl);
       return { gas: false, bremse: Math.abs(auto.v) > 0.3, lenk: 0 };
     }
     if (hindernisPruefen()) return { gas: false, bremse: true, lenk: 0 };
@@ -2570,6 +2695,7 @@ window.Karte = function (opt = {}) {
     ctx.restore();
     nachtZeichnen(w, h, dpr);
     aufgabenWelt(sicht, t); // nach Nacht und dunklem Wald: Aufgaben leuchten immer
+    huetchenZeichnen(sicht);
     piepsWelt(sicht); // Pieps' Noten sieht man auch nachts und über dem Walddach
     wetterBildschirm(w, h, dpr);
 
@@ -2812,6 +2938,7 @@ window.Karte = function (opt = {}) {
     bertaSchritt(dt);
     piepsSchritt(dt);
     eisSchritt(dt);
+    huetchenSchritt();
     for (const sf of HERDE) {
       if (sf.flucht) { // davonlaufen zur Wiese neben dem Weg, dort wieder grasen
         const d = Math.hypot(sf.zx - sf.x, sf.zy - sf.y);
@@ -3162,7 +3289,8 @@ window.Karte = function (opt = {}) {
   function bild(t) {
     const dt = Math.min(0.05, (t - (zuletzt || t)) / 1000);
     zuletzt = t;
-    if (RALLYE && RALLYE.offen) { if (Ton && Ton.grillen) Ton.grillen(0); if (Ton) Ton.motor(RALLYE.tempo ? { v: RALLYE.tempo, gas: true } : null); requestAnimationFrame(bild); return; }
+    const rennen = [RALLYE, SLALOM].find((r) => r && r.offen);
+    if (rennen) { if (Ton && Ton.grillen) Ton.grillen(0); if (Ton) Ton.motor(rennen.tempo ? { v: rennen.tempo, gas: true } : null); requestAnimationFrame(bild); return; }
     if (Ton) Ton.motor(cv.clientWidth && $("gespraech").hidden ? { v: auto.v, gas: auto.gas } : null);
     if (cv.clientWidth) {
       // nachts ein ruhiges Schlaflied, im Wald dazu ab und zu ein Uhu
@@ -3373,7 +3501,7 @@ window.Karte = function (opt = {}) {
   frage.innerHTML = '<div><strong>🏁 Waldrallye</strong><p></p><div class="knoepfe"><button type="button" class="knopf r-los">🏁 Starten</button>' +
     '<button type="button" class="knopf zweit r-spaeter">Später</button></div></div>';
   $("karte").parentElement.append(frage);
-  frage.querySelector(".r-los").addEventListener("click", rallyeStarten);
+  frage.querySelector(".r-los").onclick = rallyeStarten;
   frage.querySelector(".r-spaeter").addEventListener("click", () => { frage.hidden = true; });
   const leer = document.createElement("div");
   leer.id = "leer"; leer.hidden = true; leer.setAttribute("role", "alertdialog"); leer.setAttribute("aria-label", "Tank leer");
@@ -3429,7 +3557,7 @@ window.Karte = function (opt = {}) {
   hudNeu();
 
   // Erst bauen, wenn die Objektbilder da sind (Größen kommen aus den Daten, Bilder nur fürs Zeichnen)
-  window.__kp = { aufgabenOrte, BERTA, PIEPS, PIEPS_ORTE, abstandWeg, nebelNeu: () => nebelNeu(), beiMoos: () => beiMoos(), OBJEKTE, auto, planen, zeit, FUNDE, neuerTag, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
+  window.__kp = { SLALOM, HUETCHEN, beiFunke: () => beiFunke(), aufgabenOrte, BERTA, PIEPS, PIEPS_ORTE, abstandWeg, nebelNeu: () => nebelNeu(), beiMoos: () => beiMoos(), OBJEKTE, auto, planen, zeit, FUNDE, neuerTag, platt: (w) => plattMachen(w), ladenAuf, ZIELE, spiel, REIFEN, SAMMEL, HERDE, HINDERNISSE, GEBIETE, wetter, wetterSetzen, WOLKEN, VOEGEL, HASEN, SCHAFE, get route() { return route; }, get kamera() { return kamera; } }; // für automatische Tests
   karteBauen();
   setTimeout(() => { neuerTag(); verbrauchAnzeigen(); }, 0);
   // Platz um die Kartenstücke und Reifen freiräumen
@@ -3490,27 +3618,40 @@ window.Karte = function (opt = {}) {
     // Donnerkeil (einmal). danach: wird nach dem Gespräch aufgerufen.
     opaErzaehlt(danach) {
       if (spiel.opa || !["batterie", "erledigt"].includes(spiel.auftrag)) return false;
-      gespraech("opa", "Opa Bolzen", "werkstatt", [
+      gespraech("opa", "Opa Kolben", "werkstatt", [
         ["hallo", "Da bist du ja wieder! Knut ist zufrieden mit dir, hab ich gehört. Der lobt sonst nie jemanden."],
         ["nachdenken", "Weißt du eigentlich, was am Ende des Sommers ist? Das Klappertal-Rennen! Das ganze Tal steht dann an der Kiesrennbahn."],
         ["juhu", "Früher bin ich da selbst gefahren. Dreimal gewonnen, mit dem Donnerkeil! Schnell wie der Blitz und laut wie ein Gewitter."],
         ["nachdenken", "Den gibt es leider nicht mehr. Nach einem dummen Streit haben wir ihn auseinandergenommen, und die Teile sind im ganzen Tal verstreut."],
         ...(D.geschichte && D.geschichte.donnerkeil_foto ? [
           ["juhu", "Schau, hier hab ich noch ein Foto von damals: der Donnerkeil und der Pokal, nach dem dritten Sieg!", { bild: D.geschichte.donnerkeil_foto,
-            alt: "Altes Foto: der junge Opa Bolzen und ein großer, dünner Mann mit Werkzeuggürtel halten einen Pokal, daneben der silberne Rennwagen mit Blitz." }],
+            alt: "Altes Foto: der junge Opa Kolben und ein großer, dünner Mann mit Werkzeuggürtel halten einen Pokal, daneben der silberne Rennwagen mit Blitz." }],
           ["nachdenken", "Der Lange daneben? Ach … lassen wir das.", { bild: D.geschichte.donnerkeil_foto }],
         ] : []),
         ["auftrag", "Aber wer weiß … Wenn du die Augen offen hältst, findest du vielleicht das eine oder andere Teil wieder."],
         ["auftrag", "Und fürs Rennen musst du dich erst in den Vorrunden beweisen. Die erste ist im Wald, frag mal Förster Moos danach!"],
-        ["juhu", "Ich schreib's dir ins Auftragsbuch. Ach, was freu ich mich: Endlich wieder einer aus der Bolzen-Werkstatt am Start!"],
+        ["juhu", "Ich schreib's dir ins Auftragsbuch. Ach, was freu ich mich: Endlich wieder einer aus der Kolben-Werkstatt am Start!"],
       ], () => { spiel.opa = "rennen"; hudNeu(); toast("📖 Neu im Auftragsbuch: Opas Donnerkeil und die Waldrallye", 5000); if (danach) danach(); });
+      return true;
+    },
+    // Opa erkennt den Sitz aus dem Dorf-Slalom (G11)
+    opaSitz() {
+      const n = spiel.neben;
+      if (!spiel.donnerkeil.includes("sitz") || n.opaSitz) return false;
+      n.opaSitz = true;
+      gespraech("opa", "Opa Kolben", "werkstatt", [
+        ["juhu", "Na so was! Der Sitz vom Donnerkeil! Den Blitz auf der Lehne würd ich unter tausend erkennen."],
+        ["nachdenken", "Beim Sperrmüll-Händler gekauft, sagt Funke? Hm. Erst das Lenkrad bei Rosi, jetzt der Sitz auf der Feuerwache …"],
+        ["nachdenken", "Jemand hat die Teile damals verkauft, Stück für Stück. Kauz war's nicht, der hat ja den Rahmen behalten. Aber wer dann?"],
+        ["auftrag", "Bau ihn ruhig ein, der hält dich in jeder Kurve fest. Und halt die Augen offen. Da steckt mehr dahinter."],
+      ], () => hudNeu());
       return true;
     },
     // Ginos Erdbeerbecher kommt bei Opa an (G11)
     opaEis() {
       const n = spiel.neben;
       if (n.eis !== "opa") return false;
-      gespraech("opa", "Opa Bolzen", "werkstatt", [
+      gespraech("opa", "Opa Kolben", "werkstatt", [
         ["juhu", "Ein Becher Erdbeere? Von Gino? Wie jedes Jahr zum Dorffest! Und noch schön kalt!"],
         ["nachdenken", "Früher sind wir mit dem Donnerkeil zum Dorffest gefahren, Kauz und ich. Da gab's den Slalom auf dem Marktplatz …"],
         ["auftrag", "Sag Gino schönen Dank. Und grüß mir Funke von der Feuerwehr!"],
@@ -3527,14 +3668,14 @@ window.Karte = function (opt = {}) {
         toast("🛞 Das Donnerkeil-Lenkrad liegt jetzt im Regal (Lenkung).", 4000);
       };
       if (spiel.opaLenkrad) {
-        gespraech("opa", "Opa Bolzen", "werkstatt", [
+        gespraech("opa", "Opa Kolben", "werkstatt", [
           ["nachdenken", "Weißt du was? Das Lenkrad vom Donnerkeil hängt da nur an der Wand rum und staubt ein."],
           ["juhu", "Nimm's runter und bau's ein! Damit lenkt sich's wie früher bei den Rennen. Für den Donnerkeil heben wir's trotzdem auf."],
         ], geben);
         return true;
       }
       spiel.opaLenkrad = true;
-      gespraech("opa", "Opa Bolzen", "werkstatt", [
+      gespraech("opa", "Opa Kolben", "werkstatt", [
         ["nachdenken", "Zeig mal her, was hast du denn da? Ein Lenkrad mit einem Blitz drauf …"],
         ["juhu", "Das gibt's ja nicht! Das ist das Lenkrad vom Donnerkeil! Den Blitz hab ich selbst draufgemalt, mit Fahrradlack!"],
         ["nachdenken", "Bei Rosi am Campingplatz hing es? Hm. Wie kommt es denn bloß dahin … Da war doch früher nur Wald."],
@@ -3549,12 +3690,12 @@ window.Karte = function (opt = {}) {
       if (n.lichter !== "bolzen") return false;
       const foto = D.geschichte && D.geschichte.donnerkeil_foto;
       const bolzen = D.geschichte && D.geschichte.bolzen ? [{ bild: D.geschichte.bolzen, alt: "Der blanke Bolzen mit dem eingeritzten Blitz." }] : [];
-      gespraech("opa", "Opa Bolzen", "werkstatt", [
+      gespraech("opa", "Opa Kolben", "werkstatt", [
         ["nachdenken", "Was hast du denn da? Zeig mal her … ein Bolzen. Mit einem Blitz drauf.", ...bolzen],
         ["nachdenken", "Den hab ich selbst gedreht, für die Hinterachse vom Donnerkeil. Am Ostufer lag der? Da, wo Moos die Lichter sieht?", ...bolzen],
         ["nachdenken", "Dann ist er also noch da. Der alte Kauz."],
         ["auftrag", "Kauz war mein Beifahrer. Zusammen haben wir den Donnerkeil gebaut, Schraube für Schraube. Der Lange auf dem Foto, das ist er.",
-          ...(foto ? [{ bild: foto, alt: "Altes Foto: der junge Opa Bolzen und Kauz, ein großer, dünner Mann mit Werkzeuggürtel, mit dem Pokal neben dem Donnerkeil." }] : [])],
+          ...(foto ? [{ bild: foto, alt: "Altes Foto: der junge Opa Kolben und Kauz, ein großer, dünner Mann mit Werkzeuggürtel, mit dem Pokal neben dem Donnerkeil." }] : [])],
         ["nachdenken", "Nach dem dritten Sieg haben wir uns gestritten. Um eine dumme Kurve! Er sagt, ich hab zu spät gebremst. Ich sag, er hat sie falsch angesagt."],
         ["nachdenken", "Seitdem haben wir kein Wort mehr geredet. Der Donnerkeil wurde zerlegt … Ich dachte, Kauz ist längst weggezogen."],
         ["auftrag", "Wenn der nachts am See herumschraubt … Schau doch mal, ob du ihn findest. Aber sag ihm bloß nicht, dass ich dich schicke!"],
@@ -3567,7 +3708,7 @@ window.Karte = function (opt = {}) {
     // G10: Opa in der Werkstatt (Bolzen verweigern, Mühle verraten, Foto, Versöhnung mit Kauz)
     opaMuehle() {
       const n = spiel.neben;
-      const opa = (zeilen, danach) => gespraech("opa", "Opa Bolzen", "werkstatt", zeilen, danach);
+      const opa = (zeilen, danach) => gespraech("opa", "Opa Kolben", "werkstatt", zeilen, danach);
       if (n.muehle === "opa1") {
         opa([
           ["nachdenken", "Kauz will seinen Bolzen zurück? SEINEN Bolzen? Den hab ich gedreht, mit diesen Händen!"],
