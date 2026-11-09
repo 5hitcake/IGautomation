@@ -777,7 +777,15 @@ window.Karte = function (opt = {}) {
   // Am Ostufer: nachts fliehen die Lichter ins Schilf, zurück bleibt ein Bolzen mit Opas Blitz
   function amOstufer() {
     const n = spiel.neben;
-    if (n.lichter !== "auftrag") return toast(n.kauz ? "Die Reifenspuren verschwinden im dichten Schilf. Da kommt die Klapperkiste nicht durch." : "Angekommen: Ostufer am Waldsee");
+    if (n.lichter !== "auftrag") {
+      // Mit Mähbalken geht es beim ersten Mal gleich weiter durchs Schilf bis zu Kauz (G9)
+      const schilf = HINDERNISSE.find((q) => q.id === "schilf"), kauz = zielVon("kauz");
+      if (n.kauz && !schilf.weg && hatTeil("vorne") && zielOffen(kauz)) {
+        toast("🌾 Mähbalken runter! Den Reifenspuren nach ins Schilf …", 3000);
+        return setTimeout(() => { if (!route) planen(kauz); }, 600);
+      }
+      return toast(n.kauz && !schilf.weg ? "Die Reifenspuren verschwinden im dichten Schilf. Da kommt die Klapperkiste nicht durch." : "Angekommen: Ostufer am Waldsee");
+    }
     const blitz = spiel.donnerkeil.includes("lenkrad") ? "Genau so einer ist auf dem Lenkrad, das du Opa gebracht hast!" : "Wie auf dem Donnerkeil auf Opas altem Foto!";
     const bolzenBild = D.geschichte && D.geschichte.bolzen ? [{ bild: D.geschichte.bolzen, alt: "Ein blanker Bolzen mit eingeritztem Blitz im Matsch." }] : [];
     // Nachts sieht man die Lichter davonsausen; tagsüber findet man nur die Spuren und den Bolzen
