@@ -237,7 +237,9 @@ jobs:
           echo "uploaded=true" >> "$GITHUB_OUTPUT"
 
       - name: TikTok-Beschreibung per Telegram schicken
-        if: steps.tiktok.outputs.uploaded == 'true'
+        # Immer nach dem Instagram-Post (beide Accounts) - auch wenn der TikTok-Upload scheitert,
+        # damit das Reel notfalls von Hand gepostet werden kann.
+        if: steps.publish.outcome == 'success'
         continue-on-error: true
         env:
           STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
