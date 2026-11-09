@@ -1,5 +1,5 @@
 {
-  "count": 16,
+  "count": 17,
   "recent": [
     {
       "gender": "woman",
@@ -192,6 +192,18 @@
         "mixed"
       ],
       "setting": "on a rooftop"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Central Asian",
+        "central_asian"
+      ],
+      "setting": "at an outdoor market"
     }
   ],
   "reserve_used": [

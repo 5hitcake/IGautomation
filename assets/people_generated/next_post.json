@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261108_2343_0016.mp4",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0016 · \"Noah\", 26\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #digitalhuman #aiphotography #twinstranger #lookalike #faces",
+  "type": "image",
+  "file": "assets/people_generated/person_20261109_1113_0017.jpg",
+  "caption": "Not a real person. Not a real moment.\n\nPerson No. 0017 · \"Bakhyt\", 25\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #faces #streetportrait #digitalhuman #aiart #lookalike #portrait",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 26-year-old young mixed-race man with a high fade dyed bleached blonde with dark roots, a trimmed moustache, glitter makeup on the cheekbones and slightly sunburned nose, wearing a leather jacket, a slight smirk, on a rooftop, warm evening light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 16,
-  "name": "Noah",
-  "age": 26,
-  "image": "assets/people_generated/person_20261108_2343_0016.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Waist-up portrait photo of a 25-year-old young Central Asian man with a neat side part, mutton chops and a small mole on the cheek, wearing a work uniform, a calm neutral expression, at an outdoor market, soft golden hour light, shot on Kodak Portra 400 film, 35mm, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 17,
+  "name": "Bakhyt",
+  "age": 25
 }
