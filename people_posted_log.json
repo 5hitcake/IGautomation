@@ -1,5 +1,5 @@
 {
-  "count": 17,
+  "count": 18,
   "recent": [
     {
       "gender": "woman",
@@ -204,6 +204,18 @@
         "central_asian"
       ],
       "setting": "at an outdoor market"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Mexican",
+        "mexican"
+      ],
+      "setting": "on a rooftop"
     }
   ],
   "reserve_used": [
