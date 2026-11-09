@@ -11,9 +11,6 @@ on:
         type: choice
         default: horror
         options: [horror, mysteries]
-  push:
-    branches: [claude/instagram-reels-automation-koceqs]
-    paths: [".github/workflows/tiktok_story_retry.yml"]
 
 permissions:
   contents: read
@@ -32,7 +29,7 @@ jobs:
       - run: pip install -q requests
       - name: Video vom Medien-Branch holen
         env:
-          ACC: ${{ github.event.inputs.account || 'horror' }}
+          ACC: ${{ github.event.inputs.account }}
         run: |
           file=$(python -c "import json;print(json.load(open('assets/story_reels/$ACC/next_post.json'))['file'])")
           git fetch -q --depth 1 origin "story-media-$ACC"
@@ -41,7 +38,7 @@ jobs:
       - name: Auf TikTok hochladen
         id: tiktok
         env:
-          ACC: ${{ github.event.inputs.account || 'horror' }}
+          ACC: ${{ github.event.inputs.account }}
           TIKTOK_MODE: inbox
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
@@ -58,7 +55,7 @@ jobs:
           python scripts/tiktok_story_publish.py --post-file assets/story_reels/$ACC/next_post.json
       - name: TikTok-Beschreibung per Telegram schicken
         env:
-          ACC: ${{ github.event.inputs.account || 'horror' }}
+          ACC: ${{ github.event.inputs.account }}
           STORY_TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
