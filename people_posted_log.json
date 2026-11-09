@@ -1,5 +1,5 @@
 {
-  "count": 18,
+  "count": 19,
   "recent": [
     {
       "gender": "woman",
@@ -216,6 +216,18 @@
         "mexican"
       ],
       "setting": "on a rooftop"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "white Australian",
+        "white_australian"
+      ],
+      "setting": "in a snowy street"
     }
   ],
   "reserve_used": [

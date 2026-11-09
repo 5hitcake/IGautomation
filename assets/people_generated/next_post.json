@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261109_1714_0018.mp4",
-  "caption": "This face belongs to no one.\n\nPerson No. 0018 · \"Ximena\", 23\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #lookalike #faces #aiphotography #artificialintelligence #fluxai #peopleofinstagram",
+  "file": "reel_20261109_2343_0019.mp4",
+  "caption": "This face belongs to no one.\n\nPerson No. 0019 · \"Brodie\", 38\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #notreal #faces #aiphotography #fakeface #digitalhuman #portraitphotography",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 23-year-old young Mexican woman with a buzz cut and a few blemishes, wearing a leather jacket, a calm neutral expression, on a rooftop, soft golden hour light, shot on iPhone, candid snapshot, looks exactly 23 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 18,
-  "name": "Ximena",
-  "age": 23,
-  "image": "assets/people_generated/person_20261109_1714_0018.jpg",
+  "prompt": "Waist-up portrait photo of a 38-year-old white Australian man with tight curls, a short boxed beard and rosy cheeks, wearing a chef's white jacket, a confident gaze into the camera, in a snowy street, neon city lights at night, shot on Fujifilm X-T4, 56mm f/1.2, looks exactly 38 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 19,
+  "name": "Brodie",
+  "age": 38,
+  "image": "assets/people_generated/person_20261109_2343_0019.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
