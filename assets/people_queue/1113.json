@@ -1,0 +1,32 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 25,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "Central Asian",
+      "central_asian"
+    ],
+    "name": "Bakhyt",
+    "hair": "a neat side part",
+    "facial_hair": "mutton chops",
+    "detail": "a small mole on the cheek",
+    "clothing": "a work uniform",
+    "setting": "at an outdoor market",
+    "lighting": "soft golden hour light",
+    "camera": "shot on Kodak Portra 400 film, 35mm",
+    "framing": "waist-up portrait",
+    "expression": "a calm neutral expression",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Waist-up portrait photo of a 25-year-old young Central Asian man with a neat side part, mutton chops and a small mole on the cheek, wearing a work uniform, a calm neutral expression, at an outdoor market, soft golden hour light, shot on Kodak Portra 400 film, 35mm, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Not a real person. Not a real moment.\n\nPerson No. 0019 · \"Bakhyt\", 25\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #faces #streetportrait #digitalhuman #aiart #lookalike #portrait"
+}
