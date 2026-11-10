@@ -304,7 +304,10 @@ def test_no_injury_wording_in_traits():
 
     pools = [pg.DETAILS]
     pools += list(pg.SUBTLE_TRAITS.values()) + list(pg.BOLD_TRAITS.values())
-    bad = re.compile(r"\b(scar|scars|cut|wound|blood|bruise|stitches|scratch)\b", re.I)
+    bad = re.compile(
+        r"\b(scar|scars|cut|wound|blood|bruise|stitches|scratch|mole|beauty mark|birthmark|blemish\w*)\b",
+        re.I,
+    )
     for pool in pools:
         for item in pool:
             assert not bad.search(item), item
