@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261110_1113_0020.jpg",
-  "caption": "This face belongs to no one.\n\nPerson No. 0020 · \"Hamza\", 26\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #twinstranger #digitalhuman #aiart #aiphotography #artificialintelligence",
+  "type": "reel",
+  "file": "reel_20261110_1714_0021.mp4",
+  "caption": "Not a real person. Not a real moment.\n\nPerson No. 0021 · \"Hannah\", 31\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #lookalike #aiart #fluxai #generativeai #portrait #fakeface",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 26-year-old young North African man with long hair tied back, mutton chops, tattooed knuckles and hands and a faded scar on the chin, wearing a plain white t-shirt, looking slightly away from the camera, in a park in autumn, soft golden hour light, shot on Canon EOS R5, 85mm f/1.4, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 20,
-  "name": "Hamza",
-  "age": 26
+  "prompt": "Waist-up portrait photo of a 31-year-old white American woman with a messy bun and small hoop earrings, wearing a bright patterned shirt, a slight smirk, at a harbor with boats, soft golden hour light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 31 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 21,
+  "name": "Hannah",
+  "age": 31,
+  "image": "assets/people_generated/person_20261110_1714_0021.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
