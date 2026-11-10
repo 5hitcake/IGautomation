@@ -997,7 +997,7 @@ window.Karte = function (opt = {}) {
     funke([["hallo", n.slalom === "medaille" ? "Na, Champion? Noch eine Runde Slalom, für die Bestzeit?" : "Bereit für den Dorf-Slalom? Die Hütchen stehen!"]], () => { hudNeu(); slalomAnbieten(); });
   }
   // Funkes Hütchen: liegen am Wegrand im Dorf und an der Landstraße, nah ranfahren sammelt sie ein
-  const HUETCHEN = [[328, 248.2], [351, 241.6], [372, 251], [415, 258], [452, 252.6], [474, 247.4]];
+  const HUETCHEN = [[328, 248.2], [351, 241.6], [372, 251], [415, 258], [426.5, 247], [439, 252.8]]; // alle nah an Wegen zwischen Zielen
   function huetchenSchritt() {
     const n = spiel.neben;
     if (n.slalom !== "huetchen") return;
@@ -2467,6 +2467,14 @@ window.Karte = function (opt = {}) {
   function brueckeMalen(c) {
     c.save();
     const bx = BRUECKE.x, by = BRUECKE.y;
+    // unter und neben der Brücke fließt Wasser: der Weg darunter wird wieder übermalt
+    const wasser = musterVon("wasser");
+    if (wasser) {
+      c.save(); c.beginPath(); c.rect(bx - 4.5, by - 4, 9, 8); c.clip();
+      c.strokeStyle = wasser; c.lineWidth = BACH_BREITE; c.lineCap = "round"; c.lineJoin = "round";
+      c.beginPath(); c.moveTo(BACH[0][0], BACH[0][1]); for (const [x, y] of BACH.slice(1)) c.lineTo(x, y); c.stroke();
+      c.restore();
+    }
     c.fillStyle = "rgba(10,20,8,0.35)"; c.fillRect(bx - 1.6, by - 2.6, 3.6, 5.6);
     for (let i = 0; i < 9; i++) {
       if (i === 5) continue; // ein Brett fehlt
