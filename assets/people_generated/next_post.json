@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261109_2343_0019.mp4",
-  "caption": "This face belongs to no one.\n\nPerson No. 0019 · \"Brodie\", 38\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #notreal #faces #aiphotography #fakeface #digitalhuman #portraitphotography",
+  "type": "image",
+  "file": "assets/people_generated/person_20261110_1113_0020.jpg",
+  "caption": "This face belongs to no one.\n\nPerson No. 0020 · \"Hamza\", 26\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #twinstranger #digitalhuman #aiart #aiphotography #artificialintelligence",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 38-year-old white Australian man with tight curls, a short boxed beard and rosy cheeks, wearing a chef's white jacket, a confident gaze into the camera, in a snowy street, neon city lights at night, shot on Fujifilm X-T4, 56mm f/1.2, looks exactly 38 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 19,
-  "name": "Brodie",
-  "age": 38,
-  "image": "assets/people_generated/person_20261109_2343_0019.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Close-up headshot photo of a 26-year-old young North African man with long hair tied back, mutton chops, tattooed knuckles and hands and a faded scar on the chin, wearing a plain white t-shirt, looking slightly away from the camera, in a park in autumn, soft golden hour light, shot on Canon EOS R5, 85mm f/1.4, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
+  "number": 20,
+  "name": "Hamza",
+  "age": 26
 }
