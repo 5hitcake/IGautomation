@@ -67,7 +67,8 @@ def main() -> int:
     bearbeitet = os.path.join(ROH, "marktplatz_ohne_brotstand.png")
     bild.save(bearbeitet)
     werk = os.path.join(ROOT, "tools", "objekt.py")
-    subprocess.run([sys.executable, werk, "einpassen", bearbeitet, "marktplatz", "--meter", str(METER)], check=True)
+    befehl = [sys.executable, werk, "einpassen", bearbeitet, "marktplatz", "--meter", str(METER)]
+    subprocess.run(befehl, check=True)
     strassen_weich(ZIEL)
     return 0
 
