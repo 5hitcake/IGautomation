@@ -297,3 +297,15 @@ def test_no_aging_features_for_young_people():
             assert "grey hair" not in prompt
         if p["age"] < 30:
             assert f"{p['age']}-year-old young " in prompt
+
+
+def test_no_injury_wording_in_traits():
+    import re
+
+    pools = [pg.DETAILS]
+    pools += list(pg.SUBTLE_TRAITS.values()) + list(pg.BOLD_TRAITS.values())
+    bad = re.compile(r"\b(scar|scars|cut|wound|blood|bruise|stitches|scratch)\b", re.I)
+    for pool in pools:
+        for item in pool:
+            assert not bad.search(item), item
+    assert "no wounds" in pg.PROMPT_TAIL
