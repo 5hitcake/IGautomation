@@ -324,9 +324,10 @@ FACIAL_HAIR = [
 ]
 
 DETAILS = [
-    "light freckles", "a small mole on the cheek", "laugh lines", "a few blemishes", "thick eyebrows",
+    "light freckles", "a slightly crooked nose", "laugh lines",
+    "a slightly uneven skin tone", "thick eyebrows",
     "a gap between the front teeth", "rosy cheeks", "slightly sunburned nose", "small hoop earrings",
-    "a beauty mark above the lip", "dimples", "crow's feet around the eyes",
+    "a slightly crooked smile", "dimples", "crow's feet around the eyes",
 ]
 
 CLOTHING = [
@@ -366,7 +367,7 @@ SUBTLE_TRAITS = {
     ],
     "piercing": ["several small ear piercings", "a small nose stud"],
     "skin": [
-        "very heavy freckles", "a prominent birthmark on the cheek", "a small beauty mark near the eye",
+        "very heavy freckles", "striking light-colored eyes", "a strong prominent nose",
         "deep sun-weathered skin",
     ],
     "makeup": ["classic winged eyeliner", "dark red lipstick"],
