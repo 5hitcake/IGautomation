@@ -116,12 +116,12 @@ window.Karte = function (opt = {}) {
   // Klappertal-Dorf (G11): Bilder von oben mit linker oberer Ecke (X, Y); haus = Gebäude (Kollision),
   // Marktplatz mit Brunnen in der Mitte, die Straße läuft unten um den Brunnen herum
   const DORF = { schild: [356, 238.5], fest: [360, 245.3], flaeche: [366, 196, 478, 304],
-    platz: { X: 392, Y: 239.8 }, brunnen: [407.3, 250, 3.1],
+    platz: { X: 392, Y: 237.2 }, brunnen: [410.3, 250, 3.5], // Platz 36 m breit
     eis: { X: 372, Y: 233, haus: [375.4, 233, 387.8, 241.4] },
     wache: { X: 432, Y: 226, haus: [436.8, 226, 449.5, 235.2] },
     haeuser: [{ bild: "dorfhaus_1", X: 458, Y: 236, haus: [460, 236, 469.5, 244] },
       { bild: "dorfhaus_2", X: 434, Y: 253.5, haus: [436, 253.5, 444.5, 260.5] }] };
-  const DORFSTRASSE = [[388, 250], [398, 250], [403, 254.5], [408.5, 254.5], [413.5, 250], [472, 250]];
+  const DORFSTRASSE = [[388, 250], [402.5, 249.5], [408, 255.6], [413.5, 255.6], [419.5, 250], [472, 250]];
   const DORF_HAEUSER = [DORF.eis.haus, DORF.wache.haus, ...DORF.haeuser.map((h) => h.haus)];
   const WEGE = [WEG, ABZWEIG, FELDRAND, WEIDEWEG, HOFWEG, FELDERWEG, WALDPFAD, HOLZWEG, UFERPFAD, SCHILFPFAD, MUEHLENWEG, LANDSTRASSE, DORFSTRASSE];
   const WEGE_OST = [LANDSTRASSE, DORFSTRASSE]; // Bäume und Büsche daran mit eigenem Zufall (rndOst)
@@ -997,12 +997,12 @@ window.Karte = function (opt = {}) {
     funke([["hallo", n.slalom === "medaille" ? "Na, Champion? Noch eine Runde Slalom, für die Bestzeit?" : "Bereit für den Dorf-Slalom? Die Hütchen stehen!"]], () => { hudNeu(); slalomAnbieten(); });
   }
   // Funkes Hütchen: liegen am Wegrand im Dorf und an der Landstraße, nah ranfahren sammelt sie ein
-  const HUETCHEN = [[328, 248.2], [351, 241.6], [372, 251], [419, 257.6], [452, 252.6], [474, 247.4]];
+  const HUETCHEN = [[328, 248.2], [351, 241.6], [372, 251], [415, 258], [452, 252.6], [474, 247.4]];
   function huetchenSchritt() {
     const n = spiel.neben;
     if (n.slalom !== "huetchen") return;
     HUETCHEN.forEach(([x, y], i) => {
-      if (n.huetchenWeg.includes(i) || Math.hypot(auto.x - x, auto.y - y) > 4) return;
+      if (n.huetchenWeg.includes(i) || Math.hypot(auto.x - x, auto.y - y) > 5) return;
       n.huetchenWeg.push(i); hudNeu();
       const fehlt = HUETCHEN.length - n.huetchenWeg.length;
       toast(fehlt ? `🔶 Hütchen eingesammelt! (${n.huetchenWeg.length}/${HUETCHEN.length})` : "🔶 Alle 6 Hütchen! Bring sie Funke auf die Wache.", 3000);
