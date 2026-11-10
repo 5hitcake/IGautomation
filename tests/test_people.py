@@ -300,15 +300,19 @@ def test_no_aging_features_for_young_people():
 
 
 def test_no_injury_wording_in_traits():
+    """Narben und Leberflecke duerfen vorkommen, aber nur dezent und selten."""
     import re
 
     pools = [pg.DETAILS]
     pools += list(pg.SUBTLE_TRAITS.values()) + list(pg.BOLD_TRAITS.values())
-    bad = re.compile(
-        r"\b(scar|scars|cut|wound|blood|bruise|stitches|scratch|mole|beauty mark|birthmark|blemish\w*)\b",
-        re.I,
-    )
+    injury = re.compile(r"\b(cut|wound|blood|bruise|stitches|scratch|blemish\w*)\b", re.I)
+    marks = re.compile(r"\b(scar|mole|beauty mark|birthmark)\b", re.I)
     for pool in pools:
         for item in pool:
-            assert not bad.search(item), item
-    assert "no wounds" in pg.PROMPT_TAIL
+            assert not injury.search(item), item
+            if re.search(r"\bscar\b", item):
+                assert "healed" in item, item
+            if marks.search(item):
+                assert "single" in item or "faint" in item, item
+        assert sum(bool(marks.search(i)) for i in pool) <= 2, pool
+    assert "no fresh wounds" in pg.PROMPT_TAIL
