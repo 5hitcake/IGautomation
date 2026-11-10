@@ -1,5 +1,5 @@
 {
-  "count": 21,
+  "count": 22,
   "recent": [
     {
       "gender": "woman",
@@ -252,6 +252,18 @@
         "white_american"
       ],
       "setting": "at a harbor with boats"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        40,
+        49
+      ],
+      "heritage": [
+        "Irish",
+        "irish"
+      ],
+      "setting": "in a sunflower field"
     }
   ],
   "reserve_used": [

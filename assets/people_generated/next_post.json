@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261110_1714_0021.mp4",
-  "caption": "Not a real person. Not a real moment.\n\nPerson No. 0021 · \"Hannah\", 31\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #lookalike #aiart #fluxai #generativeai #portrait #fakeface",
+  "file": "reel_20261110_2343_0022.mp4",
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0022 · \"Aoife\", 42\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #streetportrait #twinstranger #digitalhuman #portrait #portraitphotography",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 31-year-old white American woman with a messy bun and small hoop earrings, wearing a bright patterned shirt, a slight smirk, at a harbor with boats, soft golden hour light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 31 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no text, no watermark",
-  "number": 21,
-  "name": "Hannah",
-  "age": 31,
-  "image": "assets/people_generated/person_20261110_1714_0021.jpg",
+  "prompt": "Waist-up portrait photo of a 42-year-old Irish woman with bangs and a ponytail and thick eyebrows, wearing a high-visibility work vest, a calm neutral expression, in a sunflower field, blue hour twilight, shot on iPhone, candid snapshot, looks exactly 42 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 22,
+  "name": "Aoife",
+  "age": 42,
+  "image": "assets/people_generated/person_20261110_2343_0022.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
