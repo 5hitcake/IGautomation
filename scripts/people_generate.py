@@ -324,10 +324,10 @@ FACIAL_HAIR = [
 ]
 
 DETAILS = [
-    "light freckles", "a slightly crooked nose", "laugh lines",
+    "light freckles", "a single small mole on the cheek", "laugh lines",
     "a slightly uneven skin tone", "thick eyebrows",
     "a gap between the front teeth", "rosy cheeks", "slightly sunburned nose", "small hoop earrings",
-    "a slightly crooked smile", "dimples", "crow's feet around the eyes",
+    "a faint, long-healed scar on the chin", "dimples", "crow's feet around the eyes",
 ]
 
 CLOTHING = [
@@ -367,7 +367,7 @@ SUBTLE_TRAITS = {
     ],
     "piercing": ["several small ear piercings", "a small nose stud"],
     "skin": [
-        "very heavy freckles", "striking light-colored eyes", "a strong prominent nose",
+        "very heavy freckles", "a single small beauty mark near the eye", "a strong prominent nose",
         "deep sun-weathered skin",
     ],
     "makeup": ["classic winged eyeliner", "dark red lipstick"],
@@ -437,7 +437,7 @@ EXPRESSIONS = [
 PROMPT_TAIL = (
     "photorealistic, real photograph, natural skin texture with visible pores, unretouched, "
     "authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, "
-    "no wounds, no cuts, no scars, no blood, no injuries, no text, no watermark"
+    "no fresh wounds, no cuts, no blood, no injuries, no text, no watermark"
 )
 
 HOOKS = [
