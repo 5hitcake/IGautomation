@@ -155,6 +155,7 @@
     <button class="txtbtn" id="btnFreeDraw"></button>
     <button class="txtbtn" id="btnCampaign"></button>
     <button class="txtbtn" id="btnShop"></button>
+    <button class="txtbtn" id="btnTestLevel">Testlevel</button>
   </div>
 </div></div>
 
@@ -1354,6 +1355,9 @@ function openLevelSelect(){
 
 /* shop - coins collected in campaign levels buy purely cosmetic customization */
 const btnShop = document.getElementById("btnShop"); btnShop.textContent = STR.btnShop;
+// Temporary, for trying the new level-structure mechanics (wind/checkpoints/
+// gates/loop) before real level art/design - remove once that round is done.
+document.getElementById("btnTestLevel").onclick = ()=>loadTestLevel();
 btnShop.onclick = ()=>{ hideSheet(mainmenuSheet); openShop(); };
 document.getElementById("shopTitle").textContent = STR.shopTitle;
 document.getElementById("shopHColors").textContent = STR.shopSectionColors;
@@ -2106,7 +2110,11 @@ function loadTestLevel(){
   restart(false);
   syncToolAvailability(); syncRulerBadge();
 }
-if(new URLSearchParams(location.search).get("test")==="1"){
+// location.hash, not a query string - published Artifacts only pass a plain
+// #name through to the page, never a ?query (the earlier ?test=1 link never
+// actually reached this code). Kept alongside the main-menu button above as
+// a second, link-shareable way in.
+if(new URLSearchParams(location.search).get("test")==="1" || location.hash === "#test"){
   assetsReady.then(loadTestLevel);
 }
 </script>
