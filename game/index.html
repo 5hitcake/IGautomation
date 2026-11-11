@@ -348,6 +348,7 @@ const s2wy = sy => (sy - H/2)/cam.z + cam.y;
 /* ============================ track ============================ */
 let strokes = [];                    // [{segs:[seg,...]}] — for undo
 let segs = [];                       // flat live list
+let islandSegs = [];                 // fixed level terrain (LEVEL.islands), collidable but not player-editable/erasable
 let lastEnd = null;                  // endpoint of the most recently drawn line, for snapping
 let freePads = [];                   // player-placed boost pads in free-draw mode ({x,y,r})
 const FREE_PAD_R = 50;
@@ -378,8 +379,24 @@ function gridAdd(s){
   }
 }
 function rebuildGrid(){
-  grid = new Map(); segs = [];
+  grid = new Map(); segs = []; islandSegs = [];
   for(const st of strokes) for(const s of st.segs){ segs.push(s); gridAdd(s); }
+  // Fixed level terrain: collides exactly like a drawn stroke (same grid,
+  // same substep() loop) but lives in its own array so drawTrack() never
+  // renders it as a pencil line and the player can't erase/undo it.
+  // checkpoint:true islands tag every one of their segments with the
+  // island's own anchor point, so touching ANY part of the island banks
+  // that fixed point as the new respawn location (see substep()).
+  if(LEVEL && LEVEL.islands){
+    for(const isl of LEVEL.islands){
+      const pts = isl.pts, anchor = isl.checkpoint ? (isl.checkpointAt || pts[0]) : null;
+      for(let i=1;i<pts.length;i++){
+        const s = { x1:pts[i-1].x, y1:pts[i-1].y, x2:pts[i].x, y2:pts[i].y,
+                    checkpointAt: anchor, friction: isl.friction ?? ISLAND_FRICTION };
+        islandSegs.push(s); gridAdd(s);
+      }
+    }
+  }
   updateLastEnd();
 }
 function updateLastEnd(){
@@ -779,9 +796,15 @@ function drawIntroOverlay(){
 
 /* ============================ rider physics ============================ */
 const GRAV = 1500, RAD = 13, FRICTION = 0.030, VMAX = 4200, CRASH_V = 1650;
+// Fixed islands default to a much lower friction than a hand-drawn pencil
+// line - see the comment in substep() for why the default constant is
+// unusable on a tight curve like a loop. Low, not literally zero, so an
+// island still reads as "solid ground" rather than frictionless ice.
+const ISLAND_FRICTION = 0.004;
 const rider = { x:0, y:0, vx:0, vy:0, ang:0, contact:false, crashed:false, wob:0 };
 function resetRider(){
-  rider.x = START.x; rider.y = START.y - RAD;
+  const sp = lastCheckpoint || START;
+  rider.x = sp.x; rider.y = sp.y - RAD;
   rider.vx = 0; rider.vy = 0; rider.ang = 0;
   rider.contact = false; rider.crashed = false; rider.wob = 0;
   animT = 0; crashT = 0; celebrateT = 0; nextMilestone = 250; maxDist = 0;
@@ -790,6 +813,15 @@ let hazardHit = false, goalHit = false;
 // Coins collected during the CURRENT attempt - reset on every restart() so a
 // retry offers them again, matching how boost pads are never "used up".
 let collectedCoins = new Set();
+// Bonus-coin gates - same "never used up" philosophy as coins/pads above.
+let collectedGates = new Set();
+// World-space spawn point for this attempt: null means START. Set when the
+// rider makes contact with a checkpoint island (LEVEL.islands with
+// checkpoint:true) and cleared back to null whenever a level/free-draw
+// session is freshly entered (loadLevel/enterFreeDraw) - NOT on a plain
+// restart(), since the whole point is that a mid-level crash resumes from
+// here instead of sending the player all the way back to START.
+let lastCheckpoint = null;
 function substep(h, dynamicHazards){
   rider.vy += GRAV*h;
   rider.x += rider.vx*h; rider.y += rider.vy*h;
@@ -812,14 +844,23 @@ function substep(h, dynamicHazards){
       // overlapping segment — a hand-drawn line can have several tiny segments
       // under the rider at once, and damping speed per-segment made freehand
       // track feel far grabbier than ruler-drawn (single-segment) track.
+      // Segments can override the default pencil-line FRICTION (s.friction) -
+      // fixed islands use a much lower value (see ISLAND_FRICTION) since the
+      // default constant, calibrated for gentle hand-drawn hills, bleeds a
+      // physically unreasonable amount of speed on a tight curve: it's a flat
+      // percentage removed per substep CALL, and a small-radius curve needs
+      // many calls to get around while only covering a little real distance,
+      // so the same per-call percentage compounds far more per metre of
+      // track than it does on a straight or gently-curved line.
       if(!frictionApplied){
         const tx=-ny, ty=nx;
         let vt = rider.vx*tx + rider.vy*ty;
-        vt *= (1 - FRICTION);
+        vt *= (1 - (s.friction ?? FRICTION));
         rider.vx = tx*vt + nx*vn; rider.vy = ty*vt + ny*vn;
         frictionApplied = true;
       }
       hit = true;
+      if(s.checkpointAt) lastCheckpoint = s.checkpointAt;
     }
   }
   if(LEVEL){
@@ -835,6 +876,26 @@ function substep(h, dynamicHazards){
       if(Math.hypot(rider.x-co.x, rider.y-co.y) < RAD+COIN_R){
         collectedCoins.add(co);
         coinTotal += co.big ? CHEST_VALUE : COIN_VALUE;
+        saveCoins();
+      }
+    }
+    // Wind zones (Windhosen): continuous lift while inside, independent of
+    // the rider's current heading - a chaotic updraft rather than a directed
+    // boost-pad push. strength is a px/s² upward acceleration; since GRAV
+    // already pulls down every substep, a zone needs strength > GRAV to give
+    // net lift (design levels with that in mind).
+    for(const w of LEVEL.winds || []){
+      if(Math.hypot(rider.x-w.x, rider.y-w.y) < w.r) rider.vy -= w.strength*h;
+    }
+    // Bonus gates: optional, geometry-guided waypoints (placed somewhere a
+    // player must actually fly past to reach them) that pay out extra coins
+    // the first time they're reached each attempt - never a hard requirement
+    // to finish the level.
+    for(const g of LEVEL.gates || []){
+      if(collectedGates.has(g)) continue;
+      if(Math.hypot(rider.x-g.x, rider.y-g.y) < g.r){
+        collectedGates.add(g);
+        coinTotal += g.coins;
         saveCoins();
       }
     }
@@ -899,24 +960,26 @@ function restart(showIntro){
   playing = false; hasPlayed = false;
   rec = []; trail = []; scrubbing = false; simFrame = 0; won = false;
   collectedCoins = new Set();
+  collectedGates = new Set();
   resetRider();
   introT = 0;
   if(showIntro && LEVEL){
     startLevelIntro();
   } else {
-    cam.tx = START.x; cam.ty = START.y - 60; cam.x = cam.tx; cam.y = cam.ty; cam.auto = true;
+    const sp = lastCheckpoint || START;
+    cam.tx = sp.x; cam.ty = sp.y - 60; cam.x = cam.tx; cam.y = cam.ty; cam.auto = true;
   }
   updateScrub(); syncTransport();
 }
 function loadLevel(n){
   mode = "campaign"; levelIdx = n; LEVEL = getLevel(n);
-  strokes = []; rebuildGrid();
+  strokes = []; lastCheckpoint = null; rebuildGrid();
   restart(true);
   syncToolAvailability(); syncRulerBadge();
 }
 function enterFreeDraw(){
   mode = "free"; levelIdx = -1; LEVEL = null;
-  strokes = []; rebuildGrid(); freePads = [];
+  strokes = []; lastCheckpoint = null; rebuildGrid(); freePads = [];
   restart(false);
   syncToolAvailability(); syncRulerBadge();
 }
@@ -1531,6 +1594,92 @@ function drawGroundShadow(sx, sy, r){
   ctx.restore();
 }
 
+// Placeholder vector rendering for the new level-structure mechanics (fixed
+// islands/checkpoints, wind zones, bonus gates, cave start) - functional and
+// readable for testing the mechanics themselves, but deliberately NOT final
+// art. Once the new chibi/doodle visual style is ready these get replaced
+// with real sprites the same way drawObstacles() etc. prefer IMG.* when set.
+function drawIslands(){
+  if(!LEVEL || !LEVEL.islands) return;
+  for(const isl of LEVEL.islands){
+    const pts = isl.pts;
+    ctx.save();
+    ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(58,55,51,0.18)"; ctx.lineWidth = 11*cam.z;
+    ctx.beginPath();
+    pts.forEach((p,i)=>{ const sx=w2sx(p.x), sy=w2sy(p.y+6); i===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy); });
+    ctx.stroke();
+    ctx.strokeStyle = "#8a6a3f"; ctx.lineWidth = 9*cam.z;
+    ctx.beginPath();
+    pts.forEach((p,i)=>{ const sx=w2sx(p.x), sy=w2sy(p.y); i===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy); });
+    ctx.stroke();
+    ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2*cam.z;
+    ctx.stroke();
+    if(isl.checkpoint){
+      const a = isl.checkpointAt || pts[0], sx = w2sx(a.x), sy = w2sy(a.y);
+      ctx.strokeStyle="#3f3b35"; ctx.lineWidth=2.2*cam.z;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy-46*cam.z); ctx.stroke();
+      ctx.fillStyle="#3a6ea8";
+      ctx.beginPath();
+      ctx.moveTo(sx, sy-46*cam.z); ctx.lineTo(sx+26*cam.z, sy-36*cam.z); ctx.lineTo(sx, sy-26*cam.z);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+function drawWinds(){
+  if(!LEVEL || !LEVEL.winds) return;
+  const t = performance.now()/1000;
+  for(const w of LEVEL.winds){
+    const sx = w2sx(w.x), sy = w2sy(w.y), r = w.r*cam.z;
+    ctx.save();
+    const g = ctx.createRadialGradient(sx, sy, r*0.05, sx, sy, r);
+    g.addColorStop(0, "rgba(150,205,230,0.25)"); g.addColorStop(1, "rgba(150,205,230,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "rgba(80,140,185,0.6)"; ctx.lineWidth = Math.max(1.3, 2*cam.z); ctx.setLineDash([5*cam.z, 7*cam.z]);
+    for(let i=0;i<4;i++){
+      const f = ((t*0.35 + i/4) % 1);
+      const rr = r*(0.25 + f*0.7);
+      ctx.globalAlpha = 1 - f*0.8;
+      ctx.beginPath(); ctx.ellipse(sx, sy, rr, rr*0.42, 0, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+function drawGates(){
+  if(!LEVEL || !LEVEL.gates) return;
+  for(const g of LEVEL.gates){
+    if(collectedGates.has(g)) continue;
+    const sx = w2sx(g.x), sy = w2sy(g.y), r = g.r*cam.z;
+    const pulse = 0.75 + Math.sin(performance.now()/260)*0.25;
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.strokeStyle = "#d4a017"; ctx.lineWidth = Math.max(1.8, 3*cam.z); ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.arc(sx, sy, r*0.85, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#d4a017";
+    ctx.font = `${Math.max(10, 13*cam.z)}px "Bradley Hand","Segoe Print","Comic Sans MS",system-ui,sans-serif`;
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText("+"+g.coins, sx, sy);
+    ctx.restore();
+  }
+}
+function drawCaveStart(){
+  const sx = w2sx(START.x), sy = w2sy(START.y), r = 46*cam.z;
+  ctx.save();
+  ctx.fillStyle = "#8a6a3f"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.2*cam.z;
+  ctx.beginPath();
+  ctx.moveTo(sx-r*2.1, sy+r*0.6);
+  ctx.lineTo(sx-r*1.1, sy-r*1.9+jitter(1,2)*10*cam.z);
+  ctx.lineTo(sx-r*0.2, sy-r*1.1+jitter(3,4)*10*cam.z);
+  ctx.lineTo(sx+r*0.9, sy-r*2.3+jitter(5,6)*10*cam.z);
+  ctx.lineTo(sx+r*2.0, sy+r*0.6);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#2b2620";
+  ctx.beginPath(); ctx.ellipse(sx, sy-r*0.1, r*0.62, r*0.78, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2.4*cam.z; ctx.stroke();
+  ctx.restore();
+}
 function drawObstacles(){
   if(!LEVEL) return;
   for(const o of LEVEL.obstacles){
@@ -1792,14 +1941,18 @@ function drawCelebrateFallback(){
 
 function render(){
   drawBackground();
+  drawWinds();
   drawTrack();
+  drawIslands();
   drawSnapHint();
   drawObstacles();
   drawArchers();
   drawCatapults();
   drawCoins();
+  drawGates();
   drawBoostPads();
   drawGoal();
+  drawCaveStart();
   drawStartMarker();
   drawTrail();
   if(LEVEL) drawEnemies(LEVEL.enemies.map(e => enemyPosAt(e, simFrame*(STEP/1000))));
@@ -1921,6 +2074,41 @@ assetsReady.then(()=>{
   }
 });
 
+// EXPERIMENTAL sandbox level for trying the new level-structure mechanics
+// (wind zones, checkpoint islands, bonus gates, a loop) - NOT a finished,
+// polished level design. The loop in particular is closed (no entry/exit
+// gap yet), so the dragon will just keep circling it; that's fine for
+// feeling out the physics, not for a real playable level.
+function loopIslandPts(cx, cy, r, n){
+  const pts = [];
+  for(let i=0;i<=n;i++){
+    const a = Math.PI/2 - (i/n)*Math.PI*2;
+    pts.push({ x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r });
+  }
+  return pts;
+}
+const TEST_LEVEL = {
+  obstacles: [{x:550, y:180, r:40}],
+  boostPads: [ {x:2050, y:555, r:50} ], // guarantees enough entry speed into the loop for this first try
+  enemies: [], archers: [], catapults: [], coins: [],
+  islands: [
+    { pts:[{x:420,y:120},{x:620,y:170},{x:760,y:160}], checkpoint:true, checkpointAt:{x:650,y:150} },
+    { pts:[{x:1650,y:420},{x:1850,y:460},{x:2000,y:440}], checkpoint:true, checkpointAt:{x:1850,y:430} },
+    { pts: loopIslandPts(2300, 480, 170, 48), checkpoint:false },
+  ],
+  winds: [ { x:1050, y:250, r:260, strength:2700 } ],
+  gates: [ { x:1200, y:-40, r:70, coins:20 } ],
+  goal: {x:2300, y:270}, goalR: 100, // sits right above the loop - reachable once it's completed once
+};
+function loadTestLevel(){
+  hideSheet(mainmenuSheet);
+  mode="campaign"; levelIdx=-99; LEVEL=TEST_LEVEL; strokes=[]; lastCheckpoint=null; rebuildGrid();
+  restart(false);
+  syncToolAvailability(); syncRulerBadge();
+}
+if(new URLSearchParams(location.search).get("test")==="1"){
+  assetsReady.then(loadTestLevel);
+}
 </script>
 </body>
 </html>
