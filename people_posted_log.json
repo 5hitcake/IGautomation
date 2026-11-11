@@ -1,5 +1,5 @@
 {
-  "count": 22,
+  "count": 23,
   "recent": [
     {
       "gender": "woman",
@@ -264,6 +264,18 @@
         "irish"
       ],
       "setting": "in a sunflower field"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        50,
+        59
+      ],
+      "heritage": [
+        "Native American",
+        "native_american"
+      ],
+      "setting": "in a cozy living room"
     }
   ],
   "reserve_used": [
