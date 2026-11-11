@@ -697,7 +697,7 @@ Gefällt ein Foto nicht: Datei löschen, beim nächsten Mal entsteht ein neues.
 1. Neuen Instagram-Account anlegen, auf **Creator** umstellen, Profil ausfüllen (siehe unten).
 2. Token + Account-ID wie in [Schritt 2](#schritt-2-instagram-api-einrichten-ohne-facebook-seite)
    erzeugen (in derselben Meta-App den neuen Account als Tester hinzufügen).
-3. GitHub Secrets anlegen: `KAUFKRAFT_IG_TOKEN`, `KAUFKRAFT_IG_ACCOUNT_ID`.
+3. GitHub Secrets anlegen: `WOE_ACCOUNT_TOKEN`, `WOE_ACCOUNT_ID`.
 4. Heißt der Account nicht `kaufkraft.check`, in `kaufkraft_post.yml` `IG_USERNAME` und in
    `scripts/kaufkraft_render.py` `HANDLE` anpassen (Sicherheitscheck gegen Fehlposts).
 5. Test: Actions → **Kaufkraft-Check Post** → *Run workflow*. Ohne Secrets entsteht nur eine
