@@ -392,8 +392,12 @@ function rebuildGrid(){
     for(const isl of LEVEL.islands){
       const pts = isl.pts, anchor = isl.checkpoint ? (isl.checkpointAt || pts[0]) : null;
       for(let i=1;i<pts.length;i++){
+        // friction is only set when the island explicitly wants something
+        // other than the default pencil-line FRICTION (e.g. deliberately icy) -
+        // the time-scaled friction fix in substep() means a plain fixed
+        // terrain piece no longer needs its own lower value to be rideable.
         const s = { x1:pts[i-1].x, y1:pts[i-1].y, x2:pts[i].x, y2:pts[i].y,
-                    checkpointAt: anchor, friction: isl.friction ?? ISLAND_FRICTION };
+                    checkpointAt: anchor, friction: isl.friction };
         islandSegs.push(s); gridAdd(s);
       }
     }
@@ -797,11 +801,23 @@ function drawIntroOverlay(){
 
 /* ============================ rider physics ============================ */
 const GRAV = 1500, RAD = 13, FRICTION = 0.030, VMAX = 4200, CRASH_V = 1650;
-// Fixed islands default to a much lower friction than a hand-drawn pencil
-// line - see the comment in substep() for why the default constant is
-// unusable on a tight curve like a loop. Low, not literally zero, so an
-// island still reads as "solid ground" rather than frictionless ice.
-const ISLAND_FRICTION = 0.004;
+// FRICTION was tuned against a single ~1/60s frame, back when physStep()
+// always ran substep() exactly once per frame. It was later changed to
+// subdivide a frame into up to 10 finer substeps at high speed/tight
+// curvature (see physStep's n), and substep()'s friction was left applying
+// its flat percentage once per CALL rather than once per frame - so a
+// frame that needs 5 substeps bled 5x the intended friction, and a tight
+// player-drawn loop (which needs both real speed AND tight curvature, the
+// exact conditions that drive n up) could never keep enough speed to
+// complete. FRICTION_REF_DT is the frame duration the constant was tuned
+// against; scaling the decay exponent by h/FRICTION_REF_DT makes N
+// substeps of h=dt/N each multiply back to the SAME total decay as one
+// substep of dt - independent of how finely a frame gets subdivided. A
+// normal single-substep frame (by far the common case) is bit-for-bit
+// unchanged; only multi-substep frames (fast motion, tight curves) differ,
+// and only by becoming cheaper exactly in proportion to how undercounted
+// they were before.
+const FRICTION_REF_DT = 1/60;
 const rider = { x:0, y:0, vx:0, vy:0, ang:0, contact:false, crashed:false, wob:0 };
 function resetRider(){
   const sp = lastCheckpoint || START;
@@ -845,18 +861,18 @@ function substep(h, dynamicHazards){
       // overlapping segment — a hand-drawn line can have several tiny segments
       // under the rider at once, and damping speed per-segment made freehand
       // track feel far grabbier than ruler-drawn (single-segment) track.
-      // Segments can override the default pencil-line FRICTION (s.friction) -
-      // fixed islands use a much lower value (see ISLAND_FRICTION) since the
-      // default constant, calibrated for gentle hand-drawn hills, bleeds a
-      // physically unreasonable amount of speed on a tight curve: it's a flat
-      // percentage removed per substep CALL, and a small-radius curve needs
-      // many calls to get around while only covering a little real distance,
-      // so the same per-call percentage compounds far more per metre of
-      // track than it does on a straight or gently-curved line.
+      // The exponent is scaled by this substep's own duration (see
+      // FRICTION_REF_DT above) so a frame split into many fine substeps
+      // (fast motion, tight curvature - exactly a player-drawn loop) loses
+      // the same total speed per unit time as a normal single-substep
+      // frame, instead of compounding once per extra substep. Segments can
+      // still override the default via s.friction for a deliberately
+      // slippery fixed element, but a plain hand-drawn loop no longer needs
+      // one to be completable.
       if(!frictionApplied){
         const tx=-ny, ty=nx;
         let vt = rider.vx*tx + rider.vy*ty;
-        vt *= (1 - (s.friction ?? FRICTION));
+        vt *= Math.pow(1 - (s.friction ?? FRICTION), h/FRICTION_REF_DT);
         rider.vx = tx*vt + nx*vn; rider.vy = ty*vt + ny*vn;
         frictionApplied = true;
       }
@@ -2078,31 +2094,27 @@ assetsReady.then(()=>{
   }
 });
 
-// EXPERIMENTAL sandbox level for trying the new level-structure mechanics
-// (wind zones, checkpoint islands, bonus gates, a loop) - NOT a finished,
-// polished level design. The loop in particular is closed (no entry/exit
-// gap yet), so the dragon will just keep circling it; that's fine for
-// feeling out the physics, not for a real playable level.
-function loopIslandPts(cx, cy, r, n){
-  const pts = [];
-  for(let i=0;i<=n;i++){
-    const a = Math.PI/2 - (i/n)*Math.PI*2;
-    pts.push({ x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r });
-  }
-  return pts;
-}
+// EXPERIMENTAL sandbox level for trying the new level-structure mechanics -
+// NOT a finished, polished level design. Per feedback: a loop should be
+// something the PLAYER draws (around the obstacle near the end, using their
+// own speed/skill), not a pre-built track piece - so there's no scripted
+// loop island here, just an obstacle worth curving around if you want to try
+// it. The wind zone and the boost pad both sit off the direct start->goal
+// line on purpose ("man muss sie anfahren") so reaching either is a real
+// routing choice, not something you pass through for free.
 const TEST_LEVEL = {
-  obstacles: [{x:550, y:180, r:40}],
-  boostPads: [ {x:2050, y:555, r:50} ], // guarantees enough entry speed into the loop for this first try
+  obstacles: [{x:550, y:180, r:40}, {x:2300, y:480, r:55}],
+  boostPads: [ {x:1500, y:650, r:50} ], // low route - dip down for it
   enemies: [], archers: [], catapults: [], coins: [],
   islands: [
+    // Left-side cliff the cave is set into - START sits at its high ledge.
+    { pts:[{x:-40,y:-260},{x:-95,y:-80},{x:-55,y:120},{x:-100,y:380},{x:-60,y:650},{x:-95,y:950}], checkpoint:false },
     { pts:[{x:420,y:120},{x:620,y:170},{x:760,y:160}], checkpoint:true, checkpointAt:{x:650,y:150} },
     { pts:[{x:1650,y:420},{x:1850,y:460},{x:2000,y:440}], checkpoint:true, checkpointAt:{x:1850,y:430} },
-    { pts: loopIslandPts(2300, 480, 170, 48), checkpoint:false },
   ],
-  winds: [ { x:1050, y:250, r:260, strength:2700 } ],
+  winds: [ { x:1100, y:50, r:260, strength:2700 } ], // sits above the natural glide line - high route
   gates: [ { x:1200, y:-40, r:70, coins:20 } ],
-  goal: {x:2300, y:270}, goalR: 100, // sits right above the loop - reachable once it's completed once
+  goal: {x:2700, y:600}, goalR: 100, // past the curve-around obstacle
 };
 function loadTestLevel(){
   hideSheet(mainmenuSheet);
@@ -2117,6 +2129,7 @@ function loadTestLevel(){
 if(new URLSearchParams(location.search).get("test")==="1" || location.hash === "#test"){
   assetsReady.then(loadTestLevel);
 }
+
 </script>
 </body>
 </html>
