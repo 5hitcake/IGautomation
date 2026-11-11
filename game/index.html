@@ -1650,18 +1650,22 @@ function drawIslands(){
 function drawWinds(){
   if(!LEVEL || !LEVEL.winds) return;
   const t = performance.now()/1000;
+  // Drawn noticeably narrower than the actual gameplay radius (w.r) reads as
+  // a tall, slim funnel/dust-devil instead of a wide hazy disc - the real
+  // circular pickup radius is unchanged, only the visual is narrowed.
+  const NARROW = 0.38;
   for(const w of LEVEL.winds){
-    const sx = w2sx(w.x), sy = w2sy(w.y), r = w.r*cam.z;
+    const sx = w2sx(w.x), sy = w2sy(w.y), r = w.r*cam.z, rw = r*NARROW;
     ctx.save();
     const g = ctx.createRadialGradient(sx, sy, r*0.05, sx, sy, r);
     g.addColorStop(0, "rgba(150,205,230,0.25)"); g.addColorStop(1, "rgba(150,205,230,0)");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(sx, sy, rw, r, 0, 0, Math.PI*2); ctx.fill();
     ctx.strokeStyle = "rgba(80,140,185,0.6)"; ctx.lineWidth = Math.max(1.3, 2*cam.z); ctx.setLineDash([5*cam.z, 7*cam.z]);
     for(let i=0;i<4;i++){
       const f = ((t*0.35 + i/4) % 1);
       const rr = r*(0.25 + f*0.7);
       ctx.globalAlpha = 1 - f*0.8;
-      ctx.beginPath(); ctx.ellipse(sx, sy, rr, rr*0.42, 0, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(sx, sy, rr*NARROW, rr, 0, 0, Math.PI*2); ctx.stroke();
     }
     ctx.restore();
   }
