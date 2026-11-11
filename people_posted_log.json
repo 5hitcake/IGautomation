@@ -1,5 +1,5 @@
 {
-  "count": 23,
+  "count": 24,
   "recent": [
     {
       "gender": "woman",
@@ -276,6 +276,18 @@
         "native_american"
       ],
       "setting": "in a cozy living room"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Eastern European",
+        "eastern_european"
+      ],
+      "setting": "in a library"
     }
   ],
   "reserve_used": [

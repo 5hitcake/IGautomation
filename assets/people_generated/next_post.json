@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261111_1113_0023.jpg",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0023 · \"Elan\", 55\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #twinstranger #faces #notreal #peopleofinstagram #portrait",
+  "type": "reel",
+  "file": "reel_20261111_1714_0024.mp4",
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0024 · \"Tomasz\", 24\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #aiphotography #lookalike #notreal #twinstranger #faces",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 55-year-old Native American man with hair under a baseball cap, a short boxed beard, dark red lipstick and dimples, wearing a tank top, laughing naturally, in a cozy living room, soft window light, shot on Sony A7 III, 50mm f/1.8, looks exactly 55 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 23,
-  "name": "Elan",
-  "age": 55
+  "prompt": "Candid half-body shot photo of a 24-year-old young Eastern European man with hair under a baseball cap, a long braided beard, a single small beauty mark near the eye and rosy cheeks, wearing a wool coat and scarf, a warm genuine smile, in a library, afternoon sunlight through a window, shot on Canon EOS R5, 85mm f/1.4, looks exactly 24 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 24,
+  "name": "Tomasz",
+  "age": 24,
+  "image": "assets/people_generated/person_20261111_1714_0024.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
