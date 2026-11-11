@@ -1,0 +1,128 @@
+name: Kaufkraft-Check Post
+
+# Taeglich ein Post fuer den Instagram-Account @kaufkraft.check:
+#   Mo-Sa  Produkt: Foto + Preis 2001 / 2010 / heute (scripts/kaufkraft_post.py)
+#   So     Inflation der Woche (rotiert: Rate, 100-Euro-Kaufkraft, Preistreiber, Europa)
+# Daten: Eurostat HVPI (frei, kein Schluessel). Produktfotos einmalig ueber
+# Cloudflare Workers AI (dieselben Secrets wie beim People-Account).
+#
+# Benoetigte Secrets (Settings -> Secrets and variables -> Actions):
+#   KAUFKRAFT_IG_TOKEN       Long-Lived Access Token des neuen Accounts
+#   KAUFKRAFT_IG_ACCOUNT_ID  Instagram-Account-ID des neuen Accounts
+# Solange die fehlen, laeuft der Plan nicht; "Run workflow" erzeugt dann nur
+# eine Vorschau (wird committet, aber nicht gepostet).
+
+on:
+  schedule:
+    - cron: "7 16 * * *"  # 17:07 Winterzeit / 18:07 Sommerzeit
+    - cron: "7 17 * * *"  # Ersatz-Termin, falls GitHub den ersten verschluckt (Doppelpost-Schutz unten)
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "Was soll erzeugt werden?"
+        type: choice
+        default: auto
+        options: [auto, product, inflation]
+      product:
+        description: "Optional: Produkt-ID (z.B. butter) aus content/kaufkraft_products.json"
+        default: ""
+
+permissions:
+  contents: write
+
+env:
+  # Sicherheitscheck: nur posten, wenn der Token zu diesem Account gehoert.
+  IG_USERNAME: "kaufkraft.check"
+
+concurrency:
+  group: kaufkraft-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Pruefen, ob heute schon gepostet wurde / Secrets da sind
+        id: gate
+        env:
+          HAS_IG: ${{ secrets.KAUFKRAFT_IG_TOKEN != '' && secrets.KAUFKRAFT_IG_ACCOUNT_ID != '' }}
+        run: |
+          echo "publish=$HAS_IG" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$HAS_IG" != "true" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::KAUFKRAFT_IG_TOKEN / KAUFKRAFT_IG_ACCOUNT_ID fehlen - kein Post (siehe README)."
+            exit 0
+          fi
+          hour="$(TZ="Europe/Berlin" date +%H)"
+          if [ "$hour" -lt 17 ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Ueberspringe: erst $hour Uhr deutscher Zeit."
+            exit 0
+          fi
+          today="$(TZ="Europe/Berlin" date +%Y-%m-%d)"
+          if git log --grep="Kaufkraft-Post: $today" --oneline | grep -q .; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Ueberspringe: heute ($today) wurde bereits gepostet."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: pip install requests Pillow
+
+      - name: Post erzeugen
+        if: steps.gate.outputs.run == 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLI_TOKEN: ${{ secrets.POLLI_TOKEN }}
+        run: |
+          args="--kind ${{ github.event.inputs.kind || 'auto' }}"
+          if [ -n "${{ github.event.inputs.product }}" ]; then
+            args="$args --product ${{ github.event.inputs.product }}"
+          fi
+          python scripts/kaufkraft_post.py $args
+
+      - name: Commit
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A assets/kaufkraft_generated assets/kaufkraft_products kaufkraft_posted_log.json
+          if [ "${{ steps.gate.outputs.publish }}" = "true" ]; then
+            msg="Kaufkraft-Post: $(TZ="Europe/Berlin" date +%Y-%m-%d)"
+          else
+            msg="Kaufkraft-Vorschau: $(date -u +'%Y-%m-%d %H:%M') UTC"
+          fi
+          git commit -m "$msg" || echo "nichts zu committen"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Wait for raw.githubusercontent.com propagation
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.publish == 'true'
+        run: sleep 20
+
+      - name: Publish to Instagram
+        if: >-
+          steps.gate.outputs.run == 'true' && steps.gate.outputs.publish == 'true'
+          && github.ref == 'refs/heads/main'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.KAUFKRAFT_IG_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.KAUFKRAFT_IG_ACCOUNT_ID }}
+        run: >-
+          python scripts/publish.py
+          --post-file assets/kaufkraft_generated/next_post.json
+          --expect-username "$IG_USERNAME"

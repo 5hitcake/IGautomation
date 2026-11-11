@@ -22,6 +22,10 @@ ein fotorealistisches KI-Portrait einer Person, die es nicht gibt, kostenlos üb
 Cloudflare Workers AI (`people_post.yml`, Details unter
 [These people do not exist](#these-people-do-not-exist)).
 
+**Kaufkraft-Check (eigener Instagram-Account, deutsch)** – täglich ein Preisvergleich
+2001 / 2010 / heute mit Produktfoto, sonntags „Inflation der Woche“, Daten von Eurostat
+(`kaufkraft_post.yml`, Details unter [Kaufkraft-Check](#kaufkraft-check-kaufkraftcheck)).
+
 **Story-Reels (2 Themen-Accounts)** – täglich je ein ~1-Minuten-Reel mit Sprecher, Szenenbildern und eigenem Song:
 wahre Gruselgeschichten und Rätsel/Verschwörungen mit wahrem Kern (`story_reels.yml`,
 Details unter [Story-Reels](#story-reels-wahre-gruselgeschichten--rätsel--verschwörungen)).
@@ -654,6 +658,66 @@ python scripts/story_reel.py --account horror --story dyatlov --dry-run --previe
 ```
 
 ---
+
+## Kaufkraft-Check (@kaufkraft.check)
+
+Eigener Instagram-Account (deutsch) über Preise und Inflation. Täglich ein Post,
+voll automatisch über `kaufkraft_post.yml` (17:07 Uhr Winterzeit / 18:07 Uhr Sommerzeit):
+
+- **Mo–Sa: Produkt-Vergleich**: Produktfoto + Preis **2001 / 2010 / heute** mit Prozent
+  (38 Produkte in `content/kaufkraft_products.json`, keine Wiederholung bis alle durch sind)
+- **So: Inflation der Woche**, rotiert: aktuelle Inflationsrate (24-Monats-Verlauf) →
+  „Was sind 100 € noch wert?“ → Preistreiber des Jahres → Europa-Vergleich
+
+### Woher die Zahlen kommen
+
+Alle Daten stammen aus dem **Harmonisierten Verbraucherpreisindex (HVPI) von Eurostat**
+(Datensatz `prc_hicp_minr`, frei nutzbar mit Quellenangabe, kein API-Schlüssel).
+Pro Produkt steht in der Liste ein **Richtpreis für 2025** (Jahresdurchschnitt). Daraus rechnet
+`scripts/kaufkraft_data.py` mit dem Preisindex der passenden Warengruppe zurück bzw. nach vorn:
+
+```
+Preis(2001) = Richtpreis × Index(2001) / Index(2025)
+Preis(heute) = Richtpreis × Index(neuester Monat) / Index(2025)
+```
+
+Einzelne Warengruppen (z. B. „Butter“) gibt es bei Eurostat erst ab 2015; davor wird mit der
+übergeordneten Gruppe (z. B. „Öle und Fette“, ab 1996) verkettet. Stichprobe zur Kontrolle:
+Benzin 2001 ≈ 1,00 €/l, Strom 2001 ≈ 15 ct/kWh – passt zu den bekannten historischen Werten.
+Für Produkte mit belegten echten Preisen (z. B. Briefmarke) stehen diese unter `known_prices`
+und ersetzen die Rechnung. **Die Richtpreise sind Schätzungen (`verified: false`)** – wer einen
+Preis prüft, trägt ihn ein und setzt `verified: true`; alle Jahre rechnen sich automatisch neu.
+
+Produktfotos werden beim ersten Einsatz einmalig über Cloudflare Workers AI erzeugt
+(dieselben Secrets wie beim People-Account) und unter `assets/kaufkraft_products/` gespeichert.
+Gefällt ein Foto nicht: Datei löschen, beim nächsten Mal entsteht ein neues.
+
+### Einrichtung
+
+1. Neuen Instagram-Account anlegen, auf **Creator** umstellen, Profil ausfüllen (siehe unten).
+2. Token + Account-ID wie in [Schritt 2](#schritt-2-instagram-api-einrichten-ohne-facebook-seite)
+   erzeugen (in derselben Meta-App den neuen Account als Tester hinzufügen).
+3. GitHub Secrets anlegen: `KAUFKRAFT_IG_TOKEN`, `KAUFKRAFT_IG_ACCOUNT_ID`.
+4. Heißt der Account nicht `kaufkraft.check`, in `kaufkraft_post.yml` `IG_USERNAME` und in
+   `scripts/kaufkraft_render.py` `HANDLE` anpassen (Sicherheitscheck gegen Fehlposts).
+5. Test: Actions → **Kaufkraft-Check Post** → *Run workflow*. Ohne Secrets entsteht nur eine
+   Vorschau (wird committet, nicht gepostet).
+
+Lokal ansehen: `python scripts/kaufkraft_post.py --preview /tmp/vorschau`
+
+### Profil
+
+- **Profilbild**: `assets/kaufkraft_profile/profilbild_navy.png` (Alternative: `profilbild_hell.png`,
+  neu erzeugen mit `python assets/kaufkraft_profile/make_pfp.py`)
+- **Name**: `Kaufkraft Check | Preise & Inflation`
+- **Kategorie**: Bildungswebsite (oder „Nachrichten und Medien“)
+- **Bio** (max. 150 Zeichen, diese hat 147):
+  ```
+  💶 Preise 2001 · 2010 · heute
+  📊 Täglich ein Preis-Check, sonntags Inflation
+  🔎 Daten: Eurostat · keine Anlageberatung
+  👇 Welches Produkt als Nächstes?
+  ```
 
 ## Content erweitern
 

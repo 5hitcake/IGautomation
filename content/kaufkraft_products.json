@@ -1,0 +1,399 @@
+{
+  "_info": [
+    "Produktliste fuer @kaufkraft.check.",
+    "price = typischer Ladenpreis in Deutschland im Zeitraum 'price_period' ('2025' = Jahresdurchschnitt 2025, oder ein Monat wie '2026-09').",
+    "Die Preise fuer 2001, 2010 und 'heute' rechnet scripts/kaufkraft_data.py mit dem offiziellen",
+    "Preisindex der Warengruppe 'coicop' (Eurostat HVPI, Datensatz prc_hicp_minr, Deutschland) aus.",
+    "Einzelne Warengruppen gibt es bei Eurostat erst ab 2015; davor wird mit der uebergeordneten Gruppe (4-Steller, ab 1996) verkettet.",
+    "known_prices (optional) = belegte echte Preise fuer 2001/2010, die die Indexrechnung ersetzen.",
+    "Wer einen Preis aktualisieren will: price + price_period anpassen, alles andere rechnet sich neu.",
+    "verified=false heisst: Richtwert noch nicht mit einem echten Kassenzettel/Online-Shop abgeglichen."
+  ],
+  "products": [
+    {
+      "id": "butter",
+      "name": "Butter",
+      "amount": "250 g",
+      "coicop": "CP01152",
+      "price": 2.09,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a block of German butter in gold foil wrapper, partly unwrapped"
+    },
+    {
+      "id": "brot",
+      "name": "Mischbrot",
+      "amount": "1 kg",
+      "coicop": "CP01113",
+      "price": 3.49,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a loaf of German rye wheat bread on a wooden board"
+    },
+    {
+      "id": "eier",
+      "name": "Eier",
+      "amount": "10 Stück",
+      "coicop": "CP01148",
+      "price": 2.69,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a carton of ten brown eggs, open"
+    },
+    {
+      "id": "milch",
+      "name": "Vollmilch",
+      "amount": "1 Liter",
+      "coicop": "CP01141",
+      "price": 1.09,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a plain white one liter milk carton without branding"
+    },
+    {
+      "id": "kaffee",
+      "name": "Röstkaffee",
+      "amount": "500 g",
+      "coicop": "CP01220",
+      "price": 7.49,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a vacuum pack of ground coffee next to roasted coffee beans"
+    },
+    {
+      "id": "schokolade",
+      "name": "Tafel Schokolade",
+      "amount": "100 g",
+      "coicop": "CP01185",
+      "price": 1.69,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a bar of milk chocolate, a few pieces broken off, plain wrapper"
+    },
+    {
+      "id": "olivenoel",
+      "name": "Olivenöl",
+      "amount": "1 Liter",
+      "coicop": "CP01151",
+      "price": 8.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a glass bottle of extra virgin olive oil with olives beside it"
+    },
+    {
+      "id": "kartoffeln",
+      "name": "Kartoffeln",
+      "amount": "2,5 kg",
+      "coicop": "CP01175",
+      "price": 2.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a net bag of potatoes"
+    },
+    {
+      "id": "zucker",
+      "name": "Zucker",
+      "amount": "1 kg",
+      "coicop": "CP01181",
+      "price": 0.89,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a paper bag of white sugar with sugar cubes beside it"
+    },
+    {
+      "id": "bier",
+      "name": "Kasten Bier",
+      "amount": "20 × 0,5 l",
+      "coicop": "CP02130",
+      "price": 16.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a crate of twenty brown beer bottles without labels"
+    },
+    {
+      "id": "benzin",
+      "name": "Super Benzin",
+      "amount": "1 Liter",
+      "coicop": "CP07222",
+      "price": 1.7,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a green petrol pump nozzle at a gas station"
+    },
+    {
+      "id": "diesel",
+      "name": "Diesel",
+      "amount": "1 Liter",
+      "coicop": "CP07221",
+      "price": 1.6,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a black diesel fuel pump nozzle at a gas station"
+    },
+    {
+      "id": "strom",
+      "name": "Strom",
+      "amount": "1 kWh",
+      "coicop": "CP04510",
+      "price": 0.39,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a glowing light bulb above an electricity meter"
+    },
+    {
+      "id": "doener",
+      "name": "Döner",
+      "amount": "1 Stück",
+      "coicop": "CP11112",
+      "price": 7.0,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a doner kebab in flatbread wrapped in paper"
+    },
+    {
+      "id": "schnitzel",
+      "name": "Schnitzel mit Pommes",
+      "amount": "im Restaurant",
+      "coicop": "CP11111",
+      "price": 15.9,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a breaded schnitzel with french fries and a lemon slice on a plate"
+    },
+    {
+      "id": "kino",
+      "name": "Kinokarte",
+      "amount": "1 Ticket",
+      "coicop": "CP09610",
+      "price": 9.9,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a cinema ticket next to a bucket of popcorn"
+    },
+    {
+      "id": "friseur",
+      "name": "Herrenhaarschnitt",
+      "amount": "beim Friseur",
+      "coicop": "CP13131",
+      "price": 24.0,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "barber scissors and a comb on a towel"
+    },
+    {
+      "id": "briefmarke",
+      "name": "Briefmarke",
+      "amount": "Standardbrief",
+      "coicop": "CP07411",
+      "price": 0.95,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a white envelope with a generic postage stamp",
+      "known_prices": {
+        "2001": 0.56,
+        "2010": 0.55,
+        "source": "Deutsche Post (Porto Standardbrief: 2001 1,10 DM, 2010 0,55 €)"
+      }
+    },
+    {
+      "id": "zeitung",
+      "name": "Tageszeitung",
+      "amount": "1 Ausgabe",
+      "coicop": "CP09721",
+      "price": 2.4,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a folded daily newspaper without readable text"
+    },
+    {
+      "id": "bananen",
+      "name": "Bananen",
+      "amount": "1 kg",
+      "coicop": "CP01161",
+      "price": 1.49,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a bunch of ripe yellow bananas"
+    },
+    {
+      "id": "aepfel",
+      "name": "Äpfel",
+      "amount": "1 kg",
+      "coicop": "CP01163",
+      "price": 2.49,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a pile of red apples"
+    },
+    {
+      "id": "tomaten",
+      "name": "Tomaten",
+      "amount": "1 kg",
+      "coicop": "CP01172",
+      "price": 2.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "fresh red tomatoes on the vine"
+    },
+    {
+      "id": "nudeln",
+      "name": "Nudeln",
+      "amount": "500 g",
+      "coicop": "CP01115",
+      "price": 1.09,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a pack of spaghetti pasta, some pasta spilled out"
+    },
+    {
+      "id": "gouda",
+      "name": "Gouda",
+      "amount": "400 g",
+      "coicop": "CP01145",
+      "price": 2.79,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "sliced gouda cheese and a wedge of gouda"
+    },
+    {
+      "id": "hackfleisch",
+      "name": "Hackfleisch gemischt",
+      "amount": "500 g",
+      "coicop": "CP01122",
+      "price": 4.29,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "fresh minced meat in a plastic tray"
+    },
+    {
+      "id": "haehnchen",
+      "name": "Hähnchenbrustfilet",
+      "amount": "1 kg",
+      "coicop": "CP011224",
+      "price": 10.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "raw chicken breast fillets on a cutting board"
+    },
+    {
+      "id": "wasser",
+      "name": "Mineralwasser",
+      "amount": "6 × 1,5 l",
+      "coicop": "CP01250",
+      "price": 1.59,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a six pack of plastic mineral water bottles without labels"
+    },
+    {
+      "id": "cola",
+      "name": "Cola",
+      "amount": "1,5 Liter",
+      "coicop": "CP01260",
+      "price": 1.79,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a plastic bottle of cola without branding, ice cubes"
+    },
+    {
+      "id": "orangensaft",
+      "name": "Orangensaft",
+      "amount": "1 Liter",
+      "coicop": "CP01210",
+      "price": 2.19,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a glass and a carton of orange juice with fresh oranges"
+    },
+    {
+      "id": "wein",
+      "name": "Flasche Wein",
+      "amount": "0,75 l",
+      "coicop": "CP02121",
+      "price": 4.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a bottle of red wine without label and a filled wine glass"
+    },
+    {
+      "id": "honig",
+      "name": "Honig",
+      "amount": "500 g",
+      "coicop": "CP01183",
+      "price": 4.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a glass jar of golden honey with a honey dipper"
+    },
+    {
+      "id": "eis",
+      "name": "Eiscreme",
+      "amount": "1 Liter Packung",
+      "coicop": "CP01186",
+      "price": 2.79,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a tub of vanilla ice cream with a scoop"
+    },
+    {
+      "id": "fitness",
+      "name": "Fitnessstudio",
+      "amount": "1 Monat",
+      "coicop": "CP09462",
+      "price": 29.9,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a pair of dumbbells on a gym floor"
+    },
+    {
+      "id": "hotel",
+      "name": "Hotelnacht",
+      "amount": "Doppelzimmer",
+      "coicop": "CP11201",
+      "price": 115.0,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a neatly made hotel bed with a key card on it"
+    },
+    {
+      "id": "klopapier",
+      "name": "Toilettenpapier",
+      "amount": "8 Rollen",
+      "coicop": "CP05619",
+      "price": 3.29,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a pack of eight toilet paper rolls"
+    },
+    {
+      "id": "waschmittel",
+      "name": "Waschmittel",
+      "amount": "20 Waschladungen",
+      "coicop": "CP05611",
+      "price": 4.99,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a box of laundry detergent powder without branding"
+    },
+    {
+      "id": "zahnpasta",
+      "name": "Zahnpasta",
+      "amount": "75 ml",
+      "coicop": "CP13120",
+      "price": 1.95,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a tube of toothpaste and a toothbrush"
+    },
+    {
+      "id": "wasser_leitung",
+      "name": "Leitungswasser",
+      "amount": "1.000 Liter",
+      "coicop": "CP04411",
+      "price": 2.2,
+      "price_period": "2025",
+      "verified": false,
+      "prompt": "a glass being filled with water from a kitchen tap"
+    }
+  ]
+}
