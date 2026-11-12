@@ -221,7 +221,6 @@ const STATIC_ASSETS = {
   rock_float_4:    "./assets/rock_float_4.png",
   rock_float_5:    "./assets/rock_float_5.png",
   art_cliff_wall:    "./assets/art_cliff_wall.png",
-  art_cave_mouth:    "./assets/art_cave_mouth.png",
   art_eagle:         "./assets/art_eagle.png",
   art_eagle_flap_up:   "./assets/art_eagle_flap_up.png",
   art_eagle_flap_down: "./assets/art_eagle_flap_down.png",
@@ -1078,18 +1077,6 @@ let tool = TOOL.PEN;
 const pointers = new Map();
 let stroke = null, pinch = null, panning = null;
 const MIN_PT = 5, ERASE_R = 26, SNAP_R = 26, START_LOCK_R = 140;
-// A finger covers the exact spot it's drawing - offset the registered draw
-// point above the real contact for touch input (not mouse or stylus, which
-// don't have this problem) and show a small pencil-tip cursor there instead,
-// connected back to the real contact point by a thin guide line.
-const TOUCH_DRAW_OFFSET_SY = -56;
-let touchCursor = null;
-function inputPoint(e){
-  const offset = e.pointerType === "touch" ? TOUCH_DRAW_OFFSET_SY : 0;
-  const sx = e.clientX, sy = e.clientY + offset;
-  return { wx: s2wx(sx), wy: s2wy(sy), sx, sy, rawSx: e.clientX, rawSy: e.clientY, offset };
-}
-
 canvas.addEventListener("pointerdown", e=>{
   canvas.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
@@ -1103,11 +1090,10 @@ canvas.addEventListener("pointerdown", e=>{
     return;
   }
   if(pointers.size !== 1) return;
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
   const mousePan = e.pointerType === "mouse" && (e.button === 1 || e.button === 2);
-  if(tool === TOOL.PAN || mousePan){ panning = { sx:e.clientX, sy:e.clientY, cx:cam.x, cy:cam.y }; cam.auto=false; return; }
-  const ip = inputPoint(e);
-  const wx = ip.wx, wy = ip.wy;
-  if(tool === TOOL.ERASE){ stroke = { erase:true }; eraseAt(wx,wy); touchCursor = ip.offset ? ip : null; }
+  if(tool === TOOL.PAN || mousePan){ panning = { sx:e.clientX, sy:e.clientY, cx:cam.x, cy:cam.y }; cam.auto=false; }
+  else if(tool === TOOL.ERASE){ stroke = { erase:true }; eraseAt(wx,wy); }
   else if(tool === TOOL.BOOST_PAD){
     if(mode === "free") freePads.push({ x:wx, y:wy, r:FREE_PAD_R });
   }
@@ -1124,7 +1110,6 @@ canvas.addEventListener("pointerdown", e=>{
       if(near){ px = near.x; py = near.y; }
     }
     stroke = { pts:[{x:px,y:py}], ruler: tool===TOOL.RULER };
-    touchCursor = ip.offset ? ip : null;
     setLoopPlaying("sfx_draw", true);
   }
 }, { passive:false });
@@ -1148,9 +1133,7 @@ canvas.addEventListener("pointermove", e=>{
     return;
   }
   if(!stroke) return;
-  const ip = inputPoint(e);
-  touchCursor = ip.offset ? ip : null;
-  const wx = ip.wx, wy = ip.wy;
+  const wx = s2wx(e.clientX), wy = s2wy(e.clientY);
   if(stroke.erase){ eraseAt(wx,wy); return; }
   if(stroke.ruler){ stroke.pts[1] = { x:wx, y:wy }; return; }
   const p = stroke.pts[stroke.pts.length-1];
@@ -1164,7 +1147,6 @@ function endPointer(e){
     panning = null;
     if(stroke && !stroke.erase) commitStroke(stroke);
     stroke = null;
-    touchCursor = null;
     setLoopPlaying("sfx_draw", false);
   }
 }
@@ -1713,25 +1695,6 @@ function drawStartHint(){
   ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.stroke();
   ctx.restore();
 }
-// The pencil-tip cursor for touch drawing: tip sits exactly at the point
-// that's actually being drawn (offset above the real finger), with a thin
-// guide line back down to the finger so the connection stays legible.
-function drawTouchCursor(){
-  if(!touchCursor) return;
-  const { sx, sy, rawSx, rawSy } = touchCursor;
-  ctx.save();
-  ctx.strokeStyle = "rgba(63,59,53,0.45)"; ctx.lineWidth = 1.4; ctx.setLineDash([4,4]);
-  ctx.beginPath(); ctx.moveTo(rawSx, rawSy); ctx.lineTo(sx, sy); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.translate(sx, sy); ctx.rotate(0.45);
-  ctx.fillStyle = "#c8302a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-5, -16); ctx.lineTo(5, -16); ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#e8c77a";
-  ctx.fillRect(-5, -30, 10, 14); ctx.strokeRect(-5, -30, 10, 14);
-  ctx.restore();
-}
-
 // Hazards get a warm halo + a soft ground shadow so they read as "danger" and
 // pop off the sepia/graphite background regardless of the sprite art itself.
 function drawHazardHalo(sx, sy, r){
@@ -1753,36 +1716,26 @@ function drawGroundShadow(sx, sy, r){
 // readable for testing the mechanics themselves, but deliberately NOT final
 // art. Once the new chibi/doodle visual style is ready these get replaced
 // with real sprites the same way drawObstacles() etc. prefer IMG.* when set.
-// The left-side cliff can use real art (a tall wall texture, tiled down its
-// length) instead of the generic placeholder line, once art_cliff_wall is
-// generated - the collision line itself (drawn elsewhere) never changes.
-function drawCliffWallArt(isl, pts){
-  const img = IMG.art_cliff_wall;
-  if(!img) return false;
-  const maxX = Math.max(...pts.map(p=>p.x));
-  const minY = Math.min(...pts.map(p=>p.y)), maxY = Math.max(...pts.map(p=>p.y));
-  // The source art is already mirrored (solid rock on its own left edge,
-  // exposed/jagged face on its right) so it lands on the island's right
-  // edge - the boundary the dragon actually flies past - with rock filling
-  // far enough left of it to read as the edge of the world, not a
-  // freestanding pillar. Extended a little past START so the cave-mouth
-  // overlay (drawCaveStart, anchored near START) sits flush against this
-  // texture instead of floating in the gap next to the start point.
-  const wd = 2000*cam.z;
-  const rightEdgeSx = w2sx(Math.max(maxX, START.x + 300));
-  const topSy = w2sy(minY), botSy = w2sy(maxY);
-  if(botSy-topSy <= 0) return true;
-  const tileH = wd*img.height/img.width;
-  for(let y = topSy; y < botSy; y += tileH) ctx.drawImage(img, rightEdgeSx-wd, y, wd, tileH);
-  return true;
-}
 function drawIslands(){
   if(!LEVEL || !LEVEL.islands) return;
   for(const isl of LEVEL.islands){
     const pts = isl.pts;
     if(isl.floating) drawFloatingRockBody(isl, pts);
-    else if(isl.cliffArt && drawCliffWallArt(isl, pts)) continue;
     ctx.save();
+    if(isl.cliffArt){
+      // A flat fill (not a second image - matches the single photo's own
+      // average tone) extending far past the line's own left side, so the
+      // wall reads as solid rock running off the edge of the world instead
+      // of a thin line with open air on both sides.
+      const LEFT_MARGIN = 2500;
+      ctx.fillStyle = "#aba894";
+      ctx.beginPath();
+      pts.forEach((p,i)=>{ const sx=w2sx(p.x), sy=w2sy(p.y); i===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy); });
+      ctx.lineTo(w2sx(pts[pts.length-1].x-LEFT_MARGIN), w2sy(pts[pts.length-1].y));
+      ctx.lineTo(w2sx(pts[0].x-LEFT_MARGIN), w2sy(pts[0].y));
+      ctx.closePath();
+      ctx.fill();
+    }
     ctx.lineJoin = "round"; ctx.lineCap = "round";
     ctx.strokeStyle = "rgba(58,55,51,0.18)"; ctx.lineWidth = 11*cam.z;
     ctx.beginPath();
@@ -1967,15 +1920,18 @@ function drawGates(){
 }
 function drawCaveStart(){
   const sx = w2sx(START.x), sy = w2sy(START.y), r = 46*cam.z;
-  const img = IMG.art_cave_mouth;
+  const img = IMG.art_cliff_wall;
   if(img){
-    // Already mirrored (same source rock mass/direction as the cliff wall
-    // art) so the two read as one continuous surface. Anchored so the
-    // flat ledge in front of the cave (not the cave mouth itself) sits
-    // under the dragon's feet - it stands in front of the entrance, not
-    // inside the hole.
-    const h = r*4.4, wd = h*img.width/img.height;
-    ctx.drawImage(img, sx-wd*0.6, sy-h*0.354, wd, h);
+    // One single photo (mirrored so the cave opens rightward), drawn once
+    // at a fixed, consistent scale - no separate tile + close-up pieced
+    // together at different sizes, which is what made the earlier version
+    // read as a pasted-on sticker instead of one surface. Anchored so the
+    // flat ledge in front of the cave (not the hole itself) sits under the
+    // dragon's feet. The rest of the island (above/below this photo) falls
+    // back to the plain vector wall line drawn below, unchanged.
+    const SCALE = 0.578;
+    const wd = img.width*SCALE*cam.z, h = img.height*SCALE*cam.z;
+    ctx.drawImage(img, sx-wd*0.55, sy-h*0.442, wd, h);
     return;
   }
   ctx.save();
@@ -2274,7 +2230,6 @@ function render(){
   drawStartHint();
   drawCrashBurst();
   drawCelebrateFallback();
-  drawTouchCursor();
   drawIntroOverlay();
 }
 
