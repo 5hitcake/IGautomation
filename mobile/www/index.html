@@ -449,6 +449,8 @@ function segDist2(s,x,y){
 const PAD_BOOST = 900, GOAL_R = 46, ARROW_SPEED = 700, ARROW_R = 11;
 const CATAPULT_SPEED = 260, CATAPULT_R = 20; // a lobbed rock: much slower and bigger than an arrow
 const COIN_R = 22, COIN_VALUE = 1, CHEST_VALUE = 8; // optional pickups - purely cosmetic currency, never required
+const EAGLE_SPEED = 850, EAGLE_R = 24; // flies a single fixed straight line, same "only exists while in flight" pattern as an arrow
+const RING_BOOST = 700; // airborne equivalent of PAD_BOOST - flown through rather than touched on the ground
 
 /* ============================ cosmetics (coins buy purely visual customization) ============================ */
 // Colors are applied as a canvas hue-rotate filter on the existing dragon
@@ -753,6 +755,18 @@ function catapultRockAt(c, t){
   const arc = -Math.sin(Math.PI*f) * dist*0.18;
   return { x: c.x+(c.tx-c.x)*f, y: c.y+(c.ty-c.y)*f+arc, r: CATAPULT_R };
 }
+// An eagle flies one fixed straight line (x1,y1)->(x2,y2) at a constant
+// speed and only exists while in flight, on a fixed period - same "appears
+// occasionally, no evasion, pure function of elapsed sim time" pattern as
+// an arrow, just airborne and usually much longer/faster.
+function eagleAt(e, t){
+  const dist = Math.hypot(e.x2-e.x1, e.y2-e.y1);
+  const travelT = dist/EAGLE_SPEED;
+  const phase = ((t % e.period) + e.period) % e.period;
+  if(phase > travelT) return null;
+  const f = phase/travelT;
+  return { x: e.x1+(e.x2-e.x1)*f, y: e.y1+(e.y2-e.y1)*f, r: EAGLE_R, ang: Math.atan2(e.y2-e.y1, e.x2-e.x1) };
+}
 
 let mode = "free";          // "free" | "campaign"
 let levelIdx = -1;
@@ -921,14 +935,30 @@ function substep(h, dynamicHazards){
         saveCoins();
       }
     }
-    // Wind zones (Windhosen): continuous lift while inside, independent of
-    // the rider's current heading - a chaotic updraft rather than a directed
-    // boost-pad push. strength is a px/s² upward acceleration; since GRAV
-    // already pulls down every substep, a zone needs strength > GRAV to give
-    // net lift (design levels with that in mind).
+    // Wind zones (Windhosen): a vertical funnel, not a circular blob - lift
+    // is strongest deep inside it (near baseY, the wide mouth) and fades to
+    // nothing at topY (the max height the updraft can carry the dragon to),
+    // so flying it is a graduated "fly in deep, ride it up, it lets go near
+    // the cap" rather than a flat on/off push. Horizontally it's a column
+    // (+/- r around w.x), independent of the rider's heading.
     for(const w of LEVEL.winds || []){
-      if(Math.hypot(rider.x-w.x, rider.y-w.y) < w.r) rider.vy -= w.strength*h;
+      if(Math.abs(rider.x-w.x) > w.r) continue;
+      if(rider.y <= w.topY) continue;
+      const depthFrac = Math.min(1, (rider.y-w.topY)/(w.baseY-w.topY));
+      rider.vy -= w.strength*depthFrac*h;
     }
+    // Acceleration rings: an airborne, fly-through equivalent of a boost pad.
+    for(const rg of LEVEL.rings || []){
+      if(Math.hypot(rider.x-rg.x, rider.y-rg.y) < rg.r){
+        const sp2 = Math.hypot(rider.vx, rider.vy);
+        if(sp2 > 1){ rider.vx += rider.vx/sp2*RING_BOOST*h; rider.vy += rider.vy/sp2*RING_BOOST*h; }
+        else { rider.vy -= RING_BOOST*h; }
+      }
+    }
+    // Hard height limits ("Wolkendecke" above, ground-level floor below) -
+    // optional per level; either can be left unset for no limit on that side.
+    if(LEVEL.ceilingY != null && rider.y < LEVEL.ceilingY) hazardHit = true;
+    if(LEVEL.floorY != null && rider.y > LEVEL.floorY) hazardHit = true;
     // Bonus gates: optional, geometry-guided waypoints (placed somewhere a
     // player must actually fly past to reach them) that pay out extra coins
     // the first time they're reached each attempt - never a hard requirement
@@ -961,7 +991,8 @@ function physStep(dt){
     const t = simFrame*(STEP/1000);
     dynamicHazards = LEVEL.enemies.map(e => ({ ...enemyPosAt(e, t), kind:"enemy" }))
       .concat(LEVEL.archers.map(a => archerArrowAt(a, t)).filter(Boolean))
-      .concat(LEVEL.catapults.map(c => catapultRockAt(c, t)).filter(Boolean));
+      .concat(LEVEL.catapults.map(c => catapultRockAt(c, t)).filter(Boolean))
+      .concat((LEVEL.eagles || []).map(e => eagleAt(e, t)).filter(Boolean));
   }
   const sp = Math.hypot(rider.vx, rider.vy);
   const n = Math.max(1, Math.min(10, Math.ceil(sp*dt/(RAD*0.5))));
@@ -1653,6 +1684,7 @@ function drawIslands(){
   if(!LEVEL || !LEVEL.islands) return;
   for(const isl of LEVEL.islands){
     const pts = isl.pts;
+    if(isl.floating) drawFloatingRockBody(isl, pts);
     ctx.save();
     ctx.lineJoin = "round"; ctx.lineCap = "round";
     ctx.strokeStyle = "rgba(58,55,51,0.18)"; ctx.lineWidth = 11*cam.z;
@@ -1677,26 +1709,113 @@ function drawIslands(){
     ctx.restore();
   }
 }
+// Floating rock islands collide exactly like any other fixed island (the
+// walkable ridge line drawn above, in drawIslands, never moves) - this only
+// draws the decorative rock mass hanging below that ridge, bobbing gently
+// up and down, so the collision surface and the visuals never disagree.
+function drawFloatingRockBody(isl, pts){
+  const cx = pts.reduce((s,p)=>s+p.x,0)/pts.length;
+  const topY = Math.min(...pts.map(p=>p.y));
+  const span = Math.max(60, Math.abs(pts[pts.length-1].x-pts[0].x));
+  const bob = Math.sin(performance.now()/1000*(isl.bobSpeed||0.6) + (isl.bobPhase||0)) * (isl.bobAmp ?? 8);
+  const sx = w2sx(cx), sy = w2sy(topY + span*0.42 + bob);
+  const img = IMG["rock_float_"+(isl.rockVariant||1)];
+  ctx.save();
+  if(img){
+    const wd = span*1.3*cam.z, hh = wd*img.height/img.width;
+    ctx.drawImage(img, sx-wd/2, sy-hh*0.38, wd, hh);
+  } else {
+    const rr = span*0.55*cam.z;
+    ctx.fillStyle = "#8a9a6a"; ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for(let i=0;i<=12;i++){ const a=i/12*Math.PI*2, rv=rr*(0.85+jitter(cx+i, topY)*0.25);
+      const x=sx+Math.cos(a)*rv, y=sy+Math.sin(a)*rv*0.62; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
 function drawWinds(){
   if(!LEVEL || !LEVEL.winds) return;
   const t = performance.now()/1000;
-  // Drawn noticeably narrower than the actual gameplay radius (w.r) reads as
-  // a tall, slim funnel/dust-devil instead of a wide hazy disc - the real
-  // circular pickup radius is unchanged, only the visual is narrowed.
-  const NARROW = 0.38;
   for(const w of LEVEL.winds){
-    const sx = w2sx(w.x), sy = w2sy(w.y), r = w.r*cam.z, rw = r*NARROW;
+    const sx = w2sx(w.x);
+    const topSy = w2sy(w.topY), baseSy = w2sy(w.baseY);
+    const h = baseSy - topSy;
+    if(h <= 0) continue;
+    const topR = Math.max(6, w.r*0.18*cam.z), baseR = w.r*cam.z;
     ctx.save();
-    const g = ctx.createRadialGradient(sx, sy, r*0.05, sx, sy, r);
-    g.addColorStop(0, "rgba(150,205,230,0.25)"); g.addColorStop(1, "rgba(150,205,230,0)");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(sx, sy, rw, r, 0, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = "rgba(80,140,185,0.6)"; ctx.lineWidth = Math.max(1.3, 2*cam.z); ctx.setLineDash([5*cam.z, 7*cam.z]);
-    for(let i=0;i<4;i++){
-      const f = ((t*0.35 + i/4) % 1);
-      const rr = r*(0.25 + f*0.7);
-      ctx.globalAlpha = 1 - f*0.8;
-      ctx.beginPath(); ctx.ellipse(sx, sy, rr*NARROW, rr, 0, 0, Math.PI*2); ctx.stroke();
+    // Tapered dusty-tan funnel body - narrow at the cap (topY, where the
+    // updraft stops lifting), wide at the mouth (baseY, where it's strongest).
+    const grad = ctx.createLinearGradient(sx, topSy, sx, baseSy);
+    grad.addColorStop(0, "rgba(198,168,108,0)");
+    grad.addColorStop(0.18, "rgba(198,168,108,0.20)");
+    grad.addColorStop(1, "rgba(176,140,80,0.42)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(sx-topR, topSy); ctx.lineTo(sx+topR, topSy);
+    ctx.lineTo(sx+baseR, baseSy); ctx.lineTo(sx-baseR, baseSy);
+    ctx.closePath(); ctx.fill();
+    // Rising swirl bands scroll from the mouth up toward the cap, suggesting
+    // dust/air actually climbing through the funnel.
+    const BANDS = 7;
+    ctx.strokeStyle = "rgba(110,82,40,0.6)";
+    ctx.lineWidth = Math.max(1.1, 1.6*cam.z);
+    for(let i=0;i<BANDS;i++){
+      const f = (((i/BANDS) - t*0.3) % 1 + 1) % 1; // 0 = at the mouth, 1 = at the cap
+      const yy = baseSy - f*h;
+      const rr = baseR + (topR-baseR)*f;
+      ctx.globalAlpha = 0.22 + 0.45*(1-f);
+      ctx.setLineDash([rr*0.55, rr*0.4]);
+      ctx.beginPath(); ctx.ellipse(sx, yy, rr, rr*0.22, 0, 0, Math.PI*2); ctx.stroke();
     }
+    // Faint cap line marks the max height the updraft can carry the dragon to.
+    ctx.setLineDash([4,5]); ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = "rgba(150,120,70,0.55)";
+    ctx.beginPath(); ctx.moveTo(sx-topR*1.6, topSy); ctx.lineTo(sx+topR*1.6, topSy); ctx.stroke();
+    ctx.restore();
+  }
+}
+function drawRings(){
+  if(!LEVEL || !LEVEL.rings) return;
+  const t = performance.now()/1000;
+  for(const rg of LEVEL.rings){
+    const sx = w2sx(rg.x), sy = w2sy(rg.y), r = rg.r*cam.z;
+    const pulse = 0.8 + Math.sin(t*3.2)*0.2;
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.strokeStyle = "#3a8fa8"; ctx.lineWidth = Math.max(2.4, 4.2*cam.z);
+    ctx.beginPath(); ctx.ellipse(sx, sy, r*0.92, r*0.92, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = "rgba(120,210,230,0.65)"; ctx.lineWidth = Math.max(1.2, 2*cam.z);
+    ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.ellipse(sx, sy, r*1.18, r*1.18, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+}
+function drawEagles(){
+  if(!LEVEL || !LEVEL.eagles) return;
+  const t = simFrame*(STEP/1000);
+  for(const e of LEVEL.eagles){
+    const p = eagleAt(e, t);
+    if(!p) continue;
+    const sx = w2sx(p.x), sy = w2sy(p.y), r = p.r*cam.z;
+    drawHazardHalo(sx, sy, r);
+    ctx.save();
+    ctx.translate(sx, sy); ctx.rotate((p.ang || 0) + Math.PI/2);
+    // A single shallow gull-wing stroke (perpendicular to the flight
+    // direction) reads as a bird silhouette from any rotation - a filled
+    // symmetric shape here degenerates into an X/bowtie on some headings.
+    const flap = Math.sin(t*14)*0.5+0.5;
+    ctx.strokeStyle = "#3f3b35"; ctx.lineWidth = Math.max(1.8, r*0.22);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(-r*1.15, r*(0.15+flap*0.35));
+    ctx.lineTo(-r*0.22, -r*0.05);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(r*0.22, -r*0.05);
+    ctx.lineTo(r*1.15, r*(0.15+flap*0.35));
+    ctx.stroke();
+    ctx.fillStyle = "#3f3b35";
+    ctx.beginPath(); ctx.arc(0, 0, r*0.16, 0, Math.PI*2); ctx.fill();
     ctx.restore();
   }
 }
@@ -2004,12 +2123,14 @@ function render(){
   drawCatapults();
   drawCoins();
   drawGates();
+  drawRings();
   drawBoostPads();
   drawGoal();
   drawCaveStart();
   drawStartMarker();
   drawTrail();
   if(LEVEL) drawEnemies(LEVEL.enemies.map(e => enemyPosAt(e, simFrame*(STEP/1000))));
+  drawEagles();
   drawRider();
   drawCrashBurst();
   drawCelebrateFallback();
@@ -2148,9 +2269,21 @@ const TEST_LEVEL = {
     { pts:[{x:-40,y:-260},{x:-95,y:-80},{x:-55,y:120},{x:-100,y:380},{x:-60,y:650},{x:-95,y:950}], checkpoint:false },
     { pts:[{x:850,y:140},{x:950,y:170},{x:1050,y:150}], checkpoint:true, checkpointAt:{x:950,y:150} },
     { pts:[{x:2100,y:440},{x:2250,y:480},{x:2400,y:460}], checkpoint:true, checkpointAt:{x:2250,y:460} },
+    // Floating rock islands (Avatar-film style) - alternate perches, not
+    // checkpoints, each bobbing at a slightly different amplitude/speed/
+    // phase so they don't all move in lockstep.
+    { pts:[{x:1250,y:620},{x:1360,y:600}], floating:true, rockVariant:1, bobAmp:7, bobSpeed:0.5, bobPhase:0 },
+    { pts:[{x:1950,y:-120},{x:2060,y:-140}], floating:true, rockVariant:2, bobAmp:9, bobSpeed:0.42, bobPhase:1.8 },
+    { pts:[{x:2550,y:260},{x:2660,y:240}], floating:true, rockVariant:3, bobAmp:6, bobSpeed:0.6, bobPhase:3.4 },
   ],
-  winds: [ { x:1600, y:-150, r:220, strength:2600 } ], // high route
-  gates: [ { x:1600, y:-280, r:70, coins:20 } ],
+  // High route: a funnel, not a flat zone - fly in deep near baseY for the
+  // strongest lift, which fades out approaching topY (the cap).
+  winds: [ { x:1600, topY:-380, baseY:40, r:150, strength:2600 } ],
+  gates: [ { x:1600, y:-350, r:70, coins:20 } ],
+  rings: [ { x:1800, y:-300, r:55 } ], // reward for riding the wind up near its cap
+  eagles: [ { x1:2900, y1:-50, x2:2900, y2:650, period:3.2 } ], // sweeps the approach to the goal, occasionally
+  ceilingY: -450,
+  floorY: 1050,
   goal: {x:3150, y:600}, goalR: 100, // clear gap past the curve-around obstacle
 };
 function loadTestLevel(){
