@@ -173,3 +173,21 @@ def test_pick_product_prefers_products_with_photo(tmp_path, monkeypatch):
     (tmp_path / "b.jpg").write_bytes(jpeg_bytes())
     for _ in range(5):
         assert kp.pick_product([{"id": "a"}, {"id": "b"}], {})["id"] == "b"
+
+
+def test_story_is_9_16_jpeg_and_points_to_post(tmp_path, monkeypatch):
+    import kaufkraft_story as ks
+    from PIL import Image
+
+    gen = tmp_path / "assets" / "kaufkraft_generated"
+    gen.mkdir(parents=True)
+    Image.new("RGB", (1080, 1350), (240, 230, 210)).save(gen / "produkt_20261112_butter.jpg")
+    (gen / "next_post.json").write_text(json.dumps(
+        {"type": "image", "file": "assets/kaufkraft_generated/produkt_20261112_butter.jpg", "caption": "x"}))
+    monkeypatch.setattr(ks, "ROOT", str(tmp_path))
+    monkeypatch.setattr(ks, "GENERATED_DIR", str(gen))
+    ks.main()
+    story = json.loads((gen / "next_story.json").read_text())
+    assert story == {"type": "story", "file": "assets/kaufkraft_generated/story_produkt_20261112_butter.jpg"}
+    img = Image.open(tmp_path / story["file"])
+    assert img.size == (1080, 1920) and img.format == "JPEG"
