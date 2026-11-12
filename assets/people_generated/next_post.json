@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261112_1114_0025.jpg",
-  "caption": "This face belongs to no one.\n\nPerson No. 0025 · \"Rodrigo\", 26\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #digitalhuman #twinstranger #fakeface #notreal #portraitphotography #aiart",
+  "type": "reel",
+  "file": "reel_20261112_1713_0026.mp4",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0026 · \"Aiko\", 40\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #notreal #digitalhuman #peopleofinstagram #faces #fluxai #fakeface",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a 26-year-old young Mexican man with tight curls, a long braided beard, a stocky build and a single small mole on the cheek, wearing a chunky knit sweater, a warm genuine smile, at a bus stop, overcast diffused daylight, shot on iPhone, candid snapshot, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 25,
-  "name": "Rodrigo",
-  "age": 26
+  "prompt": "Waist-up portrait photo of a 40-year-old Japanese woman with hair tucked under a beanie and a gap between the front teeth, wearing a plain white t-shirt, laughing naturally, in a home kitchen, dim moody ambient light, shot on Sony A7 III, 50mm f/1.8, looks exactly 40 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 26,
+  "name": "Aiko",
+  "age": 40,
+  "image": "assets/people_generated/person_20261112_1713_0026.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
