@@ -873,7 +873,16 @@ const rider = { x:0, y:0, vx:0, vy:0, ang:0, contact:false, crashed:false, wob:0
 function resetRider(){
   const sp = lastCheckpoint || START;
   rider.x = sp.x; rider.y = sp.y - RAD;
-  rider.vx = 0; rider.vy = 0; rider.ang = 0;
+  // A line drawn from the mandatory start point begins with its very first
+  // vertex directly under the rider's resting contact point - an exact
+  // balanced-on-a-pin case where gravity resolves straight into the vertex's
+  // point-normal (purely vertical) instead of the segment's own slope, so
+  // the rider sits frozen in perfect equilibrium instead of sliding. A tiny
+  // rightward nudge breaks that exact alignment on the very first substep,
+  // after which collision is against the segment's face (and its real
+  // slope) like everywhere else - imperceptible, but enough to not get
+  // physics-stuck exactly where every attempt starts.
+  rider.vx = 4; rider.vy = 0; rider.ang = 0;
   rider.contact = false; rider.crashed = false; rider.wob = 0;
   animT = 0; crashT = 0; celebrateT = 0; nextMilestone = 250; maxDist = 0;
 }
