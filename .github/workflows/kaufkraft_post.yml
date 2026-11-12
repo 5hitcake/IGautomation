@@ -119,6 +119,7 @@ jobs:
         run: sleep 20
 
       - name: Publish to Instagram
+        id: publish
         if: >-
           steps.gate.outputs.run == 'true' && steps.gate.outputs.publish == 'true'
           && github.ref == 'refs/heads/main'
@@ -128,4 +129,25 @@ jobs:
         run: >-
           python scripts/publish.py
           --post-file assets/kaufkraft_generated/next_post.json
+          --expect-username "$IG_USERNAME"
+
+      # Story: dieselbe Grafik im 9:16-Format, direkt nach dem Feed-Post.
+      - name: Story erstellen + committen
+        id: story_build
+        if: steps.publish.outcome == 'success'
+        run: |
+          python scripts/kaufkraft_story.py
+          git add -A assets/kaufkraft_generated
+          git commit -m "Kaufkraft-Story: $(TZ="Europe/Berlin" date +%Y-%m-%d)"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+          sleep 20  # raw.githubusercontent.com braucht einen Moment
+
+      - name: Story posten
+        if: steps.story_build.outcome == 'success'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.WOE_ACCOUNT_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.WOE_ACCOUNT_ID }}
+        run: >-
+          python scripts/publish.py
+          --post-file assets/kaufkraft_generated/next_story.json
           --expect-username "$IG_USERNAME"

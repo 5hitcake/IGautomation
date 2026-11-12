@@ -669,6 +669,7 @@ voll automatisch über `kaufkraft_post.yml` zu deutschen Top-Zeiten: **Mo–Fr 1
   (38 Produkte in `content/kaufkraft_products.json`, keine Wiederholung bis alle durch sind)
 - **So: Inflation der Woche**, rotiert: aktuelle Inflationsrate (24-Monats-Verlauf) →
   „Was sind 100 € noch wert?“ → Preistreiber des Jahres → Europa-Vergleich
+- **Story**: jeder Post kommt direkt danach zusätzlich als Story (9:16, gleiche Grafik)
 
 ### Woher die Zahlen kommen
 
