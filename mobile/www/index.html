@@ -192,6 +192,7 @@ document.documentElement.lang = LANG;
 const IMG = {}, MISSING = [];
 const STATIC_ASSETS = {
   bg_sky_far:      "./assets/bg_sky_far.jpg",
+  bg_horizon:      "./assets/bg_horizon.png",
   bg_mid:          "./assets/bg_mid.png",
   char_idle:       "./assets/char_idle.png",
   char_airborne:   "./assets/char_airborne.png",
@@ -209,7 +210,10 @@ const STATIC_ASSETS = {
   obs_rock:        "./assets/obs_rock.png",
   enemy_bat:       "./assets/enemy_bat.png",
   enemy_archer:    "./assets/enemy_archer.png",
+  art_tower:       "./assets/art_tower.png",
   obs_catapult:    "./assets/obs_catapult.png",
+  art_tree:        "./assets/art_tree.png",
+  art_nest_egg:    "./assets/art_nest_egg.png",
   ui_boost_pad:    "./assets/ui_boost_pad.png",
   ui_goal_egg:     "./assets/ui_goal_egg.png",
   ui_fastforward:  "./assets/ui_fastforward.png",
@@ -1608,6 +1612,17 @@ function drawBackground(){
     for(let i=-1;i<=Math.ceil(W/sw)+1;i++) ctx.drawImage(sky, ox + i*sw, oy, sw, sh);
     ctx.globalAlpha = 1;
   }
+  // forest/mountains/town layer - between the faint far sky and the nearer
+  // hill-and-windmill mid layer, so it reads as the next ridge back.
+  const horizon = IMG.bg_horizon;
+  if(horizon){
+    const f = 0.12, sw = Math.max(W*1.15, 950), sh = sw*horizon.height/horizon.width;
+    const ox = -(((cam.x*f) % sw) + sw) % sw;
+    const oy = w2sy(START.y + 210) - sh*0.95;
+    ctx.globalAlpha = 0.38;
+    for(let i=0;i<Math.ceil(W/sw)+2;i++) ctx.drawImage(horizon, ox + i*sw, oy, sw, sh);
+    ctx.globalAlpha = 1;
+  }
   // notebook rule lines in world space
   if(opts.grid){
     const step = 48, y0 = Math.floor(s2wy(0)/step)*step, y1 = s2wy(H);
@@ -2030,6 +2045,15 @@ function drawArchers(){
   const t = simFrame*(STEP/1000);
   for(const a of LEVEL.archers){
     const sx = w2sx(a.x), sy = w2sy(a.y), r = 30*cam.z;
+    const tImg = IMG.art_tower;
+    if(tImg){
+      // The platform (where the archer stands) sits ~21% down the tower
+      // photo - anchored to the archer's own feet position so the tower
+      // art never shifts where the archer character actually stands.
+      const th = 340*cam.z, tw = th*tImg.width/tImg.height;
+      const footY = sy + r*2.3*0.15;
+      ctx.drawImage(tImg, sx-tw/2, footY-0.2126*th, tw, th);
+    }
     const img = IMG.enemy_archer;
     if(img){ const h=r*2.3, wd=h*img.width/img.height; ctx.drawImage(img, sx-wd/2, sy-h*0.85, wd, h); }
     else {
@@ -2079,13 +2103,22 @@ function drawGoal(){
   const now = performance.now();
   const glow = 0.55 + Math.sin(now/260)*0.45;
   const ringT = (now/1400) % 1;
+  // Alternate placement: the goal nested in a tree's branches instead of
+  // floating in open air. The tree is drawn first (behind), sized so the
+  // goal point lands on a natural branch height, then the nest+egg draws
+  // on top of it at that same point.
+  if(LEVEL.goalInTree && IMG.art_tree){
+    const timg = IMG.art_tree, th = 420*cam.z, tw = th*timg.width/timg.height;
+    ctx.drawImage(timg, sx-tw*0.5, sy-th*0.38, tw, th);
+  }
   ctx.save();
   ctx.globalAlpha = Math.max(0, 0.5 - ringT*0.5); ctx.strokeStyle = "#d4a017"; ctx.lineWidth = 2.2*cam.z;
   ctx.beginPath(); ctx.arc(sx, sy, (18+ringT*30)*cam.z, 0, Math.PI*2); ctx.stroke();
   ctx.restore();
-  const img = IMG.ui_goal_egg;
+  const nestImg = LEVEL.goalInTree ? IMG.art_nest_egg : null;
+  const img = nestImg || IMG.ui_goal_egg;
   if(img){
-    const h=64*cam.z, wd=h*img.width/img.height;
+    const h = nestImg ? 56*cam.z : 64*cam.z, wd=h*img.width/img.height;
     ctx.save(); ctx.shadowColor = `rgba(212,160,23,${0.8*glow})`; ctx.shadowBlur = 30*cam.z;
     ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h);
     ctx.drawImage(img, sx-wd/2, sy-h/2, wd, h); // second pass deepens the glow without a second light source
@@ -2368,7 +2401,10 @@ const TEST_LEVEL = {
   // instead of forcing a sudden vertical swing in a short span.
   obstacles: [{x:450, y:140, r:40}, {x:2750, y:500, r:55}],
   boostPads: [ {x:1650, y:700, r:50} ], // low route
-  enemies: [], archers: [], catapults: [], coins: [],
+  enemies: [],
+  archers: [ { x:1150, y:650, tx:1750, ty:600, period:3.0 } ],
+  catapults: [ { x:2500, y:700, tx:3000, ty:650, period:4.0 } ],
+  coins: [],
   islands: [
     // Left-side cliff the cave is set into - START sits at its high ledge.
     // Spans ceilingY..floorY - the cliff isn't just a decorative side piece,
@@ -2394,7 +2430,7 @@ const TEST_LEVEL = {
   eagles: [ { x1:2900, y1:-50, x2:2900, y2:650, period:3.2 } ], // sweeps the approach to the goal, occasionally
   ceilingY: -450,
   floorY: 1050,
-  goal: {x:3150, y:600}, goalR: 100, // clear gap past the curve-around obstacle
+  goal: {x:3150, y:600}, goalR: 100, goalInTree: true, // clear gap past the curve-around obstacle
 };
 function loadTestLevel(){
   hideSheet(mainmenuSheet);
