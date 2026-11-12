@@ -55,7 +55,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add assets/jotalabs_generated jotalabs_posted_log.json
           git commit -m "Neue Jota-Labs-Story: $(TZ="America/Argentina/Buenos_Aires" date +%Y-%m-%d)"
-          git push
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
 
       - name: Publish Story to Instagram (@jota_labsweb)
         if: steps.gate.outputs.run == 'true'
