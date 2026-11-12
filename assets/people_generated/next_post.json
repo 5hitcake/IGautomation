@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261112_1713_0026.mp4",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0026 · \"Aiko\", 40\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #notreal #digitalhuman #peopleofinstagram #faces #fluxai #fakeface",
-  "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 40-year-old Japanese woman with hair tucked under a beanie and a gap between the front teeth, wearing a plain white t-shirt, laughing naturally, in a home kitchen, dim moody ambient light, shot on Sony A7 III, 50mm f/1.8, looks exactly 40 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 26,
-  "name": "Aiko",
-  "age": 40,
-  "image": "assets/people_generated/person_20261112_1713_0026.jpg",
+  "file": "reel_20261112_2343_0027.mp4",
+  "caption": "This person does not exist.\n\nPerson No. 0027 · \"Ang Dorje\", 32\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #fakeface #lookalike #peopleofinstagram #generativeai #faces",
+  "model": "pollinations:tongyi-mai/z-image-turbo",
+  "prompt": "Head and shoulders portrait photo of a 32-year-old Nepali man with short cropped hair, a full beard, several small ear piercings and small hoop earrings, wearing a colorful vintage 70s shirt, a confident gaze into the camera, on a busy city street, bright midday sun with hard shadows, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 32 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 27,
+  "name": "Ang Dorje",
+  "age": 32,
+  "image": "assets/people_generated/person_20261112_2343_0027.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
