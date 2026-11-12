@@ -1694,14 +1694,27 @@ function drawGroundShadow(sx, sy, r){
 function drawCliffWallArt(isl, pts){
   const img = IMG.art_cliff_wall;
   if(!img) return false;
-  const minX = Math.min(...pts.map(p=>p.x)), maxX = Math.max(...pts.map(p=>p.x));
+  const maxX = Math.max(...pts.map(p=>p.x));
   const minY = Math.min(...pts.map(p=>p.y)), maxY = Math.max(...pts.map(p=>p.y));
-  const wd = Math.max(140, (maxX-minX)*2.6)*cam.z;
-  const sx = w2sx((minX+maxX)/2) - wd/2;
+  // The source art is a solid rock mass with its exposed face at one edge -
+  // mirrored so that face lands on the island's right edge (the boundary
+  // the dragon actually flies past) while the rock fills far enough left
+  // of it to read as the edge of the world, not a freestanding pillar.
+  // Extended a little past START so the cave-mouth overlay (drawCaveStart,
+  // centered on START) sits flush against this texture instead of floating
+  // in the gap between the collision edge and the start point.
+  const wd = 2000*cam.z;
+  const rightEdgeSx = w2sx(Math.max(maxX, START.x + 300));
   const topSy = w2sy(minY), botSy = w2sy(maxY);
   if(botSy-topSy <= 0) return true;
   const tileH = wd*img.height/img.width;
-  for(let y = topSy; y < botSy; y += tileH) ctx.drawImage(img, sx, y, wd, tileH);
+  for(let y = topSy; y < botSy; y += tileH){
+    ctx.save();
+    ctx.translate(rightEdgeSx, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, y, wd, tileH);
+    ctx.restore();
+  }
   return true;
 }
 function drawIslands(){
@@ -1887,8 +1900,13 @@ function drawCaveStart(){
   const sx = w2sx(START.x), sy = w2sy(START.y), r = 46*cam.z;
   const img = IMG.art_cave_mouth;
   if(img){
+    // Mirrored to match the cliff wall art (same source rock mass, same
+    // exposed-face direction) so the two read as one continuous surface.
     const h = r*4.4, wd = h*img.width/img.height;
-    ctx.drawImage(img, sx-wd/2, sy-h*0.72, wd, h);
+    ctx.save();
+    ctx.translate(sx, 0); ctx.scale(-1, 1);
+    ctx.drawImage(img, -wd/2, sy-h*0.72, wd, h);
+    ctx.restore();
     return;
   }
   ctx.save();
