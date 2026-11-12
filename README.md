@@ -662,7 +662,8 @@ python scripts/story_reel.py --account horror --story dyatlov --dry-run --previe
 ## Kaufkraft-Check (@kaufkraft.check)
 
 Eigener Instagram-Account (deutsch) über Preise und Inflation. Täglich ein Post,
-voll automatisch über `kaufkraft_post.yml` (17:07 Uhr Winterzeit / 18:07 Uhr Sommerzeit):
+voll automatisch über `kaufkraft_post.yml` zu deutschen Top-Zeiten: **Mo–Fr 18:52 Uhr**,
+**Sa + So 10:52 Uhr** (gestartet vom Cloudflare-Zeitgeber `cloudflare/people_scheduler`, Ersatz-Cron am Abend):
 
 - **Mo–Sa: Produkt-Vergleich**: Produktfoto + Preis **2001 / 2010 / heute** mit Prozent
   (38 Produkte in `content/kaufkraft_products.json`, keine Wiederholung bis alle durch sind)

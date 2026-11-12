@@ -118,7 +118,7 @@
       "coicop": "CP07222",
       "price": 1.7,
       "price_period": "2025",
-      "verified": false,
+      "verified": true,
       "prompt": "a green petrol pump nozzle hanging on a modern gas station fuel dispenser"
     },
     {

@@ -13,10 +13,13 @@ name: Kaufkraft-Check Post
 # Solange die fehlen, laeuft der Plan nicht; "Run workflow" erzeugt dann nur
 # eine Vorschau (wird committet, aber nicht gepostet).
 
+# Posting-Zeiten (deutsche Top-Zeiten): Mo-Fr 18:52, Sa+So 10:52 Uhr.
+# Gestartet vom Cloudflare-Zeitgeber cloudflare/people_scheduler (puenktlich, mit
+# planned=true); GitHub-Crons kommen oft Stunden zu spaet. Der Cron unten ist nur
+# Ersatz am Abend, falls der Zeitgeber ausfaellt (Doppelpost-Schutz im Gate).
 on:
   schedule:
-    - cron: "7 16 * * *"  # 17:07 Winterzeit / 18:07 Sommerzeit
-    - cron: "7 17 * * *"  # Ersatz-Termin, falls GitHub den ersten verschluckt (Doppelpost-Schutz unten)
+    - cron: "37 19 * * *"  # Ersatz: 20:37 Winterzeit / 21:37 Sommerzeit, nur wenn heute noch nichts kam
   workflow_dispatch:
     inputs:
       kind:
@@ -27,6 +30,9 @@ on:
       product:
         description: "Optional: Produkt-ID (z.B. butter) aus content/kaufkraft_products.json"
         default: ""
+      planned:
+        description: "Nur fuer den Zeitgeber: true = geplanter Post (max. 1 pro Tag)"
+        default: "false"
 
 permissions:
   contents: write
@@ -53,19 +59,15 @@ jobs:
           HAS_IG: ${{ secrets.WOE_ACCOUNT_TOKEN != '' && secrets.WOE_ACCOUNT_ID != '' }}
         run: |
           echo "publish=$HAS_IG" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" != "schedule" ]; then
+          # Manuell per "Run workflow": immer laufen. Geplant (Zeitgeber oder Ersatz-Cron):
+          # nur mit Secrets und hoechstens einmal pro Tag.
+          if [ "${{ github.event_name }}" != "schedule" ] && [ "${{ github.event.inputs.planned }}" != "true" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [ "$HAS_IG" != "true" ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "::warning::WOE_ACCOUNT_TOKEN / WOE_ACCOUNT_ID fehlen - kein Post (siehe README)."
-            exit 0
-          fi
-          hour="$(TZ="Europe/Berlin" date +%H)"
-          if [ "$hour" -lt 17 ]; then
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Ueberspringe: erst $hour Uhr deutscher Zeit."
             exit 0
           fi
           today="$(TZ="Europe/Berlin" date +%Y-%m-%d)"
