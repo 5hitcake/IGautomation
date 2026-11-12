@@ -13,9 +13,21 @@ jobs:
         env:
           PTNE_API_TOKEN: ${{ secrets.PTNE_API_TOKEN }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          HORROR_IG_ACCESS_TOKEN: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
+          MYSTERY_IG_ACCESS_TOKEN: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN }}
+          PTNE_ACCOUNT_TOKEN: ${{ secrets.PTNE_ACCOUNT_TOKEN }}
         run: |
           fail=0
-          for name in PTNE_API_TOKEN IG_ACCESS_TOKEN; do
+          # PTNE_ACCOUNT_TOKEN soll die numerische Konto-ID sein, kein Token.
+          if [[ "$PTNE_ACCOUNT_TOKEN" =~ ^[0-9]+$ ]]; then
+            echo "PTNE_ACCOUNT_TOKEN -> numerische Konto-ID (ok)"
+          else
+            echo "PTNE_ACCOUNT_TOKEN -> KEINE Zahl (Laenge ${#PTNE_ACCOUNT_TOKEN}) - evtl. versehentlich ein Token?"
+            out=$(curl -s "https://graph.instagram.com/v21.0/me?fields=username" -H "Authorization: Bearer $PTNE_ACCOUNT_TOKEN")
+            echo "  als Token getestet: $(echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("username") or "ungueltig")')"
+            fail=1
+          fi
+          for name in PTNE_API_TOKEN IG_ACCESS_TOKEN HORROR_IG_ACCESS_TOKEN MYSTERY_IG_ACCESS_TOKEN; do
             token="${!name}"
             if [ -z "$token" ]; then echo "$name: nicht gesetzt"; fail=1; continue; fi
             out=$(curl -s "https://graph.instagram.com/v21.0/me?fields=username" -H "Authorization: Bearer $token")
