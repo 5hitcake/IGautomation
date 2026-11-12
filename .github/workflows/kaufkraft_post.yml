@@ -3,9 +3,9 @@ name: Kaufkraft-Check Post
 # Taeglich ein Post fuer den Instagram-Account @kaufkraft.check:
 #   Mo-Sa  Produkt: Foto + Preis 2001 / 2010 / heute (scripts/kaufkraft_post.py)
 #   So     Inflation der Woche (rotiert: Rate, 100-Euro-Kaufkraft, Preistreiber, Europa)
-# Daten: Eurostat HVPI (frei, kein Schluessel). Echte Produktfotos von Pexels
-# (Secret PEXELS_API_KEY) bzw. Openverse - vorab holen und pruefen mit dem
-# Workflow "Kaufkraft-Check Fotos". Gepostet werden zuerst Produkte mit Foto.
+# Daten: Eurostat HVPI (frei, kein Schluessel). Produktbilder (schlichte
+# Studiobilder, Cloudflare Workers AI) vorab erzeugen und pruefen mit dem
+# Workflow "Kaufkraft-Check Fotos". Gepostet werden zuerst Produkte mit Bild.
 #
 # Benoetigte Secrets (Settings -> Secrets and variables -> Actions):
 #   WOE_ACCOUNT_TOKEN       Long-Lived Access Token des neuen Accounts
@@ -88,7 +88,9 @@ jobs:
       - name: Post erzeugen
         if: steps.gate.outputs.run == 'true'
         env:
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLI_TOKEN: ${{ secrets.POLLI_TOKEN }}
         run: |
           args="--kind ${{ github.event.inputs.kind || 'auto' }}"
           if [ -n "${{ github.event.inputs.product }}" ]; then

@@ -121,20 +121,20 @@ def render_product_card(product, prices, photo_path, output_path, fmt_eur, fmt_p
     if photo_path and os.path.exists(photo_path):
         photo = Image.open(photo_path).convert("RGB")
     photo = photo or placeholder_photo(product["name"])
-    rounded_paste(base, photo, (60, 330, W - 60, 760), 36)
+    rounded_paste(base, photo, (60, 330, W - 60, 820), 36)
     draw = ImageDraw.Draw(base)
 
     # Prozent-Plakette ueber dem Foto
     p01 = prices.get("pct_2001")
     if p01 is not None:
         badge = f"{fmt_pct(p01)} seit 2001"
-        pill(draw, W - 60 - draw.textlength(badge, font=font("bold", 40)) / 2 - 34 - 24, 690,
+        pill(draw, W - 60 - draw.textlength(badge, font=font("bold", 40)) / 2 - 34 - 24, 750,
              badge, font("bold", 40), WHITE, RED if p01 >= 0 else GREEN)
 
     # Drei Spalten 2001 | 2010 | heute
     cols = [("2001", prices.get("2001")), ("2010", prices.get("2010")), ("HEUTE", prices["today"])]
     col_w = (W - 120) / 3
-    top = 800
+    top = 860
     for i, (label, value) in enumerate(cols):
         x0 = 60 + i * col_w
         cx = x0 + col_w / 2
@@ -160,7 +160,7 @@ def render_product_card(product, prices, photo_path, output_path, fmt_eur, fmt_p
         now_price = 10.0 * prices["today"] / prices["2001"]
         line = f"Was 2001 {fmt_eur(then_price)} kostete, kostet heute {fmt_eur(now_price)}."
         lf = fit_font(draw, line, "semi", 34, W - 120)
-        text_center(draw, W / 2, 1065, line, lf, INK)
+        text_center(draw, W / 2, 1122, line, lf, INK)
 
     if prices.get("method") == "known":
         src = [f"Quelle: {product['known_prices']['source']}",

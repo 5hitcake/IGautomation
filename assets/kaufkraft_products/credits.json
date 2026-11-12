@@ -1,0 +1,42 @@
+{
+  "benzin": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "brot": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "butter": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "diesel": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "doener": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "eier": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "kaffee": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "milch": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "z-image-turbo",
+    "source": "KI"
+  }
+}

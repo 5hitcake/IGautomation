@@ -5,9 +5,9 @@ assets/kaufkraft_generated/next_post.json fuer publish.py.
   So:    Inflation der Woche (rotiert: aktuelle Rate, Kaufkraft von 100 EUR,
          Preistreiber, Europa-Vergleich)
 
-Produktfotos (echte Fotos) liegen in assets/kaufkraft_products/<id>.jpg. Fehlt
-eins, holt scripts/kaufkraft_photos.py es von Pexels (PEXELS_API_KEY) bzw.
-Openverse und nennt den Fotografen auf Grafik und in der Caption.
+Produktbilder liegen in assets/kaufkraft_products/<id>.jpg (eigene Fotos haben
+Vorrang). Fehlt eins, erzeugt scripts/kaufkraft_photos.py ein schlichtes
+Studiobild und kennzeichnet es als Symbolbild.
 
 Nutzung:
   python kaufkraft_post.py                    (automatisch nach Wochentag)
@@ -79,7 +79,7 @@ def hashtags(rng=random, extra=()):
 
 
 def ensure_photo(product):
-    """Pfad zum echten Produktfoto oder None (dann zeichnet die Karte einen Platzhalter)."""
+    """Pfad zum Produktbild oder None (dann zeichnet die Karte einen Platzhalter)."""
     return kph.fetch_photo(product, PHOTOS_DIR)
 
 

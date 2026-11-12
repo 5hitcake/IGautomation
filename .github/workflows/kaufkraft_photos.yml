@@ -1,22 +1,19 @@
 name: Kaufkraft-Check Fotos
 
-# Holt echte Produktfotos fuer @kaufkraft.check (Pexels, sonst Openverse) und
-# legt eine Uebersicht aller Fotos an: assets/kaufkraft_products/_uebersicht.jpg
+# Erzeugt die Produktbilder fuer @kaufkraft.check (schlichtes Studiobild pro Produkt,
+# Cloudflare Workers AI) und legt eine Uebersicht an: assets/kaufkraft_products/_uebersicht.jpg
 #
 # Ablauf:
-#   1. "Run workflow" ohne Eingabe -> holt alle fehlenden Fotos + Uebersicht
+#   1. "Run workflow" ohne Eingabe -> erzeugt alle fehlenden Bilder + Uebersicht
 #   2. Uebersicht auf GitHub ansehen
-#   3. Unpassende Fotos neu holen: "Run workflow" mit z.B. "butter,kino"
+#   3. Unpassende Bilder neu erzeugen: "Run workflow" mit z.B. "butter,kino"
 #      (oder ein eigenes Foto als assets/kaufkraft_products/<id>.jpg hochladen)
-#
-# Secret PEXELS_API_KEY: kostenlos unter https://www.pexels.com/api/ (deutlich
-# bessere Treffer als Openverse). Ohne Secret wird nur Openverse genutzt.
 
 on:
   workflow_dispatch:
     inputs:
       redo:
-        description: "Optional: Produkt-IDs neu holen, kommagetrennt (z.B. butter,kino)"
+        description: "Optional: Bilder neu erzeugen, Produkt-IDs kommagetrennt (z.B. butter,kino)"
         default: ""
 
 permissions:
@@ -39,9 +36,11 @@ jobs:
       - name: Install dependencies
         run: pip install requests Pillow
 
-      - name: Fotos holen + Uebersicht bauen
+      - name: Bilder erzeugen + Uebersicht bauen
         env:
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLI_TOKEN: ${{ secrets.POLLI_TOKEN }}
         run: |
           if [ -n "${{ github.event.inputs.redo }}" ]; then
             python scripts/kaufkraft_photos.py --redo "${{ github.event.inputs.redo }}"
