@@ -37,7 +37,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.SECRETS_WRITE_TOKEN }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
-          WEIRDWORLD_IG_ACCESS_TOKEN: ${{ secrets.WEIRDWORLD_IG_ACCESS_TOKEN }}
           JOTALABS_IG_ACCESS_TOKEN: ${{ secrets.JOTALABS_IG_ACCESS_TOKEN }}
           PTNE_API_TOKEN: ${{ secrets.PTNE_API_TOKEN }}
           HORROR_IG_ACCESS_TOKEN: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
