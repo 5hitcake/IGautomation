@@ -1833,8 +1833,13 @@ function drawEagles(){
     drawHazardHalo(sx, sy, r);
     const img = IMG.art_eagle;
     if(img){
+      // Side-view glide art (drawn facing left) - mirrored horizontally by
+      // travel direction rather than rotated to the flight angle, since a
+      // rotated side-view sprite reads wrong on a vertical flight path (the
+      // level's eagle flies straight down/up a fixed line).
       ctx.save();
-      ctx.translate(sx, sy); ctx.rotate((p.ang || 0) + Math.PI/2);
+      ctx.translate(sx, sy);
+      if(e.x2 > e.x1) ctx.scale(-1, 1);
       const h = r*2.6, wd = h*img.width/img.height;
       ctx.drawImage(img, -wd/2, -h/2, wd, h);
       ctx.restore();
