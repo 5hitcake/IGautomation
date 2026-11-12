@@ -26,7 +26,6 @@ import requests
 # Secret-Name -> Anzeigename
 INSTAGRAM_SECRETS = {
     "IG_ACCESS_TOKEN": "@mindset_und.motivation",
-    "WEIRDWORLD_IG_ACCESS_TOKEN": "WeirdWorld (Instagram)",
     "JOTALABS_IG_ACCESS_TOKEN": "@jota_labsweb",
     "PTNE_API_TOKEN": "These people do not exist",
     "HORROR_IG_ACCESS_TOKEN": "Gruselgeschichten",
