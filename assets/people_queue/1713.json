@@ -1,0 +1,32 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 40,
+    "age_range": [
+      40,
+      49
+    ],
+    "heritage": [
+      "Japanese",
+      "japanese"
+    ],
+    "name": "Aiko",
+    "hair": "hair tucked under a beanie",
+    "facial_hair": null,
+    "detail": "a gap between the front teeth",
+    "clothing": "a plain white t-shirt",
+    "setting": "in a home kitchen",
+    "lighting": "dim moody ambient light",
+    "camera": "shot on Sony A7 III, 50mm f/1.8",
+    "framing": "waist-up portrait",
+    "expression": "laughing naturally",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Waist-up portrait photo of a 40-year-old Japanese woman with hair tucked under a beanie and a gap between the front teeth, wearing a plain white t-shirt, laughing naturally, in a home kitchen, dim moody ambient light, shot on Sony A7 III, 50mm f/1.8, looks exactly 40 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0028 · \"Aiko\", 40\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #notreal #digitalhuman #peopleofinstagram #faces #fluxai #fakeface"
+}
