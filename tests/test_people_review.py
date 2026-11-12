@@ -121,8 +121,9 @@ def test_reroll_creates_new_person_once(setup):
 
 
 def test_reroll_limit_then_auto_post(setup):
-    tg, result, _ = setup(["reroll", "reroll"])
-    assert len(tg.sent) == 2 and result["caption"] == "cap2"
+    n = pr.MAX_REROLLS
+    tg, result, _ = setup(["reroll"] * (n + 1))
+    assert len(tg.sent) == n + 1 and result["caption"] == f"cap{n + 1}"
     assert any("Keine weitere" in t for t in tg.texts)
 
 
