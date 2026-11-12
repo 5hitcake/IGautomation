@@ -209,7 +209,8 @@ jobs:
             *) echo "Unbekannter Account $ACC"; exit 1 ;;
           esac
           expected=$(python -c "import json;print(json.load(open('content/story_reels/$ACC.json'))['account']['instagram_username'])")
-          python scripts/publish.py --post-file assets/story_reels/$ACC/next_post.json --expect-username "$expected"
+          set -o pipefail
+          python scripts/publish.py --post-file assets/story_reels/$ACC/next_post.json --expect-username "$expected" 2>&1 | tee publish.log
 
       - name: Zusätzlich auf TikTok hochladen (optional)
         id: tiktok
@@ -247,6 +248,22 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scripts/story_review.py --notify-tiktok assets/story_reels/${{ steps.acc.outputs.account }}/next_post.json
 
+      - name: Bei Fehler Geschichte zurück in den Vorrat legen
+        if: always() && steps.review.outputs.publish == 'true' && steps.publish.outcome == 'failure'
+        env:
+          ACC: ${{ steps.acc.outputs.account }}
+          STORY: ${{ steps.review.outputs.story }}
+        run: |
+          # Das Log wurde schon vor dem Posten committet - ohne Post soll die Geschichte nicht verloren gehen.
+          cd scripts && python -c "
+          import os, story_reel as sr
+          st = sr.load_state(); acc = st.setdefault(os.environ['ACC'], {})
+          acc['posted'] = [s for s in acc.get('posted', []) if s != os.environ['STORY']]
+          sr.save_state(st)"
+          cd .. && git add story_reels_posted_log.json
+          git commit -m "Story zurück in den Vorrat ($ACC): $STORY (Posten fehlgeschlagen)" || exit 0
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
       - name: Ergebnis per Telegram melden
         if: always() && steps.gate.outputs.run == 'true' && steps.acc.outputs.publish == 'true'
         env:
@@ -262,6 +279,11 @@ jobs:
             exit 0  # bewusst ausgelassen
           else
             msg="⚠️ Reel ($acc) fehlgeschlagen - Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            if grep -q "OAuthException\|Error validating access token" publish.log 2>/dev/null; then
+              msg="$msg
+
+🔑 Der Instagram-Zugang für $acc ist ungültig (z.B. nach Passwortänderung). Bitte neuen Token erzeugen und das GitHub-Secret erneuern (README: Story-Reels → Einrichtung). Die Geschichte bleibt im Vorrat."
+            fi
           fi
           pip install -q requests Pillow 2>/dev/null || true
           python scripts/story_review.py --notify "$msg"
