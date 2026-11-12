@@ -148,15 +148,22 @@ die genaue Fehlermeldung.
 
 ---
 
-## Wartung: Token-Erneuerung
+## Wartung: Token-Erneuerung (automatisch)
 
-Der Long-Lived Token läuft nach **~60 Tagen** ab. Alle **50 Tage**:
-1. Im Meta Developer Dashboard → App → Instagram → "API setup with Instagram login"
-   → im Abschnitt "Generate access token" erneut "Generate token" klicken (Schritt 2.5).
-2. `IG_ACCESS_TOKEN` Secret in GitHub mit dem neuen Wert überschreiben.
+Instagram-Tokens laufen nach **60 Tagen** ab. Der Workflow **Token-Erneuerung (alle Accounts)**
+(`token_refresh.yml`) verlängert **jeden Montag** alle Instagram-Tokens um weitere 60 Tage und
+prüft die TikTok-Refresh-Tokens. Gibt Meta oder TikTok dabei einen neuen Token aus, wird er
+automatisch als GitHub-Secret gespeichert. Per Telegram kommt nur eine Nachricht, wenn ein
+Token neu gespeichert wurde oder etwas nicht geklappt hat.
 
-Ohne diesen Schritt schlagen die Posts irgendwann mit einem Auth-Fehler fehl (sichtbar
-im Actions-Log).
+**Einmalig einrichten:** Secret `SECRETS_WRITE_TOKEN` anlegen, ein fein granularer GitHub-Token:
+github.com/settings/personal-access-tokens → *Generate new token* → *Repository access*: nur
+dieses Repo → *Permissions*: **Secrets: Read and write** → erzeugen und als Secret eintragen.
+Testen: Actions → *Token-Erneuerung (alle Accounts)* → *Run workflow*.
+
+Von Hand nötig ist nur noch etwas, wenn ein Token komplett ungültig ist (z. B. nach Änderungen
+an der Meta-App oder einem geänderten Passwort): dann im Meta Developer Dashboard → App →
+Instagram → "API setup with Instagram login" → "Generate token" und das Secret ersetzen.
 
 ---
 
