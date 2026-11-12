@@ -1,0 +1,57 @@
+name: Kaufkraft-Check Fotos
+
+# Erzeugt die Produktbilder fuer @kaufkraft.check (schlichtes Studiobild pro Produkt,
+# Cloudflare Workers AI) und legt eine Uebersicht an: assets/kaufkraft_products/_uebersicht.jpg
+#
+# Ablauf:
+#   1. "Run workflow" ohne Eingabe -> erzeugt alle fehlenden Bilder + Uebersicht
+#   2. Uebersicht auf GitHub ansehen
+#   3. Unpassende Bilder neu erzeugen: "Run workflow" mit z.B. "butter,kino"
+#      (oder ein eigenes Foto als assets/kaufkraft_products/<id>.jpg hochladen)
+
+on:
+  workflow_dispatch:
+    inputs:
+      redo:
+        description: "Optional: Bilder neu erzeugen, Produkt-IDs kommagetrennt (z.B. butter,kino)"
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kaufkraft-post
+  cancel-in-progress: false
+
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests Pillow
+
+      - name: Bilder erzeugen + Uebersicht bauen
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLI_TOKEN: ${{ secrets.POLLI_TOKEN }}
+        run: |
+          if [ -n "${{ github.event.inputs.redo }}" ]; then
+            python scripts/kaufkraft_photos.py --redo "${{ github.event.inputs.redo }}"
+          else
+            python scripts/kaufkraft_photos.py
+          fi
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A assets/kaufkraft_products
+          git commit -m "Kaufkraft-Fotos: $(date -u +'%Y-%m-%d %H:%M') UTC" || echo "nichts zu committen"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
