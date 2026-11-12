@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261111_1714_0024.mp4",
-  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0024 · \"Tomasz\", 24\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #aiphotography #lookalike #notreal #twinstranger #faces",
+  "type": "image",
+  "file": "assets/people_generated/person_20261112_1114_0025.jpg",
+  "caption": "This face belongs to no one.\n\nPerson No. 0025 · \"Rodrigo\", 26\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #digitalhuman #twinstranger #fakeface #notreal #portraitphotography #aiart",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Candid half-body shot photo of a 24-year-old young Eastern European man with hair under a baseball cap, a long braided beard, a single small beauty mark near the eye and rosy cheeks, wearing a wool coat and scarf, a warm genuine smile, in a library, afternoon sunlight through a window, shot on Canon EOS R5, 85mm f/1.4, looks exactly 24 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 24,
-  "name": "Tomasz",
-  "age": 24,
-  "image": "assets/people_generated/person_20261111_1714_0024.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Head and shoulders portrait photo of a 26-year-old young Mexican man with tight curls, a long braided beard, a stocky build and a single small mole on the cheek, wearing a chunky knit sweater, a warm genuine smile, at a bus stop, overcast diffused daylight, shot on iPhone, candid snapshot, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 25,
+  "name": "Rodrigo",
+  "age": 26
 }

@@ -1,5 +1,5 @@
 {
-  "count": 24,
+  "count": 25,
   "recent": [
     {
       "gender": "woman",
@@ -288,6 +288,18 @@
         "eastern_european"
       ],
       "setting": "in a library"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Mexican",
+        "mexican"
+      ],
+      "setting": "at a bus stop"
     }
   ],
   "reserve_used": [
