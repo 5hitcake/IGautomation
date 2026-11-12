@@ -350,7 +350,7 @@ const s2wy = sy => (sy - H/2)/cam.z + cam.y;
 let strokes = [];                    // [{segs:[seg,...]}] — for undo
 let segs = [];                       // flat live list
 let islandSegs = [];                 // fixed level terrain (LEVEL.islands), collidable but not player-editable/erasable
-let lastEnd = null;                  // endpoint of the most recently drawn line, for snapping
+let openEnds = [];                   // every free/unconnected endpoint across all player strokes, for snapping
 let freePads = [];                   // player-placed boost pads in free-draw mode ({x,y,r})
 const FREE_PAD_R = 50;
 function activeBoostPads(){ return LEVEL ? LEVEL.boostPads : freePads; }
@@ -402,13 +402,30 @@ function rebuildGrid(){
       }
     }
   }
-  updateLastEnd();
+  updateOpenEnds();
 }
-function updateLastEnd(){
-  if(strokes.length){
-    const st = strokes[strokes.length-1], s = st.segs[st.segs.length-1];
-    lastEnd = { x:s.x2, y:s.y2 };
-  } else lastEnd = null;
+// A point where only one segment-endpoint lands is a free/open end of a
+// line (either the natural tip of a stroke, or a cut edge left behind by
+// erasing mid-line) - every one of those gets a snap hint, not just the
+// single most-recently-drawn tip. A point two segments share (an interior
+// vertex, or two strokes snapped together) is not an open end.
+function updateOpenEnds(){
+  const counts = new Map();
+  const bump = (x,y) => {
+    const key = Math.round(x*20)+","+Math.round(y*20);
+    const e = counts.get(key);
+    if(e) e.n++; else counts.set(key, { x, y, n:1 });
+  };
+  for(const st of strokes) for(const s of st.segs){ bump(s.x1,s.y1); bump(s.x2,s.y2); }
+  openEnds = [...counts.values()].filter(e => e.n === 1).map(e => ({x:e.x, y:e.y}));
+}
+function nearestOpenEnd(x, y, maxR){
+  let best = null, bestD = maxR;
+  for(const p of openEnds){
+    const d = Math.hypot(x-p.x, y-p.y);
+    if(d <= bestD){ bestD = d; best = p; }
+  }
+  return best;
 }
 function queryNear(x,y,r){
   const out=[], seen=new Set();
@@ -801,6 +818,12 @@ function drawIntroOverlay(){
 
 /* ============================ rider physics ============================ */
 const GRAV = 1500, RAD = 13, FRICTION = 0.030, VMAX = 4200, CRASH_V = 1650;
+// Below this speed a patrolling ground enemy "catches" the dragon from a
+// bit further out (wider effective hit radius) rather than needing an
+// exact-timing overlap - gliding too slowly past an enemy is its own risk,
+// on top of the pre-existing timing-based hit (get caught in an archer's
+// arrow or a catapult's rock at the wrong moment).
+const SLOW_CATCH_SPEED = 450, SLOW_CATCH_BONUS_R = 26;
 // FRICTION was tuned against a single ~1/60s frame, back when physStep()
 // always ran substep() exactly once per frame. It was later changed to
 // subdivide a frame into up to 10 finer substeps at high speed/tight
@@ -885,7 +908,9 @@ function substep(h, dynamicHazards){
       if(Math.hypot(rider.x-o.x, rider.y-o.y) < RAD+o.r) hazardHit = true;
     }
     for(const e of dynamicHazards){
-      if(Math.hypot(rider.x-e.x, rider.y-e.y) < RAD+e.r) hazardHit = true;
+      let r = e.r;
+      if(e.kind === "enemy" && Math.hypot(rider.vx, rider.vy) < SLOW_CATCH_SPEED) r += SLOW_CATCH_BONUS_R;
+      if(Math.hypot(rider.x-e.x, rider.y-e.y) < RAD+r) hazardHit = true;
     }
     if(!won && Math.hypot(rider.x-LEVEL.goal.x, rider.y-LEVEL.goal.y) < (LEVEL.goalR || GOAL_R)) goalHit = true;
     for(const co of LEVEL.coins){
@@ -934,7 +959,7 @@ function physStep(dt){
   let dynamicHazards = [];
   if(LEVEL){
     const t = simFrame*(STEP/1000);
-    dynamicHazards = LEVEL.enemies.map(e => enemyPosAt(e, t))
+    dynamicHazards = LEVEL.enemies.map(e => ({ ...enemyPosAt(e, t), kind:"enemy" }))
       .concat(LEVEL.archers.map(a => archerArrowAt(a, t)).filter(Boolean))
       .concat(LEVEL.catapults.map(c => catapultRockAt(c, t)).filter(Boolean));
   }
@@ -1030,8 +1055,9 @@ canvas.addEventListener("pointerdown", e=>{
   }
   else {
     let px = wx, py = wy;
-    if(opts.snap && lastEnd && Math.hypot(px-lastEnd.x, py-lastEnd.y) <= SNAP_R/cam.z){
-      px = lastEnd.x; py = lastEnd.y;
+    if(opts.snap){
+      const near = nearestOpenEnd(px, py, SNAP_R/cam.z);
+      if(near){ px = near.x; py = near.y; }
     }
     stroke = { pts:[{x:px,y:py}], ruler: tool===TOOL.RULER };
     setLoopPlaying("sfx_draw", true);
@@ -1098,7 +1124,7 @@ function commitStroke(st){
   if(!out.length) return;
   strokes.push({ segs:out, ruler: !!st.ruler });
   for(const s of out){ segs.push(s); gridAdd(s); }
-  updateLastEnd();
+  updateOpenEnds();
   syncRulerBadge();
 }
 // Clips a segment against a circular eraser: returns the sub-segment(s) that
@@ -1589,12 +1615,16 @@ function drawTrack(){
 }
 
 function drawSnapHint(){
-  if(!opts.snap || !lastEnd || stroke) return;
+  if(!opts.snap || !openEnds.length || stroke) return;
   if(tool!==TOOL.PEN && tool!==TOOL.RULER) return;
-  const sx = w2sx(lastEnd.x), sy = w2sy(lastEnd.y), r = 10*cam.z;
+  const r = 10*cam.z;
   ctx.save();
   ctx.strokeStyle = "rgba(200,48,42,0.55)"; ctx.lineWidth = 1.6; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.stroke();
+  for(const p of openEnds){
+    const sx = w2sx(p.x), sy = w2sy(p.y);
+    if(sx < -r || sx > W+r || sy < -r || sy > H+r) continue;
+    ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -2136,7 +2166,6 @@ function loadTestLevel(){
 if(new URLSearchParams(location.search).get("test")==="1" || location.hash === "#test"){
   assetsReady.then(loadTestLevel);
 }
-
 </script>
 </body>
 </html>
