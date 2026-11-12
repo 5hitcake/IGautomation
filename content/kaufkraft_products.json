@@ -7,7 +7,8 @@
     "Einzelne Warengruppen gibt es bei Eurostat erst ab 2015; davor wird mit der uebergeordneten Gruppe (4-Steller, ab 1996) verkettet.",
     "known_prices (optional) = belegte echte Preise fuer 2001/2010, die die Indexrechnung ersetzen.",
     "Wer einen Preis aktualisieren will: price + price_period anpassen, alles andere rechnet sich neu.",
-    "verified=false heisst: Richtwert noch nicht mit einem echten Kassenzettel/Online-Shop abgeglichen."
+    "verified=false heisst: Richtwert noch nicht mit einem echten Kassenzettel/Online-Shop abgeglichen.",
+    "photo_query = englischer Suchbegriff fuer das echte Produktfoto (Pexels/Openverse)."
   ],
   "products": [
     {
@@ -18,7 +19,7 @@
       "price": 2.09,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a block of German butter in gold foil wrapper, partly unwrapped"
+      "photo_query": "butter block"
     },
     {
       "id": "brot",
@@ -28,7 +29,7 @@
       "price": 3.49,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a loaf of German rye wheat bread on a wooden board"
+      "photo_query": "loaf of bread"
     },
     {
       "id": "eier",
@@ -38,7 +39,7 @@
       "price": 2.69,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a carton of ten brown eggs, open"
+      "photo_query": "eggs carton"
     },
     {
       "id": "milch",
@@ -48,7 +49,7 @@
       "price": 1.09,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a plain white one liter milk carton without branding"
+      "photo_query": "milk bottle glass"
     },
     {
       "id": "kaffee",
@@ -58,7 +59,7 @@
       "price": 7.49,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a vacuum pack of ground coffee next to roasted coffee beans"
+      "photo_query": "ground coffee beans"
     },
     {
       "id": "schokolade",
@@ -68,7 +69,7 @@
       "price": 1.69,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a bar of milk chocolate, a few pieces broken off, plain wrapper"
+      "photo_query": "chocolate bar"
     },
     {
       "id": "olivenoel",
@@ -78,7 +79,7 @@
       "price": 8.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a glass bottle of extra virgin olive oil with olives beside it"
+      "photo_query": "olive oil bottle"
     },
     {
       "id": "kartoffeln",
@@ -88,7 +89,7 @@
       "price": 2.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a net bag of potatoes"
+      "photo_query": "potatoes"
     },
     {
       "id": "zucker",
@@ -98,7 +99,7 @@
       "price": 0.89,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a paper bag of white sugar with sugar cubes beside it"
+      "photo_query": "sugar"
     },
     {
       "id": "bier",
@@ -108,7 +109,7 @@
       "price": 16.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a crate of twenty brown beer bottles without labels"
+      "photo_query": "beer bottles crate"
     },
     {
       "id": "benzin",
@@ -118,7 +119,7 @@
       "price": 1.7,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a green petrol pump nozzle at a gas station"
+      "photo_query": "gas pump nozzle"
     },
     {
       "id": "diesel",
@@ -128,7 +129,7 @@
       "price": 1.6,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a black diesel fuel pump nozzle at a gas station"
+      "photo_query": "diesel fuel pump"
     },
     {
       "id": "strom",
@@ -138,7 +139,7 @@
       "price": 0.39,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a glowing light bulb above an electricity meter"
+      "photo_query": "electricity meter"
     },
     {
       "id": "doener",
@@ -148,7 +149,7 @@
       "price": 7.0,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a doner kebab in flatbread wrapped in paper"
+      "photo_query": "doner kebab"
     },
     {
       "id": "schnitzel",
@@ -158,7 +159,7 @@
       "price": 15.9,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a breaded schnitzel with french fries and a lemon slice on a plate"
+      "photo_query": "schnitzel fries"
     },
     {
       "id": "kino",
@@ -168,7 +169,7 @@
       "price": 9.9,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a cinema ticket next to a bucket of popcorn"
+      "photo_query": "cinema seats"
     },
     {
       "id": "friseur",
@@ -178,7 +179,7 @@
       "price": 24.0,
       "price_period": "2025",
       "verified": false,
-      "prompt": "barber scissors and a comb on a towel"
+      "photo_query": "barber haircut"
     },
     {
       "id": "briefmarke",
@@ -188,7 +189,7 @@
       "price": 0.95,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a white envelope with a generic postage stamp",
+      "photo_query": "postage stamps letter",
       "known_prices": {
         "2001": 0.56,
         "2010": 0.55,
@@ -203,7 +204,7 @@
       "price": 2.4,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a folded daily newspaper without readable text"
+      "photo_query": "newspaper"
     },
     {
       "id": "bananen",
@@ -213,7 +214,7 @@
       "price": 1.49,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a bunch of ripe yellow bananas"
+      "photo_query": "bananas"
     },
     {
       "id": "aepfel",
@@ -223,7 +224,7 @@
       "price": 2.49,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a pile of red apples"
+      "photo_query": "red apples"
     },
     {
       "id": "tomaten",
@@ -233,7 +234,7 @@
       "price": 2.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "fresh red tomatoes on the vine"
+      "photo_query": "tomatoes"
     },
     {
       "id": "nudeln",
@@ -243,7 +244,7 @@
       "price": 1.09,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a pack of spaghetti pasta, some pasta spilled out"
+      "photo_query": "spaghetti pasta"
     },
     {
       "id": "gouda",
@@ -253,7 +254,7 @@
       "price": 2.79,
       "price_period": "2025",
       "verified": false,
-      "prompt": "sliced gouda cheese and a wedge of gouda"
+      "photo_query": "gouda cheese"
     },
     {
       "id": "hackfleisch",
@@ -263,7 +264,7 @@
       "price": 4.29,
       "price_period": "2025",
       "verified": false,
-      "prompt": "fresh minced meat in a plastic tray"
+      "photo_query": "minced meat"
     },
     {
       "id": "haehnchen",
@@ -273,7 +274,7 @@
       "price": 10.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "raw chicken breast fillets on a cutting board"
+      "photo_query": "raw chicken breast"
     },
     {
       "id": "wasser",
@@ -283,7 +284,7 @@
       "price": 1.59,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a six pack of plastic mineral water bottles without labels"
+      "photo_query": "mineral water bottles"
     },
     {
       "id": "cola",
@@ -293,7 +294,7 @@
       "price": 1.79,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a plastic bottle of cola without branding, ice cubes"
+      "photo_query": "cola glass ice"
     },
     {
       "id": "orangensaft",
@@ -303,7 +304,7 @@
       "price": 2.19,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a glass and a carton of orange juice with fresh oranges"
+      "photo_query": "orange juice"
     },
     {
       "id": "wein",
@@ -313,7 +314,7 @@
       "price": 4.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a bottle of red wine without label and a filled wine glass"
+      "photo_query": "red wine bottle"
     },
     {
       "id": "honig",
@@ -323,7 +324,7 @@
       "price": 4.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a glass jar of golden honey with a honey dipper"
+      "photo_query": "honey jar"
     },
     {
       "id": "eis",
@@ -333,7 +334,7 @@
       "price": 2.79,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a tub of vanilla ice cream with a scoop"
+      "photo_query": "ice cream scoop"
     },
     {
       "id": "fitness",
@@ -343,7 +344,7 @@
       "price": 29.9,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a pair of dumbbells on a gym floor"
+      "photo_query": "gym dumbbells"
     },
     {
       "id": "hotel",
@@ -353,7 +354,7 @@
       "price": 115.0,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a neatly made hotel bed with a key card on it"
+      "photo_query": "hotel room bed"
     },
     {
       "id": "klopapier",
@@ -363,7 +364,7 @@
       "price": 3.29,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a pack of eight toilet paper rolls"
+      "photo_query": "toilet paper rolls"
     },
     {
       "id": "waschmittel",
@@ -373,7 +374,7 @@
       "price": 4.99,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a box of laundry detergent powder without branding"
+      "photo_query": "laundry detergent"
     },
     {
       "id": "zahnpasta",
@@ -383,7 +384,7 @@
       "price": 1.95,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a tube of toothpaste and a toothbrush"
+      "photo_query": "toothpaste toothbrush"
     },
     {
       "id": "wasser_leitung",
@@ -393,7 +394,7 @@
       "price": 2.2,
       "price_period": "2025",
       "verified": false,
-      "prompt": "a glass being filled with water from a kitchen tap"
+      "photo_query": "water tap"
     }
   ]
 }

@@ -688,16 +688,26 @@ Für Produkte mit belegten echten Preisen (z. B. Briefmarke) stehen diese unter 
 und ersetzen die Rechnung. **Die Richtpreise sind Schätzungen (`verified: false`)** – wer einen
 Preis prüft, trägt ihn ein und setzt `verified: true`; alle Jahre rechnen sich automatisch neu.
 
-Produktfotos werden beim ersten Einsatz einmalig über Cloudflare Workers AI erzeugt
-(dieselben Secrets wie beim People-Account) und unter `assets/kaufkraft_products/` gespeichert.
-Gefällt ein Foto nicht: Datei löschen, beim nächsten Mal entsteht ein neues.
+**Echte Produktfotos** (keine KI): `scripts/kaufkraft_photos.py` sucht pro Produkt mit dem
+Begriff `photo_query` zuerst bei **Pexels** (kostenlose Fotos, kommerziell nutzbar), sonst bei
+**Openverse** (nur CC0 / Public Domain / CC BY). Fotograf und Quelle stehen klein auf der Grafik
+und in der Caption, gespeichert in `assets/kaufkraft_products/credits.json`.
+
+Fotos prüfen, bevor sie gepostet werden:
+1. Actions → **Kaufkraft-Check Fotos** → *Run workflow* (ohne Eingabe) holt alle fehlenden Fotos
+   und baut die Übersicht `assets/kaufkraft_products/_uebersicht.jpg`.
+2. Übersicht auf GitHub ansehen. Unpassende Fotos neu holen: denselben Workflow mit z. B.
+   `butter,kino` starten. Oder ein **eigenes Foto** (z. B. selbst an der Tankstelle gemacht) als
+   `assets/kaufkraft_products/<id>.jpg` hochladen – eigene Fotos haben immer Vorrang.
+3. Der tägliche Post nimmt zuerst Produkte, die schon ein Foto im Repo haben.
 
 ### Einrichtung
 
 1. Neuen Instagram-Account anlegen, auf **Creator** umstellen, Profil ausfüllen (siehe unten).
 2. Token + Account-ID wie in [Schritt 2](#schritt-2-instagram-api-einrichten-ohne-facebook-seite)
    erzeugen (in derselben Meta-App den neuen Account als Tester hinzufügen).
-3. GitHub Secrets anlegen: `WOE_ACCOUNT_TOKEN`, `WOE_ACCOUNT_ID`.
+3. GitHub Secrets anlegen: `WOE_ACCOUNT_TOKEN`, `WOE_ACCOUNT_ID` und (empfohlen) `PEXELS_API_KEY`
+   (kostenlos: auf [pexels.com/api](https://www.pexels.com/api/) registrieren → „Your API Key“).
 4. Heißt der Account nicht `kaufkraft.check`, in `kaufkraft_post.yml` `IG_USERNAME` und in
    `scripts/kaufkraft_render.py` `HANDLE` anpassen (Sicherheitscheck gegen Fehlposts).
 5. Test: Actions → **Kaufkraft-Check Post** → *Run workflow*. Ohne Secrets entsteht nur eine

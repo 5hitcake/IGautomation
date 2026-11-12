@@ -71,7 +71,7 @@ def test_product_list_is_valid():
     ids = [p["id"] for p in products]
     assert len(ids) == len(set(ids))
     for p in products:
-        assert p["coicop"].startswith("CP") and p["price"] > 0 and p["prompt"]
+        assert p["coicop"].startswith("CP") and p["price"] > 0 and p["photo_query"]
 
 
 def test_pick_product_cycles_without_repeats():
@@ -86,7 +86,8 @@ def test_pick_product_cycles_without_repeats():
 def test_product_post_renders_offline(tmp_path, monkeypatch):
     series = monthly({"2001": 50, "2010": 75, "2015": 100, "2025": 200})
     monkeypatch.setattr(kd, "fetch_indices", lambda codes, **kw: {c: series for c in codes})
-    monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
+    monkeypatch.delenv("PEXELS_API_KEY", raising=False)
+    monkeypatch.setattr(kph, "candidates", lambda product, session=None: [])
     monkeypatch.setattr(kp, "PHOTOS_DIR", str(tmp_path / "photos"))
     products = kd.load_products()
     state = {}
@@ -115,3 +116,79 @@ def test_write_post_points_to_repo_relative_file(tmp_path, monkeypatch):
     with open(tmp_path / "next_post.json", encoding="utf-8") as f:
         post = json.load(f)
     assert post == {"type": "image", "file": "assets/kaufkraft_generated/x.jpg", "caption": "hallo"}
+
+
+class FakeResp:
+    def __init__(self, payload=None, content=b""):
+        self._payload, self.content = payload, content
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._payload
+
+
+def jpeg_bytes():
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (1200, 800), (200, 100, 50)).save(buf, "JPEG")
+    return buf.getvalue()
+
+
+class FakeSession:
+    """Pexels liefert zwei Fotos, Downloads liefern ein JPEG."""
+
+    def get(self, url, params=None, headers=None, timeout=None):
+        if url == kph.PEXELS_URL:
+            assert headers["Authorization"] == "key123"
+            photos = [{"id": i, "src": {"large2x": f"https://img/{i}.jpg", "original": "x"},
+                       "photographer": f"Foto Graf {i}", "url": f"https://pexels/{i}"} for i in (1, 2)]
+            return FakeResp({"photos": photos})
+        return FakeResp(content=jpeg_bytes())
+
+
+import kaufkraft_photos as kph  # noqa: E402
+
+
+def test_fetch_photo_from_pexels_saves_credit_and_skips_used(tmp_path, monkeypatch):
+    monkeypatch.setenv("PEXELS_API_KEY", "key123")
+    d = str(tmp_path)
+    p1 = kph.fetch_photo({"id": "a", "name": "A", "photo_query": "a"}, d, FakeSession())
+    p2 = kph.fetch_photo({"id": "b", "name": "B", "photo_query": "b"}, d, FakeSession())
+    assert os.path.exists(p1) and os.path.exists(p2)
+    credits = kph.load_credits(d)
+    assert credits["a"]["id"] == "pexels:1"
+    assert credits["b"]["id"] == "pexels:2"  # nicht dasselbe Foto fuer zwei Produkte
+    assert kph.credit_line(credits["a"]) == "Foto: Foto Graf 1 / Pexels"
+
+
+def test_redo_takes_a_different_photo(tmp_path, monkeypatch):
+    monkeypatch.setenv("PEXELS_API_KEY", "key123")
+    d = str(tmp_path)
+    prod = {"id": "a", "name": "A", "photo_query": "a"}
+    kph.fetch_photo(prod, d, FakeSession())
+    kph.fetch_photo(prod, d, FakeSession(), redo=True)
+    assert kph.load_credits(d)["a"]["id"] == "pexels:2"
+
+
+def test_existing_own_photo_has_priority(tmp_path):
+    own = tmp_path / "a.jpg"
+    own.write_bytes(jpeg_bytes())
+    assert kph.fetch_photo({"id": "a", "name": "A"}, str(tmp_path), session=None) == str(own)
+
+
+def test_overview_sheet(tmp_path):
+    (tmp_path / "a.jpg").write_bytes(jpeg_bytes())
+    out = kph.make_overview([{"id": "a"}, {"id": "b"}], str(tmp_path))
+    assert os.path.exists(out)
+
+
+def test_pick_product_prefers_products_with_photo(tmp_path, monkeypatch):
+    monkeypatch.setattr(kp, "PHOTOS_DIR", str(tmp_path))
+    (tmp_path / "b.jpg").write_bytes(jpeg_bytes())
+    for _ in range(5):
+        assert kp.pick_product([{"id": "a"}, {"id": "b"}], {})["id"] == "b"

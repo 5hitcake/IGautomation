@@ -105,7 +105,8 @@ def placeholder_photo(name):
     return img
 
 
-def render_product_card(product, prices, photo_path, output_path, fmt_eur, fmt_pct, period_label):
+def render_product_card(product, prices, photo_path, output_path, fmt_eur, fmt_pct, period_label,
+                        photo_credit=None):
     base = Image.new("RGBA", (W, H), CREAM + (255,))
     draw = ImageDraw.Draw(base)
     header(draw, "Was kostet das eigentlich?")
@@ -167,6 +168,8 @@ def render_product_card(product, prices, photo_path, output_path, fmt_eur, fmt_p
     else:
         src = ["Quelle: Eurostat HVPI (Preisindex der Warengruppe, Deutschland)",
                f"Preise aus dem Index berechnet · Stand {period_label(prices['latest_period'])}"]
+    if photo_credit:
+        src.append(photo_credit)
     footer(draw, src)
     base.convert("RGB").save(output_path, "JPEG", quality=92)
 

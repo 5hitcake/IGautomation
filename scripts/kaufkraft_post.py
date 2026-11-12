@@ -5,9 +5,9 @@ assets/kaufkraft_generated/next_post.json fuer publish.py.
   So:    Inflation der Woche (rotiert: aktuelle Rate, Kaufkraft von 100 EUR,
          Preistreiber, Europa-Vergleich)
 
-Produktfotos liegen in assets/kaufkraft_products/<id>.jpg. Fehlt eins, wird es
-einmalig ueber Cloudflare Workers AI erzeugt (CLOUDFLARE_ACCOUNT_ID,
-CLOUDFLARE_API_TOKEN, optional POLLI_TOKEN) und danach wiederverwendet.
+Produktfotos (echte Fotos) liegen in assets/kaufkraft_products/<id>.jpg. Fehlt
+eins, holt scripts/kaufkraft_photos.py es von Pexels (PEXELS_API_KEY) bzw.
+Openverse und nennt den Fotografen auf Grafik und in der Caption.
 
 Nutzung:
   python kaufkraft_post.py                    (automatisch nach Wochentag)
@@ -17,13 +17,13 @@ Nutzung:
   python kaufkraft_post.py --preview          (alle Formate in einen Ordner rendern)
 """
 import argparse
-import io
 import json
 import os
 import random
 from datetime import datetime, timezone
 
 import kaufkraft_data as kd
+import kaufkraft_photos as kph
 import kaufkraft_render as kr
 
 ROOT = kd.ROOT
@@ -32,12 +32,6 @@ PHOTOS_DIR = os.path.join(ROOT, "assets", "kaufkraft_products")
 STATE_PATH = os.path.join(ROOT, "kaufkraft_posted_log.json")
 INFLATION_KINDS = ["rate", "purchasing_power", "movers", "europe"]
 KEEP_IMAGES = 6
-
-PHOTO_STYLE = (
-    "Professional studio product photograph of {subject}, centered, on a plain warm cream "
-    "background, soft natural light, gentle shadow, sharp focus, high detail, realistic, "
-    "no text, no letters, no logos, no brand names"
-)
 
 HASHTAGS = {
     "core": ["#kaufkraft", "#inflation", "#preise", "#euro", "#teuer"],
@@ -63,13 +57,20 @@ def save_state(state):
         f.write("\n")
 
 
+def has_photo(product):
+    return os.path.exists(os.path.join(PHOTOS_DIR, f"{product['id']}.jpg"))
+
+
 def pick_product(products, state, rng=random):
+    """Zufaelliges, noch nicht gepostetes Produkt. Produkte mit (geprueftem) Foto
+    im Repo kommen zuerst dran; ohne Foto wird es beim Posten automatisch geholt."""
     posted = set(state.get("posted_products", []))
     unused = [p for p in products if p["id"] not in posted]
     if not unused:
         state["posted_products"] = []
         unused = products
-    return rng.choice(unused)
+    with_photo = [p for p in unused if has_photo(p)]
+    return rng.choice(with_photo or unused)
 
 
 def hashtags(rng=random, extra=()):
@@ -78,32 +79,15 @@ def hashtags(rng=random, extra=()):
 
 
 def ensure_photo(product):
-    """Pfad zum Produktfoto oder None (dann zeichnet die Karte einen Platzhalter)."""
-    path = os.path.join(PHOTOS_DIR, f"{product['id']}.jpg")
-    if os.path.exists(path):
-        return path
-    account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
-    api_token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
-    if not account_id or not api_token:
-        print(f"Kein Foto fuer {product['id']} und keine Cloudflare-Zugangsdaten - Platzhalter.")
-        return None
-    from people_generate import generate_image
-    from PIL import Image
-
-    try:
-        raw, model = generate_image(PHOTO_STYLE.format(subject=product["prompt"]), account_id, api_token)
-    except Exception as exc:  # noqa: BLE001 - lieber Platzhalter als gar kein Post
-        print(f"Foto fuer {product['id']} fehlgeschlagen: {exc}")
-        return None
-    os.makedirs(PHOTOS_DIR, exist_ok=True)
-    img = Image.open(io.BytesIO(raw)).convert("RGB")
-    img.thumbnail((1200, 1200))
-    img.save(path, "JPEG", quality=88)
-    print(f"Foto fuer {product['id']} erzeugt ({model}) -> {path}")
-    return path
+    """Pfad zum echten Produktfoto oder None (dann zeichnet die Karte einen Platzhalter)."""
+    return kph.fetch_photo(product, PHOTOS_DIR)
 
 
-def product_caption(product, prices, rng=random):
+def photo_credit(product):
+    return kph.credit_line(kph.load_credits(PHOTOS_DIR).get(product["id"]))
+
+
+def product_caption(product, prices, rng=random, credit=None):
     name = f"{product['name']} ({product['amount']})"
     stand = kd.period_label(prices["latest_period"])
     lines = [f"{name}: Was hat das früher gekostet? 💶", ""]
@@ -121,7 +105,10 @@ def product_caption(product, prices, rng=random):
               "Folge @kaufkraft.check für täglich einen Preis-Check.", "",
               f"ℹ️ {DISCLAIMER}" if prices.get("method") != "known"
               else f"ℹ️ Quelle 2001/2010: {product['known_prices']['source']}. Heute: Eurostat HVPI.",
-              "", hashtags(rng, [f"#{product['id'].replace('_', '')}"])]
+              ]
+    if credit:
+        lines.append(f"📷 {credit}")
+    lines += ["", hashtags(rng, [f"#{product['id'].replace('_', '')}"])]
     return "\n".join(lines)
 
 
@@ -214,11 +201,12 @@ def make_product_post(products, state, product_id=None, out_dir=GENERATED_DIR):
     prices = kd.product_prices(product, indices)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
     out = os.path.join(out_dir, f"produkt_{stamp}_{product['id']}.jpg")
-    kr.render_product_card(product, prices, ensure_photo(product), out,
-                           kd.fmt_eur, kd.fmt_pct, kd.period_label)
+    photo = ensure_photo(product)
+    credit = photo_credit(product) if photo else None
+    kr.render_product_card(product, prices, photo, out, kd.fmt_eur, kd.fmt_pct, kd.period_label, credit)
     if product["id"] not in state.setdefault("posted_products", []):
         state["posted_products"].append(product["id"])
-    return out, product_caption(product, prices), product["id"]
+    return out, product_caption(product, prices, credit=credit), product["id"]
 
 
 def make_inflation_post(products, state, kind=None, out_dir=GENERATED_DIR):
