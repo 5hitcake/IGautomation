@@ -1,0 +1,34 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 26,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "Mexican",
+      "mexican"
+    ],
+    "name": "Rodrigo",
+    "hair": "tight curls",
+    "facial_hair": "a long braided beard",
+    "detail": "a single small mole on the cheek",
+    "clothing": "a chunky knit sweater",
+    "setting": "at a bus stop",
+    "lighting": "overcast diffused daylight",
+    "camera": "shot on iPhone, candid snapshot",
+    "framing": "head and shoulders portrait",
+    "expression": "a warm genuine smile",
+    "traits": [
+      "a stocky build"
+    ],
+    "bold": false
+  },
+  "prompt": "Head and shoulders portrait photo of a 26-year-old young Mexican man with tight curls, a long braided beard, a stocky build and a single small mole on the cheek, wearing a chunky knit sweater, a warm genuine smile, at a bus stop, overcast diffused daylight, shot on iPhone, candid snapshot, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This face belongs to no one.\n\nPerson No. 0027 · \"Rodrigo\", 26\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #digitalhuman #twinstranger #fakeface #notreal #portraitphotography #aiart"
+}

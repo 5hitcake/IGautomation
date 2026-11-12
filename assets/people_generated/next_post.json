@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261110_2343_0022.mp4",
-  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0022 · \"Aoife\", 42\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #streetportrait #twinstranger #digitalhuman #portrait #portraitphotography",
+  "file": "reel_20261111_1714_0024.mp4",
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0024 · \"Tomasz\", 24\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #aiphotography #lookalike #notreal #twinstranger #faces",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 42-year-old Irish woman with bangs and a ponytail and thick eyebrows, wearing a high-visibility work vest, a calm neutral expression, in a sunflower field, blue hour twilight, shot on iPhone, candid snapshot, looks exactly 42 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 22,
-  "name": "Aoife",
-  "age": 42,
-  "image": "assets/people_generated/person_20261110_2343_0022.jpg",
+  "prompt": "Candid half-body shot photo of a 24-year-old young Eastern European man with hair under a baseball cap, a long braided beard, a single small beauty mark near the eye and rosy cheeks, wearing a wool coat and scarf, a warm genuine smile, in a library, afternoon sunlight through a window, shot on Canon EOS R5, 85mm f/1.4, looks exactly 24 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 24,
+  "name": "Tomasz",
+  "age": 24,
+  "image": "assets/people_generated/person_20261111_1714_0024.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
