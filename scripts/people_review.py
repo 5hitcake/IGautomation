@@ -6,8 +6,8 @@ Ablauf (laeuft ca. 3 Stunden vor dem Posting-Termin):
      ✅ Posten · 🔄 Neue Person · ❌ Verwerfen
   2. Auf einen Klick warten:
      ✅  -> wird zum Termin gepostet
-     🔄  -> neue Person erzeugen und erneut fragen (max. MAX_REROLLS Mal,
-            wegen des Cloudflare-Gratis-Kontingents)
+     🔄  -> neue Person erzeugen und erneut fragen (max. MAX_REROLLS Mal pro Termin;
+            leeres Kontingent faengt die Modell-Kette bzw. das Reservebild ab)
      ❌  -> dieser Post faellt aus
      keine Reaktion bis zum Termin -> wird automatisch gepostet
   3. Bei Freigabe: Bild + next_post.json + Log speichern (people_generate.finalize)
@@ -40,7 +40,7 @@ import requests
 API = "https://api.telegram.org/bot{token}/{method}"
 LOCAL_TZ = ZoneInfo("America/Argentina/Buenos_Aires")  # Zeitzone des Nutzers
 QUEUE_DIR = os.path.join(pg.ROOT, "assets", "people_queue")
-MAX_REROLLS = 1
+MAX_REROLLS = 3
 POLL_TIMEOUT = 50  # Long-Polling, Sekunden
 
 APPROVE, REROLL, REJECT = "approve", "reroll", "reject"
@@ -201,8 +201,8 @@ def review(tg, state, deadline, dry_run=False, sleep=time.sleep, now=None):
         msg_id = tg.send_candidate(cand["jpeg"], header + cand["caption"], token)
         decision = tg.wait_for_decision(token, deadline, now=now)
         if decision == REROLL and rerolls >= MAX_REROLLS:
-            tg.send_text("Keine weitere neue Person moeglich (Gratis-Kontingent). Diese wird gepostet, "
-                         "ausser du klickst ❌.")
+            tg.send_text(f"Keine weitere neue Person moeglich ({MAX_REROLLS} Versuche erreicht). "
+                         "Diese wird gepostet, ausser du klickst ❌.")
             decision = tg.wait_for_decision(token, deadline, now=now)
             decision = REJECT if decision == REJECT else APPROVE
         if decision == REROLL:
@@ -274,7 +274,7 @@ def review_batch(tg, state, slots, deadline, dry_run=False, now=None):
             offer(i)
         elif decision == REROLL:
             tg.send_text(f"Keine weitere neue Person fuer {local_time(slots[i])} Uhr moeglich "
-                         "(Gratis-Kontingent). Diese wird gepostet, ausser du klickst ❌.")
+                         f"({MAX_REROLLS} Versuche erreicht). Diese wird gepostet, ausser du klickst ❌.")
             active[token] = (i, msg_id, cand)
         elif decision == REJECT:
             tg.set_status(msg_id, f"❌ Verworfen - der Post um {local_time(slots[i])} Uhr faellt aus.")
