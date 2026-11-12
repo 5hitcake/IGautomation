@@ -1,0 +1,32 @@
+name: IG-Token-Check (temporaer)
+on:
+  push:
+    branches: [claude/instagram-reels-automation-koceqs]
+    paths: [".github/workflows/ig_token_check.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          HT: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
+          HI: ${{ secrets.HORROR_IG_ACCOUNT_ID }}
+          MT: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN }}
+          MI: ${{ secrets.MYSTERY_IG_ACCOUNT_ID }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          for name, tok, acc_id, want in (("Grusel", "HT", "HI", "wahre_gruselgeschichten"),
+                                          ("Mystery", "MT", "MI", "imysteryhistoryi")):
+              t, i = os.environ[tok].strip(), os.environ[acc_id].strip()
+              try:
+                  with urllib.request.urlopen(f"https://graph.instagram.com/v21.0/me?fields=user_id,username&access_token={t}", timeout=30) as r:
+                      d = json.load(r)
+                  u = d.get("username", "")
+                  print(f"{name}: Token gültig, Account @{u}",
+                        "- passt" if u.lower() == want else f"- FALSCHER Account (erwartet @{want})",
+                        "| Account-ID passt" if str(d.get("user_id")) == i or str(d.get("id")) == i else "| Account-ID weicht ab")
+              except urllib.error.HTTPError as e:
+                  body = json.loads(e.read() or b"{}").get("error", {})
+                  print(f"{name}: FEHLER {e.code}: {body.get('message', '')[:200]}")
+          PY
