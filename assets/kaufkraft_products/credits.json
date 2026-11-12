@@ -1,7 +1,27 @@
 {
+  "aepfel": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "bananen": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
+    "source": "KI"
+  },
   "benzin": {
     "label": "Symbolbild (KI-generiert)",
     "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "bier": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
+    "source": "KI"
+  },
+  "briefmarke": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
     "source": "KI"
   },
   "brot": {
@@ -12,6 +32,11 @@
   "butter": {
     "label": "Symbolbild (KI-generiert)",
     "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "cola": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
     "source": "KI"
   },
   "diesel": {
@@ -29,14 +54,139 @@
     "model": "z-image-turbo",
     "source": "KI"
   },
+  "eis": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "fitness": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "friseur": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
+    "source": "KI"
+  },
+  "gouda": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "hackfleisch": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "haehnchen": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "honig": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "hotel": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
   "kaffee": {
     "label": "Symbolbild (KI-generiert)",
     "model": "z-image-turbo",
     "source": "KI"
   },
+  "kartoffeln": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
+    "source": "KI"
+  },
+  "kino": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
+    "source": "KI"
+  },
+  "klopapier": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
   "milch": {
     "label": "Symbolbild (KI-generiert)",
     "model": "z-image-turbo",
+    "source": "KI"
+  },
+  "nudeln": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "olivenoel": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "source": "KI"
+  },
+  "orangensaft": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "schnitzel": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
+    "source": "KI"
+  },
+  "schokolade": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
+    "source": "KI"
+  },
+  "strom": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "source": "KI"
+  },
+  "tomaten": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "waschmittel": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "wasser": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "wasser_leitung": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "wein": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "zahnpasta": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "pollinations:tongyi-mai/z-image-turbo",
+    "source": "KI"
+  },
+  "zeitung": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-4b",
+    "source": "KI"
+  },
+  "zucker": {
+    "label": "Symbolbild (KI-generiert)",
+    "model": "@cf/black-forest-labs/flux-2-klein-9b",
     "source": "KI"
   }
 }
