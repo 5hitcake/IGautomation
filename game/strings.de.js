@@ -16,6 +16,7 @@ export const STR = {
 
   // Hints
   hintDraw: "Zeichne eine Linie mit dem Finger",
+  hintStartPoint: "Beginne am markierten Startpunkt",
   hintRuler: "Ziehe für eine gerade Linie",
   hintRulerGone: "Keine Lineale mehr übrig – weiter mit dem Stift",
   hintBoostPad: "Tippe, um ein Boost-Feld zu setzen",

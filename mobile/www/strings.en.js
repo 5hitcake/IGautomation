@@ -17,6 +17,7 @@ export const STR = {
 
   // Hints
   hintDraw: "Draw a line with your finger",
+  hintStartPoint: "Start at the marked start point",
   hintRuler: "Drag for a straight line",
   hintRulerGone: "No rulers left - use the pencil instead",
   hintBoostPad: "Tap to place a boost pad",

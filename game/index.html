@@ -426,6 +426,10 @@ function updateOpenEnds(){
   };
   for(const st of strokes) for(const s of st.segs){ bump(s.x1,s.y1); bump(s.x2,s.y2); }
   openEnds = [...counts.values()].filter(e => e.n === 1).map(e => ({x:e.x, y:e.y}));
+  // Before anything is drawn, the start point is the only valid place to
+  // begin - surfaced through the same snap-hint the player already knows
+  // from reconnecting to an erased line's open end.
+  if(strokes.length === 0) openEnds.push({ x: START.x, y: START.y, start:true });
 }
 function nearestOpenEnd(x, y, maxR){
   let best = null, bestD = maxR;
@@ -1070,7 +1074,7 @@ const TOOL = { PEN:"pen", RULER:"ruler", ERASE:"erase", PAN:"pan", BOOST_PAD:"bo
 let tool = TOOL.PEN;
 const pointers = new Map();
 let stroke = null, pinch = null, panning = null;
-const MIN_PT = 5, ERASE_R = 26, SNAP_R = 26;
+const MIN_PT = 5, ERASE_R = 26, SNAP_R = 26, START_LOCK_R = 140;
 
 canvas.addEventListener("pointerdown", e=>{
   canvas.setPointerCapture(e.pointerId);
@@ -1094,7 +1098,13 @@ canvas.addEventListener("pointerdown", e=>{
   }
   else {
     let px = wx, py = wy;
-    if(opts.snap){
+    if(strokes.length === 0){
+      // The very first stroke must begin at the start point - enforced
+      // regardless of the snap-assist toggle, since this isn't a
+      // convenience, it's where the dragon actually launches from.
+      if(Math.hypot(wx-START.x, wy-START.y) > START_LOCK_R/cam.z){ showHint(STR.hintStartPoint); return; }
+      px = START.x; py = START.y;
+    } else if(opts.snap){
       const near = nearestOpenEnd(px, py, SNAP_R/cam.z);
       if(near){ px = near.x; py = near.y; }
     }
@@ -1660,10 +1670,28 @@ function drawSnapHint(){
   ctx.save();
   ctx.strokeStyle = "rgba(200,48,42,0.55)"; ctx.lineWidth = 1.6; ctx.setLineDash([3,3]);
   for(const p of openEnds){
+    if(p.start) continue; // drawn separately by drawStartHint, on top of the cave art
     const sx = w2sx(p.x), sy = w2sy(p.y);
     if(sx < -r || sx > W+r || sy < -r || sy > H+r) continue;
     ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.stroke();
   }
+  ctx.restore();
+}
+// The mandatory start-point ring - unlike drawSnapHint's optional red hints
+// (which only show with snap-assist on), this always shows before the first
+// stroke, since it isn't a convenience: it's where the dragon actually
+// launches from. Drawn after the cave art/start flag so it isn't hidden
+// underneath them.
+function drawStartHint(){
+  if(stroke || strokes.length !== 0) return;
+  if(tool!==TOOL.PEN && tool!==TOOL.RULER) return;
+  // Sized to clear the dragon's idle sprite (drawRider uses size=74*cam.z)
+  // so the ring reads as "tap around here", not hidden behind the dragon.
+  const sx = w2sx(START.x), sy = w2sy(START.y), r = 50*cam.z;
+  const pulse = 0.65 + Math.sin(performance.now()/420)*0.25;
+  ctx.save();
+  ctx.strokeStyle = `rgba(58,110,168,${pulse})`; ctx.lineWidth = 2.6; ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.stroke();
   ctx.restore();
 }
 
@@ -2202,6 +2230,7 @@ function render(){
   if(LEVEL) drawEnemies(LEVEL.enemies.map(e => enemyPosAt(e, simFrame*(STEP/1000))));
   drawEagles();
   drawRider();
+  drawStartHint();
   drawCrashBurst();
   drawCelebrateFallback();
   drawIntroOverlay();
