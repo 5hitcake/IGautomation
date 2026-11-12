@@ -57,3 +57,21 @@ def test_modes_exist_in_workflow():
         # Der Modus muss im Schritt "Posting-Termin bestimmen" auch einen Fall haben.
         cases = re.findall(r'^\s+("?[^)\n]+"?\*?)\)', wf, re.M)
         assert any(mode.startswith(c.rstrip("*").strip('"')) for c in cases)
+
+
+def test_kaufkraft_slots_reachable_by_cron_in_summer_and_winter():
+    """Mo-Fr 18:52 / Sa+So 10:52 deutscher Zeit = 16:52/17:52 bzw. 08:52/09:52 UTC."""
+    minutes, hours = _story_cron().split()[:2]
+    js = _worker_js()
+    assert 'weekday: "18:52"' in js and 'weekend: "10:52"' in js
+    assert "52" in minutes.split(",")
+    for h in ("8", "9", "16", "17"):
+        assert h in hours.split(",")
+
+
+def test_kaufkraft_workflow_accepts_worker_inputs():
+    with open(os.path.join(ROOT, ".github", "workflows", "kaufkraft_post.yml"), encoding="utf-8") as f:
+        wf = f.read()
+    assert 'KAUFKRAFT_WORKFLOW = "kaufkraft_post.yml"' in _worker_js()
+    for name in ("kind:", "product:", "planned:"):
+        assert name in wf.split("workflow_dispatch:", 1)[1].split("permissions:", 1)[0]

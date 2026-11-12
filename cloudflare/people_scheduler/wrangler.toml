@@ -1,4 +1,4 @@
-# Zuverlaessiger Zeitgeber fuer "These people do not exist".
+# Zuverlaessiger Zeitgeber fuer "These people do not exist", die Story-Reels und den Kaufkraft-Check.
 # GitHub-Crons starten oft Stunden zu spaet oder gar nicht; Cloudflare-Cron-Trigger
 # sind puenktlich und im Gratis-Tarif enthalten (max. 5 pro Konto, hier 5).
 # Der Worker startet zu jedem Termin people_post.yml bzw. story_reels.yml per workflow_dispatch.
@@ -15,7 +15,7 @@ crons = [
   "13 11 * * *",  # 08:13 AR  Bild aus der Warteschlange
   "13 17 * * *",  # 14:13 AR  Reel aus der Warteschlange
   "43 20 * * *",  # 17:43 AR  Abend-Freigabe -> Reel um 20:43
-  "22,52 11,13,17,19 * * *",  # Story-Reels: Grusel 11:52 + 17:52, Raetsel 13:22 + 19:22
+  "22,52 8,9,11,13,16,17,19 * * *",  # Story-Reels (11:52, 17:52, 13:22, 19:22 UTC) + Kaufkraft-Check (DE-Zeit)
 ]
 
 [vars]
