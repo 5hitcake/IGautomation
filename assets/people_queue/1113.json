@@ -1,0 +1,34 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 22,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "Sámi",
+      "sami"
+    ],
+    "name": "Áslak",
+    "hair": "short cropped hair",
+    "facial_hair": "a long braided beard",
+    "detail": "small hoop earrings",
+    "clothing": "a sequined party top",
+    "setting": "on a rooftop",
+    "lighting": "bright midday sun with hard shadows",
+    "camera": "shot on iPhone, candid snapshot",
+    "framing": "close-up headshot",
+    "expression": "a tired but friendly look",
+    "traits": [
+      "several small ear piercings"
+    ],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a 22-year-old young Sámi man with short cropped hair, a long braided beard, several small ear piercings and small hoop earrings, wearing a sequined party top, a tired but friendly look, on a rooftop, bright midday sun with hard shadows, shot on iPhone, candid snapshot, looks exactly 22 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "pollinations:tongyi-mai/z-image-turbo",
+  "reserve": null,
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0028 · \"Áslak\", 22\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #faces #aiart #streetportrait #fluxai #portraitphotography"
+}
