@@ -91,7 +91,8 @@ def test_product_post_renders_offline(tmp_path, monkeypatch):
     monkeypatch.setattr(kp, "PHOTOS_DIR", str(tmp_path / "photos"))
     products = kd.load_products()
     state = {}
-    path, caption, pid = kp.make_product_post(products, state, "butter", str(tmp_path))
+    path, caption, pid, reel = kp.make_product_post(products, state, "butter", str(tmp_path))
+    assert reel is None
     assert os.path.exists(path) and pid == "butter"
     assert "2001: 0,52 €" in caption and "Keine Anlageberatung" in caption
     assert state["posted_products"] == ["butter"]
@@ -191,3 +192,44 @@ def test_story_is_9_16_jpeg_and_points_to_post(tmp_path, monkeypatch):
     assert story == {"type": "story", "file": "assets/kaufkraft_generated/story_produkt_20261112_butter.jpg"}
     img = Image.open(tmp_path / story["file"])
     assert img.size == (1080, 1920) and img.format == "JPEG"
+
+
+def test_reserved_product_is_picked_next_and_cleared(tmp_path, monkeypatch):
+    series = monthly({"2001": 50, "2010": 75, "2015": 100, "2025": 200})
+    monkeypatch.setattr(kd, "fetch_indices", lambda codes, **kw: {c: series for c in codes})
+    monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
+    monkeypatch.setattr(kp, "PHOTOS_DIR", str(tmp_path / "photos"))
+    state = {"next_product": "kino"}
+    assert kp.pick_product(kd.load_products(), state)["id"] == "kino"
+    _, _, pid, _ = kp.make_product_post(kd.load_products(), state, out_dir=str(tmp_path))
+    assert pid == "kino" and "next_product" not in state
+
+
+def test_reel_post_json_points_to_media_branch(tmp_path, monkeypatch):
+    import kaufkraft_reel as kreel
+
+    monkeypatch.setattr(kp, "GENERATED_DIR", str(tmp_path))
+    card = os.path.join(kp.ROOT, "assets", "kaufkraft_generated", "produkt_x.jpg")
+    kp.write_post(card, "hallo", reel=str(tmp_path / "reel_x.mp4"))
+    post = json.loads((tmp_path / "next_post.json").read_text())
+    assert post["type"] == "reel" and post["file"] == "reel_x.mp4"
+    assert post["branch"] == kreel.MEDIA_BRANCH and post["card"] == "assets/kaufkraft_generated/produkt_x.jpg"
+
+
+@pytest.mark.parametrize("t", [0.0, 2.9, 5.0, 8.8, 11.5])
+def test_reel_frames_render(tmp_path, t):
+    import kaufkraft_reel as kreel
+    from PIL import Image
+
+    prices = {"today": 7.32, "2001": 3.62, "2010": 4.21, "pct_2001": 102.2, "pct_2010": 73.9,
+              "latest_period": "2026-09"}
+    out = kreel.render_still({"id": "doener", "name": "Döner", "amount": "1 Stück"}, prices, None,
+                             str(tmp_path / "f.jpg"), kd.fmt_eur, kd.fmt_pct, t)
+    assert Image.open(out).size == (1080, 1920)
+
+
+def test_reel_audio_has_full_length():
+    import kaufkraft_reel as kreel
+
+    audio = kreel.synth_audio([("2001", 1), ("2010", 2), ("HEUTE", 3)], True)
+    assert len(audio) == int(kreel.DURATION * kreel.RATE) and abs(int(audio.max())) > 1000
