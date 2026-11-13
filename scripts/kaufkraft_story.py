@@ -66,7 +66,7 @@ def build_story(post_image, kind="product"):
 def main():
     with open(os.path.join(GENERATED_DIR, "next_post.json"), "r", encoding="utf-8") as f:
         post = json.load(f)
-    image_rel = post["file"]
+    image_rel = post.get("card", post["file"])  # bei Reels: die Grafik zum Video
     kind = "inflation" if os.path.basename(image_rel).startswith("inflation_") else "product"
     story = build_story(Image.open(os.path.join(ROOT, image_rel)), kind)
     story_rel = os.path.join(os.path.dirname(image_rel), "story_" + os.path.basename(image_rel))

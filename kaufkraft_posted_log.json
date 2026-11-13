@@ -21,5 +21,6 @@
       "kind": "product",
       "what": "zahnpasta"
     }
-  ]
+  ],
+  "next_product": "hotel"
 }

@@ -15,6 +15,11 @@ Nutzung:
   python kaufkraft_post.py --kind inflation   (Wochen-Post erzwingen)
   python kaufkraft_post.py --product butter   (bestimmtes Produkt)
   python kaufkraft_post.py --preview          (alle Formate in einen Ordner rendern)
+  python kaufkraft_post.py --test-reel DATEI   (Reel fuer das naechste Produkt, ohne zu posten;
+                                                das Produkt wird fuer den naechsten Post vorgemerkt)
+
+Produkt-Posts werden als Reel veroeffentlicht (scripts/kaufkraft_reel.py); die Grafik
+bleibt als Titelbild-Ersatz fuer die Story erhalten. --format image postet wie frueher ein Bild.
 """
 import argparse
 import json
@@ -24,6 +29,7 @@ from datetime import datetime, timezone
 
 import kaufkraft_data as kd
 import kaufkraft_photos as kph
+import kaufkraft_reel as kreel
 import kaufkraft_render as kr
 
 ROOT = kd.ROOT
@@ -64,6 +70,9 @@ def has_photo(product):
 def pick_product(products, state, rng=random):
     """Zufaelliges, noch nicht gepostetes Produkt. Produkte mit (geprueftem) Foto
     im Repo kommen zuerst dran; ohne Foto wird es beim Posten automatisch geholt."""
+    reserved = state.get("next_product")
+    if reserved and any(p["id"] == reserved for p in products):
+        return next(p for p in products if p["id"] == reserved)
     posted = set(state.get("posted_products", []))
     unused = [p for p in products if p["id"] not in posted]
     if not unused:
@@ -186,13 +195,19 @@ def prune(directory, keep=KEEP_IMAGES):
         os.remove(os.path.join(directory, old))
 
 
-def write_post(path, caption):
+def write_post(path, caption, reel=None):
     rel = os.path.relpath(path, ROOT).replace("\\", "/")
+    post = {"type": "image", "file": rel, "caption": caption}
+    if reel:
+        # Das Video liegt auf dem Medien-Branch im Wurzelverzeichnis; die Grafik bleibt fuer die Story.
+        post = {"type": "reel", "file": os.path.basename(reel), "branch": kreel.MEDIA_BRANCH,
+                "thumb_offset": kreel.THUMB_OFFSET_MS, "card": rel, "caption": caption}
     with open(os.path.join(GENERATED_DIR, "next_post.json"), "w", encoding="utf-8") as f:
-        json.dump({"type": "image", "file": rel, "caption": caption}, f, ensure_ascii=False, indent=2)
+        json.dump(post, f, ensure_ascii=False, indent=2)
 
 
-def make_product_post(products, state, product_id=None, out_dir=GENERATED_DIR):
+def make_product_post(products, state, product_id=None, out_dir=GENERATED_DIR, reel=False):
+    """Rueckgabe: (Grafik, Caption, Produkt-ID, Reel-Pfad oder None)."""
     if product_id:
         product = next(p for p in products if p["id"] == product_id)
     else:
@@ -204,9 +219,14 @@ def make_product_post(products, state, product_id=None, out_dir=GENERATED_DIR):
     photo = ensure_photo(product)
     credit = photo_credit(product) if photo else None
     kr.render_product_card(product, prices, photo, out, kd.fmt_eur, kd.fmt_pct, kd.period_label, credit)
+    reel_path = None
+    if reel:
+        reel_path = os.path.join(out_dir, f"reel_{stamp}_{product['id']}.mp4")
+        kreel.render_reel(product, prices, photo, reel_path, kd.fmt_eur, kd.fmt_pct, kreel.find_theme())
     if product["id"] not in state.setdefault("posted_products", []):
         state["posted_products"].append(product["id"])
-    return out, product_caption(product, prices, credit=credit), product["id"]
+    state.pop("next_product", None)
+    return out, product_caption(product, prices, credit=credit), product["id"], reel_path
 
 
 def make_inflation_post(products, state, kind=None, out_dir=GENERATED_DIR):
@@ -227,15 +247,31 @@ def main():
     parser.add_argument("--inflation-kind", choices=INFLATION_KINDS)
     parser.add_argument("--preview", metavar="ORDNER",
                         help="Alle 4 Wochen-Formate + einige Produkte in ORDNER rendern (ohne Log)")
+    parser.add_argument("--format", choices=["reel", "image"], default="reel",
+                        help="Produkt-Posts als Reel (Standard) oder als Bild")
+    parser.add_argument("--test-reel", metavar="DATEI",
+                        help="Reel fuer das naechste Produkt rendern und es vormerken (postet nichts)")
     args = parser.parse_args()
 
     products = kd.load_products()
+
+    if args.test_reel:
+        state = load_state()
+        product = pick_product(products, state) if not args.product else \
+            next(p for p in products if p["id"] == args.product)
+        state["next_product"] = product["id"]
+        save_state(state)
+        prices = kd.product_prices(product, kd.fetch_indices(kd.needed_codes([product])))
+        photo = ensure_photo(product)
+        kreel.render_reel(product, prices, photo, args.test_reel, kd.fmt_eur, kd.fmt_pct, kreel.find_theme())
+        print(f"Test-Reel: {args.test_reel} ({product['name']}, vorgemerkt fuer den naechsten Post)")
+        return
 
     if args.preview:
         os.makedirs(args.preview, exist_ok=True)
         dummy = {}
         for pid in (args.product.split(",") if args.product else ["butter", "benzin", "doener"]):
-            path, caption, _ = make_product_post(products, dummy, pid, args.preview)
+            path, caption, _, _ = make_product_post(products, dummy, pid, args.preview)
             with open(path.replace(".jpg", ".txt"), "w", encoding="utf-8") as f:
                 f.write(caption)
         for kind in INFLATION_KINDS:
@@ -257,12 +293,14 @@ def main():
             pass
         kind = "inflation" if berlin_weekday == 6 else "product"
 
+    reel = None
     if kind == "inflation" or args.inflation_kind:
         path, caption, what = make_inflation_post(products, state, args.inflation_kind)
     else:
-        path, caption, what = make_product_post(products, state, args.product)
+        path, caption, what, reel = make_product_post(products, state, args.product,
+                                                      reel=args.format == "reel")
 
-    write_post(path, caption)
+    write_post(path, caption, reel)
     state.setdefault("history", []).append(
         {"date": datetime.now(timezone.utc).strftime("%Y-%m-%d"), "kind": kind, "what": what})
     state["history"] = state["history"][-100:]

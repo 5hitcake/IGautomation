@@ -1,7 +1,8 @@
 name: Kaufkraft-Check Post
 
 # Taeglich ein Post fuer den Instagram-Account @kaufkraft.check:
-#   Mo-Sa  Produkt: Foto + Preis 2001 / 2010 / heute (scripts/kaufkraft_post.py)
+#   Mo-Sa  Produkt als Reel: Bild + Preis 2001 / 2010 / heute (scripts/kaufkraft_post.py,
+#          Video aus scripts/kaufkraft_reel.py, liegt auf dem Branch kaufkraft-media)
 #   So     Inflation der Woche (rotiert: Rate, 100-Euro-Kaufkraft, Preistreiber, Europa)
 # Daten: Eurostat HVPI (frei, kein Schluessel). Produktbilder (schlichte
 # Studiobilder, Cloudflare Workers AI) vorab erzeugen und pruefen mit dem
@@ -70,6 +71,14 @@ jobs:
             echo "::warning::WOE_ACCOUNT_TOKEN / WOE_ACCOUNT_ID fehlen - kein Post (siehe README)."
             exit 0
           fi
+          # Ersatz-Cron kommt bei GitHub oft Stunden zu spaet. Nach Mitternacht wuerde er sonst
+          # mitten in der Nacht den Post des neuen Tages vorwegnehmen -> nur 19-23 Uhr Berlin.
+          hour="$(TZ="Europe/Berlin" date +%-H)"
+          if [ "${{ github.event_name }}" = "schedule" ] && { [ "$hour" -lt 19 ] || [ "$hour" -gt 23 ]; }; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Ueberspringe: Ersatz-Cron kam zu spaet ($hour Uhr Berlin)."
+            exit 0
+          fi
           today="$(TZ="Europe/Berlin" date +%Y-%m-%d)"
           if git log --grep="Kaufkraft-Post: $today" --oneline | grep -q .; then
             echo "run=false" >> "$GITHUB_OUTPUT"
@@ -85,7 +94,9 @@ jobs:
 
       - name: Install dependencies
         if: steps.gate.outputs.run == 'true'
-        run: pip install requests Pillow
+        run: |
+          pip install requests Pillow numpy
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
 
       - name: Post erzeugen
         if: steps.gate.outputs.run == 'true'
@@ -113,6 +124,21 @@ jobs:
           fi
           git commit -m "$msg" || echo "nichts zu committen"
           for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Reel auf den Medien-Branch legen (haelt main klein)
+        if: >-
+          steps.gate.outputs.run == 'true' && steps.gate.outputs.publish == 'true'
+          && hashFiles('assets/kaufkraft_generated/*.mp4') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tmp=$(mktemp -d)
+          cp assets/kaufkraft_generated/reel_*.mp4 "$tmp/"
+          cd "$tmp"
+          git init -q -b kaufkraft-media
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Aktuelles Reel"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" kaufkraft-media
 
       - name: Wait for raw.githubusercontent.com propagation
         if: steps.gate.outputs.run == 'true' && steps.gate.outputs.publish == 'true'
