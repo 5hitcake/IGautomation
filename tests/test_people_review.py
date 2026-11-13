@@ -214,3 +214,38 @@ def test_queue_roundtrip_renumbers(tmp_path, monkeypatch):
     assert pr.load_from_queue("17:13", {"count": 8}) == (None, "rejected")
     assert pr.load_from_queue("11:13", {"count": 8}) == (None, "missing")
     assert list(tmp_path.iterdir()) == []
+
+
+def test_telegram_retries_connection_reset(monkeypatch):
+    import requests
+
+    monkeypatch.setattr(pr.time, "sleep", lambda s: None)
+
+    class Resp:
+        def json(self):
+            return {"ok": True, "result": {"message_id": 1}}
+
+    class FlakySession:
+        calls = 0
+
+        def post(self, *a, **k):
+            FlakySession.calls += 1
+            if FlakySession.calls < 3:
+                raise requests.exceptions.ConnectionError("Connection reset by peer")
+            return Resp()
+
+    tg = pr.Telegram("t", "1", session=FlakySession())
+    assert tg.send_text("hi") == {"message_id": 1}
+    assert FlakySession.calls == 3
+
+
+def test_notify_never_fails(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "t")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "1")
+
+    def boom(self, text):
+        raise RuntimeError("offline")
+
+    monkeypatch.setattr(pr.Telegram, "send_text", boom)
+    monkeypatch.setattr("sys.argv", ["people_review.py", "--notify", "x"])
+    pr.main()  # darf keine Ausnahme werfen

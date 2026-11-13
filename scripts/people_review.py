@@ -53,9 +53,17 @@ class Telegram:
         self.http = session or requests.Session()
         self.offset = None
 
-    def call(self, method, files=None, http_timeout=60, **params):
-        resp = self.http.post(API.format(token=self.token, method=method), data=params, files=files,
-                              timeout=http_timeout)
+    def call(self, method, files=None, http_timeout=60, retries=3, **params):
+        # Kurze Netzwerkaussetzer (z. B. "Connection reset by peer") nicht gleich als Fehler werten.
+        for attempt in range(retries):
+            try:
+                resp = self.http.post(API.format(token=self.token, method=method), data=params,
+                                      files=files, timeout=http_timeout)
+                break
+            except requests.exceptions.ConnectionError:
+                if attempt == retries - 1:
+                    raise
+                time.sleep(5 * (attempt + 1))
         data = resp.json()
         if not data.get("ok"):
             raise RuntimeError(f"Telegram {method} fehlgeschlagen: {data.get('description')}")
@@ -344,7 +352,10 @@ def main():
 
     if args.notify is not None:
         if tg:
-            tg.send_text(args.notify)
+            try:
+                tg.send_text(args.notify)
+            except Exception as exc:  # Hinweis darf den Ablauf (z. B. die Story) nie stoppen
+                print(f"Telegram-Hinweis nicht zugestellt: {exc}")
         return
 
     state = pg.load_state()
