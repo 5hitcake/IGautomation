@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261113_1713_0029.mp4",
-  "caption": "This face belongs to no one.\n\nPerson No. 0029 · \"Manon\", 36\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #fluxai #streetportrait #peopleofinstagram #twinstranger #lookalike",
-  "model": "pollinations:tongyi-mai/z-image-turbo",
-  "prompt": "Candid half-body shot photo of a 36-year-old French woman with a messy bun, a small tattoo on the side of the neck and rosy cheeks, wearing a floral summer dress, a slight smirk, at a train station, neon city lights at night, shot on iPhone, candid snapshot, looks exactly 36 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 29,
-  "name": "Manon",
-  "age": 36,
-  "image": "assets/people_generated/person_20261113_1713_0029.jpg",
+  "file": "reel_20261113_2343_0030.mp4",
+  "caption": "Say hi to someone who was never born.\n\nPerson No. 0030 · \"Miora\", 56\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiart #aiphotography #digitalhuman #twinstranger #lookalike #fakeface",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "prompt": "Head and shoulders portrait photo of a 56-year-old Malagasy woman with box braids, a plus-size body and laugh lines, wearing a simple blouse, a warm genuine smile, in a library, soft window light, shot on Kodak Portra 400 film, 35mm, looks exactly 56 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 30,
+  "name": "Miora",
+  "age": 56,
+  "image": "assets/people_generated/person_20261113_2343_0030.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
