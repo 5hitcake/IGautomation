@@ -24,6 +24,7 @@ on:
           - "Warteschlange 8:13 jetzt posten"
           - "Warteschlange 14:13 jetzt posten"
           - "Abend-Freigabe (Reel fuer 20:43)"
+          - "Story zum letzten Post nachholen"
       wait_minutes:
         description: "Nur bei Einzelner Post: Minuten Bedenkzeit per Telegram"
         default: "15"
@@ -106,6 +107,7 @@ jobs:
                 "Warteschlange 8:13"*) echo "args=--from-queue 11:13" >> "$GITHUB_OUTPUT"; echo "slot=11:13" >> "$GITHUB_OUTPUT" ;;
                 "Warteschlange 14:13"*) echo "args=--from-queue 17:13" >> "$GITHUB_OUTPUT"; echo "slot=17:13" >> "$GITHUB_OUTPUT" ;;
                 Abend*) echo "args=--target 23:43" >> "$GITHUB_OUTPUT"; echo "slot=23:43" >> "$GITHUB_OUTPUT" ;;
+                Story*) echo "story_only=true" >> "$GITHUB_OUTPUT" ;;
                 *) echo "args=--wait-minutes ${{ github.event.inputs.wait_minutes || '15' }}" >> "$GITHUB_OUTPUT" ;;
               esac ;;
           esac
@@ -119,9 +121,27 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: pip install requests Pillow
 
+      - name: Story zum letzten Post nachholen (ohne neue Person)
+        id: story_only
+        if: steps.gate.outputs.run == 'true' && steps.when.outputs.story_only == 'true'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.PTNE_API_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.PTNE_ACCOUNT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python scripts/people_story.py
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A assets/people_generated
+          git commit -m "Neue Person: Story (nachgeholt)" || true
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+          python scripts/publish.py --post-file assets/people_generated/next_story.json
+          python scripts/people_review.py --notify "📲 Story (nachgeholt) ist online"
+
       - name: Person erzeugen + Freigabe per Telegram
         id: review
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.when.outputs.story_only != 'true'
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
