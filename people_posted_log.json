@@ -1,5 +1,5 @@
 {
-  "count": 26,
+  "count": 28,
   "recent": [
     {
       "gender": "woman",
@@ -312,6 +312,30 @@
         "japanese"
       ],
       "setting": "in a home kitchen"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "Nepali",
+        "nepali"
+      ],
+      "setting": "on a busy city street"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Sámi",
+        "sami"
+      ],
+      "setting": "on a rooftop"
     }
   ],
   "reserve_used": [
