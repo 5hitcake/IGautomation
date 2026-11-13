@@ -1,5 +1,5 @@
 {
-  "count": 27,
+  "count": 28,
   "recent": [
     {
       "gender": "woman",
@@ -324,6 +324,18 @@
         "nepali"
       ],
       "setting": "on a busy city street"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Sámi",
+        "sami"
+      ],
+      "setting": "on a rooftop"
     }
   ],
   "reserve_used": [
