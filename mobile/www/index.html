@@ -1816,10 +1816,13 @@ function drawWinds(){
     const topSy = w2sy(w.topY), baseSy = w2sy(w.baseY);
     const h = baseSy - topSy;
     if(h <= 0) continue;
-    const topR = Math.max(6, w.r*0.18*cam.z), baseR = w.r*cam.z;
+    // A real tornado's shape: wide where it meets the cloud (topY), tapering
+    // down to a narrow point touching the ground (baseY) - not the other
+    // way around. baseY is still gameplay's strongest-lift point (the
+    // ground-level entry, per substep's wind loop); it's just visually the
+    // narrow tip, same as a funnel cloud actually looks.
+    const topR = w.r*cam.z, baseR = Math.max(6, w.r*0.18*cam.z);
     ctx.save();
-    // Tapered dusty-tan funnel body - narrow at the cap (topY, where the
-    // updraft stops lifting), wide at the mouth (baseY, where it's strongest).
     const grad = ctx.createLinearGradient(sx, topSy, sx, baseSy);
     grad.addColorStop(0, "rgba(198,168,108,0)");
     grad.addColorStop(0.18, "rgba(198,168,108,0.20)");
@@ -2396,41 +2399,47 @@ assetsReady.then(()=>{
 // line on purpose ("man muss sie anfahren") so reaching either is a real
 // routing choice, not something you pass through for free.
 const TEST_LEVEL = {
-  // Reworked spacing: nothing overlaps another element, and the high/low
-  // route choice opens up gradually over one shared stretch (x 1250-1750)
-  // instead of forcing a sudden vertical swing in a short span.
-  obstacles: [{x:450, y:140, r:40}, {x:2750, y:500, r:55}],
-  boostPads: [ {x:1650, y:700, r:50} ], // low route
-  enemies: [],
-  archers: [ { x:1150, y:650, tx:1750, ty:600, period:3.0 } ],
-  catapults: [ { x:2500, y:700, tx:3000, ty:650, period:4.0 } ],
-  coins: [],
+  // Compact "boxed" layout matching the reference sketch's composition and
+  // scale (wall/floor/ceiling close enough together to read as one scene,
+  // not a huge mostly-empty space with a few small objects scattered in it):
+  // rocks+coins right out of the cave, a ring into the ground-to-cloud
+  // tornado, a ring out of it, eagles/debris guarding the approach, the
+  // tower+archer and catapult at ground level under the flight path, and
+  // the tree-goal at the far (still reachable) end.
+  obstacles: [{x:620, y:300, r:40}, {x:1500, y:480, r:45}],
+  boostPads: [ {x:1100, y:600, r:50} ],
+  enemies: [ { x0:1750, range:70, y0:600, r:26, speed:1.4 } ],
+  archers: [ { x:500, y:650, tx:1000, ty:600, period:3.0 } ],
+  catapults: [ { x:950, y:650, tx:1350, ty:550, period:4.0 } ],
+  coins: [ {x:260,y:430}, {x:300,y:390}, {x:760,y:-60}, {x:780,y:-40} ],
   islands: [
     // Left-side cliff the cave is set into - START sits at its high ledge.
     // Spans ceilingY..floorY - the cliff isn't just a decorative side piece,
     // it's the left side of the level's frame (wall left, ground below,
     // cloud ceiling above, open only to the right), so it has to reach both.
-    { pts:[{x:-40,y:-450},{x:-95,y:-80},{x:-55,y:120},{x:-100,y:380},{x:-60,y:650},{x:-95,y:1050}], checkpoint:false, cliffArt:true },
-    { pts:[{x:850,y:140},{x:950,y:170},{x:1050,y:150}], checkpoint:true, checkpointAt:{x:950,y:150} },
-    { pts:[{x:2100,y:440},{x:2250,y:480},{x:2400,y:460}], checkpoint:true, checkpointAt:{x:2250,y:460} },
+    { pts:[{x:-40,y:-150},{x:-95,y:60},{x:-55,y:173},{x:-100,y:320},{x:-60,y:473},{x:-95,y:700}], checkpoint:false, cliffArt:true },
+    { pts:[{x:480,y:450},{x:580,y:470},{x:680,y:450}], checkpoint:true, checkpointAt:{x:580,y:450} },
+    { pts:[{x:1250,y:380},{x:1350,y:400},{x:1450,y:380}], checkpoint:true, checkpointAt:{x:1350,y:380} },
     // Floating rock islands (Avatar-film style) - alternate perches, not
     // checkpoints, each bobbing at a slightly different amplitude/speed/
     // phase so they don't all move in lockstep.
-    { pts:[{x:1250,y:620},{x:1360,y:600}], floating:true, rockVariant:1, bobAmp:7, bobSpeed:0.5, bobPhase:0 },
-    { pts:[{x:1950,y:-120},{x:2060,y:-140}], floating:true, rockVariant:2, bobAmp:9, bobSpeed:0.42, bobPhase:1.8 },
-    { pts:[{x:2550,y:260},{x:2660,y:240}], floating:true, rockVariant:3, bobAmp:6, bobSpeed:0.6, bobPhase:3.4 },
-    { pts:[{x:300,y:380},{x:400,y:365}], floating:true, rockVariant:4, bobAmp:8, bobSpeed:0.48, bobPhase:2.6 },
-    { pts:[{x:2850,y:-180},{x:2950,y:-200}], floating:true, rockVariant:5, bobAmp:10, bobSpeed:0.38, bobPhase:5.0 },
+    { pts:[{x:230,y:500},{x:320,y:480}], floating:true, rockVariant:1, bobAmp:7, bobSpeed:0.5, bobPhase:0 },
+    { pts:[{x:360,y:330},{x:450,y:310}], floating:true, rockVariant:4, bobAmp:8, bobSpeed:0.48, bobPhase:2.6 },
+    // Sits right at the tornado's cap - the "Wolke" perch in the sketch.
+    { pts:[{x:720,y:-90},{x:800,y:-110}], floating:true, rockVariant:2, bobAmp:9, bobSpeed:0.42, bobPhase:1.8 },
+    { pts:[{x:1150,y:250},{x:1240,y:230}], floating:true, rockVariant:3, bobAmp:6, bobSpeed:0.6, bobPhase:3.4 },
+    { pts:[{x:1650,y:420},{x:1740,y:400}], floating:true, rockVariant:5, bobAmp:10, bobSpeed:0.38, bobPhase:5.0 },
   ],
-  // High route: a funnel, not a flat zone - fly in deep near baseY for the
-  // strongest lift, which fades out approaching topY (the cap).
-  winds: [ { x:1600, topY:-380, baseY:40, r:150, strength:2600 } ],
-  gates: [ { x:1600, y:-350, r:70, coins:20 } ],
-  rings: [ { x:1800, y:-300, r:55 } ], // reward for riding the wind up near its cap
-  eagles: [ { x1:2900, y1:-50, x2:2900, y2:650, period:3.2 } ], // sweeps the approach to the goal, occasionally
-  ceilingY: -450,
-  floorY: 1050,
-  goal: {x:3150, y:600}, goalR: 100, goalInTree: true, // clear gap past the curve-around obstacle
+  // A real funnel, ground to cloud-cap - fly in low near the ground (the
+  // wide mouth, strongest lift) and ride it up to where it narrows and
+  // fades out just under the ceiling.
+  winds: [ { x:750, topY:-100, baseY:650, r:140, strength:3200 } ],
+  gates: [ { x:750, y:-80, r:60, coins:20 } ],
+  rings: [ { x:560, y:420, r:50 }, { x:950, y:-50, r:55 } ], // into the tornado, then out of its cap
+  eagles: [ { x1:1700, y1:-100, x2:1700, y2:650, period:3.2 } ], // guards the approach to the goal
+  ceilingY: -150,
+  floorY: 700,
+  goal: {x:1900, y:550}, goalR: 100, goalInTree: true,
 };
 function loadTestLevel(){
   hideSheet(mainmenuSheet);
