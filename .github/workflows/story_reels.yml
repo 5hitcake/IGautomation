@@ -280,9 +280,7 @@ jobs:
           else
             msg="⚠️ Reel ($acc) fehlgeschlagen - Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             if grep -q "OAuthException\|Error validating access token" publish.log 2>/dev/null; then
-              msg="$msg
-
-🔑 Der Instagram-Zugang für $acc ist ungültig (z.B. nach Passwortänderung). Bitte neuen Token erzeugen und das GitHub-Secret erneuern (README: Story-Reels → Einrichtung). Die Geschichte bleibt im Vorrat."
+              msg="$msg"$'\n\n'"🔑 Der Instagram-Zugang für $acc ist ungültig (z.B. nach Passwortänderung). Bitte neuen Token erzeugen und das GitHub-Secret erneuern (README: Story-Reels → Einrichtung). Die Geschichte bleibt im Vorrat."
             fi
           fi
           pip install -q requests Pillow 2>/dev/null || true
