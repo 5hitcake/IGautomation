@@ -1,5 +1,5 @@
 {
-  "count": 30,
+  "count": 31,
   "recent": [
     {
       "gender": "woman",
@@ -360,6 +360,18 @@
         "malagasy"
       ],
       "setting": "in a library"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Latin American",
+        "latin_american"
+      ],
+      "setting": "in a workshop"
     }
   ],
   "reserve_used": [

@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261113_2343_0030.mp4",
-  "caption": "Say hi to someone who was never born.\n\nPerson No. 0030 · \"Miora\", 56\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiart #aiphotography #digitalhuman #twinstranger #lookalike #fakeface",
-  "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a 56-year-old Malagasy woman with box braids, a plus-size body and laugh lines, wearing a simple blouse, a warm genuine smile, in a library, soft window light, shot on Kodak Portra 400 film, 35mm, looks exactly 56 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 30,
-  "name": "Miora",
-  "age": 56,
-  "image": "assets/people_generated/person_20261113_2343_0030.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "type": "image",
+  "file": "assets/people_generated/person_20261114_1113_0031.jpg",
+  "caption": "Say hi to someone who was never born.\n\nPerson No. 0031 · \"Santiago\", 25\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #lookalike #twinstranger #faces #artificialintelligence #portrait #streetportrait",
+  "model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "prompt": "Head and shoulders portrait photo of a 25-year-old young Latin American man with short cropped hair, a long braided beard and light freckles, wearing denim overalls over a t-shirt, laughing naturally, in a workshop, dim moody ambient light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 31,
+  "name": "Santiago",
+  "age": 25
 }
