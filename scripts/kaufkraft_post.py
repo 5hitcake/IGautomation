@@ -121,6 +121,19 @@ def product_caption(product, prices, rng=random, credit=None):
     return "\n".join(lines)
 
 
+def tiktok_caption(product, prices):
+    """Kurz und knackig fuer TikTok (die lange Instagram-Caption liest dort niemand)."""
+    line = f"{product['name']} ({product['amount']})"
+    if prices.get("2001"):
+        line += f": 2001 {kd.fmt_eur(prices['2001'])} → heute {kd.fmt_eur(prices['today'])}"
+    if prices.get("pct_2001") is not None:
+        line += f" ({kd.fmt_pct(prices['pct_2001'])})"
+    tags = "#kaufkraft #inflation #preise #früherwaralles #sparen #geld #deutschland"
+    return (f"{line} 😳 Hättest du das gedacht? 👇\n\n"
+            f"Daten: Eurostat-Preisindex, Ladenpreise können abweichen.\n\n"
+            f"{tags} #{product['id'].replace('_', '')}")
+
+
 def inflation_data(kind, products):
     """Holt die Daten fuer den Wochen-Post der gegebenen Art."""
     if kind == "rate":
@@ -195,13 +208,15 @@ def prune(directory, keep=KEEP_IMAGES):
         os.remove(os.path.join(directory, old))
 
 
-def write_post(path, caption, reel=None):
+def write_post(path, caption, reel=None, tiktok=None):
     rel = os.path.relpath(path, ROOT).replace("\\", "/")
     post = {"type": "image", "file": rel, "caption": caption}
     if reel:
         # Das Video liegt auf dem Medien-Branch im Wurzelverzeichnis; die Grafik bleibt fuer die Story.
         post = {"type": "reel", "file": os.path.basename(reel), "branch": kreel.MEDIA_BRANCH,
                 "thumb_offset": kreel.THUMB_OFFSET_MS, "card": rel, "caption": caption}
+        if tiktok:
+            post["tiktok_caption"] = tiktok
     with open(os.path.join(GENERATED_DIR, "next_post.json"), "w", encoding="utf-8") as f:
         json.dump(post, f, ensure_ascii=False, indent=2)
 
@@ -226,6 +241,7 @@ def make_product_post(products, state, product_id=None, out_dir=GENERATED_DIR, r
     if product["id"] not in state.setdefault("posted_products", []):
         state["posted_products"].append(product["id"])
     state.pop("next_product", None)
+    state["_tiktok_caption"] = tiktok_caption(product, prices)
     return out, product_caption(product, prices, credit=credit), product["id"], reel_path
 
 
@@ -300,7 +316,7 @@ def main():
         path, caption, what, reel = make_product_post(products, state, args.product,
                                                       reel=args.format == "reel")
 
-    write_post(path, caption, reel)
+    write_post(path, caption, reel, state.pop("_tiktok_caption", None))
     state.setdefault("history", []).append(
         {"date": datetime.now(timezone.utc).strftime("%Y-%m-%d"), "kind": kind, "what": what})
     state["history"] = state["history"][-100:]

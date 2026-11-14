@@ -682,6 +682,11 @@ voll automatisch über `kaufkraft_post.yml` zu deutschen Top-Zeiten: **Mo–Fr 1
   Ton wird synthetisch erzeugt; eigener Song geht über `assets/kaufkraft_music/theme.mp3`.
   Das Video liegt auf dem Branch `kaufkraft-media`, nicht in `main`. `--format image` postet wie früher ein Bild.
   Testreel fürs nächste Produkt (wird vorgemerkt): `python scripts/kaufkraft_post.py --test-reel test.mp4`
+- **TikTok (@kaufkraft.check)**: jedes Reel geht zusätzlich auf TikTok, mit kurzer eigener Beschreibung.
+  Einrichtung: einmalig `python scripts/tiktok_auth.py` am PC (mit dem TikTok-Account einloggen) und den
+  Refresh-Token als Secret `KAUFKRAFT_TIKTOK_REFRESH_TOKEN` speichern. Standard ist der Modus `inbox`
+  (Entwurf in der TikTok-App, dort auf Posten tippen); Variable `KAUFKRAFT_TIKTOK_MODE=direct` postet direkt,
+  sobald die TikTok-App geprüft ist. Der Anzeigename muss `Kaufkraft Check` sein (sonst Variable `KAUFKRAFT_TIKTOK_NAME`).
 
 ### Woher die Zahlen kommen
 
