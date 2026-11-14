@@ -1,5 +1,5 @@
 {
-  "count": 31,
+  "count": 32,
   "recent": [
     {
       "gender": "woman",
@@ -372,6 +372,18 @@
         "latin_american"
       ],
       "setting": "in a workshop"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "Southern European",
+        "southern_european"
+      ],
+      "setting": "in a snowy street"
     }
   ],
   "reserve_used": [

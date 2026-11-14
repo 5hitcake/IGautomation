@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261114_1113_0031.jpg",
-  "caption": "Say hi to someone who was never born.\n\nPerson No. 0031 · \"Santiago\", 25\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #lookalike #twinstranger #faces #artificialintelligence #portrait #streetportrait",
-  "model": "@cf/black-forest-labs/flux-2-klein-4b",
-  "prompt": "Head and shoulders portrait photo of a 25-year-old young Latin American man with short cropped hair, a long braided beard and light freckles, wearing denim overalls over a t-shirt, laughing naturally, in a workshop, dim moody ambient light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 31,
-  "name": "Santiago",
-  "age": 25
+  "type": "reel",
+  "file": "reel_20261114_1713_0032.mp4",
+  "caption": "This person does not exist.\n\nPerson No. 0032 · \"Marco\", 37\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #notreal #twinstranger #generativeai #peopleofinstagram #artificialintelligence #fluxai",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "prompt": "Head and shoulders portrait photo of a 37-year-old Southern European man with a neat side part, a handlebar moustache, a small script tattoo on the collarbone and rosy cheeks, wearing a sharp tailored business suit, a slight smirk, in a snowy street, light rain and moody sky, shot on iPhone, candid snapshot, looks exactly 37 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 32,
+  "name": "Marco",
+  "age": 37,
+  "image": "assets/people_generated/person_20261114_1713_0032.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }
