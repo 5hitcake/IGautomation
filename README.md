@@ -677,7 +677,7 @@ voll automatisch über `kaufkraft_post.yml` zu deutschen Top-Zeiten: **Mo–Fr 1
 - **So: Inflation der Woche**, rotiert: aktuelle Inflationsrate (24-Monats-Verlauf) →
   „Was sind 100 € noch wert?“ → Preistreiber des Jahres → Europa-Vergleich
 - **Story**: jeder Post kommt direkt danach zusätzlich als Story (9:16, gleiche Grafik)
-- **Reel**: Produkt-Posts gehen als 12-Sekunden-Reel raus (`scripts/kaufkraft_reel.py`):
+- **Reel**: Produkt-Posts gehen als 14-Sekunden-Reel raus (`scripts/kaufkraft_reel.py`):
   „Rate mal“-Aufhänger → Balken 2001/2010/heute zählen hoch → Prozentwert → 10-€-Merksatz + Aufruf.
   Ton wird synthetisch erzeugt; eigener Song geht über `assets/kaufkraft_music/theme.mp3`.
   Das Video liegt auf dem Branch `kaufkraft-media`, nicht in `main`. `--format image` postet wie früher ein Bild.
