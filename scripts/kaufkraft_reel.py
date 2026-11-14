@@ -1,11 +1,11 @@
-"""Reel fuer @kaufkraft.check (1080x1920, 30 fps, ~12 s, H.264/AAC).
+"""Reel fuer @kaufkraft.check (1080x1920, 30 fps, ~14 s, H.264/AAC).
 
 Ablauf:
   0.0-2.6 s  Aufhaenger "Rate mal: <Produkt> - Was kostete das 2001?" + Bild (langsamer Zoom)
   2.6-3.2 s  Bild rutscht nach oben
   3.0-6.4 s  Balken 2001 / 2010 / HEUTE wachsen nacheinander, Preise zaehlen hoch
   6.6-9.6 s  "+129,5 %" springt herein
-  9.6-12  s  Schluss: Merksatz mit 10 Euro, Aufruf zum Kommentieren + Folgen
+  9.6-14  s  Schluss: Merksatz mit 10 Euro, Aufruf zum Kommentieren + Folgen
 
 Alle Texte liegen zwischen y=200 und y=1500: oben blendet Instagram "Reels" ein,
 unten Caption und Buttons, rechts die Icons (deshalb rechts mehr Rand).
@@ -32,7 +32,7 @@ MEDIA_BRANCH = "kaufkraft-media"
 
 W, H = 1080, 1920
 FPS = 30
-DURATION = 12.0
+DURATION = 14.0  # Schluss bleibt ~4 s stehen
 THUMB_OFFSET_MS = 8800  # Titelbild: Bild + alle Preise + Prozentwert
 MARGIN_L, MARGIN_R = 80, 130
 
