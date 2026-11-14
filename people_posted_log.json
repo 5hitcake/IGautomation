@@ -1,5 +1,5 @@
 {
-  "count": 32,
+  "count": 33,
   "recent": [
     {
       "gender": "woman",
@@ -384,6 +384,18 @@
         "southern_european"
       ],
       "setting": "in a snowy street"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Central Asian",
+        "central_asian"
+      ],
+      "setting": "at an outdoor market"
     }
   ],
   "reserve_used": [
