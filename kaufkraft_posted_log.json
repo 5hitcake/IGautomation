@@ -2,7 +2,8 @@
   "posted_products": [
     "milch",
     "schokolade",
-    "zahnpasta"
+    "zahnpasta",
+    "hotel"
   ],
   "inflation_index": 0,
   "history": [
@@ -20,7 +21,11 @@
       "date": "2026-11-13",
       "kind": "product",
       "what": "zahnpasta"
+    },
+    {
+      "date": "2026-11-14",
+      "kind": "product",
+      "what": "hotel"
     }
-  ],
-  "next_product": "hotel"
+  ]
 }
