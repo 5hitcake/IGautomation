@@ -1,0 +1,34 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 37,
+    "age_range": [
+      30,
+      39
+    ],
+    "heritage": [
+      "Southern European",
+      "southern_european"
+    ],
+    "name": "Marco",
+    "hair": "a neat side part",
+    "facial_hair": "a handlebar moustache",
+    "detail": "rosy cheeks",
+    "clothing": "a sharp tailored business suit",
+    "setting": "in a snowy street",
+    "lighting": "light rain and moody sky",
+    "camera": "shot on iPhone, candid snapshot",
+    "framing": "head and shoulders portrait",
+    "expression": "a slight smirk",
+    "traits": [
+      "a small script tattoo on the collarbone"
+    ],
+    "bold": false
+  },
+  "prompt": "Head and shoulders portrait photo of a 37-year-old Southern European man with a neat side part, a handlebar moustache, a small script tattoo on the collarbone and rosy cheeks, wearing a sharp tailored business suit, a slight smirk, in a snowy street, light rain and moody sky, shot on iPhone, candid snapshot, looks exactly 37 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This person does not exist.\n\nPerson No. 0032 · \"Marco\", 37\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #notreal #twinstranger #generativeai #peopleofinstagram #artificialintelligence #fluxai"
+}
