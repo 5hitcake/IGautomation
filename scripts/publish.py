@@ -85,7 +85,7 @@ def wait_for_media_ready(creation_id, access_token, dry_run):
     for attempt in range(MAX_POLL_ATTEMPTS):
         resp = SESSION.get(
             f"{GRAPH_API_BASE}/{creation_id}",
-            params={"fields": "status_code", "access_token": access_token},
+            params={"fields": "status_code,status", "access_token": access_token},
             timeout=30,
         )
         raise_with_details(resp)
