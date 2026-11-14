@@ -35,6 +35,7 @@ INSTAGRAM_SECRETS = {
 TIKTOK_SECRETS = {
     "HORROR_TIKTOK_REFRESH_TOKEN": "Gruselgeschichten (TikTok)",
     "MYSTERY_TIKTOK_REFRESH_TOKEN": "Rätsel & Verschwörungen (TikTok)",
+    "KAUFKRAFT_TIKTOK_REFRESH_TOKEN": "@kaufkraft.check (TikTok)",
 }
 IG_REFRESH_URL = "https://graph.instagram.com/refresh_access_token"
 TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"

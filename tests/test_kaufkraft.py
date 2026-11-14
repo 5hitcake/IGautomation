@@ -233,3 +233,12 @@ def test_reel_audio_has_full_length():
 
     audio = kreel.synth_audio([("2001", 1), ("2010", 2), ("HEUTE", 3)], True)
     assert len(audio) == int(kreel.DURATION * kreel.RATE) and abs(int(audio.max())) > 1000
+
+
+def test_tiktok_caption_is_short_and_lands_in_reel_post(tmp_path, monkeypatch):
+    prices = {"today": 7.32, "2001": 3.62, "pct_2001": 102.2}
+    text = kp.tiktok_caption({"id": "doener", "name": "Döner", "amount": "1 Stück"}, prices)
+    assert "2001 3,62 € → heute 7,32 € (+102,2 %)" in text and len(text) < 300
+    monkeypatch.setattr(kp, "GENERATED_DIR", str(tmp_path))
+    kp.write_post(os.path.join(kp.ROOT, "x.jpg"), "lang", reel=str(tmp_path / "r.mp4"), tiktok=text)
+    assert json.loads((tmp_path / "next_post.json").read_text())["tiktok_caption"] == text

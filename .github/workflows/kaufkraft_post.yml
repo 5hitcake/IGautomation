@@ -157,6 +157,25 @@ jobs:
           --post-file assets/kaufkraft_generated/next_post.json
           --expect-username "$IG_USERNAME"
 
+      # TikTok (@kaufkraft.check): dasselbe Reel. Modus "inbox": Video landet als Entwurf in der
+      # TikTok-App ("Bearbeiten und posten"), solange die TikTok-App nicht geprueft ist.
+      # Benoetigt das Secret KAUFKRAFT_TIKTOK_REFRESH_TOKEN (einmalig mit scripts/tiktok_auth.py).
+      - name: Zusaetzlich auf TikTok hochladen
+        if: steps.publish.outcome == 'success' && hashFiles('assets/kaufkraft_generated/*.mp4') != ''
+        continue-on-error: true
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.KAUFKRAFT_TIKTOK_REFRESH_TOKEN }}
+          TIKTOK_MODE: ${{ vars.KAUFKRAFT_TIKTOK_MODE || 'inbox' }}
+          TIKTOK_EXPECT_NAME: ${{ vars.KAUFKRAFT_TIKTOK_NAME || 'Kaufkraft Check' }}
+        run: |
+          if [ -z "$TIKTOK_CLIENT_KEY" ] || [ -z "$TIKTOK_REFRESH_TOKEN" ]; then
+            echo "Kein TikTok-Zugang hinterlegt (KAUFKRAFT_TIKTOK_REFRESH_TOKEN) - uebersprungen."
+            exit 0
+          fi
+          python scripts/tiktok_story_publish.py --post-file assets/kaufkraft_generated/next_post.json
+
       # Story: dieselbe Grafik im 9:16-Format, direkt nach dem Feed-Post.
       - name: Story erstellen + committen
         id: story_build
