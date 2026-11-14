@@ -210,7 +210,17 @@ jobs:
           esac
           expected=$(python -c "import json;print(json.load(open('content/story_reels/$ACC.json'))['account']['instagram_username'])")
           set -o pipefail
-          python scripts/publish.py --post-file assets/story_reels/$ACC/next_post.json --expect-username "$expected" 2>&1 | tee publish.log
+          # Instagram meldet beim Abholen des Videos manchmal kurz "ERROR" (Datei frisch hochgeladen).
+          # Dann nach einer Pause einmal neu versuchen - nicht bei Token- oder Account-Fehlern.
+          for attempt in 1 2; do
+            if python scripts/publish.py --post-file assets/story_reels/$ACC/next_post.json --expect-username "$expected" 2>&1 | tee publish.log; then
+              exit 0
+            fi
+            grep -q "Media-Verarbeitung fehlgeschlagen" publish.log || exit 1
+            [ "$attempt" = 2 ] && exit 1
+            echo "::warning::Instagram konnte das Video nicht verarbeiten - neuer Versuch in 90 s."
+            sleep 90
+          done
 
       - name: Zusätzlich auf TikTok hochladen (optional)
         id: tiktok
