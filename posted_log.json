@@ -9,7 +9,8 @@
     40,
     87,
     49,
-    69
+    69,
+    30
   ],
   "posted_reel_ids": [
     5,
@@ -20,11 +21,11 @@
     7
   ],
   "recent_backgrounds": [
-    "bg_03_city_night.png",
     "bg_07_beach_run.png",
     "bg_06_desert_road.png",
     "bg_15_night_road.png",
-    "bg_12_rain_window.png"
+    "bg_12_rain_window.png",
+    "bg_14_snow_peak.png"
   ],
   "recent_bg_videos": [
     "reel_01_mountain_drone.mp4",
