@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261114_2343_0033.mp4",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0033 · \"Dilnoza\", 26\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #digitalhuman #portraitphotography #fluxai #lookalike #aiart #portrait",
+  "type": "image",
+  "file": "assets/people_generated/person_20261115_1113_0034.jpg",
+  "caption": "This person does not exist.\n\nPerson No. 0034 · \"Somchai\", 26\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #fluxai #aiphotography #faces #aiart #notreal",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a 26-year-old young Central Asian woman with long hair in a loose braid and a faint, long-healed scar on the chin, wearing a colorful vintage 70s shirt, a calm neutral expression, at an outdoor market, bright midday sun with hard shadows, shot on Sony A7 III, 50mm f/1.8, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 33,
-  "name": "Dilnoza",
-  "age": 26,
-  "image": "assets/people_generated/person_20261114_2343_0033.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Close-up headshot photo of a 26-year-old young Southeast Asian man with messy medium-length hair, a full beard, a tiny star tattoo below one eye and thick eyebrows, wearing a tank top, a tired but friendly look, at a harbor with boats, light rain and moody sky, shot on Sony A7 III, 50mm f/1.8, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 34,
+  "name": "Somchai",
+  "age": 26
 }
