@@ -1,0 +1,32 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 39,
+    "age_range": [
+      30,
+      39
+    ],
+    "heritage": [
+      "Turkish",
+      "turkish"
+    ],
+    "name": "Selin",
+    "hair": "hair tucked under a beanie",
+    "facial_hair": null,
+    "detail": "slightly sunburned nose",
+    "clothing": "a studded punk leather jacket",
+    "setting": "in a workshop",
+    "lighting": "afternoon sunlight through a window",
+    "camera": "shot on Fujifilm X-T4, 56mm f/1.2",
+    "framing": "candid half-body shot",
+    "expression": "a warm genuine smile",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Candid half-body shot photo of a 39-year-old Turkish woman with hair tucked under a beanie and slightly sunburned nose, wearing a studded punk leather jacket, a warm genuine smile, in a workshop, afternoon sunlight through a window, shot on Fujifilm X-T4, 56mm f/1.2, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0035 · \"Selin\", 39\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #peopleofinstagram #streetportrait #twinstranger #aiart #fakeface #generativeai"
+}
