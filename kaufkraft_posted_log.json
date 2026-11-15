@@ -5,7 +5,7 @@
     "zahnpasta",
     "hotel"
   ],
-  "inflation_index": 0,
+  "inflation_index": 1,
   "history": [
     {
       "date": "2026-11-12",
@@ -26,6 +26,11 @@
       "date": "2026-11-14",
       "kind": "product",
       "what": "hotel"
+    },
+    {
+      "date": "2026-11-15",
+      "kind": "inflation",
+      "what": "rate"
     }
   ]
 }
