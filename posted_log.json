@@ -18,7 +18,8 @@
     2,
     3,
     6,
-    7
+    7,
+    10
   ],
   "recent_backgrounds": [
     "bg_07_beach_run.png",
@@ -28,10 +29,10 @@
     "bg_14_snow_peak.png"
   ],
   "recent_bg_videos": [
-    "reel_01_mountain_drone.mp4",
     "reel_05_rain_window.mp4",
     "reel_03_city_timelapse.mp4",
     "reel_07_rooftop.mp4",
-    "reel_04_mountain_walk.mp4"
+    "reel_04_mountain_walk.mp4",
+    "reel_06_clouds_dawn.mp4"
   ]
 }
