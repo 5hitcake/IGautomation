@@ -3,7 +3,8 @@
     "milch",
     "schokolade",
     "zahnpasta",
-    "hotel"
+    "hotel",
+    "kino"
   ],
   "inflation_index": 1,
   "history": [
@@ -31,6 +32,11 @@
       "date": "2026-11-15",
       "kind": "inflation",
       "what": "rate"
+    },
+    {
+      "date": "2026-11-16",
+      "kind": "product",
+      "what": "kino"
     }
   ]
 }
