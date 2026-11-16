@@ -1,0 +1,32 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 39,
+    "age_range": [
+      30,
+      39
+    ],
+    "heritage": [
+      "Mongolian",
+      "mongolian"
+    ],
+    "name": "Nomin",
+    "hair": "bangs and a ponytail",
+    "facial_hair": null,
+    "detail": "a gap between the front teeth",
+    "clothing": "hiking gear",
+    "setting": "on a rooftop",
+    "lighting": "blue hour twilight",
+    "camera": "shot on Kodak Portra 400 film, 35mm",
+    "framing": "close-up headshot",
+    "expression": "a thoughtful look",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a 39-year-old Mongolian woman with bangs and a ponytail and a gap between the front teeth, wearing hiking gear, a thoughtful look, on a rooftop, blue hour twilight, shot on Kodak Portra 400 film, 35mm, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0037 · \"Nomin\", 39\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #streetportrait #aiart #generativeai #twinstranger #digitalhuman"
+}
