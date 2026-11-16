@@ -1,0 +1,33 @@
+name: Telegram testen
+
+# Manuell: schickt ueber beide Bots (People + Grusel/Mystery) eine Testnachricht
+# an TELEGRAM_CHAT_ID, z. B. nach einem Wechsel des Telegram-Kontos.
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Testnachrichten senden
+        env:
+          PEOPLE_BOT: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          STORY_BOT: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          fail=0
+          send() {
+            label="$1"; token="$2"; text="$3"
+            if [ -z "$token" ]; then echo "$label: Token fehlt"; fail=1; return; fi
+            out=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendMessage" \
+              --data-urlencode "chat_id=${CHAT_ID}" --data-urlencode "text=${text}")
+            if echo "$out" | grep -q '"ok":true'; then
+              echo "$label: OK"
+            else
+              echo "$label: FEHLER $(echo "$out" | sed -n 's/.*"description":"\([^"]*\)".*/\1/p')"
+              fail=1
+            fi
+          }
+          send "People-Bot" "$PEOPLE_BOT" "✅ Test: People-Bot (@people.that.dont.exist) erreicht dich."
+          send "Grusel/Mystery-Bot" "$STORY_BOT" "✅ Test: Grusel/Mystery-Bot erreicht dich."
+          exit $fail
