@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261115_2343_0036.mp4",
-  "caption": "This person does not exist.\n\nPerson No. 0036 · \"Vikram\", 26\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #streetportrait #aiphotography #peopleofinstagram #aiart #fakeface",
+  "type": "image",
+  "file": "assets/people_generated/person_20261116_1113_0037.jpg",
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0037 · \"Nomin\", 39\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #streetportrait #aiart #generativeai #twinstranger #digitalhuman",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 26-year-old young South Asian man with hair under a baseball cap, a handlebar moustache and a slightly uneven skin tone, wearing a paint-stained artist's shirt, a slight smirk, on a busy city street, light rain and moody sky, shot on Sony A7 III, 50mm f/1.8, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 36,
-  "name": "Vikram",
-  "age": 26,
-  "image": "assets/people_generated/person_20261115_2343_0036.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Close-up headshot photo of a 39-year-old Mongolian woman with bangs and a ponytail and a gap between the front teeth, wearing hiking gear, a thoughtful look, on a rooftop, blue hour twilight, shot on Kodak Portra 400 film, 35mm, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 37,
+  "name": "Nomin",
+  "age": 39
 }
