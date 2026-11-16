@@ -18,7 +18,9 @@ jobs:
           fail=0
           send() {
             label="$1"; token="$2"; text="$3"
-            if [ -z "$token" ]; then echo "$label: Token fehlt"; fail=1; return; fi
+            if [ -z "$token" ]; then echo "$label: kein eigener Token, nutzt den People-Bot"; return; fi
+            name=$(curl -sS "https://api.telegram.org/bot${token}/getMe" | sed -n 's/.*"username":"\([^"]*\)".*/\1/p')
+            echo "$label = @${name}"
             out=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendMessage" \
               --data-urlencode "chat_id=${CHAT_ID}" --data-urlencode "text=${text}")
             if echo "$out" | grep -q '"ok":true'; then
