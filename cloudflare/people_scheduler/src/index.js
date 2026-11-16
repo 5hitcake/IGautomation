@@ -1,5 +1,5 @@
-// Startet zu jedem Cron-Termin den passenden Modus von people_post.yml, story_reels.yml
-// bzw. kaufkraft_post.yml.
+// Startet zu jedem Cron-Termin den passenden Modus von people_post.yml, story_reels.yml,
+// kaufkraft_post.yml bzw. token_refresh.yml.
 // Secrets (per wrangler aus den GitHub-Secrets gesetzt):
 //   GH_DISPATCH_TOKEN   fein granularer GitHub-Token, nur dieses Repo, "Actions: Read and write"
 //   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID   Warnung, falls der Start scheitert
@@ -29,6 +29,16 @@ export const KAUFKRAFT_SLOTS = {
   weekday: "18:52", // Mo-Fr: Feierabend-Peak
   weekend: "10:52", // Sa+So: Wochenend-Vormittag
 };
+
+// Token-Erneuerung (token_refresh.yml): montags 10:22 deutscher Zeit (= 09:22 UTC im Winter,
+// 08:22 UTC im Sommer, beides im STORY_CRON). Der GitHub-Cron dafuer fiel aus, deshalb hier.
+export const TOKEN_WORKFLOW = "token_refresh.yml";
+export const TOKEN_SLOT = { weekday: "Mon", hhmm: "10:22" };
+
+export function tokenRefreshDue(scheduledTime) {
+  const { weekday, hhmm } = berlinTime(scheduledTime);
+  return weekday === TOKEN_SLOT.weekday && hhmm === TOKEN_SLOT.hhmm;
+}
 
 export function berlinTime(scheduledTime) {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -107,6 +117,9 @@ export function jobsFor(cron, scheduledTime) {
         inputs: { kind: "auto", product: "", planned: "true" },
         workflow: KAUFKRAFT_WORKFLOW,
       });
+    }
+    if (tokenRefreshDue(scheduledTime)) {
+      jobs.push({ label: "Token-Erneuerung", inputs: { dry_run: "false" }, workflow: TOKEN_WORKFLOW });
     }
     return jobs;
   }

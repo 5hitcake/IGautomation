@@ -8,9 +8,10 @@ name: Token-Erneuerung (alle Accounts)
 #   (github.com/settings/personal-access-tokens -> Generate new token
 #    -> Repository access: nur dieses Repo -> Permissions: "Secrets: Read and write")
 
+# Gestartet montags 10:22 Uhr vom Cloudflare-Zeitgeber (cloudflare/people_scheduler).
+# Kein GitHub-Cron mehr: der fiel am 16.11. komplett aus, und ein doppelter Lauf am selben
+# Tag wuerde scheitern (Instagram verlaengert nur Tokens, die aelter als 24 h sind).
 on:
-  schedule:
-    - cron: "41 6 * * 1"  # montags 07:41 / 08:41 deutscher Zeit
   workflow_dispatch:
     inputs:
       dry_run:

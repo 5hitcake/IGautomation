@@ -75,3 +75,16 @@ def test_kaufkraft_workflow_accepts_worker_inputs():
     assert 'KAUFKRAFT_WORKFLOW = "kaufkraft_post.yml"' in _worker_js()
     for name in ("kind:", "product:", "planned:"):
         assert name in wf.split("workflow_dispatch:", 1)[1].split("permissions:", 1)[0]
+
+
+def test_token_refresh_slot_reachable_by_cron_in_summer_and_winter():
+    """Mo 10:22 deutscher Zeit = 09:22 UTC (Winter) bzw. 08:22 UTC (Sommer)."""
+    minutes, hours = _story_cron().split()[:2]
+    js = _worker_js()
+    assert 'TOKEN_SLOT = { weekday: "Mon", hhmm: "10:22" }' in js
+    assert 'TOKEN_WORKFLOW = "token_refresh.yml"' in js
+    assert "22" in minutes.split(",")
+    assert {"8", "9"} <= set(hours.split(","))
+    with open(os.path.join(ROOT, ".github", "workflows", "token_refresh.yml"), encoding="utf-8") as f:
+        wf = f.read()
+    assert "dry_run:" in wf and "schedule:" not in wf
