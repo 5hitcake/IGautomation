@@ -31,6 +31,7 @@ def test_report_ranks_and_groups():
     assert text.index("No. 0001") < text.index("No. 0002")
     assert "Ausschnitt: Nahaufnahme 1.250 (3) | Halbkoerper 230 (3)" in text
     assert "Schwaechste 3" in text
+    assert "1.900 Aufrufe, ❤️ 2" in text
 
 
 def test_report_empty():
