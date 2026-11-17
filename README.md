@@ -151,7 +151,7 @@ die genaue Fehlermeldung.
 ## Wartung: Token-Erneuerung (automatisch)
 
 Instagram-Tokens laufen nach **60 Tagen** ab. Der Workflow **Token-Erneuerung (alle Accounts)**
-(`token_refresh.yml`) verlängert **jeden Montag** alle Instagram-Tokens um weitere 60 Tage und
+(`token_refresh.yml`) verlängert **jeden Montag um 10:22 Uhr** (gestartet vom Cloudflare-Zeitgeber) alle Instagram-Tokens um weitere 60 Tage und
 prüft die TikTok-Refresh-Tokens. Gibt Meta oder TikTok dabei einen neuen Token aus, wird er
 automatisch als GitHub-Secret gespeichert. Per Telegram kommt nur eine Nachricht, wenn ein
 Token neu gespeichert wurde oder etwas nicht geklappt hat.
