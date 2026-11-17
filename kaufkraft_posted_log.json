@@ -4,7 +4,8 @@
     "schokolade",
     "zahnpasta",
     "hotel",
-    "kino"
+    "kino",
+    "friseur"
   ],
   "inflation_index": 1,
   "history": [
@@ -37,6 +38,11 @@
       "date": "2026-11-16",
       "kind": "product",
       "what": "kino"
+    },
+    {
+      "date": "2026-11-17",
+      "kind": "product",
+      "what": "friseur"
     }
   ]
 }
