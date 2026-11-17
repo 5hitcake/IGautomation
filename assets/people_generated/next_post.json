@@ -1,10 +1,13 @@
 {
-  "type": "image",
-  "file": "assets/people_generated/person_20261117_1113_0040.jpg",
-  "caption": "This person does not exist.\n\nPerson No. 0040 · \"Joy\", 39\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #generativeai #fluxai #lookalike #streetportrait #fakeface #notreal",
+  "type": "reel",
+  "file": "reel_20261117_1713_0041.mp4",
+  "caption": "This face belongs to no one.\n\nPerson No. 0041 · \"Mayta\", 49\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #portrait #fakeface #lookalike #aiart #digitalhuman",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 39-year-old Filipino woman with shoulder-length wavy hair and a slightly uneven skin tone, wearing a chef's white jacket, a thoughtful look, in front of a brick wall, bright midday sun with hard shadows, shot on Sony A7 III, 50mm f/1.8, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 40,
-  "name": "Joy",
-  "age": 39
+  "prompt": "Close-up headshot photo of a 49-year-old Indigenous Andean man with a high fade, mutton chops and rosy cheeks, wearing a sequined party top, a tired but friendly look, at a bus stop, warm evening light, shot on Sony A7 III, 50mm f/1.8, looks exactly 49 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 41,
+  "name": "Mayta",
+  "age": 49,
+  "image": "assets/people_generated/person_20261117_1713_0041.jpg",
+  "branch": "people-media",
+  "thumb_offset": 6300
 }

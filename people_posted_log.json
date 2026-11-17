@@ -1,5 +1,5 @@
 {
-  "count": 40,
+  "count": 41,
   "recent": [
     {
       "gender": "woman",
@@ -480,6 +480,18 @@
         "filipino"
       ],
       "setting": "in front of a brick wall"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        40,
+        49
+      ],
+      "heritage": [
+        "Indigenous Andean",
+        "andean"
+      ],
+      "setting": "at a bus stop"
     }
   ],
   "reserve_used": [
