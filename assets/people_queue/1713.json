@@ -1,0 +1,32 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 49,
+    "age_range": [
+      40,
+      49
+    ],
+    "heritage": [
+      "Indigenous Andean",
+      "andean"
+    ],
+    "name": "Mayta",
+    "hair": "a high fade",
+    "facial_hair": "mutton chops",
+    "detail": "rosy cheeks",
+    "clothing": "a sequined party top",
+    "setting": "at a bus stop",
+    "lighting": "warm evening light",
+    "camera": "shot on Sony A7 III, 50mm f/1.8",
+    "framing": "close-up headshot",
+    "expression": "a tired but friendly look",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a 49-year-old Indigenous Andean man with a high fade, mutton chops and rosy cheeks, wearing a sequined party top, a tired but friendly look, at a bus stop, warm evening light, shot on Sony A7 III, 50mm f/1.8, looks exactly 49 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This face belongs to no one.\n\nPerson No. 0041 · \"Mayta\", 49\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #portrait #fakeface #lookalike #aiart #digitalhuman"
+}
