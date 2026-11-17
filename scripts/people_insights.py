@@ -132,6 +132,10 @@ def features_from_prompt(prompt):
     }
 
 
+def _num(n):
+    return f"{n:,}".replace(",", ".")
+
+
 def build_report(posts, days):
     lines = [f"📊 Auswertung @people.that.dont.exist - letzte {days} Tage ({len(posts)} Posts)"]
     if not posts:
@@ -147,8 +151,8 @@ def build_report(posts, days):
         f = p.get("features") or {}
         tag = ", ".join(v for k, v in f.items() if k in ("Ausschnitt", "Alter", "Geschlecht"))
         extra = " ✨" if f.get("Attraktiv betont") == "ja" else ""
-        return (f"{who} ({p['type']}): {p['views']:,} Aufrufe, ❤️ {p['likes']} 💬 {p['comments']} "
-                f"↗️ {p['shares']} 🔖 {p['saved']} - {tag}{extra}").replace(",", ".")
+        return (f"{who} ({p['type']}): {_num(p['views'])} Aufrufe, ❤️ {p['likes']} 💬 {p['comments']} "
+                f"↗️ {p['shares']} 🔖 {p['saved']} - {tag}{extra}")
 
     lines.append("\n🏆 Top 5")
     lines += [row(p) for p in posts[:5]]
@@ -169,8 +173,7 @@ def build_report(posts, days):
         if len(values) < 2:
             continue
         parts = sorted(((sum(v) // len(v), name, len(v)) for name, v in values.items()), reverse=True)
-        lines.append(f"• {key}: " + " | ".join(f"{name} {avg:,} ({n})".replace(",", ".")
-                                               for avg, name, n in parts))
+        lines.append(f"• {key}: " + " | ".join(f"{name} {_num(avg)} ({n})" for avg, name, n in parts))
     lines.append("\nWenige Posts je Gruppe = noch Zufall moeglich. Belastbar wird es nach 3-4 Wochen.")
     return "\n".join(lines)
 
