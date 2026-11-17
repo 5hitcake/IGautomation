@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261117_1713_0041.mp4",
-  "caption": "This face belongs to no one.\n\nPerson No. 0041 · \"Mayta\", 49\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #portrait #fakeface #lookalike #aiart #digitalhuman",
+  "file": "reel_20261117_2343_0042.mp4",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0042 · \"Chloé\", 61\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #twinstranger #peopleofinstagram #digitalhuman #faces #lookalike",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 49-year-old Indigenous Andean man with a high fade, mutton chops and rosy cheeks, wearing a sequined party top, a tired but friendly look, at a bus stop, warm evening light, shot on Sony A7 III, 50mm f/1.8, looks exactly 49 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 41,
-  "name": "Mayta",
-  "age": 49,
-  "image": "assets/people_generated/person_20261117_1713_0041.jpg",
+  "prompt": "Head and shoulders portrait photo of a 61-year-old French woman with long grey hair in a loose braid and a slightly uneven skin tone, wearing a football jersey, a warm genuine smile, looking directly into the camera, in a workshop, dim moody ambient light, shot on iPhone, candid snapshot, looks exactly 61 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 42,
+  "name": "Chloé",
+  "age": 61,
+  "image": "assets/people_generated/person_20261117_2343_0042.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }

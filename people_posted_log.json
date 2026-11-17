@@ -1,5 +1,5 @@
 {
-  "count": 41,
+  "count": 42,
   "recent": [
     {
       "gender": "woman",
@@ -492,6 +492,18 @@
         "andean"
       ],
       "setting": "at a bus stop"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        60,
+        69
+      ],
+      "heritage": [
+        "French",
+        "french"
+      ],
+      "setting": "in a workshop"
     }
   ],
   "reserve_used": [
