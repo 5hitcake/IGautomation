@@ -38,8 +38,9 @@ env:
   # Reels statt Bild-Posts, mit dem eigenen Song (assets/people_music/theme.mp3).
   REEL_ENABLED: "true"
   # Termine (UTC), die als Reel gepostet werden; alle anderen als Bild-Post.
-  # 17:13 = 14:13 AR, 23:43 = 20:43 AR. Der Morgen-Post (11:13) bleibt ein Bild.
-  REEL_SLOTS: "17:13 23:43"
+  # 11:13 = 08:13 AR, 17:13 = 14:13 AR, 23:43 = 20:43 AR. Alle drei sind Reels:
+  # Bild-Posts kamen laut Auswertung im Schnitt auf ~3 Aufrufe, Reels auf ~400.
+  REEL_SLOTS: "11:13 17:13 23:43"
 
 concurrency:
   group: people-post
