@@ -1,13 +1,10 @@
 {
-  "type": "reel",
-  "file": "reel_20261116_2343_0039.mp4",
-  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0039 · \"Luka\", 25\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #lookalike #fluxai #portraitphotography #twinstranger #streetportrait #faces",
+  "type": "image",
+  "file": "assets/people_generated/person_20261117_1113_0040.jpg",
+  "caption": "This person does not exist.\n\nPerson No. 0040 · \"Joy\", 39\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #generativeai #fluxai #lookalike #streetportrait #fakeface #notreal",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 25-year-old young Eastern European man with long hair tied back, a full beard and slightly sunburned nose, wearing a turtleneck, a tired but friendly look, at an outdoor market, neon city lights at night, shot on iPhone, candid snapshot, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 39,
-  "name": "Luka",
-  "age": 25,
-  "image": "assets/people_generated/person_20261116_2343_0039.jpg",
-  "branch": "people-media",
-  "thumb_offset": 6300
+  "prompt": "Waist-up portrait photo of a 39-year-old Filipino woman with shoulder-length wavy hair and a slightly uneven skin tone, wearing a chef's white jacket, a thoughtful look, in front of a brick wall, bright midday sun with hard shadows, shot on Sony A7 III, 50mm f/1.8, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 40,
+  "name": "Joy",
+  "age": 39
 }
