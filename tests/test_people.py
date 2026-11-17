@@ -316,3 +316,25 @@ def test_no_injury_wording_in_traits():
                 assert "single" in item or "faint" in item, item
         assert sum(bool(marks.search(i)) for i in pool) <= 2, pool
     assert "no fresh wounds" in pg.PROMPT_TAIL
+
+
+def test_tight_portraits_with_eye_contact_dominate():
+    rng = random.Random(5)
+    personas = [pg.roll_persona({"recent": []}, rng) for _ in range(500)]
+    tight = [p for p in personas if p["framing"] in pg.TIGHT_FRAMINGS]
+    assert len(tight) / len(personas) > 0.75
+    for p in tight:
+        assert "camera" in p["expression"] and "away" not in p["expression"]
+
+
+def test_attractive_only_for_younger_adults():
+    rng = random.Random(6)
+    personas = [pg.roll_persona({"recent": []}, rng) for _ in range(600)]
+    young = [p for p in personas if p["age"] < 40]
+    assert sum(1 for p in young if p["attractive"]) / len(young) > 0.5
+    for p in personas:
+        if p["age"] >= 50:
+            assert p["attractive"] is None
+        if p["attractive"]:
+            assert p["attractive"] in pg.ATTRACTIVE[p["gender"]]
+            assert f"a {p['attractive']} {p['age']}-year-old" in pg.build_prompt(p)

@@ -78,7 +78,7 @@ AGE_RANGES = [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69), (70, 85)]
 # Wuerfel-Gewichte: Schwerpunkt auf dem Alter typischer Instagram-Nutzer,
 # aeltere Gesichter weiter dabei, aber seltener.
 AGE_WEIGHTS = {
-    (20, 29): 0.55, (30, 39): 0.28, (40, 49): 0.09, (50, 59): 0.04, (60, 69): 0.025, (70, 85): 0.015,
+    (20, 29): 0.62, (30, 39): 0.26, (40, 49): 0.06, (50, 59): 0.03, (60, 69): 0.02, (70, 85): 0.01,
 }
 
 # Weltregionen mit Wuerfel-Gewicht und ihren Herkuenften
@@ -427,6 +427,18 @@ CAMERAS = [
 ]
 
 FRAMING = ["close-up headshot", "head and shoulders portrait", "waist-up portrait", "candid half-body shot"]
+# Auswertung der ersten Wochen: enge Portraits mit Blick in die Kamera laufen klar am besten.
+FRAMING_WEIGHTS = [0.5, 0.35, 0.1, 0.05]
+TIGHT_FRAMINGS = {"close-up headshot", "head and shoulders portrait"}
+EYE_CONTACT = "looking directly into the camera"
+
+# Gutes Aussehen zieht: juengere Personen sind meist attraktiv, aber weiter natuerlich
+# (echte Haut, kein Model-Shooting). Chance je Altersgrenze (Alter < Grenze).
+ATTRACTIVE = {
+    "woman": ["beautiful", "strikingly attractive", "naturally pretty"],
+    "man": ["handsome", "strikingly attractive", "good-looking"],
+}
+ATTRACTIVE_CHANCE = [(40, 0.65), (50, 0.3)]
 
 EXPRESSIONS = [
     "a warm genuine smile", "a calm neutral expression", "laughing naturally", "a thoughtful look",
@@ -525,9 +537,17 @@ def roll_persona(state, rng=random):
         "setting": setting,
         "lighting": rng.choice(INDOOR_LIGHTING if setting in INDOOR_SETTINGS else OUTDOOR_LIGHTING),
         "camera": rng.choice(CAMERAS),
-        "framing": rng.choice(FRAMING),
+        "framing": rng.choices(FRAMING, FRAMING_WEIGHTS)[0],
         "expression": rng.choice(EXPRESSIONS),
+        "attractive": None,
     }
+    if persona["framing"] in TIGHT_FRAMINGS:
+        persona["expression"] = rng.choice([e for e in EXPRESSIONS if "away" not in e])
+        if "camera" not in persona["expression"]:
+            persona["expression"] += f", {EYE_CONTACT}"
+    chance = next((c for limit, c in ATTRACTIVE_CHANCE if age < limit), 0)
+    if rng.random() < chance:
+        persona["attractive"] = rng.choice(ATTRACTIVE[gender])
     if persona["age"] >= 55 and "hair" in persona["hair"] and rng.random() < 0.6:
         persona["hair"] = persona["hair"].replace("hair", "grey hair", 1)
     add_traits(persona, rng)
@@ -591,6 +611,8 @@ def build_prompt(p):
     for trait in p.get("traits", []):
         looks += f", {trait}"
     article = "an" if str(p["age"]).startswith("8") else "a"
+    if p.get("attractive"):
+        article = f"a {p['attractive']}"
     young = "young " if p["age"] < 30 else ""
     return (
         f"{p['framing'].capitalize()} photo of {article} {p['age']}-year-old "
