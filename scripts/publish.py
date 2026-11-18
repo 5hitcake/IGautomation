@@ -128,17 +128,51 @@ def create_media_container(ig_account_id, access_token, post, dry_run):
     return creation_id
 
 
-def publish_media(ig_account_id, access_token, creation_id, dry_run):
+PUBLISH_RETRY_WAIT = 20  # Sekunden
+
+
+def is_retryable_publish_error(resp):
+    """Meta meldet gelegentlich 'Media Not Found' (Subcode 2207006) fuer einen Container, der
+    gerade noch FINISHED war, oder einen voruebergehenden Fehler. Dann lohnt ein neuer Versuch."""
+    try:
+        err = resp.json().get("error", {})
+    except ValueError:
+        return False
+    return err.get("error_subcode") == 2207006 or bool(err.get("is_transient"))
+
+
+def publish_media(ig_account_id, access_token, creation_id, dry_run, attempts=3, wait=None):
     if dry_run:
         print(f"[dry-run] POST /media_publish mit creation_id={creation_id}")
         return
-    resp = SESSION.post(
-        f"{GRAPH_API_BASE}/{ig_account_id}/media_publish",
-        data={"creation_id": creation_id, "access_token": access_token},
-        timeout=60,
-    )
+    wait = PUBLISH_RETRY_WAIT if wait is None else wait
+    for attempt in range(1, attempts + 1):
+        resp = SESSION.post(
+            f"{GRAPH_API_BASE}/{ig_account_id}/media_publish",
+            data={"creation_id": creation_id, "access_token": access_token},
+            timeout=60,
+        )
+        if resp.ok or attempt == attempts or not is_retryable_publish_error(resp):
+            break
+        print(f"Veroeffentlichen fehlgeschlagen (Versuch {attempt}/{attempts}), neuer Versuch in {wait} s")
+        time.sleep(wait)
     raise_with_details(resp)
     print(f"Veroeffentlicht: {resp.json()}")
+
+
+def create_and_publish(ig_account_id, access_token, post, dry_run):
+    """Container anlegen, warten, veroeffentlichen. Ist der Container bei Meta 'verschwunden'
+    (Media Not Found), wird EINMAL ein neuer angelegt - das Video/Bild selbst ist ja da."""
+    for round_ in (1, 2):
+        creation_id = create_media_container(ig_account_id, access_token, post, dry_run)
+        wait_for_media_ready(creation_id, access_token, dry_run)
+        try:
+            publish_media(ig_account_id, access_token, creation_id, dry_run)
+            return
+        except RuntimeError as exc:
+            if round_ == 2 or "2207006" not in str(exc):
+                raise
+            print("Container nicht mehr auffindbar - lege einen neuen an.")
 
 
 def check_account(access_token, expected):
@@ -195,9 +229,7 @@ def main():
     if args.expect_username and not args.dry_run:
         check_account(access_token, args.expect_username)
 
-    creation_id = create_media_container(ig_account_id, access_token, post, args.dry_run)
-    wait_for_media_ready(creation_id, access_token, args.dry_run)
-    publish_media(ig_account_id, access_token, creation_id, args.dry_run)
+    create_and_publish(ig_account_id, access_token, post, args.dry_run)
 
 
 if __name__ == "__main__":
