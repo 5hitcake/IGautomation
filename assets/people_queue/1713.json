@@ -1,0 +1,33 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 37,
+    "age_range": [
+      30,
+      39
+    ],
+    "heritage": [
+      "Malagasy",
+      "malagasy"
+    ],
+    "name": "Hasina",
+    "hair": "box braids",
+    "facial_hair": null,
+    "detail": "a slightly uneven skin tone",
+    "clothing": "a turtleneck",
+    "setting": "in a home kitchen",
+    "lighting": "dim moody ambient light",
+    "camera": "shot on Leica M6, 35mm, Ilford HP5 black and white film",
+    "framing": "close-up headshot",
+    "expression": "a calm neutral expression, looking directly into the camera",
+    "attractive": "naturally pretty",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a naturally pretty 37-year-old Malagasy woman with box braids and a slightly uneven skin tone, wearing a turtleneck, a calm neutral expression, looking directly into the camera, in a home kitchen, dim moody ambient light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 37 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This person does not exist.\n\nPerson No. 0044 · \"Hasina\", 37\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #portrait #peopleofinstagram #faces #lookalike #generativeai"
+}

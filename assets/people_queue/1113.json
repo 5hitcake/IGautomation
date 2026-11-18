@@ -1,0 +1,36 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 39,
+    "age_range": [
+      30,
+      39
+    ],
+    "heritage": [
+      "white American",
+      "white_american"
+    ],
+    "name": "Brandon",
+    "hair": "long hair tied back",
+    "facial_hair": "mutton chops",
+    "detail": "light freckles",
+    "clothing": "a puffer jacket",
+    "setting": "in a sunflower field",
+    "lighting": "blue hour twilight",
+    "camera": "shot on Kodak Portra 400 film, 35mm",
+    "framing": "close-up headshot",
+    "expression": "laughing naturally, looking directly into the camera",
+    "attractive": null,
+    "traits": [
+      "a plus-size body",
+      "thick black-rimmed glasses"
+    ],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a 39-year-old white American man with long hair tied back, mutton chops, a plus-size body, thick black-rimmed glasses and light freckles, wearing a puffer jacket, laughing naturally, looking directly into the camera, in a sunflower field, blue hour twilight, shot on Kodak Portra 400 film, 35mm, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Say hi to someone who was never born.\n\nPerson No. 0043 · \"Brandon\", 39\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #peopleofinstagram #streetportrait #fluxai #aiart #fakeface"
+}
