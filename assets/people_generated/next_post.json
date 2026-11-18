@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261118_1113_0043.mp4",
-  "caption": "Say hi to someone who was never born.\n\nPerson No. 0043 · \"Brandon\", 39\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portrait #peopleofinstagram #streetportrait #fluxai #aiart #fakeface",
+  "file": "reel_20261118_1713_0044.mp4",
+  "caption": "This person does not exist.\n\nPerson No. 0044 · \"Hasina\", 37\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #portrait #peopleofinstagram #faces #lookalike #generativeai",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a 39-year-old white American man with long hair tied back, mutton chops, a plus-size body, thick black-rimmed glasses and light freckles, wearing a puffer jacket, laughing naturally, looking directly into the camera, in a sunflower field, blue hour twilight, shot on Kodak Portra 400 film, 35mm, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 43,
-  "name": "Brandon",
-  "age": 39,
-  "image": "assets/people_generated/person_20261118_1113_0043.jpg",
+  "prompt": "Close-up headshot photo of a naturally pretty 37-year-old Malagasy woman with box braids and a slightly uneven skin tone, wearing a turtleneck, a calm neutral expression, looking directly into the camera, in a home kitchen, dim moody ambient light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 37 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 44,
+  "name": "Hasina",
+  "age": 37,
+  "image": "assets/people_generated/person_20261118_1713_0044.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }

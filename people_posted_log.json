@@ -1,5 +1,5 @@
 {
-  "count": 43,
+  "count": 44,
   "recent": [
     {
       "gender": "woman",
@@ -516,6 +516,18 @@
         "white_american"
       ],
       "setting": "in a sunflower field"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "Malagasy",
+        "malagasy"
+      ],
+      "setting": "in a home kitchen"
     }
   ],
   "reserve_used": [
