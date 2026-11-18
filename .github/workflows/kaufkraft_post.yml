@@ -168,7 +168,7 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.KAUFKRAFT_TIKTOK_REFRESH_TOKEN }}
           TIKTOK_MODE: ${{ vars.KAUFKRAFT_TIKTOK_MODE || 'inbox' }}
-          TIKTOK_EXPECT_NAME: ${{ vars.KAUFKRAFT_TIKTOK_NAME || 'Kaufkraft Check' }}
+          TIKTOK_EXPECT_NAME: ${{ vars.KAUFKRAFT_TIKTOK_NAME || 'Kaufkraft.check' }}
         run: |
           if [ -z "$TIKTOK_CLIENT_KEY" ] || [ -z "$TIKTOK_REFRESH_TOKEN" ]; then
             echo "Kein TikTok-Zugang hinterlegt (KAUFKRAFT_TIKTOK_REFRESH_TOKEN) - uebersprungen."
