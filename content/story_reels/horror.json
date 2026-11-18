@@ -28,10 +28,10 @@
       "für mehr wahre Geschichten"
     ],
     "caption_cta": [
-      "Hättest du dich getraut? Schreib's in die Kommentare 👇",
-      "Kanntest du diesen Fall? 👇",
-      "Schick das jemandem, der nachts nicht schlafen soll 🕯️",
-      "Was glaubst du, was wirklich passiert ist? 👇"
+      "Erklärbar oder unheimlich? Schreib's in die Kommentare 👇",
+      "Hättest du dich getraut – ja oder nein? 👇",
+      "Zufall oder Fluch? Was glaubst du? 👇",
+      "Kanntest du diesen Fall – ja oder nein? 👇"
     ],
     "image_style": "dark realistic oil painting, cinematic digital painting, dramatic chiaroscuro lighting, eerie unsettling atmosphere, muted desaturated colors, painterly texture, highly detailed, vertical composition, no gore, no text, no letters, no signature, no watermark",
     "hashtags": [
@@ -121,7 +121,7 @@
       "Heilanstalt verlassen",
       "rätselhafter Todesfall"
     ],
-    "writer_example": "hinterkaifeck",
+    "writer_example": "phantom_heilbronn",
     "wiki_seeds_en": [
       "en:Mary Reeser",
       "en:Hexham Heads",
@@ -983,15 +983,11 @@
       },
       "scenes": [
         {
-          "text": "Palermo, Sizilien, 1920. Die zweijährige Rosalia Lombardo stirbt an einer Lungenentzündung.",
+          "text": "Palermo, 1920. Die zweijährige Rosalia Lombardo stirbt an einer Lungenentzündung.",
           "image": "old Sicilian city at dusk with church domes, melancholic"
         },
         {
-          "text": "Ihr Vater kann den Verlust nicht ertragen. Er bittet einen berühmten Einbalsamierer um Hilfe.",
-          "image": "grieving father in 1920s clothes in a dim room with candles"
-        },
-        {
-          "text": "Das Ergebnis ist so perfekt, dass Rosalia aussieht, als würde sie *nur schlafen*.",
+          "text": "Ihr Vater bittet einen berühmten Einbalsamierer um Hilfe. Sie sieht aus, als würde sie *nur schlafen*.",
           "image": "small glass coffin in a dim crypt with soft light from a high window, no face visible"
         },
         {
@@ -999,15 +995,11 @@
           "image": "catacomb hall with many mummified figures in old clothes along stone walls, candlelight"
         },
         {
-          "text": "Besucher berichten etwas Unheimliches: Im Laufe des Tages scheinen sich ihre *Augen zu öffnen*.",
+          "text": "Besucher berichten: Im Laufe des Tages scheinen sich ihre *Augen zu öffnen*.",
           "image": "shaft of light moving across a crypt floor, dust in the air"
         },
         {
-          "text": "Videos davon gehen um die Welt. Ist das Kind gar nicht ganz tot?",
-          "image": "eerie candle-lit crypt with shadows on the wall"
-        },
-        {
-          "text": "Die Erklärung: Licht aus den Fenstern fällt im Tagesverlauf anders. Ihre Augen waren *nie ganz geschlossen*.",
+          "text": "Die Erklärung: Das Licht fällt anders. Ihre Augen waren *nie ganz geschlossen*.",
           "image": "old crypt window with sunlight streaming through, dramatic"
         },
         {
@@ -1018,7 +1010,8 @@
       "tags": [
         "#palermo",
         "#katakomben"
-      ]
+      ],
+      "question": "Hättest du dich in die Gruft getraut?"
     },
     {
       "id": "phantom_heilbronn",
@@ -1028,42 +1021,35 @@
       },
       "scenes": [
         {
-          "text": "1993. An einem Tatort in Deutschland wird die DNA einer unbekannten Frau gesichert.",
+          "text": "1993. An einem Tatort wird die DNA einer unbekannten Frau gesichert.",
           "image": "forensic investigator collecting evidence at night, flashlight"
         },
         {
-          "text": "In den folgenden Jahren taucht dieselbe DNA immer wieder auf. In Deutschland, Österreich und Frankreich.",
+          "text": "Dieselbe DNA taucht immer wieder auf. Rund 40 Tatorte in drei Ländern.",
           "image": "map of central europe with red pins and strings on a wall, police office"
-        },
-        {
-          "text": "Einbrüche. Diebstähle. Sogar Morde. Rund 40 Tatorte.",
-          "image": "dark parking lot at night with a lonely police car, blue tone"
         },
         {
           "text": "2007 wird in Heilbronn eine Polizistin erschossen. Wieder: *dieselbe DNA*.",
           "image": "rainy german town square at night with police tape"
         },
         {
-          "text": "Die Presse nennt die Täterin „Das Phantom von Heilbronn“. Eine Belohnung von 300.000 Euro wird ausgesetzt.",
+          "text": "Die Presse nennt sie „Das Phantom von Heilbronn“. 300.000 Euro Belohnung.",
           "image": "newspaper headlines on a table about a mysterious phantom, dramatic light"
         },
         {
-          "text": "Doch etwas passt nicht. Die DNA taucht an Orten auf, die nichts miteinander zu tun haben.",
-          "image": "detective staring at a wall of evidence in a dark office"
-        },
-        {
-          "text": "2009 die Auflösung: Die DNA stammte von einer Arbeiterin – in der Fabrik, die die *Wattestäbchen verpackte*.",
+          "text": "2009 die Auflösung: Die DNA stammte von einer Arbeiterin, die *Wattestäbchen verpackte*.",
           "image": "forensic lab with sterile cotton swabs in plastic packaging, cold light"
         },
         {
-          "text": "Das Phantom von Heilbronn hat es nie gegeben. Der Mord an der Polizistin wurde später der Terrorgruppe NSU zugeordnet.",
+          "text": "Das Phantom gab es nie. Der Mord wurde später der Terrorgruppe NSU zugeordnet.",
           "image": "empty police evidence room with boxes, cold light"
         }
       ],
       "tags": [
         "#phantomvonheilbronn",
         "#kriminalfall"
-      ]
+      ],
+      "question": "Hättest du der DNA geglaubt?"
     },
     {
       "id": "mary_reeser",
@@ -1073,35 +1059,27 @@
       },
       "scenes": [
         {
-          "text": "Mary Reeser, eine 67-jährige Frau aus St. Petersburg, Florida, stirbt unter mysteriösen Umständen.",
-          "image": "old apartment building in St. Petersburg, Florida, 1950s, sunny day"
-        },
-        {
-          "text": "Am 2. Juli 1951 findet ihre Vermieterin, Pansy Carpenter, die Tür zu Reesers Apartment warm vor.",
+          "text": "St. Petersburg, Florida, 2. Juli 1951. Die Vermieterin findet die Tür zu Mary Reesers Apartment warm vor.",
           "image": "woman trying the doorknob of an apartment door, looking concerned, warm sunlight"
         },
         {
-          "text": "Die Polizei entdeckt Reesers Überreste, größtenteils Asche, in den Resten eines Stuhls.",
+          "text": "Die Polizei findet ihre Überreste, größtenteils Asche, in den Resten eines Stuhls.",
           "image": "police officers examining the remains of a chair in a room, dark and smoky atmosphere"
         },
         {
-          "text": "Von Reeser bleiben nur ihr linker Fuß, ihr Rückgrat und ihr *geschmolzener Schädel* übrig.",
+          "text": "Übrig bleiben nur ihr linker Fuß, ihr Rückgrat und ihr *geschmolzener Schädel*.",
           "image": "close-up of a shrunken skull among ashes, dark background, single spotlight"
         },
         {
-          "text": "Die Polizei bittet das FBI um Hilfe bei der Aufklärung des Falls.",
+          "text": "Die Polizei bittet das FBI um Hilfe.",
           "image": "police chief holding a box of evidence, talking to an FBI agent, serious expressions"
         },
         {
-          "text": "Das FBI erklärt den Tod durch den *Wick-Effekt*, ausgelöst durch ein umgefallenes Zigarettenende.",
+          "text": "Das FBI erklärt den Tod durch den *Wick-Effekt*, ausgelöst durch eine Zigarette. Sie nahm oft *Schlaftabletten*.",
           "image": "FBI agent examining a burnt cigarette, magnifying glass, dim light"
         },
         {
-          "text": "Reesers Schwiegertochter bestätigt, dass sie oft *Schlaftabletten* nahm und rauchte.",
-          "image": "woman talking to a reporter, concerned expression, old newspaper clippings in the background"
-        },
-        {
-          "text": "Der Fall von Mary Reeser bleibt ein *ungewöhnlicher Tod*, der bis heute Fragen aufwirft.",
+          "text": "Der Fall Mary Reeser bleibt ein *ungewöhnlicher Tod*, der bis heute Fragen aufwirft.",
           "image": "old newspaper headlines about the case, dim library atmosphere, single reading lamp"
         }
       ],
@@ -1110,7 +1088,8 @@
         "#SpontaneSelbstentzündung"
       ],
       "source": "https://en.wikipedia.org/wiki/Death_of_Mary_Reeser",
-      "generated": "2026-11-18"
+      "generated": "2026-11-18",
+      "question": "Erklärbar oder unheimlich?"
     }
   ]
 }

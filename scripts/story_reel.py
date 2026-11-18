@@ -185,6 +185,11 @@ def tidy_story(story):
         part["text"] = text
         part["image"] = re.sub(r"\s+", " ", str(part.get("image", "")).replace("*", "")).strip()
     story["tags"] = [t if t.startswith("#") else f"#{t}" for t in story.get("tags", [])][:3]
+    question = re.sub(r"\s+", " ", str(story.get("question", "")).replace("*", "")).strip()
+    if question:
+        story["question"] = question if question.endswith("?") else question.rstrip(".!") + "?"
+    else:
+        story.pop("question", None)
     return story
 
 
@@ -210,8 +215,11 @@ def validate_story(story):
             if len(strip_marks(t).split()) > 34:
                 problems.append(f"Szene zu lang: {t[:40]}")
         words = sum(len(strip_marks(t).split()) for t in texts)
-        if not 85 <= words <= 170:
-            problems.append(f"{words} Woerter (Ziel 100-150 fuer ~1 Minute)")
+        if not 60 <= words <= 170:
+            problems.append(f"{words} Woerter (Ziel 65-95 fuer ~45 Sekunden)")
+        question = story.get("question")
+        if question is not None and (not str(question).endswith("?") or len(str(question).split()) > 12):
+            problems.append("question: kurze Frage mit ? am Ende (max. 12 Woerter)")
         images = [hook.get("image", "")] + [sc.get("image", "") for sc in scenes]
         for img in images:
             if "*" in img:
@@ -237,13 +245,20 @@ def unused_count(stories, account_state):
     return sum(1 for s in stories if s["id"] not in used)
 
 
+def comment_cta(account_cfg, story, rng=random):
+    """Konkrete Entweder-oder-Frage zur Geschichte bringt mehr Kommentare als ein allgemeiner Aufruf."""
+    if story.get("question"):
+        return f"{story['question']} Schreib's in die Kommentare 👇"
+    return rng.choice(account_cfg["caption_cta"])
+
+
 def build_caption(account_cfg, story, rng=random):
     tags = list(dict.fromkeys(story.get("tags", []) + account_cfg["hashtags"]))[:15]
     teaser = strip_marks(story["scenes"][0]["text"])
     return (
         f"{strip_marks(story['hook']['text'])}\n\n"
         f"{teaser} …\n\n"
-        f"{rng.choice(account_cfg['caption_cta'])}\n"
+        f"{comment_cta(account_cfg, story, rng)}\n"
         f"Folge {account_cfg['handle']} für mehr.\n\n"
         f"{' '.join(tags)}"
     )
@@ -257,7 +272,7 @@ def build_tiktok_caption(account_cfg, story, rng=random):
     return (
         f"{strip_marks(story['hook']['text'])}\n\n"
         f"{teaser} …\n\n"
-        f"{rng.choice(account_cfg['caption_cta'])}\n\n"
+        f"{comment_cta(account_cfg, story, rng)}\n\n"
         f"{' '.join(tags)}"
     )[:2200]
 
@@ -278,9 +293,10 @@ def build_segments(account_cfg, story, rng=random):
     for i, scene in enumerate(story["scenes"]):
         segs.append({"kind": "scene", "text": scene["text"], "image": i + 1})
     cta_lines = [line.format(handle=account_cfg["handle"]) for line in account_cfg["cta"]]
-    segs.append(
-        {"kind": "cta", "text": "\n".join(cta_lines), "image": 0, "speech": account_cfg.get("cta_voice", "")}
-    )
+    speech = account_cfg.get("cta_voice", "")
+    if story.get("question"):
+        speech = f"{strip_marks(story['question'])} Schreib es in die Kommentare. {speech}".strip()
+    segs.append({"kind": "cta", "text": "\n".join(cta_lines), "image": 0, "speech": speech})
     for seg in segs:
         seg["duration"] = CTA_SECONDS if seg["kind"] == "cta" else reading_seconds(seg["text"])
     segs[0]["duration"] = max(segs[0]["duration"], 3.5)

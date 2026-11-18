@@ -29,10 +29,10 @@
       "für mehr Rätsel"
     ],
     "caption_cta": [
-      "Was glaubst du – Zufall oder mehr? 👇",
-      "Kanntest du das schon? Schreib's in die Kommentare 👇",
-      "Schick das jemandem, der an alles glaubt 👽",
-      "Welches Rätsel soll als Nächstes kommen? 👇"
+      "Zufall oder Absicht? Schreib's in die Kommentare 👇",
+      "Glaubst du das – ja oder nein? 👇",
+      "Wahrer Kern oder reine Legende? 👇",
+      "Kanntest du das schon – ja oder nein? 👇"
     ],
     "image_style": "hand-painted anime film illustration, cinematic composition, lush painterly backgrounds, dramatic volumetric light, mysterious atmosphere, rich colors, highly detailed, vertical composition, no text, no letters, no signature, no watermark",
     "hashtags": [
@@ -132,7 +132,7 @@
       "verschollener Schatz",
       "Expedition verschollen"
     ],
-    "writer_example": "antikythera",
+    "writer_example": "nazca",
     "wiki_seeds_en": [
       "en:Kelly–Hopkinsville encounter",
       "en:Brown Mountain lights",
@@ -915,11 +915,7 @@
           "image": "dark irregular object floating in space above earth, grainy photo look"
         },
         {
-          "text": "Sein Name: der „Black Knight“. Der schwarze Ritter.",
-          "image": "silhouette of a dark object eclipsing the sun in orbit"
-        },
-        {
-          "text": "Die Legende: Ein außerirdischer Satellit beobachtet die Menschheit seit *13.000 Jahren*.",
+          "text": "Die Legende: Der „Black Knight“ beobachtet die Menschheit seit *13.000 Jahren*.",
           "image": "alien satellite watching earth from orbit, cinematic"
         },
         {
@@ -927,27 +923,24 @@
           "image": "inventor listening to radio signals in a 1900s lab at night"
         },
         {
-          "text": "Die Wahrheit ist einfacher: Das Foto entstand 1998 bei einer Space-Shuttle-Mission.",
+          "text": "Die Wahrheit: Das Foto entstand 1998 bei einer Space-Shuttle-Mission.",
           "image": "astronaut on a spacewalk near a space shuttle, earth below"
         },
         {
-          "text": "Astronauten arbeiteten an der Raumstation. Dabei ging ihnen eine *Thermodecke* verloren.",
+          "text": "Astronauten verloren bei der Arbeit an der Raumstation eine *Thermodecke*.",
           "image": "silver thermal blanket floating away in space, sunlight reflection"
         },
         {
-          "text": "Sie trieb davon – und wurde fotografiert. Aus Decke, Gerüchten und alten Geschichten wurde ein Mythos.",
+          "text": "Sie trieb davon und wurde fotografiert. So schnell entsteht ein *Mythos*.",
           "image": "old radio signals and newspaper clippings collage, mysterious"
-        },
-        {
-          "text": "Manchmal ist die Wahrheit langweiliger. Aber spannend ist, *wie schnell* ein Mythos entsteht.",
-          "image": "earth at night from space with city lights, calm"
         }
       ],
       "tags": [
         "#blackknight",
         "#weltraum",
         "#mythos"
-      ]
+      ],
+      "question": "Hättest du den Mythos geglaubt?"
     },
     {
       "id": "northwoods",
@@ -957,19 +950,15 @@
       },
       "scenes": [
         {
-          "text": "1962. Kalter Krieg. Kuba ist kommunistisch geworden – direkt vor der Küste der USA.",
+          "text": "1962. Kuba ist kommunistisch geworden – direkt vor der Küste der USA.",
           "image": "map of cuba and florida on a military table, 1960s"
         },
         {
-          "text": "Die US-Militärführung will eine Invasion. Doch dafür braucht sie einen Vorwand.",
-          "image": "generals in uniform discussing around a table, dramatic shadows"
-        },
-        {
-          "text": "Sie entwirft einen Plan: *Operation Northwoods*.",
+          "text": "Die US-Militärführung will eine Invasion. Dafür entwirft sie *Operation Northwoods*.",
           "image": "top secret stamped document on a desk under a lamp, cold war, no readable text"
         },
         {
-          "text": "Inszenierte Anschläge in amerikanischen Städten. Ein gesprengtes Schiff. Gefälschte Flugzeugentführungen.",
+          "text": "Inszenierte Anschläge in amerikanischen Städten. Gefälschte Flugzeugentführungen.",
           "image": "burning ship in a harbor at night, 1960s"
         },
         {
@@ -977,12 +966,8 @@
           "image": "fake evidence and photos arranged on a table, noir"
         },
         {
-          "text": "Der Plan wird von allen Stabschefs unterschrieben und Präsident Kennedys Regierung vorgelegt.",
+          "text": "Alle Stabschefs unterschreiben. Doch Präsident Kennedy *lehnt ab*.",
           "image": "1960s white house at night, dramatic clouds"
-        },
-        {
-          "text": "Kennedy *lehnt ab*.",
-          "image": "president at a desk in the oval office looking out the window, 1960s"
         },
         {
           "text": "Öffentlich wird das Dokument erst *1997*. Eine Verschwörung – nur eben keine Theorie.",
@@ -992,7 +977,8 @@
       "tags": [
         "#operationnorthwoods",
         "#kalterkrieg"
-      ]
+      ],
+      "question": "Hättest du das für möglich gehalten?"
     },
     {
       "id": "stargate",
@@ -1002,24 +988,16 @@
       },
       "scenes": [
         {
-          "text": "Die 1970er. Die USA hören Gerüchte: Die Sowjetunion erforscht übersinnliche Kräfte.",
+          "text": "Die 1970er. Gerüchte: Die Sowjetunion erforscht übersinnliche Kräfte.",
           "image": "soviet laboratory with scientists observing a person in a chair, 1970s"
         },
         {
-          "text": "Also starten Armee und Geheimdienst ihr eigenes Programm. Später bekannt als *Projekt Stargate*.",
+          "text": "Die USA starten ein eigenes Programm. Später bekannt als *Projekt Stargate*.",
           "image": "secret 1970s military office with psychic drawings pinned on a wall"
         },
         {
-          "text": "Die Methode: „Remote Viewing“ – Fernwahrnehmung.",
-          "image": "man sitting in a dark room drawing sketches with closed eyes"
-        },
-        {
-          "text": "Testpersonen bekommen nur Koordinaten auf einem Zettel. Sie sollen beschreiben, was sich dort befindet.",
+          "text": "Testpersonen bekommen nur Koordinaten auf einem Zettel und sollen beschreiben, was dort ist.",
           "image": "paper with coordinates and a pencil sketch of a building, lamp light"
-        },
-        {
-          "text": "Militärbasen. Geiseln. Verschwundene Flugzeuge.",
-          "image": "satellite view of a secret base with a glowing target marker, mysterious"
         },
         {
           "text": "Über 20 Jahre läuft das Programm. Kosten: rund *20 Millionen Dollar*.",
@@ -1037,7 +1015,8 @@
       "tags": [
         "#projectstargate",
         "#cia"
-      ]
+      ],
+      "question": "Glaubst du an Fernwahrnehmung – ja oder nein?"
     },
     {
       "id": "nazca",
@@ -1051,27 +1030,19 @@
           "image": "vast peruvian desert plain under harsh sun"
         },
         {
-          "text": "Hier zeichneten Menschen vor rund 2.000 Jahren *riesige Figuren* in den Boden.",
+          "text": "Vor rund 2.000 Jahren zeichneten Menschen hier *riesige Figuren* in den Boden.",
           "image": "ancient nazca people drawing huge lines in the desert, wide aerial view"
-        },
-        {
-          "text": "Ein Kolibri, ein Affe, eine Spinne. Manche sind Hunderte Meter groß.",
-          "image": "giant monkey geoglyph in the desert seen from above"
         },
         {
           "text": "Das Rätsel: Richtig erkennbar sind sie erst *aus der Luft*.",
           "image": "small plane flying over desert lines at sunrise, epic"
         },
         {
-          "text": "Für Erich von Däniken waren es Landebahnen für Außerirdische. Forscher sehen eher rituelle Pfade.",
+          "text": "Für Erich von Däniken waren es Landebahnen. Forscher sehen eher rituelle Pfade.",
           "image": "mysterious long straight lines in the desert leading to the horizon, dusk"
         },
         {
-          "text": "2024 durchsuchte ein Team mit KI-Hilfe Luftbilder der Region.",
-          "image": "computer screen analyzing aerial desert images with AI highlights"
-        },
-        {
-          "text": "In nur sechs Monaten fanden sie *303 neue Figuren*. Fast so viele wie in 100 Jahren zuvor.",
+          "text": "2024 fand ein Team mit KI-Hilfe in sechs Monaten *303 neue Figuren*.",
           "image": "newly discovered faint geoglyph of a figure in the desert, aerial"
         },
         {
@@ -1083,7 +1054,8 @@
         "#nazca",
         "#peru",
         "#ki"
-      ]
+      ],
+      "question": "Rituelle Pfade oder Botschaft an den Himmel?"
     },
     {
       "id": "oumuamua",
@@ -1097,31 +1069,23 @@
           "image": "large observatory dome on a hawaiian volcano at night with stars"
         },
         {
-          "text": "Es kommt nicht aus unserem Sonnensystem. Es ist der *erste bekannte Besucher* von einem anderen Stern.",
+          "text": "Es ist der *erste bekannte Besucher* von einem anderen Stern: Oumuamua.",
           "image": "object streaking through the solar system on a hyperbolic path, illustration"
-        },
-        {
-          "text": "Man nennt es Oumuamua – hawaiianisch für „Bote aus der Ferne“.",
-          "image": "reddish cigar shaped object in deep space, cinematic"
         },
         {
           "text": "Seine Form: extrem langgestreckt oder flach. Anders als alle bekannten Asteroiden.",
           "image": "scientists looking at a screen with a strange elongated object"
         },
         {
-          "text": "Dann das Rätsel: Es *beschleunigt*, während es sich von der Sonne entfernt.",
+          "text": "Dann das Rätsel: Es *beschleunigt* – doch man sieht keinen Schweif.",
           "image": "object moving away from the sun with motion trail, space"
         },
         {
-          "text": "Kometen tun das, weil Gas austritt. Doch bei Oumuamua sah man keinen Schweif.",
-          "image": "comet with a bright tail compared to a tail-less object, space"
-        },
-        {
-          "text": "Ein Harvard-Professor stellte die These auf: vielleicht ein *Lichtsegel* einer fremden Zivilisation.",
+          "text": "Ein Harvard-Professor vermutet ein *Lichtsegel* einer fremden Zivilisation.",
           "image": "thin glowing alien light sail drifting through deep space"
         },
         {
-          "text": "Andere Forscher erklären es mit Wasserstoff, der unsichtbar entweicht. Oumuamua ist längst fort. Wir werden es nie genau wissen.",
+          "text": "Andere erklären es mit unsichtbarem Wasserstoff. Wir werden es nie genau wissen.",
           "image": "lonely object disappearing into the dark between stars"
         }
       ],
@@ -1129,7 +1093,8 @@
         "#oumuamua",
         "#weltraum",
         "#aliens"
-      ]
+      ],
+      "question": "Natürliches Objekt oder Lichtsegel?"
     },
     {
       "id": "rosalind_franklin",
@@ -1139,19 +1104,15 @@
       },
       "scenes": [
         {
-          "text": "London, Anfang der 1950er. Die Chemikerin Rosalind Franklin erforscht die Struktur der DNA.",
+          "text": "London, Anfang der 1950er. Rosalind Franklin erforscht die Struktur der DNA.",
           "image": "woman scientist in a 1950s lab with x-ray equipment, focused"
-        },
-        {
-          "text": "Mit Röntgenstrahlen macht ihr Team Aufnahmen, schärfer als alle zuvor.",
-          "image": "x-ray crystallography machine glowing in a dark 1950s laboratory"
         },
         {
           "text": "1952 entsteht „Foto 51“. Ein X-förmiges Muster, das die *Doppelhelix* verrät.",
           "image": "old black and white x-ray diffraction photo pinned on a light board, dramatic"
         },
         {
-          "text": "Ein Kollege zeigt das Bild James Watson. *Ohne ihr Wissen.*",
+          "text": "Ein Kollege zeigt das Bild James Watson. *Ohne ihr Wissen.*.",
           "image": "two men in 1950s suits looking at a photograph in a corridor, secretive"
         },
         {
@@ -1159,11 +1120,7 @@
           "image": "glowing DNA double helix in darkness, scientific, cinematic"
         },
         {
-          "text": "Franklins Daten waren dafür entscheidend. Ihr Beitrag wird nur am Rande erwähnt.",
-          "image": "scientific journal pages on a desk with a small footnote highlighted"
-        },
-        {
-          "text": "1958 stirbt sie an Krebs. Sie wurde nur 37 Jahre alt.",
+          "text": "1958 stirbt Franklin an Krebs. Sie wurde nur 37 Jahre alt.",
           "image": "empty 1950s laboratory bench with a single lamp, melancholic"
         },
         {
@@ -1175,7 +1132,8 @@
         "#rosalindfranklin",
         "#wissenschaft",
         "#dna"
-      ]
+      ],
+      "question": "Hätte sie den Nobelpreis verdient – ja oder nein?"
     }
   ]
 }
