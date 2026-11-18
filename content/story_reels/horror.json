@@ -160,7 +160,8 @@
       "#truecrime",
       "#wahregeschichte",
       "#fürdich"
-    ]
+    ],
+    "key": "horror"
   },
   "stories": [
     {
@@ -1063,6 +1064,53 @@
         "#phantomvonheilbronn",
         "#kriminalfall"
       ]
+    },
+    {
+      "id": "mary_reeser",
+      "hook": {
+        "text": "Eine Frau verbrennt fast vollständig, nur ihr linker Fuß bleibt *teilweise erhalten*.",
+        "image": "charred remains of a chair in a room with a cement floor, dim light, single window"
+      },
+      "scenes": [
+        {
+          "text": "Mary Reeser, eine 67-jährige Frau aus St. Petersburg, Florida, stirbt unter mysteriösen Umständen.",
+          "image": "old apartment building in St. Petersburg, Florida, 1950s, sunny day"
+        },
+        {
+          "text": "Am 2. Juli 1951 findet ihre Vermieterin, Pansy Carpenter, die Tür zu Reesers Apartment warm vor.",
+          "image": "woman trying the doorknob of an apartment door, looking concerned, warm sunlight"
+        },
+        {
+          "text": "Die Polizei entdeckt Reesers Überreste, größtenteils Asche, in den Resten eines Stuhls.",
+          "image": "police officers examining the remains of a chair in a room, dark and smoky atmosphere"
+        },
+        {
+          "text": "Von Reeser bleiben nur ihr linker Fuß, ihr Rückgrat und ihr *geschmolzener Schädel* übrig.",
+          "image": "close-up of a shrunken skull among ashes, dark background, single spotlight"
+        },
+        {
+          "text": "Die Polizei bittet das FBI um Hilfe bei der Aufklärung des Falls.",
+          "image": "police chief holding a box of evidence, talking to an FBI agent, serious expressions"
+        },
+        {
+          "text": "Das FBI erklärt den Tod durch den *Wick-Effekt*, ausgelöst durch ein umgefallenes Zigarettenende.",
+          "image": "FBI agent examining a burnt cigarette, magnifying glass, dim light"
+        },
+        {
+          "text": "Reesers Schwiegertochter bestätigt, dass sie oft *Schlaftabletten* nahm und rauchte.",
+          "image": "woman talking to a reporter, concerned expression, old newspaper clippings in the background"
+        },
+        {
+          "text": "Der Fall von Mary Reeser bleibt ein *ungewöhnlicher Tod*, der bis heute Fragen aufwirft.",
+          "image": "old newspaper headlines about the case, dim library atmosphere, single reading lamp"
+        }
+      ],
+      "tags": [
+        "#MaryReeser",
+        "#SpontaneSelbstentzündung"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Death_of_Mary_Reeser",
+      "generated": "2026-11-18"
     }
   ]
 }
