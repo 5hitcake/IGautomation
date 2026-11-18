@@ -687,7 +687,7 @@ voll automatisch über `kaufkraft_post.yml` zu deutschen Top-Zeiten: **Mo–Fr 1
   Einrichtung: einmalig `python scripts/tiktok_auth.py` am PC (mit dem TikTok-Account einloggen) und den
   Refresh-Token als Secret `KAUFKRAFT_TIKTOK_REFRESH_TOKEN` speichern. Standard ist der Modus `inbox`
   (Entwurf in der TikTok-App, dort auf Posten tippen); Variable `KAUFKRAFT_TIKTOK_MODE=direct` postet direkt,
-  sobald die TikTok-App geprüft ist. Der Anzeigename muss `Kaufkraft Check` sein (sonst Variable `KAUFKRAFT_TIKTOK_NAME`).
+  sobald die TikTok-App geprüft ist. Der Anzeigename muss `Kaufkraft.check` sein (sonst Variable `KAUFKRAFT_TIKTOK_NAME`).
 
 ### Woher die Zahlen kommen
 
