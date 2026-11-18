@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261118_1713_0044.mp4",
-  "caption": "This person does not exist.\n\nPerson No. 0044 · \"Hasina\", 37\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fluxai #portrait #peopleofinstagram #faces #lookalike #generativeai",
+  "file": "reel_20261118_2343_0045.mp4",
+  "caption": "This person does not exist.\n\nPerson No. 0045 · \"Erik\", 29\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #aiphotography #fluxai #notreal #peopleofinstagram #faces",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a naturally pretty 37-year-old Malagasy woman with box braids and a slightly uneven skin tone, wearing a turtleneck, a calm neutral expression, looking directly into the camera, in a home kitchen, dim moody ambient light, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 37 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 44,
-  "name": "Hasina",
-  "age": 37,
-  "image": "assets/people_generated/person_20261118_1713_0044.jpg",
+  "prompt": "Head and shoulders portrait photo of a good-looking 29-year-old young Northern European man with tight curls, a long braided beard and a gap between the front teeth, wearing denim overalls over a t-shirt, a warm genuine smile, looking directly into the camera, in a library, afternoon sunlight through a window, shot on Canon EOS R5, 85mm f/1.4, looks exactly 29 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 45,
+  "name": "Erik",
+  "age": 29,
+  "image": "assets/people_generated/person_20261118_2343_0045.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }

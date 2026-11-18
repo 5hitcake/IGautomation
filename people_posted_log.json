@@ -1,5 +1,5 @@
 {
-  "count": 44,
+  "count": 45,
   "recent": [
     {
       "gender": "woman",
@@ -528,6 +528,18 @@
         "malagasy"
       ],
       "setting": "in a home kitchen"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Northern European",
+        "northern_european"
+      ],
+      "setting": "in a library"
     }
   ],
   "reserve_used": [
