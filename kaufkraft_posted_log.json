@@ -5,7 +5,8 @@
     "zahnpasta",
     "hotel",
     "kino",
-    "friseur"
+    "friseur",
+    "bananen"
   ],
   "inflation_index": 1,
   "history": [
@@ -43,6 +44,11 @@
       "date": "2026-11-17",
       "kind": "product",
       "what": "friseur"
+    },
+    {
+      "date": "2026-11-18",
+      "kind": "product",
+      "what": "bananen"
     }
   ]
 }
