@@ -1,5 +1,5 @@
 {
-  "count": 42,
+  "count": 43,
   "recent": [
     {
       "gender": "woman",
@@ -504,6 +504,18 @@
         "french"
       ],
       "setting": "in a workshop"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "white American",
+        "white_american"
+      ],
+      "setting": "in a sunflower field"
     }
   ],
   "reserve_used": [
