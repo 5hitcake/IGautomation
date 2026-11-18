@@ -33,8 +33,10 @@ from urllib3.util.retry import Retry
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 API_BASE = "https://open.tiktokapis.com/v2"
 POLL_INTERVAL_SECONDS = 10
-MAX_POLL_ATTEMPTS = 60  # 10 Minuten
-UPLOAD_ATTEMPTS = 2  # haengt TikTok bei PROCESSING_UPLOAD, einmal komplett neu hochladen
+MAX_POLL_ATTEMPTS = 180  # 30 Minuten
+# Kein zweiter Upload: TikTok verarbeitet auch "haengende" Uploads irgendwann fertig, ein zweiter
+# Upload ergab dann doppelte Entwuerfe. Nach Ablauf der Wartezeit gilt der Upload als unterwegs.
+STILL_PROCESSING = "STILL_PROCESSING"
 MAX_TITLE = 2200
 CHUNK_MAX = 64 * 1024 * 1024
 
@@ -207,17 +209,17 @@ def publish_once(token, video_path, payload, mode):
     return wait_for_status(token, data["publish_id"], mode)
 
 
-def publish_with_retry(token, video_path, payload, mode, attempts=UPLOAD_ATTEMPTS):
-    for attempt in range(1, attempts + 1):
-        try:
-            return publish_once(token, video_path, payload, mode)
-        except TimeoutError:
-            if attempt == attempts:
-                raise
-            print(
-                f"::warning::TikTok verarbeitet den Upload nicht - neuer Versuch ({attempt + 1}/{attempts})."
-            )
-    raise RuntimeError("unerreichbar")
+def publish_and_wait(token, video_path, payload, mode):
+    """Genau ein Upload. Dauert die Verarbeitung laenger als die Wartezeit, kommt der Entwurf
+    erfahrungsgemaess spaeter trotzdem an - deshalb kein Fehler und kein zweiter Upload."""
+    try:
+        return publish_once(token, video_path, payload, mode)
+    except TimeoutError:
+        print(
+            "::notice::TikTok verarbeitet das Video noch. Der Entwurf kommt meist etwas spaeter an - "
+            "kein zweiter Upload, um doppelte Entwuerfe zu vermeiden."
+        )
+        return STILL_PROCESSING
 
 
 def main():
@@ -256,8 +258,10 @@ def main():
     if privacy:
         print(f"Sichtbarkeit: {privacy}")
     payload = build_payload(mode, size, post.get("tiktok_caption", post["caption"]), privacy)
-    status = publish_with_retry(token, video_path, payload, mode)
-    if status == "SEND_TO_USER_INBOX":
+    status = publish_and_wait(token, video_path, payload, mode)
+    if status == STILL_PROCESSING:
+        print("Hochgeladen: TikTok verarbeitet noch, der Entwurf kommt spaeter in der TikTok-App an.")
+    elif status == "SEND_TO_USER_INBOX":
         print("Fertig: Das Video liegt als Entwurf in deiner TikTok-App (Benachrichtigungen) - dort posten.")
     else:
         print("Fertig: Auf TikTok veroeffentlicht.")

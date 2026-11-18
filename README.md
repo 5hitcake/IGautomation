@@ -605,8 +605,9 @@ reicht nicht für tägliche Minuten-Reels.
 
 Nach dem Instagram-Post wird dasselbe Video zusätzlich zu TikTok geschickt, sobald die Secrets da
 sind. Schlägt TikTok fehl, bleibt der Instagram-Post davon unberührt.
-Hängt TikTok beim Verarbeiten, wartet das Skript bis zu 10 Minuten und lädt notfalls einmal neu
-hoch. Klappt es trotzdem nicht (Telegram meldet „TikTok-Upload fehlgeschlagen“): **Actions →
+TikTok braucht für die Verarbeitung manchmal 10 Minuten und mehr, die Benachrichtigung in der App
+kommt teils Stunden später. Das Skript lädt deshalb nur **einmal** hoch und wartet bis zu 30 Minuten,
+ein zweiter Upload würde doppelte Entwürfe erzeugen. Kommt wirklich kein Entwurf an (Telegram meldet „TikTok-Upload fehlgeschlagen“): **Actions →
 „TikTok nachholen (Story-Reel)“ → Run workflow → Account wählen** lädt das zuletzt gepostete Reel
 erneut als Entwurf hoch.
 
