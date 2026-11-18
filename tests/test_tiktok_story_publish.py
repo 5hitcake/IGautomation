@@ -88,26 +88,16 @@ def test_check_account(monkeypatch):
         tt.check_account("t", "MYSTERY=HISTORY")
 
 
-def test_publish_retries_once_when_tiktok_hangs(monkeypatch):
+def test_publish_uploads_only_once_when_tiktok_is_slow(monkeypatch):
     calls = []
 
-    def fake_once(token, video_path, payload, mode):
-        calls.append(1)
-        if len(calls) == 1:
-            raise TimeoutError("haengt")
-        return "SEND_TO_USER_INBOX"
-
-    monkeypatch.setattr(tt, "publish_once", fake_once)
-    assert tt.publish_with_retry("t", "v.mp4", {}, "inbox") == "SEND_TO_USER_INBOX"
-    assert len(calls) == 2
-
-    calls.clear()
-
-    def always_hangs(*args):
+    def slow(*args):
         calls.append(1)
         raise TimeoutError("haengt")
 
-    monkeypatch.setattr(tt, "publish_once", always_hangs)
-    with pytest.raises(TimeoutError):
-        tt.publish_with_retry("t", "v.mp4", {}, "inbox")
-    assert len(calls) == 2
+    monkeypatch.setattr(tt, "publish_once", slow)
+    assert tt.publish_and_wait("t", "v.mp4", {}, "inbox") == tt.STILL_PROCESSING
+    assert len(calls) == 1  # kein zweiter Upload -> keine doppelten Entwuerfe
+
+    monkeypatch.setattr(tt, "publish_once", lambda *a: "SEND_TO_USER_INBOX")
+    assert tt.publish_and_wait("t", "v.mp4", {}, "inbox") == "SEND_TO_USER_INBOX"
