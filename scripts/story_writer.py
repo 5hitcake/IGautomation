@@ -3,7 +3,7 @@ wiederholt werden muss.
 
 Quelle der Fakten ist immer ein deutscher Wikipedia-Artikel; eine KI auf Cloudflare Workers AI
 (kostenloses Kontingent) schreibt daraus das Reel-Skript im Format von
-content/story_reels/<account>.json (Hook + 8 Szenen mit Bildbeschreibung).
+content/story_reels/<account>.json (Hook + 6 Szenen mit Bildbeschreibung).
 
 Themenquellen pro Account (in der Account-Datei):
   "wiki_seeds":   kuratierte Liste echter Faelle/Raetsel (Artikel-Titel), wird zuerst abgearbeitet
@@ -191,7 +191,7 @@ Namen, Zahlen, Daten, Zitate oder Details. Ist etwas ungeklaert oder umstritten,
 Trenne bei Theorien deutlich zwischen Belegtem und Spekulation.
 
 Lehne den Artikel ab ("suitable": false), wenn:
-- er keine wahre, gut belegte Begebenheit beschreibt oder zu wenig Stoff fuer 8 Szenen hat,
+- er keine wahre, gut belegte Begebenheit beschreibt oder zu wenig Stoff fuer 6 Szenen hat,
 - Kinder die Opfer von Gewalt sind oder sexuelle Gewalt im Mittelpunkt steht,
 - es ein Fall nach 2010 mit lebenden Privatpersonen (Opfer, Taeter, Angehoerige) ist,
 - er Terror verherrlichen koennte oder menschenverachtende Verschwoerungsmythen behandelt
@@ -202,14 +202,24 @@ Schon behandelte Themen (ebenfalls ablehnen, wenn es dasselbe ist): {covered}
 Format (nur JSON, nichts anderes):
 {{"suitable": true, "reason": "kurz", "id": "kurzer_slug_in_kleinbuchstaben",
  "hook": {{"text": "...", "image": "..."}},
- "scenes": [{{"text": "...", "image": "..."}}, ... genau 8 Szenen ...],
+ "scenes": [{{"text": "...", "image": "..."}}, ... genau 6 Szenen ...],
+ "question": "...",
  "tags": ["#hashtag1", "#hashtag2"]}}
 
 Regeln fuer den Text:
-- Hook: 1 packender Satz, max. 16 Woerter, der sofort schockiert oder neugierig macht - KEINE
-  Zusammenfassung ("Ein Serienmoerder terrorisiert...") sondern die verstoerendste Tatsache des Falls.
-- 8 Szenen, je 12-22 Woerter, zusammen mit dem Hook 100-150 Woerter. Spannender Bogen:
-  Ort/Zeit -> Ereignis -> unheimliche Details -> Ermittlungen/Theorien -> offenes Ende oder Twist.
+- Hook: 1 packender Satz, max. 14 Woerter. Beginne mit einem KONKRETEN, alltaeglichen Detail und
+  einer verstoerenden Wendung - KEINE Zusammenfassung ("Ein Serienmoerder terrorisiert...") und kein
+  grosses Abstraktum ("Er rettete Tausende..."). Bei Raetseln wirkt ein Vergleich mit Bekanntem.
+  Beispiele, die bei unseren Zuschauern am besten liefen:
+  "Hotelgaeste beschwerten sich, dass das Wasser seltsam schmeckte."
+  "Das Schiff war voellig intakt. Nur die Menschen waren weg."
+  "Ein kleiner Heizluefter loeste eine der schlimmsten Katastrophen Oesterreichs aus."
+  "Dieser Tempel ist aelter als Stonehenge und die Pyramiden zusammen."
+- 6 Szenen, je 9-16 Woerter, zusammen mit dem Hook 65-95 Woerter (Reel ca. 45 Sekunden).
+  Straffer Bogen: Ort/Zeit -> Ereignis -> unheimliches Detail -> Theorien -> offenes Ende oder Twist.
+  Jede Szene muss die Spannung erhoehen, kein Fuelltext.
+- "question": eine kurze Entweder-oder-Frage an die Zuschauer zum Fall (max. 8 Woerter, endet mit ?),
+  z.B. "Unfall oder Mord?", "Zufall oder Absicht?", "Haettest du die Nacht dort verbracht?".
 - Kurze, klare Saetze zum Vorlesen. Zahlen als Ziffern. Keine Emojis.
 - Pro Szene hoechstens 1-2 besonders wichtige Woerter in *Sternchen* (werden farbig hervorgehoben),
   nicht in jeder Szene. Jeder Satz endet mit Punkt, Fragezeichen oder Ausrufezeichen.
@@ -231,7 +241,7 @@ def style_example(account_cfg):
     ex = next((s for s in stories if s["id"] == example_id), None)
     if not ex:
         return ""
-    ex = {k: ex[k] for k in ("id", "hook", "scenes", "tags")}
+    ex = {k: ex[k] for k in ("id", "hook", "scenes", "question", "tags") if k in ex}
     return (
         "\n\nSO SOLL ES KLINGEN (Beispiel einer fertigen Geschichte, anderer Fall - nur Stil und Aufbau "
         "uebernehmen, NICHT den Inhalt). Achte auf den packenden Hook, kurze Saetze mit Punkt, "
@@ -272,7 +282,9 @@ def write_story(account_cfg, title, text, covered, creds, models=None):
                 continue
             if not story.get("suitable", True):
                 return None, f"abgelehnt: {story.get('reason', '')}"
-            story = sr.tidy_story({k: story[k] for k in ("id", "hook", "scenes", "tags") if k in story})
+            story = sr.tidy_story(
+                {k: story[k] for k in ("id", "hook", "scenes", "question", "tags") if k in story}
+            )
             problems = sr.validate_story(story)
             if not problems:
                 return story, model

@@ -181,3 +181,19 @@ def test_get_images_aborts_without_ai_images(tmp_path, monkeypatch):
         sr.get_images(cfg, stories[0], str(tmp_path), dry_run=False, seed=1)
     images, sources = sr.get_images(cfg, stories[0], str(tmp_path), dry_run=True, seed=1)
     assert sources.count("fallback") == len(images)
+
+
+def test_question_drives_comment_cta_and_spoken_outro():
+    cfg, stories = sr.load_account("horror")
+    story = dict(stories[0], question="Unfall oder Mord")
+    sr.tidy_story(story)
+    assert story["question"] == "Unfall oder Mord?"
+    assert sr.validate_story(story) == []
+    caption = sr.build_caption(cfg, story)
+    assert "Unfall oder Mord? Schreib's in die Kommentare" in caption
+    assert "Unfall oder Mord?" in sr.build_tiktok_caption(cfg, story)
+    cta = sr.build_segments(cfg, story)[-1]
+    assert cta["speech"].startswith("Unfall oder Mord? Schreib es in die Kommentare.")
+    plain = {k: v for k, v in story.items() if k != "question"}
+    assert sr.comment_cta(cfg, plain) in cfg["caption_cta"]
+    assert sr.validate_story(dict(story, question="Das ist keine Frage.")) != []
