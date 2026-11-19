@@ -1,0 +1,35 @@
+{
+  "slot": "11:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 29,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "British",
+      "british"
+    ],
+    "name": "Emily",
+    "hair": "a sleek bob",
+    "facial_hair": null,
+    "detail": "slightly sunburned nose",
+    "clothing": "a cardigan over a t-shirt",
+    "setting": "at a harbor with boats",
+    "lighting": "light rain and moody sky",
+    "camera": "shot on Canon EOS R5, 85mm f/1.4",
+    "framing": "candid half-body shot",
+    "expression": "laughing naturally",
+    "attractive": "beautiful",
+    "traits": [
+      "a stocky build"
+    ],
+    "bold": false
+  },
+  "prompt": "Candid half-body shot photo of a beautiful 29-year-old young British woman with a sleek bob, a stocky build and slightly sunburned nose, wearing a cardigan over a t-shirt, laughing naturally, at a harbor with boats, light rain and moody sky, shot on Canon EOS R5, 85mm f/1.4, looks exactly 29 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This face belongs to no one.\n\nPerson No. 0046 · \"Emily\", 29\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #lookalike #notreal #peopleofinstagram #aiart #portrait"
+}
