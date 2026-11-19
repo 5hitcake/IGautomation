@@ -6,7 +6,8 @@
     "hotel",
     "kino",
     "friseur",
-    "bananen"
+    "bananen",
+    "eis"
   ],
   "inflation_index": 1,
   "history": [
@@ -49,6 +50,11 @@
       "date": "2026-11-18",
       "kind": "product",
       "what": "bananen"
+    },
+    {
+      "date": "2026-11-19",
+      "kind": "product",
+      "what": "eis"
     }
   ]
 }
