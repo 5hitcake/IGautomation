@@ -124,7 +124,8 @@ export class GameOverScene extends Phaser.Scene {
     {
       const by = y + 760 + (unlocked.length ? 28 + unlockedH + 56 : 84);
       const revives = this.scene.get('Game').revives ?? 0;
-      const free = revives < REVIVE.free;
+      // Ohne Werbung (Browser-Version zum Teilen) sind alle Rettungen gratis
+      const free = revives < (adsSupported() || TEST_TOOLS ? REVIVE.free : REVIVE.max);
       const canAd = adsSupported() || TEST_TOOLS; // Browser-Test: Platzhalter-Werbung
       if (revives < REVIVE.max && (free || canAd)) this.reviveOffer(by, REVIVE.max - revives, !free);
       else if (revives > 0) txt(this, W / 2, by, tr('Keine Rettung mehr in dieser Runde', 'No more rescues this round'), 28, { color: '#e8f4ff', strokeThickness: 6 }).setDepth(12);
