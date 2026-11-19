@@ -1,5 +1,5 @@
 {
-  "count": 46,
+  "count": 47,
   "recent": [
     {
       "gender": "woman",
@@ -552,6 +552,18 @@
         "british"
       ],
       "setting": "at a harbor with boats"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Central Asian",
+        "central_asian"
+      ],
+      "setting": "in a bustling night market"
     }
   ],
   "reserve_used": [
