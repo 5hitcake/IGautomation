@@ -1090,6 +1090,46 @@
       "source": "https://en.wikipedia.org/wiki/Death_of_Mary_Reeser",
       "generated": "2026-11-18",
       "question": "Erklärbar oder unheimlich?"
+    },
+    {
+      "id": "zodiac_killer",
+      "hook": {
+        "text": "Ein Serienmörder schlägt in der San Francisco Bay Area zu.",
+        "image": "dark and foggy night in a san francisco bay area street with a lone car parked"
+      },
+      "scenes": [
+        {
+          "text": "1968/1969: Mindestens 5 Menschen ermordet, 2 weitere schwer verletzt.",
+          "image": "police crime scene tape at night with flashing lights"
+        },
+        {
+          "text": "Der Täter schickt bizarre Briefe an Lokalzeitungen, einige mit Symbolen verschlüsselt.",
+          "image": "newspaper clippings with cryptic symbols on a desk"
+        },
+        {
+          "text": "Die Opfer sind meist junge Paare, die an einsamen Plätzen angegriffen werden.",
+          "image": "abandoned lake herman road at night with a lone car parked"
+        },
+        {
+          "text": "Der Täter prahlt per Telefon und in Briefen mit den Morden, gibt sich als Zodiac-Killer aus.",
+          "image": "old telephone with a cryptic message on a piece of paper"
+        },
+        {
+          "text": "Die Identität des Mannes bleibt bis heute unklar, trotz vieler Ermittlungen.",
+          "image": "police detectives studying a map of the san francisco bay area"
+        },
+        {
+          "text": "Der Zodiac-Killer behauptet, 37 Morde begangen zu haben, aber nur 7 sind bestätigt.",
+          "image": "a mysterious figure in the shadows with a question mark"
+        }
+      ],
+      "question": "War es ein Serienmörder oder ein Verrückter?",
+      "tags": [
+        "#zodiac_killer",
+        "#serienmörder"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Zodiac-Killer",
+      "generated": "2026-11-19"
     }
   ]
 }
