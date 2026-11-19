@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261118_2343_0045.mp4",
-  "caption": "This person does not exist.\n\nPerson No. 0045 · \"Erik\", 29\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #aiphotography #fluxai #notreal #peopleofinstagram #faces",
+  "file": "reel_20261119_1113_0046.mp4",
+  "caption": "This face belongs to no one.\n\nPerson No. 0046 · \"Emily\", 29\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #lookalike #notreal #peopleofinstagram #aiart #portrait",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a good-looking 29-year-old young Northern European man with tight curls, a long braided beard and a gap between the front teeth, wearing denim overalls over a t-shirt, a warm genuine smile, looking directly into the camera, in a library, afternoon sunlight through a window, shot on Canon EOS R5, 85mm f/1.4, looks exactly 29 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 45,
-  "name": "Erik",
+  "prompt": "Candid half-body shot photo of a beautiful 29-year-old young British woman with a sleek bob, a stocky build and slightly sunburned nose, wearing a cardigan over a t-shirt, laughing naturally, at a harbor with boats, light rain and moody sky, shot on Canon EOS R5, 85mm f/1.4, looks exactly 29 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 46,
+  "name": "Emily",
   "age": 29,
-  "image": "assets/people_generated/person_20261118_2343_0045.jpg",
+  "image": "assets/people_generated/person_20261119_1113_0046.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
