@@ -1130,6 +1130,46 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Zodiac-Killer",
       "generated": "2026-11-19"
+    },
+    {
+      "id": "hexham_heads",
+      "hook": {
+        "text": "Zwei Jungen finden 1971 zwei kleine Steinköpfe in ihrem Garten.",
+        "image": "two boys digging in a garden with a small stone head in the foreground, sunny day"
+      },
+      "scenes": [
+        {
+          "text": "Die Köpfe sind etwa 6 cm hoch und werden mit paranormalen Phänomenen in Verbindung gebracht.",
+          "image": "close-up of the two stone heads on a table, dim light"
+        },
+        {
+          "text": "Die Familie Robson berichtet von seltsamen Vorfällen: Die Köpfe bewegen sich allein.",
+          "image": "a family room with furniture moved around, as if something had happened, daytime"
+        },
+        {
+          "text": "Eine Nachbarin, Nelly Dodd, sieht eine halb-menschliche, halb-ziegenähnliche Figur.",
+          "image": "a woman looking out of a window, seeing a strange figure in the distance, night"
+        },
+        {
+          "text": "Die Köpfe werden an Expertin Anne Ross gegeben, die über *keltische Artefakte* forscht.",
+          "image": "a woman, Anne Ross, studying the stone heads in her home, bookshelves in the background"
+        },
+        {
+          "text": "Ross berichtet von weiteren ungewöhnlichen Ereignissen: Ein *Wolfsmensch* wird gesehen.",
+          "image": "a dark corridor with a staircase, a shadowy figure in the background, night"
+        },
+        {
+          "text": "Die Köpfe verschwinden später und ihr Verbleib ist *unbekannt*.",
+          "image": "an empty room with a few boxes, a sense of abandonment, daytime"
+        }
+      ],
+      "question": "Glaubst du an übernatürliche Kräfte?",
+      "tags": [
+        "#HexhamHeads",
+        "#ParanormalePhänomene"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Hexham_Heads",
+      "generated": "2026-11-19"
     }
   ]
 }
