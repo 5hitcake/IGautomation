@@ -12,7 +12,8 @@
     69,
     30,
     62,
-    44
+    44,
+    4
   ],
   "posted_reel_ids": [
     5,
@@ -24,11 +25,11 @@
     10
   ],
   "recent_backgrounds": [
-    "bg_15_night_road.png",
     "bg_12_rain_window.png",
     "bg_14_snow_peak.png",
     "bg_11_rooftop.png",
-    "bg_13_cliff_sunset.png"
+    "bg_13_cliff_sunset.png",
+    "bg_05_gym.png"
   ],
   "recent_bg_videos": [
     "reel_05_rain_window.mp4",
