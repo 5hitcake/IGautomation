@@ -1,5 +1,5 @@
 {
-  "count": 47,
+  "count": 48,
   "recent": [
     {
       "gender": "woman",
@@ -564,6 +564,18 @@
         "central_asian"
       ],
       "setting": "in a bustling night market"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "French",
+        "french"
+      ],
+      "setting": "at an outdoor market"
     }
   ],
   "reserve_used": [

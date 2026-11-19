@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261119_1713_0047.mp4",
-  "caption": "This person does not exist.\n\nPerson No. 0047 · \"Nurlan\", 29\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #lookalike #fluxai #artificialintelligence #fakeface #faces",
+  "file": "reel_20261119_2343_0048.mp4",
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0048 · \"Margaux\", 25\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #streetportrait #portrait #faces #fluxai #aiphotography #twinstranger",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a strikingly attractive 29-year-old young Central Asian man with a man bun, clean-shaven, a strong prominent nose and slightly sunburned nose, wearing a chunky knit sweater, a calm neutral expression, looking directly into the camera, in a bustling night market, neon city lights at night, shot on Sony A7 III, 50mm f/1.8, looks exactly 29 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 47,
-  "name": "Nurlan",
-  "age": 29,
-  "image": "assets/people_generated/person_20261119_1713_0047.jpg",
+  "prompt": "Close-up headshot photo of a beautiful 25-year-old young French woman with tight natural curls, bright red cat-eye glasses and light freckles, wearing a bright patterned shirt, a tired but friendly look, looking directly into the camera, at an outdoor market, neon city lights at night, shot on iPhone, candid snapshot, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 48,
+  "name": "Margaux",
+  "age": 25,
+  "image": "assets/people_generated/person_20261119_2343_0048.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
