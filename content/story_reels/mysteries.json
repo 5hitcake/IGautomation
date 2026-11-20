@@ -1176,6 +1176,47 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Kaspar_Hauser",
       "generated": "2026-11-20"
+    },
+    {
+      "id": "kelly_hopkinsville",
+      "hook": {
+        "text": "Fünf Erwachsene und sieben Kinder berichten von *außerirdischen Wesen*.",
+        "image": "rural kentucky farmhouse at night with flashing police lights"
+      },
+      "scenes": [
+        {
+          "text": "Die Nacht vom 21. auf den 22. August 1955 in Kentucky, USA.",
+          "image": "dark rural landscape with stars and a full moon"
+        },
+        {
+          "text": "Ein Farmhaus in der Nähe von Kelly und Hopkinsville. Bewohner berichten von *Angriffen*.",
+          "image": "old farmhouse with broken windows and damaged screens"
+        },
+        {
+          "text": "Die Bewohner schießen auf *kleine, dunkle Figuren*, die immer wieder auftauchen.",
+          "image": "people shooting guns at something in the darkness, muzzle flashes"
+        },
+        {
+          "text": "Polizei und Militärpolizei finden keine Beweise, nur Schäden durch Schüsse.",
+          "image": "police officers and military police searching the farmhouse and surrounding area"
+        },
+        {
+          "text": "Einige Experten vermuten, dass die Familie *Eulen* mit *glühenden Augen* gesehen hat.",
+          "image": "great horned owl perched on a tree branch at night, yellow eyes glowing"
+        },
+        {
+          "text": "Andere glauben an eine *außerirdische Begegnung*, aber es bleibt unklar.",
+          "image": "ufo flying over a rural landscape at night, strange lights and shadows"
+        }
+      ],
+      "question": "Eulen oder Außerirdische?",
+      "tags": [
+        "#ufo",
+        "#kellyhopkinsville",
+        "#außerirdisch"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Kelly%E2%80%93Hopkinsville_encounter",
+      "generated": "2026-11-20"
     }
   ]
 }
