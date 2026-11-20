@@ -1170,6 +1170,46 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Hexham_Heads",
       "generated": "2026-11-19"
+    },
+    {
+      "id": "axeman_of_new_orleans",
+      "hook": {
+        "text": "Nachts schlug ein Axtmann in New Orleans zu.",
+        "image": "dark alley in new orleans with a faint axe silhouette"
+      },
+      "scenes": [
+        {
+          "text": "Zwischen 1911 und 1919 wurden 6 Menschen mit einer Axt ermordet.",
+          "image": "police investigation at a crime scene in new orleans"
+        },
+        {
+          "text": "Die Opfer wurden in ihren Betten erschlagen, keine Gegenstände wurden geraubt.",
+          "image": "crime scene with a broken door and an axe on the floor"
+        },
+        {
+          "text": "Die erste Theorie: *Mafia* im Zusammenhang mit Schutzgelderpressung.",
+          "image": "newspaper headlines about mafia and extortion in new orleans"
+        },
+        {
+          "text": "Doch die Opfer waren nicht nur italienische Lebensmittelhändler.",
+          "image": "map of new orleans with various locations marked"
+        },
+        {
+          "text": "Eine Zeugin glaubte, den Täter *Joseph Mumfre* erkannt zu haben.",
+          "image": "police wanted poster with a man's face and a caption"
+        },
+        {
+          "text": "Der Fall bleibt ungelöst, die Legende des Axtmanns lebt weiter.",
+          "image": "new orleans jazz club with a mysterious figure in the background"
+        }
+      ],
+      "question": "Mord oder Wahnsinn?",
+      "tags": [
+        "#AxtmannVonNewOrleans",
+        "#Serienmordfall"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Axeman_of_New_Orleans",
+      "generated": "2026-11-20"
     }
   ]
 }
