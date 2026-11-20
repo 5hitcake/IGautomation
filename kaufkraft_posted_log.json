@@ -7,7 +7,8 @@
     "kino",
     "friseur",
     "bananen",
-    "eis"
+    "eis",
+    "benzin"
   ],
   "inflation_index": 1,
   "history": [
@@ -55,6 +56,11 @@
       "date": "2026-11-19",
       "kind": "product",
       "what": "eis"
+    },
+    {
+      "date": "2026-11-20",
+      "kind": "product",
+      "what": "benzin"
     }
   ]
 }
