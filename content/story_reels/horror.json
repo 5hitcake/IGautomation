@@ -1210,6 +1210,46 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Axeman_of_New_Orleans",
       "generated": "2026-11-20"
+    },
+    {
+      "id": "lizzie_borden",
+      "hook": {
+        "text": "Ein Vater und eine Stiefmutter werden mit einer *Axt* ermordet.",
+        "image": "old house with a dark atmosphere and a hatchet on the floor"
+      },
+      "scenes": [
+        {
+          "text": "Lizzie Borden, 32, lebt mit ihrer Familie in Fall River, Massachusetts.",
+          "image": "old american house with a family standing outside, sunny day"
+        },
+        {
+          "text": "Ihr Vater, Andrew, ist ein reicher Mann, aber bekannt für seine *Geiz*.",
+          "image": "old man with a stern face, counting money in a dark room"
+        },
+        {
+          "text": "Lizzie und ihre Schwester Emma haben eine angespannte Beziehung zu ihrer Stiefmutter.",
+          "image": "two women with a tense atmosphere, standing in a old kitchen"
+        },
+        {
+          "text": "Am 4. August 1892 werden Andrew und seine Frau Abby brutal ermordet.",
+          "image": "police officers standing outside the old house, with a dark and ominous atmosphere"
+        },
+        {
+          "text": "Lizzie wird verdächtigt, aber ihre Alibis sind *widersprüchlich*.",
+          "image": "woman with a calm face, but with a hint of nervousness, being questioned by police"
+        },
+        {
+          "text": "Die Polizei findet zwei *Äxte* im Keller, aber Lizzie wird freigesprochen.",
+          "image": "police officers searching the basement, with two axes on the floor, and a sense of uncertainty"
+        }
+      ],
+      "question": "Mord oder Unfall?",
+      "tags": [
+        "#LizzieBorden",
+        "#Kriminalfall"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Lizzie_Borden",
+      "generated": "2026-11-20"
     }
   ]
 }
