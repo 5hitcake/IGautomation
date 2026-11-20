@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261120_1713_0050.mp4",
-  "caption": "Say hi to someone who was never born.\n\nPerson No. 0050 · \"Sanjay\", 25\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #streetportrait #peopleofinstagram #digitalhuman #aiphotography #fluxai #twinstranger",
+  "file": "reel_20261120_2343_0051.mp4",
+  "caption": "Say hi to someone who was never born.\n\nPerson No. 0051 · \"Killa\", 22\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #portraitphotography #digitalhuman #aiphotography #fluxai #aiart",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a good-looking 25-year-old young South Asian man with short cropped hair, a goatee and a slightly uneven skin tone, wearing a chef's white jacket, a warm genuine smile, looking directly into the camera, in a home kitchen, cool fluorescent light, shot on Canon EOS R5, 85mm f/1.4, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 50,
-  "name": "Sanjay",
-  "age": 25,
-  "image": "assets/people_generated/person_20261120_1713_0050.jpg",
+  "prompt": "Close-up headshot photo of a beautiful 22-year-old young Indigenous Andean woman with a buzz cut and thick eyebrows, wearing hiking gear, a slight smirk, looking directly into the camera, at a beach at dusk, soft golden hour light, shot on iPhone, candid snapshot, looks exactly 22 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 51,
+  "name": "Killa",
+  "age": 22,
+  "image": "assets/people_generated/person_20261120_2343_0051.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
