@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261119_2343_0048.mp4",
-  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0048 · \"Margaux\", 25\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #streetportrait #portrait #faces #fluxai #aiphotography #twinstranger",
+  "file": "reel_20261120_1114_0049.mp4",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0049 · \"Selin\", 45\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiart #peopleofinstagram #portrait #faces #fakeface #lookalike",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Close-up headshot photo of a beautiful 25-year-old young French woman with tight natural curls, bright red cat-eye glasses and light freckles, wearing a bright patterned shirt, a tired but friendly look, looking directly into the camera, at an outdoor market, neon city lights at night, shot on iPhone, candid snapshot, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 48,
-  "name": "Margaux",
-  "age": 25,
-  "image": "assets/people_generated/person_20261119_2343_0048.jpg",
+  "prompt": "Candid half-body shot photo of a strikingly attractive 45-year-old Turkish woman with long hair in a loose braid dyed silver, a small nose stud and small hoop earrings, wearing a sharp tailored business suit, laughing naturally, in a park in autumn, neon city lights at night, shot on Sony A7 III, 50mm f/1.8, looks exactly 45 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 49,
+  "name": "Selin",
+  "age": 45,
+  "image": "assets/people_generated/person_20261120_1114_0049.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
