@@ -18,12 +18,19 @@ const pick = a => a[Math.floor(rnd() * a.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const sign = v => v < 0 ? -1 : 1;
 
-const BRANDS = [
+const CASTX = typeof CAST !== 'undefined' ? CAST : null;  // optionale andere Besetzung (reel/cast_*.js)
+const BRANDS = CASTX ? CASTX.brands : [
   ['Pepsy', 'blau'], ['Koka-Kola', 'rot'], ['Sprajt', 'gruen'], ['Fantasia', 'lila'],
   ['Red Bulle', 'blau'], ['Monstar', 'gruen'], ['Burger Kong', 'rot'], ['Milkah', 'lila'],
   ['Nike-ish', 'rot'], ['Adidaz', 'blau'], ['Starbacks', 'gruen'], ['Twitsch', 'lila'],
 ];
-const HEX = { rot: '#e8413c', blau: '#3d8bff', gruen: '#4cbb2c', lila: '#9b59d6' };
+const HEX = { rot: '#e8413c', blau: '#3d8bff', gruen: '#4cbb2c', lila: '#9b59d6', ...(CASTX ? CASTX.hex : {}) };
+// Bildname für Figur + Pose (Besetzungen mit eigenen Posen, z. B. Lauf-Animation)
+function poseKey(color, pose, r) {
+  if (!CASTX) return `${color}_${pose}`;
+  if (pose === 'idle' && r && r.alive && r.vx > .5 && r.y >= GY - 2) return `${color}_run${Math.floor((step + r.i * 3) / 7) % 2 + 1}`;
+  return `${color}_${CASTX.pose[pose] || pose}`;
+}
 const racers = BRANDS.map(([name, color], i) => ({ name, color, i, alive: true, x: 0, y: GY, vx: 0, vy: 0, pose: 'idle', sq: 0, size: 60 }));
 const alive = (list = racers) => list.filter(r => r.alive);
 
@@ -90,7 +97,7 @@ function drawSlime(r, o = {}) {
     ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(x, gy + 3, h * .36 * k, h * .08 * k, 0, 0, 7); ctx.fill();
   }
   const sq = r.sq || 0, bob = r.pose === 'idle' && r.alive && !o.still ? Math.abs(Math.sin(step / 8 + r.i * 1.7)) * h * .05 : 0;
-  drawImg(`${r.color}_${r.pose}`, x, y + h * .05 - bob, h * (1 - sq * .22), { sx: 1 + sq * .22, rot: o.rot, alpha: o.alpha });
+  drawImg(poseKey(r.color, r.pose, r), x, y + h * .05 - bob, h * (1 - sq * .22), { sx: 1 + sq * .22, rot: o.rot, alpha: o.alpha });
   if (o.tag !== false) {
     ctx.font = '800 12px system-ui, sans-serif'; const tw = ctx.measureText(r.name).width + 12, ty = y - h * .98 - bob;
     ctx.globalAlpha = o.alpha ?? 1; pill(x - tw / 2, ty - 13, tw, 17, HEX[r.color]);
@@ -119,7 +126,7 @@ let HUD = { title: '', sub: '' };
 function hudTop(title, sub, n) {
   const g = ctx.createLinearGradient(0, 0, 0, 160); g.addColorStop(0, 'rgba(20,18,40,.95)'); g.addColorStop(1, 'rgba(20,18,40,0)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, 160);
-  txt('SLIME RUSH', W / 2, 46, 34, '#ffd400');
+  txt(CASTX?.title || 'SLIME RUSH', W / 2, 46, 34, '#ffd400');
   txt(title, W / 2, 88, 26);
   if (sub) txt(sub, W / 2, 118, 16, '#9fe870');
 }
@@ -131,7 +138,7 @@ function hudBottom() {
   racers.forEach((r, i) => {
     const cx = 30 + (i % 4) * 124, cy = y0 + 52 + Math.floor(i / 4) * 32;
     ctx.globalAlpha = r.alive ? 1 : .35;
-    drawImg(`${r.color}_${r.alive ? 'idle' : 'eliminated'}`, cx + 10, cy + 12, 26);
+    drawImg(poseKey(r.color, r.alive ? 'idle' : 'eliminated'), cx + 10, cy + 12, CASTX ? 30 : 26);
     ctx.font = '800 13px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = r.alive ? '#fff' : '#ff8a8a';
     ctx.fillText(r.name, cx + 26, cy + 5);
     if (!r.alive) { ctx.strokeStyle = '#ff5a4f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx + 24, cy); ctx.lineTo(cx + 26 + ctx.measureText(r.name).width, cy); ctx.stroke(); }
@@ -154,10 +161,10 @@ const GAMES = {
   race: {
     name: 'HINDERNISRENNEN', short: 'RENNEN', es: 'CARRERA DE OBSTÁCULOS', rule: 'Die Schnellsten kommen weiter', ruleEs: 'Pasan los más rápidos', icon: 'saege', bg: 'bg',
     setup(keep) {
-      this.keep = keep; this.rs = alive(); this.len = 3600; this.Z = 1.6; this.cam = 0; this.fin = []; this.photo = false;
+      this.keep = keep; this.rs = alive(); this.len = CASTX?.len || 3600; this.Z = 1.6; this.cam = 0; this.fin = []; this.photo = false;
       this.obs = []; for (let x = 520; x < this.len - 250; x += R(250, 420)) this.obs.push({ type: pick(OBST), x, ph: rnd() * 6.28 });
       this.coins = []; for (let x = 420; x < this.len; x += R(300, 600)) this.coins.push({ x, y: GY - R(110, 170), got: false });
-      this.rs.forEach((r, i) => Object.assign(r, { x: 60 + (i % 6) * 14, y: GY, vx: 0, vy: 0, base: R(3.0, 3.5), stun: 0, slow: 0, boost: 0, done: false, passed: new Set(), size: 56, pose: 'idle' }));
+      this.rs.forEach((r, i) => Object.assign(r, { x: 60 + (i % 6) * 14, y: GY, vx: 0, vy: 0, base: R(3.0, 3.5), stun: 0, slow: 0, boost: 0, done: false, passed: new Set(), size: CASTX?.size || 56, pose: 'idle' }));
     },
     update() {
       const view = W / this.Z;
@@ -211,7 +218,9 @@ const GAMES = {
         else if (o.type === 'stacheln') drawImg('stacheln', o.x, GY + 6, 60);
         else drawImg(o.type, o.x, GY + 6, 62);
       }
-      [...this.rs].sort((a, b) => a.x - b.x).forEach(r => drawSlime(r));
+      if (CASTX) { const lane = r => ((r.i * 5) % 6 - 2.5) * 9;  // leichte Tiefenstaffelung, damit sich die Figuren nicht verdecken
+        [...this.rs].sort((a, b) => lane(a) - lane(b) || a.x - b.x).forEach(r => drawSlime(r, { y: r.y + lane(r), gy: GY + lane(r) }));
+      } else [...this.rs].sort((a, b) => a.x - b.x).forEach(r => drawSlime(r));
       drawFx(); ctx.restore();
     },
   },
@@ -487,7 +496,7 @@ const FINALE = {
 
 // ---------- Szenen ----------
 const POOL = ['race', 'meteor', 'ice', 'sumo', 'bomb'];
-const picked = []; { const p = [...POOL]; while (picked.length < 3) picked.push(p.splice(Math.floor(rnd() * p.length), 1)[0]); }
+const picked = []; if (CASTX) picked.push('race'); else { const p = [...POOL]; while (picked.length < 3) picked.push(p.splice(Math.floor(rnd() * p.length), 1)[0]); }
 const KEEP = [8, 5, 3];
 let podiumRank = null;
 
@@ -496,29 +505,29 @@ function introScene() {
   return {
     update() {
       t++; const k = Math.floor((t - 40) / 7);
-      if (t >= 40 && (t - 40) % 7 === 0 && k < 12) sfx('pop', 1);
+      if (t >= 40 && (t - 40) % 7 === 0 && k < racers.length) sfx('pop', 1);
       return t > 360;
     },
     draw() {
       drawBg('bg', t * .4, .45);
-      txt('SLIME RUSH', W / 2, 100, 58, '#ffd400');
+      txt(CASTX?.title || 'SLIME RUSH', W / 2, 100, 58, '#ffd400');
       txt(`Tagesrennen · Carrera del día · ${SEED}`, W / 2, 134, 16, '#ddd');
       const s = t < 10 ? .5 + t * .06 : 1;
       ctx.save(); ctx.translate(W / 2, 215); ctx.scale(s, s);
-      txt('12 MARKEN', 0, 0, 56, '#fff'); txt('NUR 1 GEWINNT', 0, 46, 38, '#ff5a4f'); txt('12 MARCAS · SOLO 1 GANA', 0, 80, 22, '#ffd400');
+      const N = racers.length; txt(`${N} ${CASTX ? 'LÄUFER' : 'MARKEN'}`, 0, 0, 56, '#fff'); txt('NUR 1 GEWINNT', 0, 46, 38, '#ff5a4f'); txt(`${N} ${CASTX ? 'CORREDORES' : 'MARCAS'} · SOLO 1 GANA`, 0, 80, 22, '#ffd400');
       ctx.restore();
       racers.forEach((r, i) => {
         const at = 40 + i * 7; if (t < at) return;
         const p = Math.min(1, (t - at) / 10), sc = p < 1 ? .3 + p * .9 : 1 + Math.max(0, .2 - (t - at - 10) * .04);
-        const x = 78 + (i % 4) * 128, y = 420 + Math.floor(i / 4) * 125;
-        drawSlime(r, { x, y, h: 78 * sc, gy: y, tag: true });
+        const cols = CASTX ? 3 : 4, x = CASTX ? 100 + (i % 3) * 170 : 78 + (i % 4) * 128, y = CASTX ? 470 + Math.floor(i / 3) * 175 : 420 + Math.floor(i / 4) * 125;
+        drawSlime(r, { x, y, h: (CASTX ? 130 : 78) * sc, gy: y, tag: true });
       });
       if (t > 150) {
         const a = Math.min(1, (t - 150) / 15); ctx.globalAlpha = a;
         ctx.fillStyle = 'rgba(20,18,40,.85)'; ctx.beginPath(); ctx.roundRect(24, 790, W - 48, 150, 18); ctx.fill();
         txt('HEUTE · HOY', W / 2, 822, 18, '#9fe870');
-        [...picked.map(g => GAMES[g]), FINALE].forEach((g, i) => {
-          const x = 78 + i * 128; drawImg(g.icon, x, 890, 52, { ay: .6 }); txt(i < 3 ? g.short : 'FINALE', x, 928, 13, i < 3 ? '#fff' : '#ffd400');
+        (CASTX ? [GAMES.race] : [...picked.map(g => GAMES[g]), FINALE]).forEach((g, i) => {
+          const x = CASTX ? W / 2 : 78 + i * 128; drawImg(g.icon, x, 890, 52, { ay: .6 }); txt(i < 3 ? g.short : 'FINALE', x, 928, 13, i < 3 ? '#fff' : '#ffd400');
         });
         ctx.globalAlpha = 1;
       }
@@ -527,7 +536,7 @@ function introScene() {
 }
 function gameScene(def, keep, idx, finale) {
   let phase = 'title', t = 0;
-  const total = 4, label = `SPIEL ${idx + 1}/${total} · JUEGO ${idx + 1}/${total}`;
+  const total = 4, label = CASTX ? CASTX.label : `SPIEL ${idx + 1}/${total} · JUEGO ${idx + 1}/${total}`;
   return {
     start() { def.setup(keep); sfx('swoosh', 1); },
     update() {
@@ -560,8 +569,9 @@ function gameScene(def, keep, idx, finale) {
       if (phase === 'result' && !finale && t > 60) {
         const a = Math.min(1, (t - 60) / 10); ctx.globalAlpha = a;
         ctx.fillStyle = 'rgba(10,10,30,.55)'; ctx.fillRect(0, 150, W, 640);
-        txt('WEITER!', W / 2, 245, 48, '#9fe870'); txt('¡SIGUEN!', W / 2, 285, 30, '#9fe870');
-        alive(def.rs).forEach((r, i) => { const x = W / 2 + ((i % 2) ? 110 : -110), y = 360 + Math.floor(i / 2) * 82; drawSlime(r, { x, y: y + 30, h: 56, gy: y + 30, shadow: false, tag: false, still: true }); txt(r.name, x, y + 52, 17, '#fff'); });
+        txt(CASTX ? 'IM ZIEL!' : 'WEITER!', W / 2, 245, 48, '#9fe870'); txt(CASTX ? '¡EN LA META!' : '¡SIGUEN!', W / 2, 285, 30, '#9fe870');
+        (CASTX ? def.fin : alive(def.rs)).forEach((r, i) => { const x = CASTX ? W / 2 : W / 2 + ((i % 2) ? 110 : -110), y = CASTX ? 330 + i * 120 : 360 + Math.floor(i / 2) * 82;
+          if (CASTX) { txt(`${i + 1}.`, x - 110, y + 40, 40, '#ffd400'); drawSlime(r, { x, y: y + 60, h: 105, gy: y + 60, shadow: false, tag: false, still: true }); txt(r.name, x + 120, y + 40, 26, '#fff'); return; } drawSlime(r, { x, y: y + 30, h: 56, gy: y + 30, shadow: false, tag: false, still: true }); txt(r.name, x, y + 52, 17, '#fff'); });
         ctx.globalAlpha = 1;
       }
     },
@@ -570,7 +580,7 @@ function gameScene(def, keep, idx, finale) {
 function podiumScene() {
   let t = 0;
   return {
-    start() { racers.forEach(r => { r.sq = 0; }); },
+    start() { racers.forEach(r => { r.sq = 0; r.vx = 0; }); if (!podiumRank) podiumRank = GAMES.race.fin.slice(0, 3); },
     update() {
       t++;
       if (t % 18 === 1) burst(V(40, W - 40), V(120, 300), ['#ff5a4f', '#ffd400', '#3d8bff', '#4cbb2c', '#9b59d6'], 22, { conf: true, spread: 1.4 });
@@ -587,7 +597,7 @@ function podiumScene() {
       drawSlime(s2, { x: W / 2 - pw * .33, y: top + ph * .27, h: 118, shadow: false, still: true });
       drawSlime(s3, { x: W / 2 + pw * .33, y: top + ph * .36, h: 118, shadow: false, still: true });
       const wy = top + ph * .03, bounce = Math.abs(Math.sin(t / 10)) * 10;
-      w.pose = 'victory'; drawSlime(w, { y: wy - bounce, h: 165 * (.5 + .5 * rise), shadow: false, still: true });
+      w.pose = 'victory'; drawSlime(w, { x: W / 2, y: wy - bounce, h: 165 * (.5 + .5 * rise), shadow: false, still: true });
       drawImg('krone', W / 2, wy - bounce - 150 * (.5 + .5 * rise), 56, { ay: .6 });
       drawImg('pokal', 70, 520, 90 * rise, { rot: Math.sin(t / 15) * .1 });
       drawImg('pokal', W - 70, 520, 90 * rise, { rot: -Math.sin(t / 15) * .1 });
@@ -603,7 +613,8 @@ function podiumScene() {
     },
   };
 }
-const scenes = [introScene(), ...picked.map((g, i) => gameScene(GAMES[g], KEEP[i], i)), gameScene(FINALE, 1, 3, true), podiumScene()];
+const scenes = CASTX ? [introScene(), gameScene(GAMES.race, CASTX.keep, 0), podiumScene()]
+  : [introScene(), ...picked.map((g, i) => gameScene(GAMES[g], KEEP[i], i)), gameScene(FINALE, 1, 3, true), podiumScene()];
 let scene = scenes[0];
 
 // ---------- Ablauf ----------
