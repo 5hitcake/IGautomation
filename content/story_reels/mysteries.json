@@ -174,7 +174,8 @@
       "#verschwörung",
       "#wusstestdu",
       "#fürdich"
-    ]
+    ],
+    "key": "mysteries"
   },
   "stories": [
     {
@@ -1134,6 +1135,47 @@
         "#dna"
       ],
       "question": "Hätte sie den Nobelpreis verdient – ja oder nein?"
+    },
+    {
+      "id": "kaspar_hauser",
+      "hook": {
+        "text": "Ein 16-jähriger Junge taucht in Nürnberg auf, ohne Erinnerung an seine Vergangenheit.",
+        "image": "a young boy standing alone in a crowded street in Nuremberg, cloudy day"
+      },
+      "scenes": [
+        {
+          "text": "Kaspar Hauser, so sein Name, sagt, er sei in einem dunklen Raum gefangen gehalten worden.",
+          "image": "a dark, empty room with stone walls, single candle lit"
+        },
+        {
+          "text": "Er erzählt von einem Mann, der ihn unterrichtet und nach Nürnberg gebracht hat.",
+          "image": "a mysterious man leading a young boy through a forest, misty morning"
+        },
+        {
+          "text": "Hauser wird zu einer öffentlichen Attraktion, viele Besucher kommen, um ihn zu sehen.",
+          "image": "a crowd of people gathered around a young boy, curious faces"
+        },
+        {
+          "text": "Einige glauben, er sei ein Prinz, andere denken, er sei ein *Hochstapler*.",
+          "image": "a person with a skeptical expression, looking at a young boy with doubt"
+        },
+        {
+          "text": "Kaspar Hauser erleidet zwei *Anschläge*, bei denen er verletzt wird.",
+          "image": "a young boy lying on the ground, injured, with a concerned expression"
+        },
+        {
+          "text": "Trotz Ermittlungen bleibt seine wahre Identität und sein Schicksal ein *Rätsel*.",
+          "image": "a young boy standing alone, looking up at a cloudy sky, mysterious atmosphere"
+        }
+      ],
+      "question": "Wahrheit oder Betrug?",
+      "tags": [
+        "#kaspar_hauser",
+        "#rätsel",
+        "#nürnberg"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Kaspar_Hauser",
+      "generated": "2026-11-20"
     }
   ]
 }
