@@ -23,7 +23,7 @@ im Stil „Cartoon Colorido“. Echte Logos kommen später als Overlay auf die M
 | `reel/reel.js` | **Reel-Engine 2.0** (Canvas 2D, 540×960 intern) |
 | `reel/assets.js` | Alle Bilder als Data-URIs, erzeugt von `tools/make_assets_js.py` |
 | `charaktere_d/` | Figuren „Konzept D – Festival“ (aus `vorlagen/charaktere_konzepte.png`, freigestellt mit rembg isnet-anime). Posen idle/run1/run2/jump/hit, abgeleitet aus einem Bild (keine echten Neuzeichnungen) |
-| `reel/cast_d.js`, `reel/assets_d.js` | Besetzung D: 6 Figuren, nur Hindernisrennen → Podest (Titel „BRAND ARENA“) |
+| `reel/cast_d.js`, `reel/assets_d.js` | Besetzung D: 6 Figuren, Spiel `track` (Leichtathletik-Hindernislauf im Stadion: 6 Bahnen, Hürden, Wassergraben, Pfützen, Hütchen, Banane) → Podest (Titel „BRAND ARENA“). Stadion + Sportobjekte: HF Space `mcp-tools/Qwen-Image-Fast` (Quellen in `vorlagen/`) |
 | `proto/` | Erster spielbarer Prototyp (nur Rennen, 960×540), veraltet |
 | `tools/` | Build-, Test- und Render-Skripte |
 | `beispiel/` | Beispiel-Ergebnis-JSON eines Reels |

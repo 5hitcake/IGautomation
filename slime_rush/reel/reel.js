@@ -73,8 +73,8 @@ function drawImg(k, x, y, h, o = {}) {
   ctx.drawImage(im, -w * (o.ax ?? .5), -h * (o.ay ?? 1), w, h); ctx.restore();
   return w;
 }
-function drawBg(k, pan = 0, dark = 0) {
-  const im = IMG[k], h = H, w = im.width * h / im.height;
+function drawBg(k, pan = 0, dark = 0, h = H) {
+  const im = IMG[k], w = im.width * h / im.height;
   let x0 = (W - w) / 2 - pan;
   const span = 2 * w; x0 = ((x0 % span) + span) % span - span;
   for (let i = 0; i < 4; i++) {
@@ -158,6 +158,92 @@ function drawCallouts() {
 // ---------- Minispiele ----------
 const OBST = ['saege', 'hammer', 'stacheln', 'kiste', 'schleim', 'speedpad', 'feder', 'steinblock'];
 const GAMES = {
+  // Leichtathletik-Hindernislauf im Stadion: 6 Bahnen, Hürden, Wassergraben, Pfützen, Hütchen, Banane
+  track: {
+    name: 'HINDERNISLAUF', short: 'LAUF', es: 'CARRERA DE OBSTÁCULOS', rule: 'Hürden, Pfützen & Wassergraben!', ruleEs: '¡Vallas, charcos y foso de agua!', icon: 'huerde', bg: 'bg_stadion',
+    LANE: 21,
+    setup(keep) {
+      this.keep = keep; this.rs = alive(); this.len = CASTX?.len || 4600; this.Z = 1.45; this.cam = 0; this.fin = []; this.photo = false;
+      const n = this.rs.length, all = () => Array(n).fill(true), some = k => { const a = Array(n).fill(false); for (let i = 0; i < k; i++) a[Math.floor(rnd() * n)] = true; return a; };
+      this.obs = [];
+      for (let x = 420; x < this.len - 260; x += R(210, 320)) {
+        const type = pick(['huerde', 'huerde', 'huerde', 'balken', 'wassergraben', 'pfuetze', 'huetchen', 'banane']);
+        const lanes = type === 'pfuetze' ? some(3) : type === 'huetchen' ? some(2) : type === 'banane' ? some(1) : all();
+        this.obs.push({ type, x, lanes, down: Array(n).fill(false) });
+        if (type === 'wassergraben') x += 120;
+      }
+      this.rs.forEach((r, i) => Object.assign(r, { lane: i, x: 70, y: GY, vx: 0, vy: 0, base: R(3.0, 3.5), stun: 0, slow: 0, boost: 0, done: false, passed: new Set(), size: CASTX?.size || 68, pose: 'idle' }));
+    },
+    off(l) { return (l - (this.rs.length - 1) / 2) * this.LANE; },
+    update() {
+      const view = W / this.Z;
+      for (const r of alive(this.rs)) {
+        if (r.done) { r.pose = 'idle'; r.vx = 0; phys(r, GY); continue; }
+        let sp = r.base + (rnd() - .5) * .6;
+        if (r.slow > 0) { sp *= .5; r.slow--; }
+        if (r.stun > 0) { r.stun--; sp = r.stun > 25 ? -1.5 : .5; }
+        r.vx = sp; phys(r, GY);
+        r.pose = r.stun > 0 ? 'hit' : r.y < GY - 2 ? 'jump' : 'idle';
+        const vis = r.x > this.cam - 40 && r.x < this.cam + view + 40, ly = GY + this.off(r.lane);
+        for (const o of this.obs) {
+          if (!o.lanes[r.lane] || r.passed.has(o) || r.x < o.x - 45) continue;
+          r.passed.add(o);
+          const fall = (stun, s) => { r.stun = stun; r.vy = -5; sprite('staub', r.x, ly, 46, 24, { grow: .6 }); burst(r.x, ly - 30, ['#fff', '#ffd400'], 10); if (vis) { sfx(s); shake = 6; } };
+          if (o.type === 'huerde') { if (rnd() < .2) { o.down[r.lane] = true; fall(40, 'bonk'); } else r.vy = -11; }
+          else if (o.type === 'balken') { if (rnd() < .15) fall(55, 'hit'); else r.vy = -12.5; }
+          else if (o.type === 'wassergraben') { r.vy = -12; if (rnd() < .4) { r.slow = 80; r.wet = 40; } }
+          else if (o.type === 'pfuetze') { r.slow = 45; burst(r.x, ly - 4, ['#5cc8ff', '#bfeaff', '#fff'], 12); if (vis) sfx('splash'); }
+          else if (o.type === 'huetchen') { if (rnd() < .3) { o.down[r.lane] = true; fall(25, 'bonk'); } else r.vy = -9; }
+          else if (o.type === 'banane') { if (rnd() < .6) { fall(60, 'slip'); if (vis) callout(r.name, 'AUSGERUTSCHT! · ¡SE RESBALÓ!', '#ffd400'); } else r.vy = -9; }
+        }
+        if (r.wet > 0 && --r.wet === 0) { burst(r.x, ly - 6, ['#5cc8ff', '#bfeaff', '#fff'], 18); if (vis) { sfx('splash'); callout(r.name, 'PLATSCH! · ¡SPLASH!', '#5cc8ff'); } }
+        if (r.x >= this.len) {
+          r.done = true; this.fin.push(r); sfx('ding', 2);
+          if (this.fin.length === 1) { callout(r.name, '1. IM ZIEL! · ¡PRIMERO!', '#9fe870'); burst(this.len, GY - 60, ['#ffd400', '#fff', '#ff5a4f'], 24, { conf: true }); }
+        }
+      }
+      if (!this.photo && this.fin.length === this.keep - 1 && alive(this.rs).some(r => !r.done && this.len - r.x < 60)) { this.photo = true; slowmo = 45; callout('FOTOFINISH!', '¡PHOTO FINISH!', '#ffd400'); }
+      const lead = Math.max(...alive(this.rs).map(r => r.x));
+      this.cam += (clamp(lead - view * .45, 0, this.len - view + 160) - this.cam) * .08;
+      if (this.fin.length >= this.keep) { const out = alive(this.rs).filter(r => !r.done); out.forEach(r => eliminate(r, '', true)); callout(`${out.length} RAUS!`, 'ZU LANGSAM · ¡MUY LENTOS!'); return true; }
+    },
+    draw() {
+      const Z = this.Z, n = this.rs.length, L = this.LANE, top = GY - (n / 2 + .6) * L, bot = GY + (n / 2 + .4) * L;
+      drawBg(this.bg, this.cam * .3, 0, GY + (top - GY) * Z + 4);
+      ctx.save(); ctx.translate(0, GY); ctx.scale(Z, Z); ctx.translate(-this.cam, -GY);
+      const x0 = this.cam - 80, x1 = this.cam + W / Z + 80;
+      // Tartanbahn mit Bahnlinien
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x0, top - 3, x1 - x0, 3);
+      ctx.fillStyle = '#d4553d'; ctx.fillRect(x0, top, x1 - x0, bot - top + 2);
+      ctx.fillStyle = '#4caf3a'; ctx.fillRect(x0, bot + 2, x1 - x0, 400);
+      ctx.fillStyle = '#3d9a2e'; for (let x = Math.floor(x0 / 80) * 80; x < x1; x += 160) ctx.fillRect(x, bot + 2, 80, 400);
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      for (let k = 0; k <= n; k++) ctx.fillRect(x0, GY + (k - n / 2) * L + 2, x1 - x0, 1.2);
+      ctx.fillStyle = 'rgba(255,255,255,.9)';
+      for (let x = 0; x <= this.len; x += 500) if (x > 0 && x < this.len) { ctx.font = '900 9px system-ui'; ctx.textAlign = 'center'; ctx.fillText(`${x / 10} m`, x, bot - 2); }
+      // Ziellinie (Schachbrett über alle Bahnen)
+      for (let y = top; y < bot; y += 5) for (let k = 0; k < 2; k++) { ctx.fillStyle = (Math.round((y - top) / 5) + k) % 2 ? '#fff' : '#222'; ctx.fillRect(this.len - 5 + k * 5, y, 5, 5); }
+      drawImg('zielflagge', this.len + 14, top + 2, 120, { ax: .2 });
+      if (!this.fin.length) drawImg('zielband', this.len, top + 10, 70);
+      // Bahn für Bahn von hinten nach vorne: Startblock, Hindernisse, Läufer
+      for (let l = 0; l < n; l++) {
+        const ly = GY + this.off(l);
+        drawImg('startblock', 52, ly + 3, 16);
+        for (const o of this.obs) {
+          if (!o.lanes[l] || o.x < x0 - 100 || o.x > x1 + 100) continue;
+          const d = o.down[l];
+          if (o.type === 'huerde') drawImg('huerde', o.x, ly + 3, d ? 24 : 48, { rot: d ? .9 : 0, ay: d ? .6 : 1 });
+          else if (o.type === 'balken') drawImg('balken', o.x, ly + 3, 46);
+          else if (o.type === 'wassergraben') { drawImg('pfuetze', o.x + 75, ly + 6, 16, { sx: 1.6 }); drawImg('balken', o.x, ly + 3, 46); }
+          else if (o.type === 'pfuetze') drawImg('pfuetze', o.x, ly + 6, 15);
+          else if (o.type === 'huetchen') drawImg('huetchen', o.x + (d ? 14 : 0), ly + 3, d ? 20 : 34, { rot: d ? 1.4 : 0, ay: d ? .5 : 1 });
+          else if (o.type === 'banane') drawImg('banane', o.x, ly + 3, 18);
+        }
+        alive(this.rs).concat(this.rs.filter(r => !r.alive)).filter(r => r.lane === l).forEach(r => drawSlime(r, { y: r.y + this.off(l), gy: ly }));
+      }
+      drawFx(); ctx.restore();
+    },
+  },
   race: {
     name: 'HINDERNISRENNEN', short: 'RENNEN', es: 'CARRERA DE OBSTÁCULOS', rule: 'Die Schnellsten kommen weiter', ruleEs: 'Pasan los más rápidos', icon: 'saege', bg: 'bg',
     setup(keep) {
@@ -496,7 +582,7 @@ const FINALE = {
 
 // ---------- Szenen ----------
 const POOL = ['race', 'meteor', 'ice', 'sumo', 'bomb'];
-const picked = []; if (CASTX) picked.push('race'); else { const p = [...POOL]; while (picked.length < 3) picked.push(p.splice(Math.floor(rnd() * p.length), 1)[0]); }
+const picked = []; if (CASTX) picked.push(CASTX.game || 'race'); else { const p = [...POOL]; while (picked.length < 3) picked.push(p.splice(Math.floor(rnd() * p.length), 1)[0]); }
 const KEEP = [8, 5, 3];
 let podiumRank = null;
 
@@ -509,7 +595,7 @@ function introScene() {
       return t > 360;
     },
     draw() {
-      drawBg('bg', t * .4, .45);
+      drawBg(CASTX?.bg || 'bg', t * .4, .45);
       txt(CASTX?.title || 'SLIME RUSH', W / 2, 100, 58, '#ffd400');
       txt(`Tagesrennen · Carrera del día · ${SEED}`, W / 2, 134, 16, '#ddd');
       const s = t < 10 ? .5 + t * .06 : 1;
@@ -526,7 +612,7 @@ function introScene() {
         const a = Math.min(1, (t - 150) / 15); ctx.globalAlpha = a;
         ctx.fillStyle = 'rgba(20,18,40,.85)'; ctx.beginPath(); ctx.roundRect(24, 790, W - 48, 150, 18); ctx.fill();
         txt('HEUTE · HOY', W / 2, 822, 18, '#9fe870');
-        (CASTX ? [GAMES.race] : [...picked.map(g => GAMES[g]), FINALE]).forEach((g, i) => {
+        (CASTX ? [GAMES[CASTX.game || 'race']] : [...picked.map(g => GAMES[g]), FINALE]).forEach((g, i) => {
           const x = CASTX ? W / 2 : 78 + i * 128; drawImg(g.icon, x, 890, 52, { ay: .6 }); txt(i < 3 ? g.short : 'FINALE', x, 928, 13, i < 3 ? '#fff' : '#ffd400');
         });
         ctx.globalAlpha = 1;
@@ -580,7 +666,7 @@ function gameScene(def, keep, idx, finale) {
 function podiumScene() {
   let t = 0;
   return {
-    start() { racers.forEach(r => { r.sq = 0; r.vx = 0; }); if (!podiumRank) podiumRank = GAMES.race.fin.slice(0, 3); },
+    start() { racers.forEach(r => { r.sq = 0; r.vx = 0; }); if (!podiumRank) podiumRank = GAMES[CASTX.game || 'race'].fin.slice(0, 3); },
     update() {
       t++;
       if (t % 18 === 1) burst(V(40, W - 40), V(120, 300), ['#ff5a4f', '#ffd400', '#3d8bff', '#4cbb2c', '#9b59d6'], 22, { conf: true, spread: 1.4 });
@@ -588,7 +674,7 @@ function podiumScene() {
       return t > 480;
     },
     draw() {
-      drawBg('bg', 0, .35);
+      drawBg(CASTX?.bg || 'bg', 0, .35);
       const [w, s2, s3] = podiumRank;
       const ph = 230, pw = ph * IMG.podest.width / IMG.podest.height, py = 770;
       drawImg('podest', W / 2, py, ph);
@@ -613,7 +699,7 @@ function podiumScene() {
     },
   };
 }
-const scenes = CASTX ? [introScene(), gameScene(GAMES.race, CASTX.keep, 0), podiumScene()]
+const scenes = CASTX ? [introScene(), gameScene(GAMES[CASTX.game || 'race'], CASTX.keep, 0), podiumScene()]
   : [introScene(), ...picked.map((g, i) => gameScene(GAMES[g], KEEP[i], i)), gameScene(FINALE, 1, 3, true), podiumScene()];
 let scene = scenes[0];
 
