@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261120_1114_0049.mp4",
-  "caption": "Look closely. This person isn't real.\n\nPerson No. 0049 · \"Selin\", 45\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiart #peopleofinstagram #portrait #faces #fakeface #lookalike",
+  "file": "reel_20261120_1713_0050.mp4",
+  "caption": "Say hi to someone who was never born.\n\nPerson No. 0050 · \"Sanjay\", 25\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #streetportrait #peopleofinstagram #digitalhuman #aiphotography #fluxai #twinstranger",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Candid half-body shot photo of a strikingly attractive 45-year-old Turkish woman with long hair in a loose braid dyed silver, a small nose stud and small hoop earrings, wearing a sharp tailored business suit, laughing naturally, in a park in autumn, neon city lights at night, shot on Sony A7 III, 50mm f/1.8, looks exactly 45 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 49,
-  "name": "Selin",
-  "age": 45,
-  "image": "assets/people_generated/person_20261120_1114_0049.jpg",
+  "prompt": "Close-up headshot photo of a good-looking 25-year-old young South Asian man with short cropped hair, a goatee and a slightly uneven skin tone, wearing a chef's white jacket, a warm genuine smile, looking directly into the camera, in a home kitchen, cool fluorescent light, shot on Canon EOS R5, 85mm f/1.4, looks exactly 25 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 50,
+  "name": "Sanjay",
+  "age": 25,
+  "image": "assets/people_generated/person_20261120_1713_0050.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
