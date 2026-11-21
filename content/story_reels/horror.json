@@ -1290,6 +1290,46 @@
       ],
       "source": "https://de.wikipedia.org/wiki/H._H._Holmes",
       "generated": "2026-11-21"
+    },
+    {
+      "id": "mad_trapper",
+      "hook": {
+        "text": "Ein einsamer Trapper lebt in der Arktis, doch seine Vergangenheit ist ein Rätsel.",
+        "image": "isolated cabin in the arctic wilderness with snow and northern lights"
+      },
+      "scenes": [
+        {
+          "text": "Albert Johnson, auch bekannt als der verrückte Trapper, lebt in einer kleinen Hütte am Rat River.",
+          "image": "small cabin on the riverbank with smoke coming out of the chimney"
+        },
+        {
+          "text": "Er wird verdächtigt, Fallen zu stören, und die Polizei kommt, um mit ihm zu sprechen.",
+          "image": "royal canadian mounted police officers approaching the cabin in the snow"
+        },
+        {
+          "text": "Johnson weigert sich, mit den Beamten zu sprechen, und ein Schusswechsel bricht aus.",
+          "image": "gunfire and smoke coming from the cabin, police officers taking cover"
+        },
+        {
+          "text": "Die Polizei startet eine groß angelegte Suche nach Johnson, der in die Wildnis flieht.",
+          "image": "police officers and dogs searching the arctic wilderness, snow and trees"
+        },
+        {
+          "text": "Johnson hinterlässt keine Spuren, doch ein Flugzeug entdeckt seine Fußabdrücke auf dem gefrorenen Fluss.",
+          "image": "ski equipped plane flying over the frozen river, footprints in the snow"
+        },
+        {
+          "text": "Johnson wird schließlich gestellt und getötet, doch seine wahre Identität bleibt ein Geheimnis.",
+          "image": "police officers surrounding johnson, snow and trees, dramatic lighting"
+        }
+      ],
+      "question": "Wer war der Mad Trapper?",
+      "tags": [
+        "#madtrapper",
+        "#kanadischekriminalgeschichte"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Albert_Johnson_(criminal)",
+      "generated": "2026-11-21"
     }
   ]
 }
