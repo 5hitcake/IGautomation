@@ -249,3 +249,26 @@ def test_notify_never_fails(monkeypatch):
     monkeypatch.setattr(pr.Telegram, "send_text", boom)
     monkeypatch.setattr("sys.argv", ["people_review.py", "--notify", "x"])
     pr.main()  # darf keine Ausnahme werfen
+
+
+def test_send_candidate_reencodes_when_telegram_rejects_photo():
+    from io import BytesIO
+
+    from PIL import Image
+
+    buf = BytesIO()
+    Image.new("RGB", (40, 50), (120, 30, 30)).save(buf, "JPEG")
+    calls = []
+
+    class Rejecting(pr.Telegram):
+        def __init__(self):
+            super().__init__("t", "c")
+
+        def call(self, method, files=None, http_timeout=60, **params):
+            calls.append(method)
+            if method == "sendPhoto" and len(calls) == 1:
+                raise RuntimeError("Telegram sendPhoto fehlgeschlagen: Bad Request: IMAGE_PROCESS_FAILED")
+            return {"message_id": 7}
+
+    assert Rejecting().send_candidate(buf.getvalue(), "Text", "tok") == 7
+    assert calls == ["sendPhoto", "sendPhoto"]
