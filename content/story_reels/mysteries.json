@@ -1217,6 +1217,47 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Kelly%E2%80%93Hopkinsville_encounter",
       "generated": "2026-11-20"
+    },
+    {
+      "id": "bernsteinzimmer",
+      "hook": {
+        "text": "Ein Prunkraum mit *Bernstein* und Gold verschwindet.",
+        "image": "ornate amber room in a baroque palace, golden hour"
+      },
+      "scenes": [
+        {
+          "text": "Das Bernsteinzimmer wurde 1701 für den preußischen König Friedrich I. geschaffen.",
+          "image": "barocke baumeister working on the amber room, 18th century"
+        },
+        {
+          "text": "1716 tauschte der König es gegen *Soldaten* mit dem russischen Zaren Peter I.",
+          "image": "russian tsar peter i and prussian king friedrich wilhelm i exchanging gifts, 18th century"
+        },
+        {
+          "text": "Zarin Elisabeth ließ es 1741 im *Winterpalast* einbauen.",
+          "image": "winter palace in st petersburg, 18th century, snowy"
+        },
+        {
+          "text": "Im Zweiten Weltkrieg wurde es 1941 von der Wehrmacht erbeutet und nach *Königsberg* gebracht.",
+          "image": "konigsberg castle, 1941, wartime"
+        },
+        {
+          "text": "Beim Vormarsch der Roten Armee wurde es 1944 *ausgelagert* und ist seitdem verschollen.",
+          "image": "konigsberg castle, 1944, destruction"
+        },
+        {
+          "text": "Seitdem gibt es viele *Theorien* über den Verbleib des Bernsteinzimmers.",
+          "image": "mysterious amber room, foggy, unknown location"
+        }
+      ],
+      "question": "Vollständig vernichtet oder noch erhalten?",
+      "tags": [
+        "#bernsteinzimmer",
+        "#zweiterweltkrieg",
+        "#kunstverlust"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Bernsteinzimmer",
+      "generated": "2026-11-21"
     }
   ]
 }
