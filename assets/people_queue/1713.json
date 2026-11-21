@@ -1,0 +1,36 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 24,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "British",
+      "british"
+    ],
+    "name": "Lucy",
+    "hair": "hair tucked under a beanie",
+    "facial_hair": null,
+    "detail": "a gap between the front teeth",
+    "clothing": "a paint-stained artist's shirt",
+    "setting": "at a train station",
+    "lighting": "warm evening light",
+    "camera": "shot on iPhone, candid snapshot",
+    "framing": "close-up headshot",
+    "expression": "laughing naturally, looking directly into the camera",
+    "attractive": "strikingly attractive",
+    "traits": [
+      "several small ear piercings",
+      "vitiligo patches on the face"
+    ],
+    "bold": true
+  },
+  "prompt": "Close-up headshot photo of a strikingly attractive 24-year-old young British woman with hair tucked under a beanie, several small ear piercings, vitiligo patches on the face and a gap between the front teeth, wearing a paint-stained artist's shirt, laughing naturally, looking directly into the camera, at a train station, warm evening light, shot on iPhone, candid snapshot, looks exactly 24 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0053 · \"Lucy\", 24\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #aiart #portrait #aiphotography #notreal #artificialintelligence"
+}
