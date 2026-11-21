@@ -1258,6 +1258,47 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Bernsteinzimmer",
       "generated": "2026-11-21"
+    },
+    {
+      "id": "brown_mountain_lights",
+      "hook": {
+        "text": "Ein Hotelgast sah *merkwürdige Lichter* in der Ferne.",
+        "image": "mysterious lights on the horizon at dusk, brown mountain in the background"
+      },
+      "scenes": [
+        {
+          "text": "Die Brown Mountain Lichter in North Carolina sind ein Rätsel.",
+          "image": "brown mountain landscape at sunset, misty atmosphere"
+        },
+        {
+          "text": "Erste Berichte über seltsame Lichter stammen aus dem Jahr *1910*.",
+          "image": "old newspaper clipping from 1910, brown mountain lights article"
+        },
+        {
+          "text": "Ein Wissenschaftler entdeckte, dass die Lichter von *Zügen* und *Autos* stammen.",
+          "image": "train headlights shining in the distance, night scene"
+        },
+        {
+          "text": "Die Lichter erschienen *pünktlich* um 19:30 und 22 Uhr.",
+          "image": "clock striking 7:30 pm, brown mountain landscape in the background"
+        },
+        {
+          "text": "Einige glauben, die Lichter seien von *UFOs* oder *Geistern*.",
+          "image": "glowing sphere floating in the air, brown mountain at night"
+        },
+        {
+          "text": "Die Wahrheit hinter den Brown Mountain Lichtern bleibt ein *Rätsel*.",
+          "image": "brown mountain landscape at dawn, misty atmosphere"
+        }
+      ],
+      "question": "Naturphänomen oder Geistererscheinung?",
+      "tags": [
+        "#brown_mountain_lights",
+        "#north_carolina",
+        "#rätsel"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Brown_Mountain_lights",
+      "generated": "2026-11-21"
     }
   ]
 }
