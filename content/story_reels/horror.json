@@ -1250,6 +1250,46 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Lizzie_Borden",
       "generated": "2026-11-20"
+    },
+    {
+      "id": "h_h_holmes",
+      "hook": {
+        "text": "Ein Arzt in Chicago, mit einem *geheimen* Hotel.",
+        "image": "old chicago hotel at night with gas lamps and fog"
+      },
+      "scenes": [
+        {
+          "text": "Henry Howard Holmes, geboren 1861 in New Hampshire, studierte Medizin.",
+          "image": "old university building with students and professors, 19th century"
+        },
+        {
+          "text": "Er änderte seinen Namen und beging ab 1891 eine Reihe von Morden.",
+          "image": "dark alley in chicago at night, 19th century, with a figure in the shadows"
+        },
+        {
+          "text": "Sein Hotel in Chicago hatte *befeuerte Räume* und *Säurebäder*.",
+          "image": "old hotel room with strange devices and a fireplace, 19th century"
+        },
+        {
+          "text": "Holmes wurde 1894 verhaftet und gestand 27 Morde.",
+          "image": "old police station with officers and a prisoner, 19th century"
+        },
+        {
+          "text": "Viele der angeblich von ihm ermordeten Personen waren jedoch noch am Leben.",
+          "image": "newspaper headlines about the case, 19th century, with a question mark"
+        },
+        {
+          "text": "Holmes wurde 1896 gehängt, sein Tod erfolgte durch Ersticken.",
+          "image": "old prison cell with a noose, 19th century, with a dark atmosphere"
+        }
+      ],
+      "question": "War er ein Teufel?",
+      "tags": [
+        "#hhholmes",
+        "#serienmoerder"
+      ],
+      "source": "https://de.wikipedia.org/wiki/H._H._Holmes",
+      "generated": "2026-11-21"
     }
   ]
 }
