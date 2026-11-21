@@ -46,6 +46,19 @@ POLL_TIMEOUT = 50  # Long-Polling, Sekunden
 APPROVE, REROLL, REJECT = "approve", "reroll", "reject"
 
 
+def reencode_jpeg(jpeg, max_side=1600):
+    """Bild als einfaches RGB-JPEG neu speichern (ohne Metadaten, begrenzte Groesse)."""
+    from io import BytesIO
+
+    from PIL import Image
+
+    img = Image.open(BytesIO(jpeg)).convert("RGB")
+    img.thumbnail((max_side, max_side))
+    out = BytesIO()
+    img.save(out, "JPEG", quality=90)
+    return out.getvalue()
+
+
 class Telegram:
     def __init__(self, token, chat_id, session=None):
         self.token = token
@@ -78,8 +91,21 @@ class Telegram:
             {"text": "🔄 Neue Person", "callback_data": f"{REROLL}:{token}"},
             {"text": "❌ Verwerfen", "callback_data": f"{REJECT}:{token}"},
         ]]}
-        msg = self.call("sendPhoto", files={"photo": ("person.jpg", jpeg, "image/jpeg")},
-                        chat_id=self.chat_id, caption=caption[:1024], reply_markup=json.dumps(keyboard))
+        params = dict(chat_id=self.chat_id, caption=caption[:1024], reply_markup=json.dumps(keyboard))
+        try:
+            msg = self.call("sendPhoto", files={"photo": ("person.jpg", jpeg, "image/jpeg")}, **params)
+        except RuntimeError as exc:
+            # Telegram lehnt manche KI-JPEGs ab ("IMAGE_PROCESS_FAILED"). Dann sauber neu kodieren,
+            # notfalls als Datei schicken - die Knoepfe funktionieren dort genauso.
+            if "IMAGE_PROCESS_FAILED" not in str(exc) and "PHOTO_INVALID" not in str(exc):
+                raise
+            print(f"Telegram lehnt das Foto ab ({exc}) - neu kodiert erneut senden.")
+            clean = reencode_jpeg(jpeg)
+            try:
+                msg = self.call("sendPhoto", files={"photo": ("person.jpg", clean, "image/jpeg")}, **params)
+            except RuntimeError:
+                msg = self.call("sendDocument", files={"document": ("person.jpg", clean, "image/jpeg")},
+                                **params)
         return msg["message_id"]
 
     def set_status(self, message_id, caption):
