@@ -1,5 +1,5 @@
 {
-  "count": 51,
+  "count": 52,
   "recent": [
     {
       "gender": "woman",
@@ -612,6 +612,18 @@
         "andean"
       ],
       "setting": "at a beach at dusk"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Irish",
+        "irish"
+      ],
+      "setting": "on a subway platform"
     }
   ],
   "reserve_used": [
