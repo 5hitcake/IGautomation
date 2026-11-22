@@ -30,6 +30,15 @@ ROOT = kr.ROOT
 MUSIC_DIR = os.path.join(ROOT, "assets", "kaufkraft_music")
 MEDIA_BRANCH = "kaufkraft-media"
 
+# Kodierung so, wie TikTok sie mag: Die Grafik ist fast statisch, mit "-crf" kam nur ~0,35 MBit/s
+# und ein Keyframe alle 8 s heraus. TikTok verarbeitete das minutenlang und zeigte teils nur
+# Standbilder. Deshalb: konstante 6 MBit/s, jede Sekunde ein Keyframe, Stereo-Ton mit 48 kHz.
+VIDEO_ENCODE = ["-c:v", "libx264", "-preset", "medium", "-profile:v", "high", "-level", "4.1",
+                "-b:v", "6M", "-minrate", "6M", "-maxrate", "6M", "-bufsize", "12M",
+                "-x264-params", "nal-hrd=cbr:force-cfr=1",
+                "-g", "30", "-keyint_min", "30", "-sc_threshold", "0", "-r", "30",
+                "-pix_fmt", "yuv420p", "-movflags", "+faststart"]
+
 W, H = 1080, 1920
 FPS = 30
 DURATION = 14.0  # Schluss bleibt ~4 s stehen
@@ -340,9 +349,9 @@ def render_reel(product, prices, photo_path, out_path, fmt_eur, fmt_pct, music=N
         cmd = ["ffmpeg", "-y", "-loglevel", "error",
                "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
                "-i", audio, "-map", "0:v", "-map", "1:a",
-               "-af", f"afade=t=in:d=0.3,afade=t=out:st={DURATION - 1}:d=1", "-c:a", "aac", "-b:a", "160k",
-               "-t", str(DURATION), "-c:v", "libx264", "-preset", "medium", "-crf", "21",
-               "-pix_fmt", "yuv420p", "-movflags", "+faststart", out_path]
+               "-af", f"afade=t=in:d=0.3,afade=t=out:st={DURATION - 1}:d=1",
+               "-c:a", "aac", "-b:a", "192k", "-ac", "2", "-ar", "48000",
+               "-t", str(DURATION)] + VIDEO_ENCODE + [out_path]
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         for i in range(int(DURATION * FPS)):
             proc.stdin.write(scene.frame(i / FPS).tobytes())
