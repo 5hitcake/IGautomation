@@ -1,0 +1,33 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 22,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "white Australian",
+      "white_australian"
+    ],
+    "name": "Liam",
+    "hair": "a man bun",
+    "facial_hair": "mutton chops",
+    "detail": "small hoop earrings",
+    "clothing": "a football jersey",
+    "setting": "in a cozy living room",
+    "lighting": "dim moody ambient light",
+    "camera": "shot on Sony A7 III, 50mm f/1.8",
+    "framing": "close-up headshot",
+    "expression": "a warm genuine smile, looking directly into the camera",
+    "attractive": "strikingly attractive",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a strikingly attractive 22-year-old young white Australian man with a man bun, mutton chops and small hoop earrings, wearing a football jersey, a warm genuine smile, looking directly into the camera, in a cozy living room, dim moody ambient light, shot on Sony A7 III, 50mm f/1.8, looks exactly 22 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "pollinations:tongyi-mai/z-image-turbo",
+  "reserve": null,
+  "caption": "Not a real person. Not a real moment.\n\nPerson No. 0055 · \"Liam\", 22\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #portrait #aiart #lookalike #portraitphotography #digitalhuman"
+}
