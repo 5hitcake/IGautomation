@@ -11,7 +11,7 @@
     "benzin",
     "klopapier"
   ],
-  "inflation_index": 1,
+  "inflation_index": 2,
   "history": [
     {
       "date": "2026-11-12",
@@ -67,6 +67,11 @@
       "date": "2026-11-21",
       "kind": "product",
       "what": "klopapier"
+    },
+    {
+      "date": "2026-11-22",
+      "kind": "inflation",
+      "what": "purchasing_power"
     }
   ]
 }
