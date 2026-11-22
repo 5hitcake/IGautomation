@@ -1,5 +1,5 @@
 {
-  "count": 53,
+  "count": 54,
   "recent": [
     {
       "gender": "woman",
@@ -636,6 +636,18 @@
         "british"
       ],
       "setting": "at a train station"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        50,
+        59
+      ],
+      "heritage": [
+        "Afro-Caribbean",
+        "caribbean"
+      ],
+      "setting": "on a mountain trail"
     }
   ],
   "reserve_used": [
