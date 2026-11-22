@@ -1340,6 +1340,47 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Oak_Island_(Nova_Scotia)",
       "generated": "2026-11-22"
+    },
+    {
+      "id": "baigong_pfeifen",
+      "hook": {
+        "text": "Forscher entdeckten *rätselhafte Pfeifen* in China.",
+        "image": "mysterious pipe-like structures on a mountain side, misty morning"
+      },
+      "scenes": [
+        {
+          "text": "Die Pfeifen befinden sich am *Weißen Berg* in China.",
+          "image": "white mountain in china, sunny day"
+        },
+        {
+          "text": "Sie sind Teil von drei Höhlen und wurden auch am Ufer eines Salzsees gefunden.",
+          "image": "salt lake shore with strange pipe-like formations, serene atmosphere"
+        },
+        {
+          "text": "Die Pfeifen bestehen aus *oxidisiertem Eisen* und anderen Mineralien.",
+          "image": "close-up of a pipe-like structure with rusty color, dramatic lighting"
+        },
+        {
+          "text": "Einige Wissenschaftler glauben, es könnten *fossilisierte Baumwurzeln* sein.",
+          "image": "tree roots fossilized in rock, natural light"
+        },
+        {
+          "text": "Andere Forscher fanden *radioaktive Strahlung* an den Pfeifen.",
+          "image": "researcher in protective gear examining a pipe with a geiger counter, cautionary atmosphere"
+        },
+        {
+          "text": "Die Herkunft der Pfeifen bleibt ein *Rätsel*.",
+          "image": "mysterious pipe-like structures at sunset, intriguing sky"
+        }
+      ],
+      "question": "Naturphänomen oder Kunst?",
+      "tags": [
+        "#baigongpfeifen",
+        "#china",
+        "#rätsel"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Baigong_pipes",
+      "generated": "2026-11-22"
     }
   ]
 }
