@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261122_1713_0055.mp4",
-  "caption": "Not a real person. Not a real moment.\n\nPerson No. 0055 · \"Liam\", 22\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #portrait #aiart #lookalike #portraitphotography #digitalhuman",
-  "model": "pollinations:tongyi-mai/z-image-turbo",
-  "prompt": "Close-up headshot photo of a strikingly attractive 22-year-old young white Australian man with a man bun, mutton chops and small hoop earrings, wearing a football jersey, a warm genuine smile, looking directly into the camera, in a cozy living room, dim moody ambient light, shot on Sony A7 III, 50mm f/1.8, looks exactly 22 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 55,
-  "name": "Liam",
-  "age": 22,
-  "image": "assets/people_generated/person_20261122_1713_0055.jpg",
+  "file": "reel_20261122_2343_0056.mp4",
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0056 · \"Ashley\", 34\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portraitphotography #lookalike #digitalhuman #streetportrait #aiart #generativeai",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "prompt": "Head and shoulders portrait photo of a strikingly attractive 34-year-old white American woman with a short pixie cut and light freckles, wearing a denim jacket, a slight smirk, looking directly into the camera, on a subway platform, afternoon sunlight through a window, shot on Kodak Portra 400 film, 35mm, looks exactly 34 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 56,
+  "name": "Ashley",
+  "age": 34,
+  "image": "assets/people_generated/person_20261122_2343_0056.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }

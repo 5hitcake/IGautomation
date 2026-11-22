@@ -1,5 +1,5 @@
 {
-  "count": 55,
+  "count": 56,
   "recent": [
     {
       "gender": "woman",
@@ -660,6 +660,18 @@
         "white_australian"
       ],
       "setting": "in a cozy living room"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "white American",
+        "white_american"
+      ],
+      "setting": "on a subway platform"
     }
   ],
   "reserve_used": [
