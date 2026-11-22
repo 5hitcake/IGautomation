@@ -1299,6 +1299,47 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Brown_Mountain_lights",
       "generated": "2026-11-21"
+    },
+    {
+      "id": "oak_island",
+      "hook": {
+        "text": "Ein 16-jähriger Holzfäller entdeckt eine geheimnisvolle Vertiefung.",
+        "image": "dense forest on oak island with a young man standing in front of a mysterious depression, overcast sky"
+      },
+      "scenes": [
+        {
+          "text": "Die Insel Oak Island in Nova Scotia, Kanada, ist nur 0,57 km² groß.",
+          "image": "aerial view of oak island with its small size and unique shape, sunny day"
+        },
+        {
+          "text": "1795 fand Daniel McGinnis eine runde, künstlich geschaffene Vertiefung im Boden.",
+          "image": "close-up of the depression with a young man standing next to it, looking curious, misty morning"
+        },
+        {
+          "text": "Bei den Grabungen trafen sie auf *Schieferplatten* und *Holzstämme*, die ordentlich verlegt waren.",
+          "image": "men digging and uncovering schist plates and wooden beams, dusty atmosphere"
+        },
+        {
+          "text": "Die Onslow Company unterstützte die Grabungen, aber der Schacht wurde plötzlich mit *Wasser* gefüllt.",
+          "image": "water flooding the shaft, men looking surprised and worried, dark clouds"
+        },
+        {
+          "text": "Später entdeckte die Truro Company ein künstliches Kanalsystem, das den Schacht fluten konnte.",
+          "image": "aerial view of the coastline with the artificial canal system, low tide"
+        },
+        {
+          "text": "Trotz vielen Expeditionen und Versuchen bleibt der Schatz auf Oak Island ein *Rätsel*.",
+          "image": "oak island at sunset with a sense of mystery and intrigue, silhouetted trees"
+        }
+      ],
+      "question": "Schatz oder Legende?",
+      "tags": [
+        "#oakisland",
+        "#schatz",
+        "#rätsel"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Oak_Island_(Nova_Scotia)",
+      "generated": "2026-11-22"
     }
   ]
 }
