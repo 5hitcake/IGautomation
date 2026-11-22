@@ -1370,6 +1370,47 @@
       ],
       "source": "https://en.wikipedia.org/wiki/John_Bingham,_7th_Earl_of_Lucan",
       "generated": "2026-11-22"
+    },
+    {
+      "id": "karl_denke",
+      "hook": {
+        "text": "Ein Nachbar half einem Landstreicher, doch der Gastgeber hatte *menschliches Fleisch* im Angebot.",
+        "image": "a small, dimly lit room with a table and a plate of food, a guest and a host in the background"
+      },
+      "scenes": [
+        {
+          "text": "Karl Denke, auch „Papa Denke“ genannt, lebte in Münsterberg und galt als hilfsbereit und eigenartig.",
+          "image": "a small town street with old buildings, a few people walking in the distance"
+        },
+        {
+          "text": "Denke tötete mindestens 30 Menschen, meist Landstreicher, und notierte jeden Mord auf loser Zettel.",
+          "image": "a desk with a notebook and a pen, a few loose papers scattered around"
+        },
+        {
+          "text": "Seine Opfer wurden *verarbeitet und gegessen*, einige Teile sogar als Speise angeboten.",
+          "image": "a dark and eerie kitchen with a large pot on the stove, a few utensils on the counter"
+        },
+        {
+          "text": "Die Polizei fand in Denkes Wohnung menschliche Überreste, darunter über 420 Zähne und 480 Knochen.",
+          "image": "a police officer in a room with a large collection of evidence, including bones and teeth"
+        },
+        {
+          "text": "Denke hatte auch *Hosenträger und Schnürsenkel aus Menschenhaut* hergestellt.",
+          "image": "a close-up of a pair of suspenders and shoelaces made from human skin, a few tools and materials in the background"
+        },
+        {
+          "text": "Das Tatmotiv Denkes bleibt unbekannt, er nahm sich vor seiner Verurteilung das Leben.",
+          "image": "a small, dimly lit cell with a single bed and a few personal belongings, a few bars on the window"
+        }
+      ],
+      "question": "War Denke ein Monster oder ein kranker Mensch?",
+      "tags": [
+        "#KarlDenke",
+        "#Serienmörder",
+        "#Kannibale"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Karl_Denke",
+      "generated": "2026-11-22"
     }
   ]
 }
