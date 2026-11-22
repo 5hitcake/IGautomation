@@ -1330,6 +1330,46 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Albert_Johnson_(criminal)",
       "generated": "2026-11-21"
+    },
+    {
+      "id": "lord_lucan",
+      "hook": {
+        "text": "Ein britischer Adeliger verschwindet nach einem Mord.",
+        "image": "foggy london street at night with a big house in the background"
+      },
+      "scenes": [
+        {
+          "text": "Lord Lucan war ein bekannter Gambler und lebte in Luxus.",
+          "image": "luxurious interior of a london house with expensive furniture"
+        },
+        {
+          "text": "1974: Die Kinderfrau Sandra Rivett wird ermordet.",
+          "image": "police crime scene at night in a london street with blue lights"
+        },
+        {
+          "text": "Lucans Frau Veronica überlebt einen Angriff und beschuldigt ihren Mann.",
+          "image": "woman with injuries in a hospital bed, worried expression"
+        },
+        {
+          "text": "Lucan verschwindet und hinterlässt einen Brief, in dem er seine Unschuld beteuert.",
+          "image": "abandoned car on a cliff with a suitcase and a letter on the seat"
+        },
+        {
+          "text": "Die Polizei findet keine Spur von Lucan, trotz einer groß angelegten Suche.",
+          "image": "police searching a forest with dogs and flashlights"
+        },
+        {
+          "text": "1999: Lucan wird für tot erklärt, aber sein Schicksal bleibt ein Rätsel.",
+          "image": "old newspaper headlines on a table about lord lucan's disappearance, dramatic light"
+        }
+      ],
+      "question": "Hat Lucan die Tat begangen?",
+      "tags": [
+        "#LordLucan",
+        "#Kriminalfall"
+      ],
+      "source": "https://en.wikipedia.org/wiki/John_Bingham,_7th_Earl_of_Lucan",
+      "generated": "2026-11-22"
     }
   ]
 }
