@@ -1,5 +1,5 @@
 {
-  "count": 54,
+  "count": 55,
   "recent": [
     {
       "gender": "woman",
@@ -648,6 +648,18 @@
         "caribbean"
       ],
       "setting": "on a mountain trail"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "white Australian",
+        "white_australian"
+      ],
+      "setting": "in a cozy living room"
     }
   ],
   "reserve_used": [
