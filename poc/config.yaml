@@ -49,5 +49,7 @@ story_reel:
 
 hashtags:
   base: ["#bibelvers", "#glaube", "#jesus", "#gott", "#christ", "#bibel", "#hoffnung", "#segen"]
-  story: ["#bibelgeschichte", "#wunder", "#altestestament", "#neuestestament"]
+  story: ["#bibelgeschichte", "#wunder"]
+  AT: ["#altestestament"]
+  NT: ["#neuestestament"]
   henoch: ["#buchhenoch", "#henoch", "#engel"]

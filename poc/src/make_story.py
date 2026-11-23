@@ -120,7 +120,8 @@ def make():
 
     note = ("\n\n📜 Aus dem Buch Henoch – in der äthiopisch-orthodoxen Kirche Teil der Bibel."
             if is_hen else "")
-    extra = script.get("hashtags", []) + CFG["hashtags"]["story"] + (CFG["hashtags"]["henoch"] if is_hen else [])
+    extra = script.get("hashtags", []) + CFG["hashtags"]["story"] + CFG["hashtags"].get(
+        "henoch" if is_hen else s["testament"], [])
     caption = (f"{s['title']}\n📖 {s['ref']}\n\n{script['caption'].strip()}{note}\n\n{hashtags(extra)}")
     (d / "caption.txt").write_text(caption, encoding="utf-8")
     log("fertig:", video)
