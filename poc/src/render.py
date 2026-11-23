@@ -2,9 +2,8 @@
 import random
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
-
 from common import CFG, FONTS, duration, random_music, sh
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = CFG["images"]["width"], CFG["images"]["height"]
 GOLD = (232, 199, 122, 255)
@@ -134,11 +133,13 @@ def ken_burns_clip(image, seconds, out, direction="in"):
 def verse_video(bg, overlay, out, seconds):
     tmp = Path(out).with_name("bg.mp4")
     ken_burns_clip(bg, seconds, tmp, "in")
-    music = random_music()
+    music = random_music("verse")
     vol = CFG["verse_reel"]["music_volume"]
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(tmp), "-loop", "1", "-i", str(overlay)]
     if music:
-        cmd += ["-stream_loop", "-1", "-i", str(music)]
+        # Ausschnitt aus der Mitte des Songs
+        start = max(0.0, (duration(music) - seconds) / 2)
+        cmd += ["-ss", f"{start:.2f}", "-stream_loop", "-1", "-i", str(music)]
         audio = (f"[2:a]volume={vol},afade=t=in:d=1,afade=t=out:st={seconds-1.5}:d=1.5,"
                  f"atrim=0:{seconds}[a]")
     else:
@@ -199,7 +200,7 @@ def story_video(scene_clips, narration_wav, title_png, ass, out, music_volume):
     sh(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listfile),
         "-c", "copy", str(joined)])
     total = duration(narration_wav)
-    music = random_music()
+    music = random_music("story")
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(joined), "-loop", "1", "-i", str(title_png),
            "-i", str(narration_wav)]
     if music:

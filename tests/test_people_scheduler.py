@@ -96,7 +96,8 @@ def test_poc_slots_reachable_by_cron_in_summer_and_winter():
     minutes, hours = _story_cron().split()[:2]
     js = _worker_js()
     assert 'POC_WORKFLOW = "poc_post.yml"' in js
-    slots = re.findall(r'"(\d\d):(\d\d)": "(poc-\w+)"', js.split("export const POC_SLOTS = {", 1)[1].split("};", 1)[0])
+    block = js.split("export const POC_SLOTS = {", 1)[1].split("};", 1)[0]
+    slots = re.findall(r'"(\d\d):(\d\d)": "(poc-\w+)"', block)
     assert {s for *_, s in slots} == {"poc-verse", "poc-story"}
     with open(os.path.join(ROOT, ".github", "workflows", "poc_post.yml"), encoding="utf-8") as f:
         wf = f.read()

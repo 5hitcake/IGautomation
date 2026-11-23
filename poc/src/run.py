@@ -13,6 +13,7 @@ import re
 import shutil
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 from common import BERLIN, ROOT, load_state, log, save_state
 
@@ -44,6 +45,13 @@ def build(kind):
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     (out / "next_post.json").write_text(json.dumps(post, ensure_ascii=False, indent=2), encoding="utf-8")
+    if kind == "verse":
+        # Dasselbe Bild (mit Vers) zusätzlich als Instagram-Story – JPEG, 1080×1920
+        story_name = name.replace("reel_", "story_").replace(".mp4", ".jpg")
+        shutil.copy(Path(res["dir"]) / "cover.jpg", out / story_name)
+        story = {"type": "story", "file": story_name, "branch": f"poc-media-{kind}", "caption": "",
+                 "account": "powerofchrist", "kind": "ig-story", "item_id": res["id"]}
+        (out / "story_post.json").write_text(json.dumps(story, ensure_ascii=False, indent=2), encoding="utf-8")
     log("bereit:", out / name)
     return post
 

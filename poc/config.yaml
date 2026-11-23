@@ -2,7 +2,7 @@
 account:
   # Instagram-Nutzername OHNE @. Wird klein ins Vers-Bild geschrieben und vor dem Posten geprüft
   # (Token muss zu genau diesem Konto gehören). Leer = kein Name im Bild, keine Prüfung.
-  instagram_username: ""
+  instagram_username: "power_of.christ"
   name: "Power of Christ"
 
 claude:
@@ -31,17 +31,21 @@ images:
 
 voice:
   name: "de-DE-ConradNeural"        # Alternativen: de-DE-KillianNeural, de-DE-FlorianMultilingualNeural
-  rate: "-8%"                       # etwas ruhiger, feierlicher
+  rate: "-3%"                       # etwas ruhiger, feierlicher
   pitch: "-4Hz"
+
+music:                              # feste Hintergrundmusik (Dateien in poc/assets/music/)
+  verse: "story_musik.mp3"         # gleiches Stück, Ausschnitt aus der Mitte (später: Chor)
+  story: "story_musik.mp3"
 
 verse_reel:
   seconds: 12
-  music_volume: 0.35
+  music_volume: 0.9
 
 story_reel:
-  target_seconds: 60
-  scenes: 7
-  music_volume: 0.12
+  target_seconds: 80
+  scenes: 8
+  music_volume: 0.16
   # Reihenfolge der Quellen; wiederholt sich. Henoch kommt so jede 5. Geschichte.
   rotation: ["AT", "NT", "AT", "NT", "Henoch"]
 
@@ -49,5 +53,7 @@ story_reel:
 
 hashtags:
   base: ["#bibelvers", "#glaube", "#jesus", "#gott", "#christ", "#bibel", "#hoffnung", "#segen"]
-  story: ["#bibelgeschichte", "#wunder", "#altestestament", "#neuestestament"]
+  story: ["#bibelgeschichte", "#wunder"]
+  AT: ["#altestestament"]
+  NT: ["#neuestestament"]
   henoch: ["#buchhenoch", "#henoch", "#engel"]

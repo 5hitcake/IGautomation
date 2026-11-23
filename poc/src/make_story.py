@@ -2,8 +2,7 @@
 import json
 import random
 
-from common import (CFG, DATA, claude_json, duration, generate_image, hashtags, load_state, log, out_dir,
-                    sh)
+from common import CFG, DATA, claude_json, duration, generate_image, hashtags, load_state, log, out_dir, sh
 from render import chunk_cues, cover_frame, ken_burns_clip, story_video, title_overlay, write_ass
 
 SYSTEM = """Du bist Erzähler der deutschsprachigen christlichen Instagram-Seite "Power of Christ".
@@ -12,9 +11,11 @@ lebendig, bildhaft und ehrfürchtig nach – in eigenen Worten, nah am Text, ohn
 die der Geschichte widersprechen. Kurze, gut sprechbare Sätze. Antworte ausschließlich mit gültigem JSON."""
 
 PROMPT = """Erzähle die Geschichte "{title}" ({ref}){henoch} als Skript für ein Reel von ca. {secs} Sekunden.
+{source}
 
 Regeln:
-- Genau {n} Szenen. Gesamt 135–155 Wörter Erzähltext (das sind ca. {secs} Sekunden gesprochen).
+- Genau {n} Szenen mit je 17–21 Wörtern. Gesamt 140–165 Wörter Erzähltext (= ca. {secs} Sekunden gesprochen).
+  Lieber kürzer als länger – wähle nur die wichtigsten Momente.
 - Szene 1 ist ein starker Einstieg (Frage oder dramatischer Moment), der zum Weiterschauen fesselt.
 - Die letzte Szene endet mit der Botschaft/Lehre der Geschichte für unser Leben heute, warm und ermutigend,
   und nennt am Ende die Stelle zum Nachlesen ("Nachzulesen in {ref_spoken}.").
@@ -57,8 +58,10 @@ def check_script(sc):
     if any(not str(s.get("narration", "")).strip() or not str(s.get("image", "")).strip() for s in scenes):
         problems.append("Szene ohne Text/Bild")
     words = sum(len(str(s.get("narration", "")).split()) for s in scenes)
-    if not 105 <= words <= 200:
-        problems.append(f"{words} Wörter")
+    if words > 178:
+        problems.append(f"zu lang: {words} Wörter statt höchstens 165")
+    elif words < 128:
+        problems.append(f"zu kurz: {words} Wörter statt ca. 150")
     if not str(sc.get("caption", "")).strip():
         problems.append("keine Caption")
     return problems
@@ -75,7 +78,10 @@ def make():
         title=s["title"], ref=s["ref"], secs=rc["target_seconds"], n=rc["scenes"],
         ref_spoken=spoken_ref(s["ref"]),
         henoch=" aus dem äthiopischen Buch Henoch" if is_hen else "",
-        henoch_rule=HENOCH_RULE if is_hen else ""), check=check_script)
+        henoch_rule=HENOCH_RULE if is_hen else "",
+        source=(f"\nBIBELTEXT (Menge 1939) – halte dich bei Personen, Reihenfolge und Ausgang GENAU daran, "
+                f"erfinde nichts dazu:\n<<<\n{s['source']}\n>>>\n") if s.get("source") else ""),
+        check=check_script)
     scenes = script["scenes"]
     (d / "skript.json").write_text(json.dumps(script, ensure_ascii=False, indent=1), encoding="utf-8")
 
@@ -114,7 +120,8 @@ def make():
 
     note = ("\n\n📜 Aus dem Buch Henoch – in der äthiopisch-orthodoxen Kirche Teil der Bibel."
             if is_hen else "")
-    extra = script.get("hashtags", []) + CFG["hashtags"]["story"] + (CFG["hashtags"]["henoch"] if is_hen else [])
+    extra = script.get("hashtags", []) + CFG["hashtags"]["story"] + CFG["hashtags"].get(
+        "henoch" if is_hen else s["testament"], [])
     caption = (f"{s['title']}\n📖 {s['ref']}\n\n{script['caption'].strip()}{note}\n\n{hashtags(extra)}")
     (d / "caption.txt").write_text(caption, encoding="utf-8")
     log("fertig:", video)

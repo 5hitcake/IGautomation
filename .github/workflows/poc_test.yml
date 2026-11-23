@@ -1,0 +1,65 @@
+name: Power of Christ – Testlauf (nur bauen)
+
+# Baut bei jedem Push auf den Branch power-of-christ ein Vers- und ein Story-Reel,
+# OHNE zu posten. Videos + Story-Bild unter "Artifacts" herunterladen.
+concurrency:
+  group: poc-test
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [power-of-christ]
+    paths: ["poc/**", ".github/workflows/poc_test.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        kind: [verse, story]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Abhängigkeiten
+        run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          pip install requests Pillow pyyaml "edge-tts>=7.3.1"
+      - name: Reel bauen
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLINATIONS_API_KEY: ${{ secrets.POLLI_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python poc/src/run.py build ${{ matrix.kind }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-${{ matrix.kind }}
+          path: |
+            poc/out/${{ matrix.kind }}/*
+            poc/output/*/skript.json
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Ergebnis auf Branch poc-test-${{ matrix.kind }} legen (zum Ansehen ohne Artifacts)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KIND: ${{ matrix.kind }}
+        run: |
+          [ -d poc/out/$KIND ] || exit 0
+          tmp=$(mktemp -d)
+          cp poc/out/$KIND/* "$tmp/"
+          cp poc/output/*/skript.json "$tmp/" 2>/dev/null || true
+          cd "$tmp"
+          git init -q -b "poc-test-$KIND"
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Testlauf"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "poc-test-$KIND"

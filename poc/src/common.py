@@ -71,7 +71,7 @@ def _extract_json(text):
     start, end = text.find("{"), text.rfind("}")
     if start < 0 or end < 0:
         raise ValueError("keine JSON-Antwort")
-    return json.loads(text[start: end + 1])
+    return json.loads(text[start: end + 1], strict=False)  # erlaubt Zeilenumbrüche in Strings
 
 
 def _claude(system, prompt):
@@ -107,16 +107,46 @@ def _cloudflare(system, prompt, model):
     return json.dumps(out, ensure_ascii=False) if isinstance(out, (dict, list)) else (out or "")
 
 
+def _pollinations_text(system, prompt, model):
+    key = (os.environ.get("POLLINATIONS_API_KEY") or os.environ.get("POLLINATIONS_TOKEN") or "").strip()
+    if not key:
+        raise RuntimeError("kein Pollinations-Key")
+    r = requests.post(
+        "https://gen.pollinations.ai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, timeout=180,
+        json={"model": model, "temperature": 0.7,
+              "messages": [{"role": "system", "content": system}, {"role": "user", "content": prompt}]},
+    )
+    if not r.ok:
+        raise RuntimeError(f"Pollinations {model}: HTTP {r.status_code} {r.text[:200]}")
+    return r.json()["choices"][0]["message"]["content"] or ""
+
+
+POLLI_TEXT_MODELS = ["openai", "mistral"]
+
+
 def llm_json(system, prompt, check=None):
-    """Fragt die Text-KI nach JSON. check(obj) darf eine Liste von Problemen zurückgeben."""
-    backends = []
-    if os.environ.get("ANTHROPIC_API_KEY"):
-        backends.append(("claude", lambda: _claude(system, prompt)))
-    for m in CF_LLM_MODELS:
-        backends.append((m, lambda m=m: _cloudflare(system, prompt, m)))
+    """Fragt die Text-KI nach JSON. check(obj) darf eine Liste von Problemen zurückgeben.
+    Reihenfolge: Claude (falls Key) → Pollinations (POLLI_TOKEN) → Cloudflare Workers AI.
+    Cloudflare zuletzt, weil sich alle Seiten im Repo dessen Gratis-Kontingent teilen."""
+    def backends_for(pr):
+        b = []
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            b.append(("claude", lambda: _claude(system, pr)))
+        for m in POLLI_TEXT_MODELS:
+            b.append((f"pollinations/{m}", lambda m=m: _pollinations_text(system, pr, m)))
+        for m in CF_LLM_MODELS:
+            b.append((m, lambda m=m: _cloudflare(system, pr, m)))
+        return b
+
     errors = []
-    for name, call in backends:
-        for _ in range(2):
+    cf_dead = False
+    for name, _ in backends_for(prompt):
+        if cf_dead and name.startswith("@cf/"):
+            continue
+        pr = prompt
+        for _ in range(3):
+            call = dict(backends_for(pr))[name]
             try:
                 obj = _extract_json(call())
                 problems = check(obj) if check else []
@@ -124,8 +154,15 @@ def llm_json(system, prompt, check=None):
                     log("Text von", name)
                     return obj
                 errors.append(f"{name}: {'; '.join(problems[:3])}")
+                # Rückmeldung an das Modell und nochmal versuchen
+                pr = (prompt + "\n\nDEIN LETZTER ENTWURF WAR UNGÜLTIG: " + "; ".join(problems)
+                      + ". Halte die Vorgaben exakt ein (Wortzahl!) und antworte nur mit JSON.")
+            except (ValueError, KeyError) as e:
+                errors.append(f"{name}: {e}")
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{name}: {e}")
+                if "daily free allocation" in str(e):
+                    cf_dead = True
                 break
     raise RuntimeError("Keine brauchbare KI-Antwort: " + " | ".join(errors[-4:]))
 
@@ -140,6 +177,7 @@ _last_image = [0.0]
 def _fit_and_clean(raw, path, w, h):
     """Unteren Rand (Wasserzeichen/Rahmen) abschneiden und exakt auf w×h bringen."""
     from io import BytesIO
+
     from PIL import Image
     im = Image.open(BytesIO(raw)).convert("RGB")
     cw, ch = im.size
@@ -236,7 +274,11 @@ def duration(path):
                      "-of", "default=nw=1:nk=1", str(path)]).strip())
 
 
-def random_music():
+def random_music(kind=None):
+    """Feste Musik je Reel-Art aus config.yaml (music.verse / music.story); sonst Zufall aus assets/music."""
+    fixed = (CFG.get("music") or {}).get(kind) if kind else None
+    if fixed:
+        return MUSIC / fixed if (MUSIC / fixed).exists() else None
     files = sorted(list(MUSIC.glob("*.mp3")) + list(MUSIC.glob("*.m4a")) + list(MUSIC.glob("*.wav")))
     return random.choice(files) if files else None
 
