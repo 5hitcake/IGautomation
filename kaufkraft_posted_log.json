@@ -9,7 +9,8 @@
     "bananen",
     "eis",
     "benzin",
-    "klopapier"
+    "klopapier",
+    "wein"
   ],
   "inflation_index": 2,
   "history": [
@@ -72,6 +73,11 @@
       "date": "2026-11-22",
       "kind": "inflation",
       "what": "purchasing_power"
+    },
+    {
+      "date": "2026-11-23",
+      "kind": "product",
+      "what": "wein"
     }
   ]
 }
