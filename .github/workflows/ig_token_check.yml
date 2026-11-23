@@ -1,7 +1,8 @@
 name: Instagram-Token pruefen
 
-# Zeigt fuer jedes Instagram-Secret, zu welchem Konto der Token gehoert.
-# Postet nichts; gibt nur Benutzernamen bzw. Fehlermeldungen aus.
+# Prueft fuer jeden Instagram-Account: Ist der Token gueltig, gehoert er zum richtigen Konto
+# und passt die hinterlegte Konto-ID dazu? Postet und verlaengert nichts.
+# Nach dem manuellen Erneuern der Tokens einmal starten: Actions -> "Instagram-Token pruefen".
 on:
   workflow_dispatch:
 
@@ -9,30 +10,53 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests
       - name: Tokens pruefen
         env:
-          PTNE_API_TOKEN: ${{ secrets.PTNE_API_TOKEN }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
-          HORROR_IG_ACCESS_TOKEN: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
-          MYSTERY_IG_ACCESS_TOKEN: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.IG_ACCOUNT_ID }}
+          JOTALABS_IG_ACCESS_TOKEN: ${{ secrets.JOTALABS_IG_ACCESS_TOKEN }}
+          JOTALABS_IG_ACCOUNT_ID: ${{ secrets.JOTALABS_IG_ACCOUNT_ID }}
+          PTNE_API_TOKEN: ${{ secrets.PTNE_API_TOKEN }}
           PTNE_ACCOUNT_TOKEN: ${{ secrets.PTNE_ACCOUNT_TOKEN }}
+          HORROR_IG_ACCESS_TOKEN: ${{ secrets.HORROR_IG_ACCESS_TOKEN }}
+          HORROR_IG_ACCOUNT_ID: ${{ secrets.HORROR_IG_ACCOUNT_ID }}
+          MYSTERY_IG_ACCESS_TOKEN: ${{ secrets.MYSTERY_IG_ACCESS_TOKEN }}
+          MYSTERY_IG_ACCOUNT_ID: ${{ secrets.MYSTERY_IG_ACCOUNT_ID }}
+          WOE_ACCOUNT_TOKEN: ${{ secrets.WOE_ACCOUNT_TOKEN }}
+          WOE_ACCOUNT_ID: ${{ secrets.WOE_ACCOUNT_ID }}
+        shell: python
         run: |
-          fail=0
-          # PTNE_ACCOUNT_TOKEN soll die numerische Konto-ID sein, kein Token.
-          if [[ "$PTNE_ACCOUNT_TOKEN" =~ ^[0-9]+$ ]]; then
-            echo "PTNE_ACCOUNT_TOKEN -> numerische Konto-ID (ok)"
-          else
-            echo "PTNE_ACCOUNT_TOKEN -> KEINE Zahl (Laenge ${#PTNE_ACCOUNT_TOKEN}) - evtl. versehentlich ein Token?"
-            out=$(curl -s "https://graph.instagram.com/v21.0/me?fields=username" -H "Authorization: Bearer $PTNE_ACCOUNT_TOKEN")
-            echo "  als Token getestet: $(echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("username") or "ungueltig")')"
-            fail=1
-          fi
-          for name in PTNE_API_TOKEN IG_ACCESS_TOKEN HORROR_IG_ACCESS_TOKEN MYSTERY_IG_ACCESS_TOKEN; do
-            token="${!name}"
-            if [ -z "$token" ]; then echo "$name: nicht gesetzt"; fail=1; continue; fi
-            out=$(curl -s "https://graph.instagram.com/v21.0/me?fields=username" -H "Authorization: Bearer $token")
-            user=$(echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("username") or "FEHLER: " + d.get("error",{}).get("message","?"))')
-            echo "$name -> $user"
-            case "$user" in FEHLER*) fail=1 ;; esac
-          done
-          exit $fail
+          import os, sys, requests
+          # (Token-Secret, ID-Secret, Account)
+          pairs = [
+              ("IG_ACCESS_TOKEN", "IG_ACCOUNT_ID", "@mindset_und.motivation"),
+              ("JOTALABS_IG_ACCESS_TOKEN", "JOTALABS_IG_ACCOUNT_ID", "@jota_labsweb"),
+              ("PTNE_API_TOKEN", "PTNE_ACCOUNT_TOKEN", "These People Do Not Exist"),
+              ("HORROR_IG_ACCESS_TOKEN", "HORROR_IG_ACCOUNT_ID", "Gruselgeschichten"),
+              ("MYSTERY_IG_ACCESS_TOKEN", "MYSTERY_IG_ACCOUNT_ID", "Raetsel & Verschwoerungen"),
+              ("WOE_ACCOUNT_TOKEN", "WOE_ACCOUNT_ID", "@kaufkraft.check"),
+          ]
+          fail = False
+          for tok_name, id_name, label in pairs:
+              token, acc_id = os.environ.get(tok_name, "").strip(), os.environ.get(id_name, "").strip()
+              if not token:
+                  print(f"⚠️ {label}: {tok_name} nicht gesetzt"); fail = True; continue
+              r = requests.get("https://graph.instagram.com/v21.0/me",
+                               params={"fields": "user_id,username", "access_token": token}, timeout=30)
+              d = r.json()
+              if "error" in d:
+                  print(f"⚠️ {label}: Token ungueltig - {d['error'].get('message', '?')[:120]}"); fail = True; continue
+              ids = {str(d.get("user_id", "")), str(d.get("id", ""))}
+              if not acc_id:
+                  id_info = f"{id_name} nicht gesetzt"; fail = True
+              elif acc_id in ids:
+                  id_info = "ID passt"
+              else:
+                  id_info = f"{id_name} passt NICHT zum Token - neue ID aus dem Meta-Dashboard eintragen"; fail = True
+              ok = id_info == "ID passt"
+              print(f"{'✅' if ok else '⚠️'} {label}: Token gehoert zu @{d.get('username')}, {id_info}")
+          sys.exit(1 if fail else 0)
