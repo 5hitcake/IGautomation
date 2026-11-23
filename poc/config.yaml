@@ -1,0 +1,53 @@
+# Power of Christ – Einstellungen
+account:
+  # Instagram-Nutzername OHNE @. Wird klein ins Vers-Bild geschrieben und vor dem Posten geprüft
+  # (Token muss zu genau diesem Konto gehören). Leer = kein Name im Bild, keine Prüfung.
+  instagram_username: ""
+  name: "Power of Christ"
+
+claude:
+  # Nur genutzt, wenn das Secret ANTHROPIC_API_KEY existiert – sonst Cloudflare Workers AI (gratis)
+  model: "claude-sonnet-5-5"
+  max_tokens: 2000
+
+images:
+  provider: "pollinations"          # mit Secret POLLI_TOKEN; Reserve: Cloudflare FLUX
+  model: "flux"
+  width: 1080
+  height: 1920
+  verse_prefix: "Italian Renaissance tempera painting on gold-leaf wood panel, Uffizi Florence, Giotto and Fra Angelico style"
+  verse_style: >-
+    early Italian Renaissance and late medieval Florentine panel painting, as displayed in the
+    Uffizi Gallery in Florence, in the manner of Giotto, Fra Angelico and Botticelli, oil and
+    egg tempera on aged wood panel, gold leaf halos and gilded accents, fine craquelure, muted
+    earthy pigments, ultramarine and vermilion, soft sacred light, museum masterpiece,
+    vertical composition, no text, no letters, no frame
+  story_prefix: "Old master oil painting, Florentine Renaissance, visible acrylic brushstrokes, chiaroscuro"
+  story_style: >-
+    old master oil painting with visible acrylic brushstrokes, Florentine Renaissance church
+    fresco atmosphere, dramatic chiaroscuro, warm candlelight, aged varnish and craquelure,
+    rich ochre, umber and lapis blue, cinematic biblical scene, museum masterpiece,
+    vertical composition, no text, no letters, no frame
+
+voice:
+  name: "de-DE-ConradNeural"        # Alternativen: de-DE-KillianNeural, de-DE-FlorianMultilingualNeural
+  rate: "-8%"                       # etwas ruhiger, feierlicher
+  pitch: "-4Hz"
+
+verse_reel:
+  seconds: 12
+  music_volume: 0.35
+
+story_reel:
+  target_seconds: 60
+  scenes: 7
+  music_volume: 0.12
+  # Reihenfolge der Quellen; wiederholt sich. Henoch kommt so jede 5. Geschichte.
+  rotation: ["AT", "NT", "AT", "NT", "Henoch"]
+
+# Zeiten: cloudflare/people_scheduler/src/index.js (POC_SLOTS, deutsche Zeit)
+
+hashtags:
+  base: ["#bibelvers", "#glaube", "#jesus", "#gott", "#christ", "#bibel", "#hoffnung", "#segen"]
+  story: ["#bibelgeschichte", "#wunder", "#altestestament", "#neuestestament"]
+  henoch: ["#buchhenoch", "#henoch", "#engel"]

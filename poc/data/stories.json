@@ -1,0 +1,650 @@
+[
+ {
+  "id": "1. Mose 1-2",
+  "title": "Die Erschaffung der Welt",
+  "ref": "1. Mose 1-2",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 2-3",
+  "title": "Adam und Eva im Garten Eden",
+  "ref": "1. Mose 2-3",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 4",
+  "title": "Kain und Abel",
+  "ref": "1. Mose 4",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 5,21-24",
+  "title": "Henoch wandelt mit Gott und wird entrückt",
+  "ref": "1. Mose 5,21-24",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 6-9",
+  "title": "Noah und die große Flut",
+  "ref": "1. Mose 6-9",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 11,1-9",
+  "title": "Der Turmbau zu Babel",
+  "ref": "1. Mose 11,1-9",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 15",
+  "title": "Gottes Verheißung an Abraham unter den Sternen",
+  "ref": "1. Mose 15",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 18-19",
+  "title": "Sodom und Gomorra",
+  "ref": "1. Mose 18-19",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 22",
+  "title": "Abraham und Isaak auf dem Berg Morija",
+  "ref": "1. Mose 22",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 28,10-22",
+  "title": "Jakobs Himmelsleiter",
+  "ref": "1. Mose 28,10-22",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 32,23-33",
+  "title": "Jakob ringt mit Gott",
+  "ref": "1. Mose 32,23-33",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 37",
+  "title": "Josef und seine Brüder",
+  "ref": "1. Mose 37",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 41",
+  "title": "Josef deutet die Träume des Pharao",
+  "ref": "1. Mose 41",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Mose 45",
+  "title": "Josef vergibt seinen Brüdern",
+  "ref": "1. Mose 45",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 2,1-10",
+  "title": "Mose im Schilfkörbchen",
+  "ref": "2. Mose 2,1-10",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 3",
+  "title": "Der brennende Dornbusch",
+  "ref": "2. Mose 3",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 7-11",
+  "title": "Die zehn Plagen Ägyptens",
+  "ref": "2. Mose 7-11",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 12",
+  "title": "Das erste Passa",
+  "ref": "2. Mose 12",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 14",
+  "title": "Die Teilung des Roten Meeres",
+  "ref": "2. Mose 14",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 16",
+  "title": "Manna vom Himmel",
+  "ref": "2. Mose 16",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 17,1-7",
+  "title": "Wasser aus dem Felsen",
+  "ref": "2. Mose 17,1-7",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 19-20",
+  "title": "Die Zehn Gebote am Sinai",
+  "ref": "2. Mose 19-20",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Mose 32",
+  "title": "Das goldene Kalb",
+  "ref": "2. Mose 32",
+  "testament": "AT"
+ },
+ {
+  "id": "4. Mose 22",
+  "title": "Bileam und die sprechende Eselin",
+  "ref": "4. Mose 22",
+  "testament": "AT"
+ },
+ {
+  "id": "Josua 6",
+  "title": "Die Mauern von Jericho",
+  "ref": "Josua 6",
+  "testament": "AT"
+ },
+ {
+  "id": "Josua 10,1-14",
+  "title": "Die Sonne steht still über Gibeon",
+  "ref": "Josua 10,1-14",
+  "testament": "AT"
+ },
+ {
+  "id": "Richter 7",
+  "title": "Gideon und die 300 Männer",
+  "ref": "Richter 7",
+  "testament": "AT"
+ },
+ {
+  "id": "Richter 16",
+  "title": "Simson und Delila",
+  "ref": "Richter 16",
+  "testament": "AT"
+ },
+ {
+  "id": "Rut 1-4",
+  "title": "Rut und Noomi",
+  "ref": "Rut 1-4",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Samuel 3",
+  "title": "Gott ruft den jungen Samuel",
+  "ref": "1. Samuel 3",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Samuel 17",
+  "title": "David und Goliat",
+  "ref": "1. Samuel 17",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Samuel 18-20",
+  "title": "David und Jonatan – eine Freundschaft",
+  "ref": "1. Samuel 18-20",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Samuel 24",
+  "title": "David verschont Saul in der Höhle",
+  "ref": "1. Samuel 24",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Könige 3,16-28",
+  "title": "Salomos weises Urteil",
+  "ref": "1. Könige 3,16-28",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Könige 17,1-6",
+  "title": "Elia und die Raben am Bach Krit",
+  "ref": "1. Könige 17,1-6",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Könige 17,7-24",
+  "title": "Elia und die Witwe von Sarepta",
+  "ref": "1. Könige 17,7-24",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Könige 18",
+  "title": "Elia gegen die Baalspropheten am Karmel",
+  "ref": "1. Könige 18",
+  "testament": "AT"
+ },
+ {
+  "id": "1. Könige 19",
+  "title": "Gottes leises Säuseln am Horeb",
+  "ref": "1. Könige 19",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Könige 2",
+  "title": "Elia fährt im feurigen Wagen zum Himmel",
+  "ref": "2. Könige 2",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Könige 4,1-7",
+  "title": "Elisa und das Öl der Witwe",
+  "ref": "2. Könige 4,1-7",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Könige 5",
+  "title": "Naaman wird geheilt",
+  "ref": "2. Könige 5",
+  "testament": "AT"
+ },
+ {
+  "id": "2. Könige 6,8-23",
+  "title": "Die Engelheere um Elisa",
+  "ref": "2. Könige 6,8-23",
+  "testament": "AT"
+ },
+ {
+  "id": "Hiob 1-2; 42",
+  "title": "Hiobs Prüfung und Treue",
+  "ref": "Hiob 1-2; 42",
+  "testament": "AT"
+ },
+ {
+  "id": "Ester 4-7",
+  "title": "Ester rettet ihr Volk",
+  "ref": "Ester 4-7",
+  "testament": "AT"
+ },
+ {
+  "id": "Jesaja 6",
+  "title": "Jesajas Berufung vor dem Thron Gottes",
+  "ref": "Jesaja 6",
+  "testament": "AT"
+ },
+ {
+  "id": "Hesekiel 37",
+  "title": "Hesekiel und das Tal der Totengebeine",
+  "ref": "Hesekiel 37",
+  "testament": "AT"
+ },
+ {
+  "id": "Daniel 3",
+  "title": "Die drei Männer im Feuerofen",
+  "ref": "Daniel 3",
+  "testament": "AT"
+ },
+ {
+  "id": "Daniel 5",
+  "title": "Die Schrift an der Wand",
+  "ref": "Daniel 5",
+  "testament": "AT"
+ },
+ {
+  "id": "Daniel 6",
+  "title": "Daniel in der Löwengrube",
+  "ref": "Daniel 6",
+  "testament": "AT"
+ },
+ {
+  "id": "Jona 1-2",
+  "title": "Jona und der große Fisch",
+  "ref": "Jona 1-2",
+  "testament": "AT"
+ },
+ {
+  "id": "Jona 3-4",
+  "title": "Jona und die Stadt Ninive",
+  "ref": "Jona 3-4",
+  "testament": "AT"
+ },
+ {
+  "id": "Lukas 1,26-38",
+  "title": "Die Verkündigung an Maria",
+  "ref": "Lukas 1,26-38",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 2,1-20",
+  "title": "Die Geburt Jesu in Bethlehem",
+  "ref": "Lukas 2,1-20",
+  "testament": "NT"
+ },
+ {
+  "id": "Matthäus 2,1-12",
+  "title": "Die Weisen aus dem Morgenland",
+  "ref": "Matthäus 2,1-12",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 2,41-52",
+  "title": "Der zwölfjährige Jesus im Tempel",
+  "ref": "Lukas 2,41-52",
+  "testament": "NT"
+ },
+ {
+  "id": "Matthäus 3,13-17",
+  "title": "Die Taufe Jesu im Jordan",
+  "ref": "Matthäus 3,13-17",
+  "testament": "NT"
+ },
+ {
+  "id": "Matthäus 4,1-11",
+  "title": "Die Versuchung in der Wüste",
+  "ref": "Matthäus 4,1-11",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 2,1-11",
+  "title": "Die Hochzeit zu Kana",
+  "ref": "Johannes 2,1-11",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 5,1-11",
+  "title": "Der wunderbare Fischfang",
+  "ref": "Lukas 5,1-11",
+  "testament": "NT"
+ },
+ {
+  "id": "Matthäus 5-7",
+  "title": "Die Bergpredigt",
+  "ref": "Matthäus 5-7",
+  "testament": "NT"
+ },
+ {
+  "id": "Markus 2,1-12",
+  "title": "Der Gelähmte durch das Dach",
+  "ref": "Markus 2,1-12",
+  "testament": "NT"
+ },
+ {
+  "id": "Markus 4,35-41",
+  "title": "Jesus stillt den Sturm",
+  "ref": "Markus 4,35-41",
+  "testament": "NT"
+ },
+ {
+  "id": "Markus 5,21-43",
+  "title": "Die Tochter des Jairus",
+  "ref": "Markus 5,21-43",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 6,1-14",
+  "title": "Die Speisung der Fünftausend",
+  "ref": "Johannes 6,1-14",
+  "testament": "NT"
+ },
+ {
+  "id": "Matthäus 14,22-33",
+  "title": "Jesus geht über das Wasser",
+  "ref": "Matthäus 14,22-33",
+  "testament": "NT"
+ },
+ {
+  "id": "Matthäus 17,1-9",
+  "title": "Die Verklärung auf dem Berg",
+  "ref": "Matthäus 17,1-9",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 10,25-37",
+  "title": "Der barmherzige Samariter",
+  "ref": "Lukas 10,25-37",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 15,11-32",
+  "title": "Der verlorene Sohn",
+  "ref": "Lukas 15,11-32",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 15,1-7",
+  "title": "Das verlorene Schaf",
+  "ref": "Lukas 15,1-7",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 9",
+  "title": "Die Heilung des Blindgeborenen",
+  "ref": "Johannes 9",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 11",
+  "title": "Die Auferweckung des Lazarus",
+  "ref": "Johannes 11",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 19,1-10",
+  "title": "Zachäus auf dem Baum",
+  "ref": "Lukas 19,1-10",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 8,1-11",
+  "title": "Die Ehebrecherin – wer ohne Sünde ist",
+  "ref": "Johannes 8,1-11",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 17,11-19",
+  "title": "Die zehn Aussätzigen",
+  "ref": "Lukas 17,11-19",
+  "testament": "NT"
+ },
+ {
+  "id": "Markus 12,41-44",
+  "title": "Das Scherflein der Witwe",
+  "ref": "Markus 12,41-44",
+  "testament": "NT"
+ },
+ {
+  "id": "Matthäus 21,1-11",
+  "title": "Der Einzug in Jerusalem",
+  "ref": "Matthäus 21,1-11",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 2,13-22",
+  "title": "Die Tempelreinigung",
+  "ref": "Johannes 2,13-22",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 13,1-17",
+  "title": "Jesus wäscht die Füße der Jünger",
+  "ref": "Johannes 13,1-17",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 22,7-20",
+  "title": "Das letzte Abendmahl",
+  "ref": "Lukas 22,7-20",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 22,39-46",
+  "title": "Gethsemane",
+  "ref": "Lukas 22,39-46",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 22,54-62",
+  "title": "Petrus verleugnet Jesus",
+  "ref": "Lukas 22,54-62",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 23,26-49",
+  "title": "Die Kreuzigung",
+  "ref": "Lukas 23,26-49",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 20,1-18",
+  "title": "Die Auferstehung am dritten Tag",
+  "ref": "Johannes 20,1-18",
+  "testament": "NT"
+ },
+ {
+  "id": "Lukas 24,13-35",
+  "title": "Die Emmausjünger",
+  "ref": "Lukas 24,13-35",
+  "testament": "NT"
+ },
+ {
+  "id": "Johannes 20,24-29",
+  "title": "Der zweifelnde Thomas",
+  "ref": "Johannes 20,24-29",
+  "testament": "NT"
+ },
+ {
+  "id": "Apostelgeschichte 1,1-11",
+  "title": "Die Himmelfahrt",
+  "ref": "Apostelgeschichte 1,1-11",
+  "testament": "NT"
+ },
+ {
+  "id": "Apostelgeschichte 2",
+  "title": "Pfingsten – das Feuer des Geistes",
+  "ref": "Apostelgeschichte 2",
+  "testament": "NT"
+ },
+ {
+  "id": "Apostelgeschichte 3",
+  "title": "Petrus und der Gelähmte an der Schönen Pforte",
+  "ref": "Apostelgeschichte 3",
+  "testament": "NT"
+ },
+ {
+  "id": "Apostelgeschichte 9,1-19",
+  "title": "Die Bekehrung des Saulus",
+  "ref": "Apostelgeschichte 9,1-19",
+  "testament": "NT"
+ },
+ {
+  "id": "Apostelgeschichte 12,1-19",
+  "title": "Petrus wird von einem Engel befreit",
+  "ref": "Apostelgeschichte 12,1-19",
+  "testament": "NT"
+ },
+ {
+  "id": "Apostelgeschichte 16,16-40",
+  "title": "Paulus und Silas im Gefängnis",
+  "ref": "Apostelgeschichte 16,16-40",
+  "testament": "NT"
+ },
+ {
+  "id": "Apostelgeschichte 27",
+  "title": "Der Schiffbruch des Paulus",
+  "ref": "Apostelgeschichte 27",
+  "testament": "NT"
+ },
+ {
+  "id": "Offenbarung 21",
+  "title": "Johannes' Vision vom neuen Jerusalem",
+  "ref": "Offenbarung 21",
+  "testament": "NT"
+ },
+ {
+  "id": "Henoch 6-7",
+  "title": "Der Fall der Wächterengel auf dem Berg Hermon",
+  "ref": "Henoch 6-7",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 8",
+  "title": "Asasel lehrt die Menschen verbotene Künste",
+  "ref": "Henoch 8",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 9",
+  "title": "Die Erzengel rufen zu Gott",
+  "ref": "Henoch 9",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 10,1-8",
+  "title": "Asasel wird in der Finsternis gebunden",
+  "ref": "Henoch 10,1-8",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 13",
+  "title": "Henoch als Fürsprecher der gefallenen Wächter",
+  "ref": "Henoch 13",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 14",
+  "title": "Henochs Vision vom feurigen Thron Gottes",
+  "ref": "Henoch 14",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 20",
+  "title": "Die sieben heiligen Erzengel",
+  "ref": "Henoch 20",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 17-19",
+  "title": "Henochs Reise an die Enden der Erde",
+  "ref": "Henoch 17-19",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 24-25",
+  "title": "Der Baum des Lebens auf dem Berg Gottes",
+  "ref": "Henoch 24-25",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 46-48",
+  "title": "Der Menschensohn und das Buch der Gleichnisse",
+  "ref": "Henoch 46-48",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 72-75",
+  "title": "Die Geheimnisse der Himmelslichter",
+  "ref": "Henoch 72-75",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 85-90",
+  "title": "Die Tiervision – Israels Geschichte in Bildern",
+  "ref": "Henoch 85-90",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 93; 91,12-17",
+  "title": "Die Zehn-Wochen-Prophezeiung",
+  "ref": "Henoch 93; 91,12-17",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 91",
+  "title": "Henochs Abschiedsworte an Methusalem",
+  "ref": "Henoch 91",
+  "testament": "Henoch"
+ },
+ {
+  "id": "Henoch 106-107",
+  "title": "Die wundersame Geburt Noahs",
+  "ref": "Henoch 106-107",
+  "testament": "Henoch"
+ }
+]

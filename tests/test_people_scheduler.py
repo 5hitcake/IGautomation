@@ -88,3 +88,23 @@ def test_token_refresh_slot_reachable_by_cron_in_summer_and_winter():
     with open(os.path.join(ROOT, ".github", "workflows", "token_refresh.yml"), encoding="utf-8") as f:
         wf = f.read()
     assert "dry_run:" in wf and "schedule:" not in wf
+
+
+def test_poc_slots_reachable_by_cron_in_summer_and_winter():
+    """Power of Christ: 06:52 / 16:22 deutscher Zeit muessen in Sommer- (UTC+2) und Winterzeit (UTC+1)
+    vom gemeinsamen Cron getroffen werden und in poc_post.yml einen Fall haben."""
+    minutes, hours = _story_cron().split()[:2]
+    js = _worker_js()
+    assert 'POC_WORKFLOW = "poc_post.yml"' in js
+    slots = re.findall(r'"(\d\d):(\d\d)": "(poc-\w+)"', js.split("export const POC_SLOTS = {", 1)[1].split("};", 1)[0])
+    assert {s for *_, s in slots} == {"poc-verse", "poc-story"}
+    with open(os.path.join(ROOT, ".github", "workflows", "poc_post.yml"), encoding="utf-8") as f:
+        wf = f.read()
+    for hh, mm, slot in slots:
+        assert mm in minutes.split(",")
+        for offset in (1, 2):
+            assert str(int(hh) - offset) in hours.split(","), (hh, offset)
+        assert f"{slot})" in wf
+    # Die Story-Reel-Slots (UTC) duerfen von den neuen Stunden nicht getroffen werden
+    for hh, mm, *_ in _story_slots():
+        assert f"{hh}:{mm}" not in {f"{h}:{m}" for h, m, _ in slots}

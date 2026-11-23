@@ -13,8 +13,9 @@ export const SCHEDULE = {
 // Story-Reels (story_reels.yml) + Kaufkraft-Check (kaufkraft_post.yml): EIN gemeinsamer
 // Cron-Trigger (Gratis-Tarif: max. 5 pro Konto). Der Worker schaut auf die Uhrzeit und startet
 // nur zu den Zeiten in STORY_SLOTS (UTC) bzw. KAUFKRAFT_SLOTS (deutsche Zeit).
-// Stunden 8,9,16,17 decken die Kaufkraft-Termine in Sommer- und Winterzeit ab.
-export const STORY_CRON = "22,52 8,9,11,13,16,17,19 * * *";
+// Stunden 8,9,16,17 decken die Kaufkraft-Termine in Sommer- und Winterzeit ab,
+// Stunden 4,5,14,15 die Power-of-Christ-Termine (POC_SLOTS).
+export const STORY_CRON = "22,52 4,5,8,9,11,13,14,15,16,17,19 * * *";
 export const STORY_WORKFLOW = "story_reels.yml";
 export const STORY_SLOTS = {
   "11:52": { slot: "52 11 * * *", account: "horror" },
@@ -29,6 +30,18 @@ export const KAUFKRAFT_SLOTS = {
   weekday: "18:52", // Mo-Fr: Feierabend-Peak
   weekend: "10:52", // Sa+So: Wochenend-Vormittag
 };
+
+// Power of Christ (poc_post.yml): deutsche Zeit, Sommer-/Winterzeit automatisch.
+// 06:52 = 05:52 UTC (Winter) / 04:52 UTC (Sommer); 16:22 = 15:22 / 14:22 UTC.
+export const POC_WORKFLOW = "poc_post.yml";
+export const POC_SLOTS = {
+  "06:52": "poc-verse", // Vers-Reel, online ca. 07:00
+  "16:22": "poc-story", // Bibelgeschichte, online ca. 16:35
+};
+
+export function pocSlot(scheduledTime) {
+  return POC_SLOTS[berlinTime(scheduledTime).hhmm] || null;
+}
 
 // Token-Erneuerung (token_refresh.yml): montags 10:22 deutscher Zeit (= 09:22 UTC im Winter,
 // 08:22 UTC im Sommer, beides im STORY_CRON). Der GitHub-Cron dafuer fiel aus, deshalb hier.
@@ -116,6 +129,15 @@ export function jobsFor(cron, scheduledTime) {
         label: "Kaufkraft-Check Post",
         inputs: { kind: "auto", product: "", planned: "true" },
         workflow: KAUFKRAFT_WORKFLOW,
+      });
+    }
+    const poc = pocSlot(scheduledTime);
+    if (poc) {
+      const kind = poc === "poc-verse" ? "verse" : "story";
+      jobs.push({
+        label: `Power of Christ ${kind}`,
+        inputs: { kind, publish: "true", slot: poc },
+        workflow: POC_WORKFLOW,
       });
     }
     if (tokenRefreshDue(scheduledTime)) {
