@@ -71,7 +71,7 @@ def _extract_json(text):
     start, end = text.find("{"), text.rfind("}")
     if start < 0 or end < 0:
         raise ValueError("keine JSON-Antwort")
-    return json.loads(text[start: end + 1])
+    return json.loads(text[start: end + 1], strict=False)  # erlaubt Zeilenumbrüche in Strings
 
 
 def _claude(system, prompt):
@@ -124,6 +124,8 @@ def llm_json(system, prompt, check=None):
                     log("Text von", name)
                     return obj
                 errors.append(f"{name}: {'; '.join(problems[:3])}")
+            except (ValueError, KeyError) as e:  # kaputtes JSON: gleiches Modell nochmal fragen
+                errors.append(f"{name}: {e}")
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{name}: {e}")
                 break
