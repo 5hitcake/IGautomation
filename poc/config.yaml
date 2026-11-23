@@ -51,6 +51,10 @@ story_reel:
 
 # Zeiten: cloudflare/people_scheduler/src/index.js (POC_SLOTS, deutsche Zeit)
 
+support:                            # Unterstützungs-Hinweis unter den Story-Reels (leer = aus)
+  url: "https://ko-fi.com/5hitcake"   # gehört in die Instagram-Bio (Links in Captions sind nicht klickbar)
+  story_text: "🕊️ Du möchtest diese Seite unterstützen? Link in der Bio 🙏"
+
 hashtags:
   base: ["#bibelvers", "#glaube", "#jesus", "#gott", "#christ", "#bibel", "#hoffnung", "#segen"]
   story: ["#bibelgeschichte", "#wunder"]

@@ -122,7 +122,9 @@ def make():
             if is_hen else "")
     extra = script.get("hashtags", []) + CFG["hashtags"]["story"] + CFG["hashtags"].get(
         "henoch" if is_hen else s["testament"], [])
-    caption = (f"{s['title']}\n📖 {s['ref']}\n\n{script['caption'].strip()}{note}\n\n{hashtags(extra)}")
+    support = ((CFG.get("support") or {}).get("story_text") or "").strip()
+    support = f"\n\n{support}" if support else ""
+    caption = (f"{s['title']}\n📖 {s['ref']}\n\n{script['caption'].strip()}{note}{support}\n\n{hashtags(extra)}")
     (d / "caption.txt").write_text(caption, encoding="utf-8")
     log("fertig:", video)
     return {"kind": "story", "id": s["id"], "video": str(video), "caption": caption, "thumb_ms": 1000, "dir": str(d)}
