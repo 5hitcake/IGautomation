@@ -2,6 +2,10 @@ name: Power of Christ – Testlauf (nur bauen)
 
 # Baut bei jedem Push auf den Branch power-of-christ ein Vers- und ein Story-Reel,
 # OHNE zu posten. Videos + Story-Bild unter "Artifacts" herunterladen.
+concurrency:
+  group: poc-test
+  cancel-in-progress: true
+
 on:
   push:
     branches: [power-of-christ]
@@ -9,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -44,3 +48,18 @@ jobs:
             poc/output/*/skript.json
           retention-days: 7
           if-no-files-found: ignore
+      - name: Ergebnis auf Branch poc-test-${{ matrix.kind }} legen (zum Ansehen ohne Artifacts)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KIND: ${{ matrix.kind }}
+        run: |
+          [ -d poc/out/$KIND ] || exit 0
+          tmp=$(mktemp -d)
+          cp poc/out/$KIND/* "$tmp/"
+          cp poc/output/*/skript.json "$tmp/" 2>/dev/null || true
+          cd "$tmp"
+          git init -q -b "poc-test-$KIND"
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Testlauf"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "poc-test-$KIND"
