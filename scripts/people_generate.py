@@ -28,6 +28,7 @@ import time
 from datetime import datetime, timezone
 
 import requests
+from common import support_line
 from PIL import Image
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
@@ -630,7 +631,8 @@ def build_caption(p, number, rng=random):
         f"Person No. {number:04d} · \"{p['name']}\", {p['age']}\n\n"
         f"{rng.choice(CTAS)}\n\n"
         f"{DISCLOSURE}\n\n"
-        f"{' '.join(tags)}"
+        + (f"{support_line('people')}\n\n" if support_line("people") else "")
+        + f"{' '.join(tags)}"
     )
 
 

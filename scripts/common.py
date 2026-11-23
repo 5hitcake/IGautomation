@@ -93,6 +93,18 @@ def pick_music():
     return os.path.join(MUSIC_DIR, random.choice(files))
 
 
+SUPPORT_PATH = os.path.join(ROOT, "content", "support.json")
+
+
+def support_line(key):
+    """Kurzer Unterstützungs-Hinweis (Ko-fi-Link steht in der Bio). Leer, wenn nicht konfiguriert."""
+    try:
+        with open(SUPPORT_PATH, encoding="utf-8") as f:
+            return (json.load(f).get("lines", {}).get(key) or "").strip()
+    except (OSError, ValueError):
+        return ""
+
+
 def build_caption(quote_text, category):
     hashtag_data = load_json(HASHTAGS_PATH)
     category_tags = hashtag_data["by_category"].get(category, [])
@@ -103,4 +115,6 @@ def build_caption(quote_text, category):
     tags = chosen_category + chosen_general
     random.shuffle(tags)
 
-    return f"{quote_text}\n\n•\n\n{' '.join(tags)}"
+    support = support_line("quotes")
+    support = f"\n\n{support}" if support else ""
+    return f"{quote_text}{support}\n\n•\n\n{' '.join(tags)}"
