@@ -2,13 +2,20 @@
  "verses": [
   "Matthäus 5,14"
  ],
- "stories": [],
- "story_count": 0,
+ "stories": [
+  "Daniel 6"
+ ],
+ "story_count": 1,
  "posts": [
   {
    "time": "2026-11-23T06:55+01:00",
    "kind": "verse",
    "id": "Matthäus 5,14"
+  },
+  {
+   "time": "2026-11-23T16:30+01:00",
+   "kind": "story",
+   "id": "Daniel 6"
   }
  ]
 }
