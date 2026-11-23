@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261123_1713_0058.mp4",
-  "caption": "This face belongs to no one.\n\nPerson No. 0058 · \"Joost\", 22\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #aiphotography #notreal #twinstranger #generativeai #portrait",
-  "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a strikingly attractive 22-year-old young Dutch man with long hair tied back, light stubble and thick eyebrows, wearing a work uniform, a confident gaze into the camera, in a small neighborhood café, afternoon sunlight through a window, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 22 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 58,
-  "name": "Joost",
-  "age": 22,
-  "image": "assets/people_generated/person_20261123_1713_0058.jpg",
+  "file": "reel_20261123_2343_0059.mp4",
+  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0059 · \"Mariam\", 39\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n🎨 Gefallen dir die Porträts? Unterstütze das Projekt – Link in der Bio\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #notreal #streetportrait #portraitphotography #faces #aiart",
+  "model": "pollinations:tongyi-mai/z-image-turbo",
+  "prompt": "Close-up headshot photo of a strikingly attractive 39-year-old Middle Eastern woman with long straight hair and dimples, wearing hiking gear, laughing naturally, looking directly into the camera, at a train station, bright midday sun with hard shadows, shot on iPhone, candid snapshot, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 59,
+  "name": "Mariam",
+  "age": 39,
+  "image": "assets/people_generated/person_20261123_2343_0059.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
