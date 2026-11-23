@@ -18,6 +18,10 @@ on:
         description: "Posten? (nein = nur Video bauen, Download unter Artifacts)"
         type: boolean
         default: false
+      ig_story:
+        description: "Nur bei verse + posten: Vers-Bild zusätzlich als Instagram-Story"
+        type: boolean
+        default: true
       slot:
         description: "Nur für den Zeitgeber - leer lassen"
         default: ""
@@ -95,7 +99,8 @@ jobs:
           name: powerofchrist-${{ steps.plan.outputs.kind }}
           path: |
             poc/out/${{ steps.plan.outputs.kind }}/reel_*.mp4
-            poc/out/${{ steps.plan.outputs.kind }}/next_post.json
+            poc/out/${{ steps.plan.outputs.kind }}/story_*.jpg
+            poc/out/${{ steps.plan.outputs.kind }}/*.json
           retention-days: 7
           if-no-files-found: ignore
 
@@ -107,6 +112,7 @@ jobs:
         run: |
           tmp=$(mktemp -d)
           cp poc/out/$KIND/reel_*.mp4 "$tmp/"
+          cp poc/out/$KIND/story_*.jpg "$tmp/" 2>/dev/null || true
           cd "$tmp"
           git init -q -b "poc-media-$KIND"
           git add .
@@ -135,6 +141,15 @@ jobs:
             echo "::warning::Instagram konnte das Video nicht verarbeiten - neuer Versuch in 90 s."
             sleep 90
           done
+
+      - name: Vers-Bild als Instagram-Story posten
+        id: igstory
+        if: steps.publish.outcome == 'success' && steps.plan.outputs.kind == 'verse' && (github.event.inputs.ig_story != 'false')
+        continue-on-error: true
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.POWEROFCHRIST_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.POWEROFCHRIST_ACCOUNT_ID }}
+        run: python scripts/publish.py --post-file poc/out/verse/story_post.json
 
       - name: Verlauf speichern
         if: steps.publish.outcome == 'success'

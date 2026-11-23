@@ -2,7 +2,7 @@
 account:
   # Instagram-Nutzername OHNE @. Wird klein ins Vers-Bild geschrieben und vor dem Posten geprüft
   # (Token muss zu genau diesem Konto gehören). Leer = kein Name im Bild, keine Prüfung.
-  instagram_username: ""
+  instagram_username: "power_of.christ"
   name: "Power of Christ"
 
 claude:
