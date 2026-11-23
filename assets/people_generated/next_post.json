@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261122_2343_0056.mp4",
-  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0056 · \"Ashley\", 34\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portraitphotography #lookalike #digitalhuman #streetportrait #aiart #generativeai",
+  "file": "reel_20261123_1114_0057.mp4",
+  "caption": "This face belongs to no one.\n\nPerson No. 0057 · \"Andrés\", 34\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #artificialintelligence #generativeai #portraitphotography #fluxai #fakeface #aiart",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Head and shoulders portrait photo of a strikingly attractive 34-year-old white American woman with a short pixie cut and light freckles, wearing a denim jacket, a slight smirk, looking directly into the camera, on a subway platform, afternoon sunlight through a window, shot on Kodak Portra 400 film, 35mm, looks exactly 34 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 56,
-  "name": "Ashley",
+  "prompt": "Waist-up portrait photo of a 34-year-old Latin American man with long hair tied back, a long braided beard and small hoop earrings, wearing a wool coat and scarf, a calm neutral expression, at an outdoor market, neon city lights at night, shot on Sony A7 III, 50mm f/1.8, looks exactly 34 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 57,
+  "name": "Andrés",
   "age": 34,
-  "image": "assets/people_generated/person_20261122_2343_0056.jpg",
+  "image": "assets/people_generated/person_20261123_1114_0057.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
