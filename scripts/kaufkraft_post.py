@@ -31,6 +31,7 @@ import kaufkraft_data as kd
 import kaufkraft_photos as kph
 import kaufkraft_reel as kreel
 import kaufkraft_render as kr
+from common import support_line
 
 ROOT = kd.ROOT
 GENERATED_DIR = os.path.join(ROOT, "assets", "kaufkraft_generated")
@@ -117,6 +118,8 @@ def product_caption(product, prices, rng=random, credit=None):
               ]
     if credit:
         lines.append(f"📷 {credit}")
+    if support_line("kaufkraft"):
+        lines += ["", support_line("kaufkraft")]
     lines += ["", hashtags(rng, [f"#{product['id'].replace('_', '')}"])]
     return "\n".join(lines)
 
@@ -198,6 +201,7 @@ def inflation_caption(kind, data, rng=random):
     return "\n".join([head, "", body, "", f"Stand: {stand}. Quelle: Eurostat (HVPI).",
                       "Wie spürst du die Inflation im Alltag? 👇", "",
                       "Folge @kaufkraft.check für täglich einen Preis-Check.", "",
+                      *([support_line("kaufkraft"), ""] if support_line("kaufkraft") else []),
                       hashtags(rng, ["#inflationsrate", "#verbraucherpreise"])])
 
 

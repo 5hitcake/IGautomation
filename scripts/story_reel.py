@@ -260,7 +260,8 @@ def build_caption(account_cfg, story, rng=random):
         f"{teaser} …\n\n"
         f"{comment_cta(account_cfg, story, rng)}\n"
         f"Folge {account_cfg['handle']} für mehr.\n\n"
-        f"{' '.join(tags)}"
+        + (f"{account_cfg['support_line']}\n\n" if account_cfg.get("support_line") else "")
+        + f"{' '.join(tags)}"
     )
 
 
