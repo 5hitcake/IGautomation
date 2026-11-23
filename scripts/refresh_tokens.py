@@ -31,6 +31,7 @@ INSTAGRAM_SECRETS = {
     "HORROR_IG_ACCESS_TOKEN": "Gruselgeschichten",
     "MYSTERY_IG_ACCESS_TOKEN": "Rätsel & Verschwörungen",
     "WOE_ACCOUNT_TOKEN": "@kaufkraft.check",
+    "POWEROFCHRIST_ACCESS_TOKEN": "Power of Christ",
 }
 TIKTOK_SECRETS = {
     "HORROR_TIKTOK_REFRESH_TOKEN": "Gruselgeschichten (TikTok)",
