@@ -13,7 +13,8 @@ die der Geschichte widersprechen. Kurze, gut sprechbare Sätze. Antworte ausschl
 PROMPT = """Erzähle die Geschichte "{title}" ({ref}){henoch} als Skript für ein Reel von ca. {secs} Sekunden.
 
 Regeln:
-- Genau {n} Szenen. Gesamt 135–155 Wörter Erzähltext (das sind ca. {secs} Sekunden gesprochen).
+- Genau {n} Szenen mit je 18–24 Wörtern. Gesamt höchstens 160 Wörter Erzähltext (= ca. {secs} Sekunden gesprochen).
+  Lieber kürzer als länger – wähle nur die wichtigsten Momente.
 - Szene 1 ist ein starker Einstieg (Frage oder dramatischer Moment), der zum Weiterschauen fesselt.
 - Die letzte Szene endet mit der Botschaft/Lehre der Geschichte für unser Leben heute, warm und ermutigend,
   und nennt am Ende die Stelle zum Nachlesen ("Nachzulesen in {ref_spoken}.").
@@ -56,8 +57,10 @@ def check_script(sc):
     if any(not str(s.get("narration", "")).strip() or not str(s.get("image", "")).strip() for s in scenes):
         problems.append("Szene ohne Text/Bild")
     words = sum(len(str(s.get("narration", "")).split()) for s in scenes)
-    if not 105 <= words <= 200:
-        problems.append(f"{words} Wörter")
+    if words > 185:
+        problems.append(f"zu lang: {words} Wörter statt höchstens 160")
+    elif words < 100:
+        problems.append(f"zu kurz: {words} Wörter statt ca. 150")
     if not str(sc.get("caption", "")).strip():
         problems.append("keine Caption")
     return problems

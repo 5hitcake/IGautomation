@@ -129,19 +129,24 @@ def llm_json(system, prompt, check=None):
     """Fragt die Text-KI nach JSON. check(obj) darf eine Liste von Problemen zurückgeben.
     Reihenfolge: Claude (falls Key) → Pollinations (POLLI_TOKEN) → Cloudflare Workers AI.
     Cloudflare zuletzt, weil sich alle Seiten im Repo dessen Gratis-Kontingent teilen."""
-    backends = []
-    if os.environ.get("ANTHROPIC_API_KEY"):
-        backends.append(("claude", lambda: _claude(system, prompt)))
-    for m in POLLI_TEXT_MODELS:
-        backends.append((f"pollinations/{m}", lambda m=m: _pollinations_text(system, prompt, m)))
-    for m in CF_LLM_MODELS:
-        backends.append((m, lambda m=m: _cloudflare(system, prompt, m)))
+    def backends_for(pr):
+        b = []
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            b.append(("claude", lambda: _claude(system, pr)))
+        for m in POLLI_TEXT_MODELS:
+            b.append((f"pollinations/{m}", lambda m=m: _pollinations_text(system, pr, m)))
+        for m in CF_LLM_MODELS:
+            b.append((m, lambda m=m: _cloudflare(system, pr, m)))
+        return b
+
     errors = []
     cf_dead = False
-    for name, call in backends:
+    for name, _ in backends_for(prompt):
         if cf_dead and name.startswith("@cf/"):
             continue
-        for _ in range(2):
+        pr = prompt
+        for _ in range(3):
+            call = dict(backends_for(pr))[name]
             try:
                 obj = _extract_json(call())
                 problems = check(obj) if check else []
@@ -149,11 +154,14 @@ def llm_json(system, prompt, check=None):
                     log("Text von", name)
                     return obj
                 errors.append(f"{name}: {'; '.join(problems[:3])}")
-            except (ValueError, KeyError) as e:  # kaputtes JSON: gleiches Modell nochmal fragen
+                # Rückmeldung an das Modell und nochmal versuchen
+                pr = (prompt + "\n\nDEIN LETZTER ENTWURF WAR UNGÜLTIG: " + "; ".join(problems)
+                      + ". Halte die Vorgaben exakt ein (Wortzahl!) und antworte nur mit JSON.")
+            except (ValueError, KeyError) as e:
                 errors.append(f"{name}: {e}")
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{name}: {e}")
-                if "daily free allocation" in str(e):  # Cloudflare-Kontingent leer: Rest überspringen
+                if "daily free allocation" in str(e):
                     cf_dead = True
                 break
     raise RuntimeError("Keine brauchbare KI-Antwort: " + " | ".join(errors[-4:]))
