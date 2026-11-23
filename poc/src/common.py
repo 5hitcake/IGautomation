@@ -140,6 +140,7 @@ _last_image = [0.0]
 def _fit_and_clean(raw, path, w, h):
     """Unteren Rand (Wasserzeichen/Rahmen) abschneiden und exakt auf w×h bringen."""
     from io import BytesIO
+
     from PIL import Image
     im = Image.open(BytesIO(raw)).convert("RGB")
     cw, ch = im.size

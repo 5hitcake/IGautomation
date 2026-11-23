@@ -2,8 +2,7 @@
 import json
 import random
 
-from common import (CFG, DATA, claude_json, duration, generate_image, hashtags, load_state, log, out_dir,
-                    sh)
+from common import CFG, DATA, claude_json, duration, generate_image, hashtags, load_state, log, out_dir, sh
 from render import chunk_cues, cover_frame, ken_burns_clip, story_video, title_overlay, write_ass
 
 SYSTEM = """Du bist Erzähler der deutschsprachigen christlichen Instagram-Seite "Power of Christ".

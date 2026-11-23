@@ -2,9 +2,8 @@
 import random
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
-
 from common import CFG, FONTS, duration, random_music, sh
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = CFG["images"]["width"], CFG["images"]["height"]
 GOLD = (232, 199, 122, 255)
