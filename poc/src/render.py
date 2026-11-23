@@ -137,7 +137,9 @@ def verse_video(bg, overlay, out, seconds):
     vol = CFG["verse_reel"]["music_volume"]
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(tmp), "-loop", "1", "-i", str(overlay)]
     if music:
-        cmd += ["-stream_loop", "-1", "-i", str(music)]
+        # Ausschnitt aus der Mitte des Songs
+        start = max(0.0, (duration(music) - seconds) / 2)
+        cmd += ["-ss", f"{start:.2f}", "-stream_loop", "-1", "-i", str(music)]
         audio = (f"[2:a]volume={vol},afade=t=in:d=1,afade=t=out:st={seconds-1.5}:d=1.5,"
                  f"atrim=0:{seconds}[a]")
     else:

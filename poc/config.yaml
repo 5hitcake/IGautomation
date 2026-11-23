@@ -35,17 +35,17 @@ voice:
   pitch: "-4Hz"
 
 music:                              # feste Hintergrundmusik (Dateien in poc/assets/music/)
-  verse: "vers_chor.mp3"
+  verse: "story_musik.mp3"         # gleiches Stück, Ausschnitt aus der Mitte (später: Chor)
   story: "story_musik.mp3"
 
 verse_reel:
   seconds: 12
-  music_volume: 0.35
+  music_volume: 0.9
 
 story_reel:
   target_seconds: 80
   scenes: 8
-  music_volume: 0.12
+  music_volume: 0.16
   # Reihenfolge der Quellen; wiederholt sich. Henoch kommt so jede 5. Geschichte.
   rotation: ["AT", "NT", "AT", "NT", "Henoch"]
 
