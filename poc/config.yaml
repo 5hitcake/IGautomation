@@ -31,7 +31,7 @@ images:
 
 voice:
   name: "de-DE-ConradNeural"        # Alternativen: de-DE-KillianNeural, de-DE-FlorianMultilingualNeural
-  rate: "-8%"                       # etwas ruhiger, feierlicher
+  rate: "-3%"                       # etwas ruhiger, feierlicher
   pitch: "-4Hz"
 
 verse_reel:

@@ -11,9 +11,10 @@ lebendig, bildhaft und ehrfürchtig nach – in eigenen Worten, nah am Text, ohn
 die der Geschichte widersprechen. Kurze, gut sprechbare Sätze. Antworte ausschließlich mit gültigem JSON."""
 
 PROMPT = """Erzähle die Geschichte "{title}" ({ref}){henoch} als Skript für ein Reel von ca. {secs} Sekunden.
+{source}
 
 Regeln:
-- Genau {n} Szenen mit je 18–24 Wörtern. Gesamt höchstens 160 Wörter Erzähltext (= ca. {secs} Sekunden gesprochen).
+- Genau {n} Szenen mit je 15–19 Wörtern. Gesamt 110–130 Wörter Erzähltext (= ca. {secs} Sekunden gesprochen).
   Lieber kürzer als länger – wähle nur die wichtigsten Momente.
 - Szene 1 ist ein starker Einstieg (Frage oder dramatischer Moment), der zum Weiterschauen fesselt.
 - Die letzte Szene endet mit der Botschaft/Lehre der Geschichte für unser Leben heute, warm und ermutigend,
@@ -57,10 +58,10 @@ def check_script(sc):
     if any(not str(s.get("narration", "")).strip() or not str(s.get("image", "")).strip() for s in scenes):
         problems.append("Szene ohne Text/Bild")
     words = sum(len(str(s.get("narration", "")).split()) for s in scenes)
-    if words > 185:
-        problems.append(f"zu lang: {words} Wörter statt höchstens 160")
-    elif words < 100:
-        problems.append(f"zu kurz: {words} Wörter statt ca. 150")
+    if words > 140:
+        problems.append(f"zu lang: {words} Wörter statt höchstens 130")
+    elif words < 95:
+        problems.append(f"zu kurz: {words} Wörter statt ca. 120")
     if not str(sc.get("caption", "")).strip():
         problems.append("keine Caption")
     return problems
@@ -77,7 +78,10 @@ def make():
         title=s["title"], ref=s["ref"], secs=rc["target_seconds"], n=rc["scenes"],
         ref_spoken=spoken_ref(s["ref"]),
         henoch=" aus dem äthiopischen Buch Henoch" if is_hen else "",
-        henoch_rule=HENOCH_RULE if is_hen else ""), check=check_script)
+        henoch_rule=HENOCH_RULE if is_hen else "",
+        source=(f"\nBIBELTEXT (Menge 1939) – halte dich bei Personen, Reihenfolge und Ausgang GENAU daran, "
+                f"erfinde nichts dazu:\n<<<\n{s['source']}\n>>>\n") if s.get("source") else ""),
+        check=check_script)
     scenes = script["scenes"]
     (d / "skript.json").write_text(json.dumps(script, ensure_ascii=False, indent=1), encoding="utf-8")
 
