@@ -14,7 +14,7 @@ PROMPT = """Erzähle die Geschichte "{title}" ({ref}){henoch} als Skript für ei
 {source}
 
 Regeln:
-- Genau {n} Szenen mit je 15–19 Wörtern. Gesamt 110–130 Wörter Erzähltext (= ca. {secs} Sekunden gesprochen).
+- Genau {n} Szenen mit je 17–21 Wörtern. Gesamt 140–165 Wörter Erzähltext (= ca. {secs} Sekunden gesprochen).
   Lieber kürzer als länger – wähle nur die wichtigsten Momente.
 - Szene 1 ist ein starker Einstieg (Frage oder dramatischer Moment), der zum Weiterschauen fesselt.
 - Die letzte Szene endet mit der Botschaft/Lehre der Geschichte für unser Leben heute, warm und ermutigend,
@@ -58,10 +58,10 @@ def check_script(sc):
     if any(not str(s.get("narration", "")).strip() or not str(s.get("image", "")).strip() for s in scenes):
         problems.append("Szene ohne Text/Bild")
     words = sum(len(str(s.get("narration", "")).split()) for s in scenes)
-    if words > 140:
-        problems.append(f"zu lang: {words} Wörter statt höchstens 130")
-    elif words < 95:
-        problems.append(f"zu kurz: {words} Wörter statt ca. 120")
+    if words > 178:
+        problems.append(f"zu lang: {words} Wörter statt höchstens 165")
+    elif words < 128:
+        problems.append(f"zu kurz: {words} Wörter statt ca. 150")
     if not str(sc.get("caption", "")).strip():
         problems.append("keine Caption")
     return problems

@@ -133,7 +133,7 @@ def ken_burns_clip(image, seconds, out, direction="in"):
 def verse_video(bg, overlay, out, seconds):
     tmp = Path(out).with_name("bg.mp4")
     ken_burns_clip(bg, seconds, tmp, "in")
-    music = random_music()
+    music = random_music("verse")
     vol = CFG["verse_reel"]["music_volume"]
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(tmp), "-loop", "1", "-i", str(overlay)]
     if music:
@@ -198,7 +198,7 @@ def story_video(scene_clips, narration_wav, title_png, ass, out, music_volume):
     sh(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listfile),
         "-c", "copy", str(joined)])
     total = duration(narration_wav)
-    music = random_music()
+    music = random_music("story")
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(joined), "-loop", "1", "-i", str(title_png),
            "-i", str(narration_wav)]
     if music:

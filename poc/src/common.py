@@ -274,7 +274,11 @@ def duration(path):
                      "-of", "default=nw=1:nk=1", str(path)]).strip())
 
 
-def random_music():
+def random_music(kind=None):
+    """Feste Musik je Reel-Art aus config.yaml (music.verse / music.story); sonst Zufall aus assets/music."""
+    fixed = (CFG.get("music") or {}).get(kind) if kind else None
+    if fixed:
+        return MUSIC / fixed if (MUSIC / fixed).exists() else None
     files = sorted(list(MUSIC.glob("*.mp3")) + list(MUSIC.glob("*.m4a")) + list(MUSIC.glob("*.wav")))
     return random.choice(files) if files else None
 
