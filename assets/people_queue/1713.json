@@ -1,0 +1,33 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "man",
+    "age": 22,
+    "age_range": [
+      20,
+      29
+    ],
+    "heritage": [
+      "Dutch",
+      "dutch"
+    ],
+    "name": "Joost",
+    "hair": "long hair tied back",
+    "facial_hair": "light stubble",
+    "detail": "thick eyebrows",
+    "clothing": "a work uniform",
+    "setting": "in a small neighborhood café",
+    "lighting": "afternoon sunlight through a window",
+    "camera": "shot on Leica M6, 35mm, Ilford HP5 black and white film",
+    "framing": "head and shoulders portrait",
+    "expression": "a confident gaze into the camera",
+    "attractive": "strikingly attractive",
+    "traits": [],
+    "bold": false
+  },
+  "prompt": "Head and shoulders portrait photo of a strikingly attractive 22-year-old young Dutch man with long hair tied back, light stubble and thick eyebrows, wearing a work uniform, a confident gaze into the camera, in a small neighborhood café, afternoon sunlight through a window, shot on Leica M6, 35mm, Ilford HP5 black and white film, looks exactly 22 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "This face belongs to no one.\n\nPerson No. 0058 · \"Joost\", 22\n\nFind their real-life twin. Tag them in the comments 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #aiphotography #notreal #twinstranger #generativeai #portrait"
+}
