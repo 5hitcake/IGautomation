@@ -107,11 +107,33 @@ def _cloudflare(system, prompt, model):
     return json.dumps(out, ensure_ascii=False) if isinstance(out, (dict, list)) else (out or "")
 
 
+def _pollinations_text(system, prompt, model):
+    key = (os.environ.get("POLLINATIONS_API_KEY") or os.environ.get("POLLINATIONS_TOKEN") or "").strip()
+    if not key:
+        raise RuntimeError("kein Pollinations-Key")
+    r = requests.post(
+        "https://gen.pollinations.ai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, timeout=180,
+        json={"model": model, "temperature": 0.7,
+              "messages": [{"role": "system", "content": system}, {"role": "user", "content": prompt}]},
+    )
+    if not r.ok:
+        raise RuntimeError(f"Pollinations {model}: HTTP {r.status_code} {r.text[:200]}")
+    return r.json()["choices"][0]["message"]["content"] or ""
+
+
+POLLI_TEXT_MODELS = ["openai", "mistral"]
+
+
 def llm_json(system, prompt, check=None):
-    """Fragt die Text-KI nach JSON. check(obj) darf eine Liste von Problemen zurückgeben."""
+    """Fragt die Text-KI nach JSON. check(obj) darf eine Liste von Problemen zurückgeben.
+    Reihenfolge: Claude (falls Key) → Pollinations (POLLI_TOKEN) → Cloudflare Workers AI.
+    Cloudflare zuletzt, weil sich alle Seiten im Repo dessen Gratis-Kontingent teilen."""
     backends = []
     if os.environ.get("ANTHROPIC_API_KEY"):
         backends.append(("claude", lambda: _claude(system, prompt)))
+    for m in POLLI_TEXT_MODELS:
+        backends.append((f"pollinations/{m}", lambda m=m: _pollinations_text(system, prompt, m)))
     for m in CF_LLM_MODELS:
         backends.append((m, lambda m=m: _cloudflare(system, prompt, m)))
     errors = []
@@ -128,6 +150,8 @@ def llm_json(system, prompt, check=None):
                 errors.append(f"{name}: {e}")
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{name}: {e}")
+                if "daily free allocation" in str(e):  # Cloudflare-Kontingent leer: Rest überspringen
+                    backends = [b for b in backends if not b[0].startswith("@cf/")]
                 break
     raise RuntimeError("Keine brauchbare KI-Antwort: " + " | ".join(errors[-4:]))
 

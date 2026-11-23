@@ -31,7 +31,7 @@ def make():
         meta = claude_json(SYSTEM, PROMPT.format(ref=v["ref"], theme=v["theme"], text=v["text"], henoch=henoch),
                            check=lambda m: [k for k in ("scene", "caption") if not str(m.get(k, "")).strip()])
     except Exception as e:  # noqa: BLE001
-        log("Claude nicht verfügbar, nutze Standardtext:", e)
+        log("Text-KI nicht verfügbar, nutze Standardtext:", e)
         meta = {"scene": f"a serene biblical landscape at dawn with a lone figure in prayer, theme of {v['theme']}",
                 "caption": "Ein Wort für deinen Tag. 🙏\nGott sieht dich und geht mit dir.\nSchreib ein Amen, wenn du das heute brauchst.",
                 "hashtags": []}
