@@ -137,7 +137,10 @@ def llm_json(system, prompt, check=None):
     for m in CF_LLM_MODELS:
         backends.append((m, lambda m=m: _cloudflare(system, prompt, m)))
     errors = []
+    cf_dead = False
     for name, call in backends:
+        if cf_dead and name.startswith("@cf/"):
+            continue
         for _ in range(2):
             try:
                 obj = _extract_json(call())
@@ -151,7 +154,7 @@ def llm_json(system, prompt, check=None):
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{name}: {e}")
                 if "daily free allocation" in str(e):  # Cloudflare-Kontingent leer: Rest überspringen
-                    backends = [b for b in backends if not b[0].startswith("@cf/")]
+                    cf_dead = True
                 break
     raise RuntimeError("Keine brauchbare KI-Antwort: " + " | ".join(errors[-4:]))
 
