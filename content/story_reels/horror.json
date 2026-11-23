@@ -1412,6 +1412,46 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Karl_Denke",
       "generated": "2026-11-22"
+    },
+    {
+      "id": "overtoun_bruecke",
+      "hook": {
+        "text": "Ein Hund springt von einer Brücke. Warum?",
+        "image": "dog standing on a bridge with a steep drop, overcast sky"
+      },
+      "scenes": [
+        {
+          "text": "Die Overtoun-Brücke in Schottland ist seit den 1950ern für unheimliche Vorfälle bekannt.",
+          "image": "overtoun bridge in scotland with a dark and ominous atmosphere"
+        },
+        {
+          "text": "Über 300 Hunde sind von der Brücke gesprungen, mindestens 50 sind dabei ums Leben gekommen.",
+          "image": "map of the area with a red pin marking the bridge, somber lighting"
+        },
+        {
+          "text": "Einige glauben, der *Geruch von Mardern* und anderen Tieren lockt die Hunde zur Brücke.",
+          "image": "close-up of a mink in its natural habitat, forest floor"
+        },
+        {
+          "text": "Andere denken, die Brücke besitzt eine *paranormale* Qualität, die Tiere beeinflusst.",
+          "image": "overtoun bridge at dusk with a misty atmosphere, trees in the background"
+        },
+        {
+          "text": "Einige Bewohner des nahegelegenen Hauses berichten von *agitierten Hunden*, die von der Brücke springen.",
+          "image": "overtoun house with a view of the bridge in the distance, cloudy sky"
+        },
+        {
+          "text": "Die genaue Ursache für das unheimliche Verhalten der Hunde bleibt *unbekannt*.",
+          "image": "a dog standing on the bridge, looking down, with a puzzled expression"
+        }
+      ],
+      "question": "Springen Hunde aus Verwirrung?",
+      "tags": [
+        "#overtounbruecke",
+        "#hundesuizidbruecke"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Overtoun_Bridge",
+      "generated": "2026-11-23"
     }
   ]
 }
