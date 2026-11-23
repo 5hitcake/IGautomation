@@ -1,5 +1,5 @@
 {
-  "count": 57,
+  "count": 58,
   "recent": [
     {
       "gender": "woman",
@@ -684,6 +684,18 @@
         "latin_american"
       ],
       "setting": "at an outdoor market"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Dutch",
+        "dutch"
+      ],
+      "setting": "in a small neighborhood café"
     }
   ],
   "reserve_used": [
