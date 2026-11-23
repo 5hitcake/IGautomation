@@ -28,6 +28,8 @@ jobs:
           MYSTERY_IG_ACCOUNT_ID: ${{ secrets.MYSTERY_IG_ACCOUNT_ID }}
           WOE_ACCOUNT_TOKEN: ${{ secrets.WOE_ACCOUNT_TOKEN }}
           WOE_ACCOUNT_ID: ${{ secrets.WOE_ACCOUNT_ID }}
+          POWEROFCHRIST_ACCESS_TOKEN: ${{ secrets.POWEROFCHRIST_ACCESS_TOKEN }}
+          POWEROFCHRIST_ACCOUNT_ID: ${{ secrets.POWEROFCHRIST_ACCOUNT_ID }}
         shell: python
         run: |
           import os, sys, requests
@@ -39,6 +41,7 @@ jobs:
               ("HORROR_IG_ACCESS_TOKEN", "HORROR_IG_ACCOUNT_ID", "Gruselgeschichten"),
               ("MYSTERY_IG_ACCESS_TOKEN", "MYSTERY_IG_ACCOUNT_ID", "Raetsel & Verschwoerungen"),
               ("WOE_ACCOUNT_TOKEN", "WOE_ACCOUNT_ID", "@kaufkraft.check"),
+              ("POWEROFCHRIST_ACCESS_TOKEN", "POWEROFCHRIST_ACCOUNT_ID", "Power of Christ"),
           ]
           fail = False
           for tok_name, id_name, label in pairs:
