@@ -1382,6 +1382,47 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Baigong_pipes",
       "generated": "2026-11-22"
+    },
+    {
+      "id": "himmelsscheibe_nebra",
+      "hook": {
+        "text": "Ein 32 Zentimeter großer *Bronze-Fund* entdeckt.",
+        "image": "ancient bronze disc with gold appliques on a dark background, spotlight"
+      },
+      "scenes": [
+        {
+          "text": "Die Himmelsscheibe von Nebra, 3700 bis 4100 Jahre alt, zeigt *Himmelskörper*.",
+          "image": "close-up of the Nebra sky disc with gold symbols, natural light"
+        },
+        {
+          "text": "Entdeckt am 4. Juli 1999 auf dem Mittelberg in Sachsen-Anhalt, Deutschland.",
+          "image": "aerial view of the Mittelberg hill in Saxony-Anhalt, sunny day"
+        },
+        {
+          "text": "Die Scheibe zeigt *astronomische Phänomene* und religiöse Symbole.",
+          "image": "detail of the sky disc with gold sun and moon symbols, macro"
+        },
+        {
+          "text": "Ein Team von Wissenschaftlern untersuchte die Scheibe und ihre *Gold-Auflagen*.",
+          "image": "scientists in a lab examining the Nebra sky disc with special equipment, fluorescent light"
+        },
+        {
+          "text": "Ihre Ergebnisse: Die Scheibe entstand in mehreren Phasen, möglicherweise für *rituelle Zwecke*.",
+          "image": "close-up of the sky disc with different gold layers, magnifying glass"
+        },
+        {
+          "text": "Ist die Himmelsscheibe von Nebra *echt* oder ein moderner Schatz, ein *Meisterwerk* der Fälschung?",
+          "image": "the Nebra sky disc in a museum display case, people in the background, natural light"
+        }
+      ],
+      "question": "Echt oder Fälschung?",
+      "tags": [
+        "#himmelsscheibe",
+        "#nebra",
+        "#archaeologie"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Himmelsscheibe_von_Nebra",
+      "generated": "2026-11-23"
     }
   ]
 }
