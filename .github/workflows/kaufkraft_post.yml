@@ -3,7 +3,8 @@ name: Kaufkraft-Check Post
 # Taeglich ein Post fuer den Instagram-Account @kaufkraft.check:
 #   Mo-Sa  Produkt als Reel: Bild + Preis 2001 / 2010 / heute (scripts/kaufkraft_post.py,
 #          Video aus scripts/kaufkraft_reel.py, liegt auf dem Branch kaufkraft-media)
-#   So     Inflation der Woche (rotiert: Rate, 100-Euro-Kaufkraft, Preistreiber, Europa)
+#   So     Inflation der Woche als Reel (scripts/kaufkraft_inflation_reel.py; rotiert: Rate,
+#          100-Euro-Kaufkraft, Preistreiber, Europa)
 # Daten: Eurostat HVPI (frei, kein Schluessel). Produktbilder (schlichte
 # Studiobilder, Cloudflare Workers AI) vorab erzeugen und pruefen mit dem
 # Workflow "Kaufkraft-Check Fotos". Gepostet werden zuerst Produkte mit Bild.
