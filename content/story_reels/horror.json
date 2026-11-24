@@ -1452,6 +1452,46 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Overtoun_Bridge",
       "generated": "2026-11-23"
+    },
+    {
+      "id": "insula_de_las_munecas",
+      "hook": {
+        "text": "Ein Mann hängt Puppen in Bäumen auf, um *böse Geister* zu vertreiben.",
+        "image": "a small island with trees and colorful dolls hanging from branches, sunset"
+      },
+      "scenes": [
+        {
+          "text": "Die Insel der Puppen liegt in den Kanälen von Xochimilco, südlich von Mexico City.",
+          "image": "canals of Xochimilco with gondola-like boats and lush greenery, daytime"
+        },
+        {
+          "text": "Don Julián Santana Barrera sammelte ab den 1950er Jahren Puppen und hängte sie auf der Insel auf.",
+          "image": "a man hanging dolls from trees, with a few dolls already hanging, cloudy sky"
+        },
+        {
+          "text": "Nach Barreras Tod 2001 öffnete seine Familie die Insel für Touristen und baute ein kleines Museum.",
+          "image": "a small museum with newspaper articles and dolls on display, indoor lighting"
+        },
+        {
+          "text": "Einige Besucher berichten, dass die Puppen ihre Köpfe und Arme bewegen und flüstern.",
+          "image": "a visitor looking at a doll with a seemingly moving head, dim lighting"
+        },
+        {
+          "text": "Manche glauben, dass die Insel von dem Geist eines Mädchens heimgesucht wird, das ertrunken ist.",
+          "image": "a canal with a few dolls floating on the water, misty atmosphere"
+        },
+        {
+          "text": "Barrera starb 2001 unter mysteriösen Umständen im selben Kanal, in dem das Mädchen ertrunken sein soll.",
+          "image": "a canal with a few boats and a sense of eeriness, sunset"
+        }
+      ],
+      "question": "Glaubst du an die Legende?",
+      "tags": [
+        "#InselDerPuppen",
+        "#Geisterinsel"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Island_of_the_Dolls",
+      "generated": "2026-11-24"
     }
   ]
 }
