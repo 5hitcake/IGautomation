@@ -1423,6 +1423,88 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Himmelsscheibe_von_Nebra",
       "generated": "2026-11-23"
+    },
+    {
+      "id": "nan_madol",
+      "hook": {
+        "text": "Ein *untergegangenes* Stadtzentrum im Pazifik.",
+        "image": "aerial view of nan madol ruins in the pacific ocean at sunset"
+      },
+      "scenes": [
+        {
+          "text": "Nan Madol liegt vor der Ostküste der Insel Pohnpei.",
+          "image": "pohnpei island coastline with nan madol ruins in the distance, morning light"
+        },
+        {
+          "text": "Die Stadt wurde auf künstlichen Inseln in einer Lagune erbaut.",
+          "image": "series of small artificial islands linked by canals in nan madol, aerial view"
+        },
+        {
+          "text": "Der Name Nan Madol bedeutet *zwischen den Intervallen*.",
+          "image": "canals and stone walls in nan madol, reflecting the name's meaning, cloudy day"
+        },
+        {
+          "text": "Die Stadt war bis etwa 1628 die Hauptstadt der Saudeleur-Dynastie.",
+          "image": "map of pohnpei island with nan madol marked as the capital, historical illustration"
+        },
+        {
+          "text": "Die Legende besagt, dass *Zwillingszauberer* die Stadt erbauten.",
+          "image": "illustration of twin sorcerers olisihpa and olosohpa building nan madol, mystical atmosphere"
+        },
+        {
+          "text": "Heute ist Nan Madol ein archäologischer Distrikt mit 92 künstlichen Inseln.",
+          "image": "aerial view of nan madol ruins with 92 artificial islets, sunny day"
+        }
+      ],
+      "question": "Sagenhafte Stadt oder reale Geschichte?",
+      "tags": [
+        "#nan_madol",
+        "#pohnpei",
+        "#archaeologie"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Nan_Madol",
+      "generated": "2026-11-24"
+    },
+    {
+      "id": "baalbek",
+      "hook": {
+        "text": "Die sechs Säulen des Jupitertempels in Baalbek sind ein Rätsel der Antike.",
+        "image": "six columns of the jupiter temple in baalbek under a clear blue sky"
+      },
+      "scenes": [
+        {
+          "text": "Die Stadt Baalbek ist seit dem 8. Jahrtausend v. Chr. besiedelt.",
+          "image": "aerial view of baalbek with the surrounding landscape"
+        },
+        {
+          "text": "Der Name Baalbek bedeutet \"Herr der Ebene\" und stammt aus der vorantiken phönizisch-kanaanäischen Periode.",
+          "image": "ancient ruins in baalbek with a vast desert landscape in the background"
+        },
+        {
+          "text": "Im Jahr 63 v. Chr. zog der römische Feldherr Gnaeus Pompeius Magnus durch Heliopolis.",
+          "image": "roman soldiers marching through the desert with a mountain range in the background"
+        },
+        {
+          "text": "Die Tempelanlagen in Baalbek sind ein Zeugnis der römischen Architektur und gehören zum Weltkulturerbe der UNESCO.",
+          "image": "jupiter temple in baalbek with a sunset in the background"
+        },
+        {
+          "text": "Die Stadt Baalbek war ein wichtiges Zentrum für die römische Religion und Kultur.",
+          "image": "roman mosaics and ruins in baalbek with a clear blue sky"
+        },
+        {
+          "text": "Heute ist Baalbek ein beliebtes Touristenziel und ein wichtiger Teil der libanesischen Geschichte und Kultur.",
+          "image": "tourists visiting the jupiter temple in baalbek with a sunny day"
+        }
+      ],
+      "question": "War Baalbek ein Zentrum der römischen Macht?",
+      "tags": [
+        "#baalbek",
+        "#libanon",
+        "#rome"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Baalbek",
+      "generated": "2026-11-24"
     }
   ]
 }
