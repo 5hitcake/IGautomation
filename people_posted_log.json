@@ -1,18 +1,6 @@
 {
-  "count": 61,
+  "count": 62,
   "recent": [
-    {
-      "gender": "woman",
-      "age_range": [
-        20,
-        29
-      ],
-      "heritage": [
-        "North African",
-        "north_african"
-      ],
-      "setting": "at a bus stop"
-    },
     {
       "gender": "man",
       "age_range": [
@@ -720,6 +708,18 @@
         "mixed"
       ],
       "setting": "in front of a brick wall"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        40,
+        49
+      ],
+      "heritage": [
+        "Indigenous Andean",
+        "andean"
+      ],
+      "setting": "in a park in autumn"
     }
   ],
   "reserve_used": [
