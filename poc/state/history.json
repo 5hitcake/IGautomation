@@ -4,9 +4,10 @@
   "Psalm 73,26"
  ],
  "stories": [
-  "Daniel 6"
+  "Daniel 6",
+  "Johannes 13,1-17"
  ],
- "story_count": 1,
+ "story_count": 2,
  "posts": [
   {
    "time": "2026-11-23T06:55+01:00",
@@ -22,6 +23,11 @@
    "time": "2026-11-24T06:55+01:00",
    "kind": "verse",
    "id": "Psalm 73,26"
+  },
+  {
+   "time": "2026-11-24T16:29+01:00",
+   "kind": "story",
+   "id": "Johannes 13,1-17"
   }
  ]
 }
