@@ -10,7 +10,8 @@
     "eis",
     "benzin",
     "klopapier",
-    "wein"
+    "wein",
+    "tomaten"
   ],
   "inflation_index": 2,
   "history": [
@@ -78,6 +79,11 @@
       "date": "2026-11-23",
       "kind": "product",
       "what": "wein"
+    },
+    {
+      "date": "2026-11-24",
+      "kind": "product",
+      "what": "tomaten"
     }
   ]
 }
