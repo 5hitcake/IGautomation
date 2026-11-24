@@ -95,8 +95,16 @@ jobs:
       - name: Install dependencies
         if: steps.gate.outputs.run == 'true'
         run: |
-          pip install requests Pillow numpy
-          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          pip install requests Pillow numpy imageio-ffmpeg==0.6.0
+          # Fertiges ffmpeg aus dem pip-Paket (Sekunden statt ~10 Min apt-get, das den Post verspaetete).
+          # Nur wenn es kein H.264 kann, wie frueher per apt nachinstallieren.
+          if ! ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libx264; then
+            sudo ln -sf "$(python -c 'import imageio_ffmpeg as f; print(f.get_ffmpeg_exe())')" /usr/local/bin/ffmpeg
+          fi
+          if ! ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libx264; then
+            sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+          fi
+          ffmpeg -hide_banner -version | head -1
 
       - name: Post erzeugen
         if: steps.gate.outputs.run == 'true'
@@ -157,25 +165,6 @@ jobs:
           --post-file assets/kaufkraft_generated/next_post.json
           --expect-username "$IG_USERNAME"
 
-      # TikTok (@kaufkraft.check): dasselbe Reel. Modus "inbox": Video landet als Entwurf in der
-      # TikTok-App ("Bearbeiten und posten"), solange die TikTok-App nicht geprueft ist.
-      # Benoetigt das Secret KAUFKRAFT_TIKTOK_REFRESH_TOKEN (einmalig mit scripts/tiktok_auth.py).
-      - name: Zusaetzlich auf TikTok hochladen
-        if: steps.publish.outcome == 'success' && hashFiles('assets/kaufkraft_generated/*.mp4') != ''
-        continue-on-error: true
-        env:
-          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
-          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
-          TIKTOK_REFRESH_TOKEN: ${{ secrets.KAUFKRAFT_TIKTOK_REFRESH_TOKEN }}
-          TIKTOK_MODE: ${{ vars.KAUFKRAFT_TIKTOK_MODE || 'inbox' }}
-          TIKTOK_EXPECT_NAME: ${{ vars.KAUFKRAFT_TIKTOK_NAME || 'Kaufkraft.check' }}
-        run: |
-          if [ -z "$TIKTOK_CLIENT_KEY" ] || [ -z "$TIKTOK_REFRESH_TOKEN" ]; then
-            echo "Kein TikTok-Zugang hinterlegt (KAUFKRAFT_TIKTOK_REFRESH_TOKEN) - uebersprungen."
-            exit 0
-          fi
-          python scripts/tiktok_story_publish.py --post-file assets/kaufkraft_generated/next_post.json
-
       # Story: dieselbe Grafik im 9:16-Format, direkt nach dem Feed-Post.
       - name: Story erstellen + committen
         id: story_build
@@ -196,3 +185,22 @@ jobs:
           python scripts/publish.py
           --post-file assets/kaufkraft_generated/next_story.json
           --expect-username "$IG_USERNAME"
+
+      # TikTok (@kaufkraft.check): dasselbe Reel, NACH der Story (TikTok verarbeitet oft 5-10 Min). Modus "inbox": Video landet als Entwurf in der
+      # TikTok-App ("Bearbeiten und posten"), solange die TikTok-App nicht geprueft ist.
+      # Benoetigt das Secret KAUFKRAFT_TIKTOK_REFRESH_TOKEN (einmalig mit scripts/tiktok_auth.py).
+      - name: Zusaetzlich auf TikTok hochladen
+        if: "!cancelled() && steps.publish.outcome == 'success' && hashFiles('assets/kaufkraft_generated/*.mp4') != ''"
+        continue-on-error: true
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.KAUFKRAFT_TIKTOK_REFRESH_TOKEN }}
+          TIKTOK_MODE: ${{ vars.KAUFKRAFT_TIKTOK_MODE || 'inbox' }}
+          TIKTOK_EXPECT_NAME: ${{ vars.KAUFKRAFT_TIKTOK_NAME || 'Kaufkraft.check' }}
+        run: |
+          if [ -z "$TIKTOK_CLIENT_KEY" ] || [ -z "$TIKTOK_REFRESH_TOKEN" ]; then
+            echo "Kein TikTok-Zugang hinterlegt (KAUFKRAFT_TIKTOK_REFRESH_TOKEN) - uebersprungen."
+            exit 0
+          fi
+          python scripts/tiktok_story_publish.py --post-file assets/kaufkraft_generated/next_post.json
