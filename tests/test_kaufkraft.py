@@ -105,7 +105,8 @@ def test_inflation_posts_render_offline(tmp_path, monkeypatch, kind):
     rates = {f"2026-{m:02d}": 2.0 + m / 10 for m in range(1, 10)}
     monkeypatch.setattr(kd, "fetch_annual_rates",
                         lambda codes, geos, since=None, **kw: {(c, g): rates for c in codes for g in geos})
-    path, caption, _ = kp.make_inflation_post(kd.load_products(), {}, kind, str(tmp_path))
+    path, caption, _, reel = kp.make_inflation_post(kd.load_products(), {}, kind, str(tmp_path))
+    assert reel is None
     assert os.path.exists(path)
     assert "Eurostat" in caption
 
@@ -242,3 +243,22 @@ def test_tiktok_caption_is_short_and_lands_in_reel_post(tmp_path, monkeypatch):
     monkeypatch.setattr(kp, "GENERATED_DIR", str(tmp_path))
     kp.write_post(os.path.join(kp.ROOT, "x.jpg"), "lang", reel=str(tmp_path / "r.mp4"), tiktok=text)
     assert json.loads((tmp_path / "next_post.json").read_text())["tiktok_caption"] == text
+
+
+@pytest.mark.parametrize("kind", kp.INFLATION_KINDS)
+def test_inflation_reel_frames_render(tmp_path, kind):
+    import kaufkraft_inflation_reel as ir
+    from PIL import Image
+
+    data = {
+        "rate": {"period": "2026-10", "rate": 2.9,
+                 "history": [(f"2025-{m:02d}", 2 + m / 10) for m in range(1, 13)]},
+        "purchasing_power": {"period": "2026-10", "rows": [("2001", 58.7), ("2010", 67.6), ("2020", 77.3)]},
+        "movers": {"period": "2026-10", "items": [("Diesel", 39.6), ("Eier", 14.2), ("Honig", 7.7)]},
+        "europe": {"period": "2026-10", "items": [("Italien", 5.6), ("Deutschland", 2.9)]},
+    }[kind]
+    for t in (0.5, 4.0, 8.5, 12.0):
+        out = ir.render_still(kind, data, str(tmp_path / f"{t}.jpg"),
+                              kd.fmt_eur, kd.fmt_pct, kd.period_label, t)
+        assert Image.open(out).size == (1080, 1920)
+    assert kp.inflation_tiktok_caption(kind, data).startswith(kp.inflation_caption(kind, data).split("\n")[0])

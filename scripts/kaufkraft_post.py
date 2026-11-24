@@ -28,6 +28,7 @@ import random
 from datetime import datetime, timezone
 
 import kaufkraft_data as kd
+import kaufkraft_inflation_reel as kinfl
 import kaufkraft_photos as kph
 import kaufkraft_reel as kreel
 import kaufkraft_render as kr
@@ -249,7 +250,14 @@ def make_product_post(products, state, product_id=None, out_dir=GENERATED_DIR, r
     return out, product_caption(product, prices, credit=credit), product["id"], reel_path
 
 
-def make_inflation_post(products, state, kind=None, out_dir=GENERATED_DIR):
+def inflation_tiktok_caption(kind, data):
+    head = inflation_caption(kind, data).split("\n", 1)[0]
+    return (f"{head} Merkst du das? 👇\n\nQuelle: Eurostat (HVPI).\n\n"
+            "#inflation #kaufkraft #preise #geld #sparen #deutschland #wirtschaft")
+
+
+def make_inflation_post(products, state, kind=None, out_dir=GENERATED_DIR, reel=False):
+    """Rueckgabe: (Grafik, Caption, Art, Reel-Pfad oder None)."""
     if kind is None:
         kind = INFLATION_KINDS[state.get("inflation_index", 0) % len(INFLATION_KINDS)]
         state["inflation_index"] = state.get("inflation_index", 0) + 1
@@ -257,7 +265,13 @@ def make_inflation_post(products, state, kind=None, out_dir=GENERATED_DIR):
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
     out = os.path.join(out_dir, f"inflation_{stamp}_{kind}.jpg")
     kr.render_inflation_card(kind, data, out, kd.fmt_eur, kd.fmt_pct, kd.period_label)
-    return out, inflation_caption(kind, data), kind
+    reel_path = None
+    if reel:
+        reel_path = os.path.join(out_dir, f"reel_{stamp}_inflation_{kind}.mp4")
+        kinfl.render_inflation_reel(kind, data, reel_path, kd.fmt_eur, kd.fmt_pct, kd.period_label,
+                                    kreel.find_theme())
+        state["_tiktok_caption"] = inflation_tiktok_caption(kind, data)
+    return out, inflation_caption(kind, data), kind, reel_path
 
 
 def main():
@@ -268,7 +282,7 @@ def main():
     parser.add_argument("--preview", metavar="ORDNER",
                         help="Alle 4 Wochen-Formate + einige Produkte in ORDNER rendern (ohne Log)")
     parser.add_argument("--format", choices=["reel", "image"], default="reel",
-                        help="Produkt-Posts als Reel (Standard) oder als Bild")
+                        help="Posts als Reel (Standard) oder als Bild")
     parser.add_argument("--test-reel", metavar="DATEI",
                         help="Reel fuer das naechste Produkt rendern und es vormerken (postet nichts)")
     args = parser.parse_args()
@@ -295,7 +309,7 @@ def main():
             with open(path.replace(".jpg", ".txt"), "w", encoding="utf-8") as f:
                 f.write(caption)
         for kind in INFLATION_KINDS:
-            path, caption, _ = make_inflation_post(products, dummy, kind, args.preview)
+            path, caption, _, _ = make_inflation_post(products, dummy, kind, args.preview)
             with open(path.replace(".jpg", ".txt"), "w", encoding="utf-8") as f:
                 f.write(caption)
         print(f"Vorschau unter {args.preview}")
@@ -315,7 +329,8 @@ def main():
 
     reel = None
     if kind == "inflation" or args.inflation_kind:
-        path, caption, what = make_inflation_post(products, state, args.inflation_kind)
+        path, caption, what, reel = make_inflation_post(products, state, args.inflation_kind,
+                                                        reel=args.format == "reel")
     else:
         path, caption, what, reel = make_product_post(products, state, args.product,
                                                       reel=args.format == "reel")
