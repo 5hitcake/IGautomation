@@ -275,12 +275,24 @@ def duration(path):
 
 
 def random_music(kind=None):
-    """Feste Musik je Reel-Art aus config.yaml (music.verse / music.story); sonst Zufall aus assets/music."""
-    fixed = (CFG.get("music") or {}).get(kind) if kind else None
-    if fixed:
-        return MUSIC / fixed if (MUSIC / fixed).exists() else None
+    """Musik je Reel-Art aus config.yaml (music.verse / music.story).
+    Ein Eintrag = immer dieses Stück; eine Liste = täglicher Wechsel (Vers und Story versetzt,
+    damit am selben Tag nicht beide dasselbe Stück haben). Ohne Eintrag: Zufall aus assets/music."""
+    choice = (CFG.get("music") or {}).get(kind) if kind else None
+    if choice:
+        tracks = [choice] if isinstance(choice, str) else list(choice)
+        day = datetime.now(BERLIN).date().toordinal()
+        name = tracks[(day + (1 if kind == "story" else 0)) % len(tracks)]
+        return MUSIC / name if (MUSIC / name).exists() else None
     files = sorted(list(MUSIC.glob("*.mp3")) + list(MUSIC.glob("*.m4a")) + list(MUSIC.glob("*.wav")))
     return random.choice(files) if files else None
+
+
+def music_gain(path):
+    """Lautstärke-Ausgleich je Stück (music.gain in config.yaml), Standard 1.0."""
+    if not path:
+        return 1.0
+    return float(((CFG.get("music") or {}).get("gain") or {}).get(Path(path).name, 1.0))
 
 
 def hashtags(extra=()):
