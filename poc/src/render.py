@@ -2,7 +2,7 @@
 import random
 from pathlib import Path
 
-from common import CFG, FONTS, duration, random_music, sh
+from common import CFG, FONTS, duration, music_gain, random_music, sh
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = CFG["images"]["width"], CFG["images"]["height"]
@@ -134,7 +134,7 @@ def verse_video(bg, overlay, out, seconds):
     tmp = Path(out).with_name("bg.mp4")
     ken_burns_clip(bg, seconds, tmp, "in")
     music = random_music("verse")
-    vol = CFG["verse_reel"]["music_volume"]
+    vol = CFG["verse_reel"]["music_volume"] * music_gain(music)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(tmp), "-loop", "1", "-i", str(overlay)]
     if music:
         # Ausschnitt aus der Mitte des Songs
@@ -201,6 +201,7 @@ def story_video(scene_clips, narration_wav, title_png, ass, out, music_volume):
         "-c", "copy", str(joined)])
     total = duration(narration_wav)
     music = random_music("story")
+    music_volume = music_volume * music_gain(music)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(joined), "-loop", "1", "-i", str(title_png),
            "-i", str(narration_wav)]
     if music:
