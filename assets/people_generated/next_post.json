@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261123_2343_0059.mp4",
-  "caption": "Every detail is made up. Every single one.\n\nPerson No. 0059 · \"Mariam\", 39\n\nDo they look like someone you know? Tag them below 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n🎨 Gefallen dir die Porträts? Unterstütze das Projekt – Link in der Bio\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #twinstranger #notreal #streetportrait #portraitphotography #faces #aiart",
+  "file": "reel_20261124_1114_0060.mp4",
+  "caption": "Look closely. This person isn't real.\n\nPerson No. 0060 · \"Bat-Erdene\", 26\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n🎨 Enjoying the portraits? Support the project – link in bio\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #lookalike #fakeface #portraitphotography #notreal #twinstranger #faces",
   "model": "pollinations:tongyi-mai/z-image-turbo",
-  "prompt": "Close-up headshot photo of a strikingly attractive 39-year-old Middle Eastern woman with long straight hair and dimples, wearing hiking gear, laughing naturally, looking directly into the camera, at a train station, bright midday sun with hard shadows, shot on iPhone, candid snapshot, looks exactly 39 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 59,
-  "name": "Mariam",
-  "age": 39,
-  "image": "assets/people_generated/person_20261123_2343_0059.jpg",
+  "prompt": "Close-up headshot photo of a 26-year-old young Mongolian man with shoulder-length wavy hair, clean-shaven, a very slim build, stretched earlobes with plugs and a single small mole on the cheek, wearing a tank top, a confident gaze into the camera, on a rooftop, neon city lights at night, shot on Sony A7 III, 50mm f/1.8, looks exactly 26 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 60,
+  "name": "Bat-Erdene",
+  "age": 26,
+  "image": "assets/people_generated/person_20261124_1114_0060.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }

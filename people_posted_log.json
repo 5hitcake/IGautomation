@@ -1,5 +1,5 @@
 {
-  "count": 59,
+  "count": 60,
   "recent": [
     {
       "gender": "woman",
@@ -708,6 +708,18 @@
         "middle_eastern"
       ],
       "setting": "at a train station"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Mongolian",
+        "mongolian"
+      ],
+      "setting": "on a rooftop"
     }
   ],
   "reserve_used": [
