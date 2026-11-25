@@ -6,9 +6,10 @@
  ],
  "stories": [
   "Daniel 6",
-  "Johannes 13,1-17"
+  "Johannes 13,1-17",
+  "Hesekiel 37"
  ],
- "story_count": 2,
+ "story_count": 3,
  "posts": [
   {
    "time": "2026-11-23T06:55+01:00",
@@ -34,6 +35,11 @@
    "time": "2026-11-25T06:55+01:00",
    "kind": "verse",
    "id": "Jesaja 26,3"
+  },
+  {
+   "time": "2026-11-25T16:29+01:00",
+   "kind": "story",
+   "id": "Hesekiel 37"
   }
  ]
 }
