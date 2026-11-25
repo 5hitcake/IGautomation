@@ -1546,6 +1546,47 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Longyou_Caves",
       "generated": "2026-11-25"
+    },
+    {
+      "id": "sphinx_von_gizeh",
+      "hook": {
+        "text": "Die *Große Sphinx von Gizeh* ist 73,5 Meter lang.",
+        "image": "giant limestone statue with lion body and human head in the desert, golden hour"
+      },
+      "scenes": [
+        {
+          "text": "Die Sphinx ragt seit über 4.000 Jahren aus dem Sand.",
+          "image": "vast desert plain with sphinx in the distance, harsh sun"
+        },
+        {
+          "text": "Der Menschenkopf ist zu klein für den Löwenkörper.",
+          "image": "close-up of sphinx head with nemes headcloth, mysterious"
+        },
+        {
+          "text": "Die Nase ist abgebrochen, der Kinnbart fehlt.",
+          "image": "sphinx head with broken nose and missing beard, ancient"
+        },
+        {
+          "text": "Forscher vermuten, dass die Sphinx ursprünglich farbig bemalt war.",
+          "image": "colorful illustration of sphinx with red ochre body, artistic"
+        },
+        {
+          "text": "Die Funktion der Sphinx ist bis heute unbekannt.",
+          "image": "sphinx at sunset with pyramids in the background, epic"
+        },
+        {
+          "text": "Vielleicht sollte sie das Plateau von Gizeh bewachen oder einen Gott darstellen.",
+          "image": "sphinx with pyramids and desert landscape, atmospheric"
+        }
+      ],
+      "question": "Bewachte sie Gizeh?",
+      "tags": [
+        "#sphinx",
+        "#gizeh",
+        "#ägypten"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Gro%C3%9Fe_Sphinx_von_Gizeh",
+      "generated": "2026-11-25"
     }
   ]
 }
