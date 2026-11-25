@@ -1505,6 +1505,47 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Baalbek",
       "generated": "2026-11-24"
+    },
+    {
+      "id": "longyou_hoehlen",
+      "hook": {
+        "text": "Vier Bauern entdeckten *24 kuenstliche Hoehlen* in China.",
+        "image": "large sandstone caverns at Fenghuang Hill, misty morning"
+      },
+      "scenes": [
+        {
+          "text": "Die Longyou-Hoehlen liegen nahe dem Dorf Shiyan Beicun in China.",
+          "image": "village of Shiyan Beicun on the Qu River, sunny day"
+        },
+        {
+          "text": "Sie wurden 1992 entdeckt, als Bauern Wasser aus Teichen ableiteten.",
+          "image": "farmers draining water from small ponds, revealing large caverns"
+        },
+        {
+          "text": "Die Hoehlen sind ueber *2000 Jahre alt*, ihre Entstehung ist unklar.",
+          "image": "ancient sandstone caverns with parallel chiselling marks, dim light"
+        },
+        {
+          "text": "Jede Hoehle ist durchschnittlich *1000 Quadratmeter* groß.",
+          "image": "large cavern with high ceiling, natural light"
+        },
+        {
+          "text": "Die Wände und Decken sind unversehrt, ohne sichtbare Schäden.",
+          "image": "intact stone pillars and walls, warm lighting"
+        },
+        {
+          "text": "Die Hoehlen haben keine Verbindungstunnel, trotz gleicher Bauweise.",
+          "image": "separate caverns with similar construction, mysterious atmosphere"
+        }
+      ],
+      "question": "Wer baute diese Hoehlen?",
+      "tags": [
+        "#longyou",
+        "#china",
+        "#hoehlen"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Longyou_Caves",
+      "generated": "2026-11-25"
     }
   ]
 }
