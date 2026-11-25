@@ -1492,6 +1492,86 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Island_of_the_Dolls",
       "generated": "2026-11-24"
+    },
+    {
+      "id": "spuk_von_rosenheim",
+      "hook": {
+        "text": "In einer Anwaltskanzlei gingen plötzlich die Lichter aus.",
+        "image": "law office with flickering fluorescent lights and concerned employees"
+      },
+      "scenes": [
+        {
+          "text": "1967 in Rosenheim: Leuchtstoffröhren drehen sich um 90 Grad.",
+          "image": "close-up of a fluorescent light tube being twisted"
+        },
+        {
+          "text": "Lauter Knallgeräusche, Sicherungsautomaten lösen aus, Telefon wählt selbstständig.",
+          "image": "electrical panel with flashing warning lights and sparks"
+        },
+        {
+          "text": "40 Zeugen berichten von seltsamen Erscheinungen, wie *pendelnden* Lampen.",
+          "image": "group of people in a law office looking concerned and frightened"
+        },
+        {
+          "text": "Die Phänomene treten nur auf, wenn Annemarie S. anwesend ist.",
+          "image": "young woman sitting at a desk with a puzzled expression"
+        },
+        {
+          "text": "Kritiker entlarven den Spuk als Schwindel mit Nylonfäden und *Tricks*.",
+          "image": "close-up of a nylon thread attached to a lamp with a skeptical investigator in the background"
+        },
+        {
+          "text": "Der Fall bleibt umstritten, die Wahrheit bleibt unklar.",
+          "image": "law office with question marks and a magnifying glass"
+        }
+      ],
+      "question": "War es Spuk oder Schwindel?",
+      "tags": [
+        "#SpukVonRosenheim",
+        "#Parapsychologie"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Spuk_von_Rosenheim",
+      "generated": "2026-11-25"
+    },
+    {
+      "id": "bridgewater_triangle",
+      "hook": {
+        "text": "Ein 520 km² großes Gebiet, in dem *UFOs* und *Poltergeister* gesichtet wurden.",
+        "image": "dark forest with strange lights in the sky, misty atmosphere"
+      },
+      "scenes": [
+        {
+          "text": "Das Bridgewater Triangle liegt im Südosten von Massachusetts.",
+          "image": "map of southeastern massachusetts with a triangle marked, daytime"
+        },
+        {
+          "text": "Das Freetown-Fall River State Forest ist ein Hotspot für *paranormale Aktivitäten*.",
+          "image": "forest with a rocky outcrop, eerie lighting, fog"
+        },
+        {
+          "text": "Berichte über Bigfoot und Geister häufen sich.",
+          "image": "shadowy figure in the woods, dim lighting, trees in the background"
+        },
+        {
+          "text": "Einige glauben, dass das Gebiet von den Wampanoag *verflucht* wurde.",
+          "image": "native american totem pole in a forest, misty atmosphere, sunset"
+        },
+        {
+          "text": "Andere berichten von *Kultaktivitäten* und Tiermutilationen.",
+          "image": "police tape in a forest, dark and ominous lighting, trees in the background"
+        },
+        {
+          "text": "Das Bridgewater Triangle bleibt ein Rätsel, das Wissenschaftler fasziniert.",
+          "image": "investigator with equipment in a forest, daytime, trees in the background"
+        }
+      ],
+      "question": "Glaubst du an paranormale Phänomene?",
+      "tags": [
+        "#BridgewaterTriangle",
+        "#ParanormalePhänomene"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Bridgewater_Triangle",
+      "generated": "2026-11-25"
     }
   ]
 }
