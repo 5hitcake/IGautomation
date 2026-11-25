@@ -1,18 +1,6 @@
 {
-  "count": 64,
+  "count": 65,
   "recent": [
-    {
-      "gender": "man",
-      "age_range": [
-        40,
-        49
-      ],
-      "heritage": [
-        "Southeast Asian",
-        "southeast_asian"
-      ],
-      "setting": "at a train station"
-    },
     {
       "gender": "man",
       "age_range": [
@@ -720,6 +708,18 @@
         "british"
       ],
       "setting": "at a beach at dusk"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Aboriginal Australian",
+        "aboriginal_australian"
+      ],
+      "setting": "in a bustling night market"
     }
   ],
   "reserve_used": [

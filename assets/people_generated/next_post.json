@@ -1,13 +1,13 @@
 {
   "type": "reel",
-  "file": "reel_20261125_1713_0064.mp4",
-  "caption": "Not a real person. Not a real moment.\n\nPerson No. 0064 · \"Charlotte\", 42\n\nIs this your doppelgänger? Drop a comment 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n🎨 Enjoying the portraits? Support the project – link in bio\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #portraitphotography #faces #artificialintelligence #aiart #generativeai #fluxai",
+  "file": "reel_20261125_2343_0065.mp4",
+  "caption": "This person does not exist.\n\nPerson No. 0065 · \"Kalan\", 22\n\nDoes this face remind you of someone? Tell us who 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n🎨 Enjoying the portraits? Support the project – link in bio\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #aiphotography #notreal #artificialintelligence #aiart #portrait #lookalike",
   "model": "@cf/black-forest-labs/flux-2-klein-9b",
-  "prompt": "Waist-up portrait photo of a 42-year-old British woman with bangs and a ponytail and slightly sunburned nose, wearing a hoodie, a thoughtful look, at a beach at dusk, blue hour twilight, shot on Fujifilm X-T4, 56mm f/1.2, looks exactly 42 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
-  "number": 64,
-  "name": "Charlotte",
-  "age": 42,
-  "image": "assets/people_generated/person_20261125_1713_0064.jpg",
+  "prompt": "Head and shoulders portrait photo of a strikingly attractive 22-year-old young Aboriginal Australian man with short dreadlocks dyed platinum blonde, a short boxed beard and a single small mole on the cheek, wearing a rain jacket, a warm genuine smile, looking directly into the camera, in a bustling night market, soft golden hour light, shot on Canon EOS R5, 85mm f/1.4, looks exactly 22 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "number": 65,
+  "name": "Kalan",
+  "age": 22,
+  "image": "assets/people_generated/person_20261125_2343_0065.jpg",
   "branch": "people-media",
   "thumb_offset": 6300
 }
