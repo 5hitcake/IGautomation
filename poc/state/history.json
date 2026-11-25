@@ -1,7 +1,8 @@
 {
  "verses": [
   "Matthäus 5,14",
-  "Psalm 73,26"
+  "Psalm 73,26",
+  "Jesaja 26,3"
  ],
  "stories": [
   "Daniel 6",
@@ -28,6 +29,11 @@
    "time": "2026-11-24T16:29+01:00",
    "kind": "story",
    "id": "Johannes 13,1-17"
+  },
+  {
+   "time": "2026-11-25T06:55+01:00",
+   "kind": "verse",
+   "id": "Jesaja 26,3"
   }
  ]
 }
