@@ -1572,6 +1572,46 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Bridgewater_Triangle",
       "generated": "2026-11-25"
+    },
+    {
+      "id": "dorothy_arnold",
+      "hook": {
+        "text": "Eine junge Frau geht einkaufen und verschwindet spurlos.",
+        "image": "woman walking alone on fifth avenue in new york city on a cold winter day with snowflakes"
+      },
+      "scenes": [
+        {
+          "text": "Dorothy Arnold, 25, Tochter eines reichen Importeurs, will am 12. Dezember 1910 ein Kleid kaufen.",
+          "image": "luxurious department store interior with expensive dresses and hats on display"
+        },
+        {
+          "text": "Sie wird in zwei Geschäften gesehen, kauft Schokolade und ein Buch, dann verschwindet sie.",
+          "image": "bookstore interior with woman browsing through shelves, soft light"
+        },
+        {
+          "text": "Ihre Familie sucht sie, findet aber keine Spur, nur *unbeantwortete Briefe*.",
+          "image": "family home interior with worried relatives searching through letters and papers"
+        },
+        {
+          "text": "Der Vater engagiert Detektive, die *transatlantische Ozeandampfer* durchsuchen.",
+          "image": "ocean liner at sea with detectives searching for a passenger, sunny day"
+        },
+        {
+          "text": "Die Polizei wird eingeschaltet, ein *Preisgeld von 1000 Dollar* ausgesetzt.",
+          "image": "police office interior with detectives and reporters discussing the case, serious atmosphere"
+        },
+        {
+          "text": "Dorothys Schicksal bleibt ein Rätsel, ihre Familie sucht sie vergeblich.",
+          "image": "empty street at night with a lone streetlamp, mysterious atmosphere"
+        }
+      ],
+      "question": "Hat sie sich versteckt?",
+      "tags": [
+        "#dorothyarnold",
+        "#verschwinden"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Disappearance_of_Dorothy_Arnold",
+      "generated": "2026-11-25"
     }
   ]
 }
