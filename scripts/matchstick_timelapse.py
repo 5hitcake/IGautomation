@@ -1,5 +1,8 @@
 """Prototyp: "Zeitraffer"-Video eines Modells aus Streichhoelzern, rein aus KI-Bildern.
 
+v3: VORWAERTS bauen (leerer Tisch -> Stufe fuer Stufe hinzufuegen), Hintergrund ausserhalb des
+Baubereichs bleibt pixelgenau gleich. Die Beschreibung unten ist der urspruengliche Plan (v1).
+
 Idee: rueckwaerts bauen, damit Tisch, Licht und Kamera in allen Bildern gleich bleiben.
   1. Endbild (fertiges Modell) erzeugen: Pollinations (gratis), Reserve Cloudflare FLUX-2 Klein.
   2. Mit FLUX-2 Klein (Bildbearbeitung, Cloudflare Workers AI, gratis) Schritt fuer Schritt
@@ -38,42 +41,45 @@ IN_W, IN_H = 288, 512  # Eingabebilder muessen <= 512 px sein
 SEED = 4242
 KLEIN = "@cf/black-forest-labs/flux-2-klein-4b"
 
-SUBJECT = "Neuschwanstein castle"
-MATERIAL = (
-    "every wall, tower and roof is made of clearly visible individual raw unpainted wooden "
-    "matchsticks glued side by side, natural light wood color, the red match heads form the roof "
-    "edges and decorations, no paint, no plaster"
-)
-BASE_PROMPT = (
-    f"Photorealistic close-up photo of a detailed handmade miniature model of {SUBJECT}, {MATERIAL}. "
-    "The model stands in the center of a plain light oak workbench, an open matchbox and a few loose "
-    "matchsticks lie on the table in the lower left corner, plain light grey wall in the background, "
-    "warm soft window light from the left, seen from slightly above, the whole model is fully "
-    "visible with free table space around it, vertical composition, sharp focus, no people, no hands"
+KLEIN_BIG = "@cf/black-forest-labs/flux-2-klein-9b"  # staerker, ~5x teurer - nur als Reserve
+
+SUBJECT = "Eiffel Tower"
+PLATE_PROMPT = (
+    "Photorealistic photo of a plain light oak workbench seen from slightly above, the center of the "
+    "table is completely empty, a neat pile of loose wooden matchsticks with red heads, an open "
+    "matchbox and a small tube of wood glue lie in the lower left corner of the table, plain light "
+    "grey wall in the background, warm soft window light from the left, vertical composition, "
+    "sharp focus, no people, no hands, no model, no objects in the center"
 )
 KEEP = (
-    " Keep the camera angle, framing, table, lighting and colors exactly the same. The model is made "
-    "of raw unpainted wooden matchsticks. Photorealistic."
+    " Keep everything that is already built exactly as it is and only add the new part. Everything "
+    "is made of raw unpainted wooden matchsticks in natural light wood color, glued together. Keep "
+    "the camera angle, framing, table, wall and lighting exactly the same. Photorealistic photo."
 )
-EMPTY_PROMPT = (
-    "Remove the matchstick model completely. Show only the empty wooden table surface where it stood, "
-    "with a neat pile of loose matchsticks lying in the middle." + KEEP
-)
-# Von "fertig" rueckwaerts bis kurz vor "leerer Tisch" (jeder Schritt baut auf dem vorherigen auf).
-REMOVE_STEPS = [
-    "Remove the pointed roofs and spires from all towers of the matchstick castle; the towers end "
-    "with an open unfinished top.",
-    "Remove the main roofs of the matchstick castle; the top of the walls is open and unfinished.",
-    "Make all walls and towers of the matchstick castle one floor lower, with unfinished tops.",
-    "Make all walls and towers of the matchstick castle one more floor lower, with unfinished tops.",
-    "Remove the smaller side towers of the matchstick castle completely.",
-    "The matchstick walls are now only half as high as before, unfinished at the top.",
-    "The matchstick walls are now only a few matchsticks high, showing the floor plan of the castle.",
-    "Only the flat base plate made of matchsticks laid side by side remains, with a few single "
-    "matchsticks standing upright on it.",
-    "Only the flat base plate made of matchsticks laid side by side remains.",
-    "Only a few matchsticks laid side by side in a row remain where the base plate was started.",
+# Vorwaerts bauen: jede Stufe fuegt etwas zum vorherigen Bild hinzu (Hinzufuegen koennen
+# Bildmodelle viel besser als Entfernen).
+BUILD_STEPS = [
+    "In the center of the table, add a flat square base plate made of wooden matchsticks laid "
+    "side by side.",
+    "On the matchstick base plate, add the four short feet of a tower at the four corners, each foot "
+    "is a small lattice of crossed wooden matchsticks.",
+    "Make the four matchstick legs taller, leaning inward toward each other, built as a lattice of "
+    "crossed matchsticks.",
+    "Connect the four matchstick legs with a first square platform made of matchsticks, with a wide "
+    "arch below it.",
+    "On top of the first platform, add the next section of the matchstick lattice tower, narrowing "
+    "upward.",
+    "Add a second, smaller square platform made of matchsticks on top of the tower.",
+    "Above the second platform, continue the tower upward as a tall, slender lattice of matchsticks.",
+    "Make the slender matchstick lattice tower even taller and narrower toward the top.",
+    "Add a small top platform and a pointed spire made of matchsticks at the very top. It is now a "
+    "complete Eiffel Tower model made of wooden matchsticks.",
+    "Add fine details to the matchstick Eiffel Tower: more crossed matchstick bracing in the lattice "
+    "and small red match heads as decoration along the platform edges.",
 ]
+# Bereich, in dem gebaut wird (Anteile der Bildbreite/-hoehe). Ausserhalb bleibt jedes Bild
+# pixelgenau der leere Tisch.
+BUILD_BOX = (0.14, 0.06, 0.86, 0.80)
 
 
 # --------------------------------------------------------------------------- Bilder
@@ -93,10 +99,10 @@ class Flagged(RuntimeError):
     pass
 
 
-def cf_klein(prompt, width, height, input_png=None, retries=3, seed=SEED):
+def cf_klein(prompt, width, height, input_png=None, retries=3, seed=SEED, model=KLEIN):
     acc = os.environ["CLOUDFLARE_ACCOUNT_ID"]
     tok = os.environ["CLOUDFLARE_API_TOKEN"]
-    url = f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/{KLEIN}"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/{model}"
     for attempt in range(retries):
         files = {
             "prompt": (None, prompt),
@@ -143,12 +149,12 @@ def out_size(w, h, max_side=1024):
     return max(256, round(w * k / 16) * 16), max(256, round(h * k / 16) * 16)
 
 
-def klein_edit(prompt, img, max_side=1024):
+def klein_edit(prompt, img, max_side=1024, model=KLEIN):
     """Bearbeitet `img` mit Klein (Seed-Wechsel bei Filter-Fehlalarm) und liefert es in Originalgroesse."""
     ow, oh = out_size(img.width, img.height, max_side)
     for seed in (SEED, SEED + 1, SEED + 2):
         try:
-            data = cf_klein(prompt, ow, oh, input_png=png_fit(img), seed=seed)
+            data = cf_klein(prompt, ow, oh, input_png=png_fit(img), seed=seed, model=model)
             return Image.open(io.BytesIO(data)).convert("RGB").resize(img.size, Image.LANCZOS)
         except Flagged:
             print("  Filter-Fehlalarm, neuer Seed ...", flush=True)
@@ -206,54 +212,59 @@ def paste_back(base, crop_img, box):
     return out
 
 
+def changed(a, b):
+    """Anteil (%) der Pixel, die sich deutlich veraendert haben (leichtes Rauschen zaehlt nicht)."""
+    da = np.asarray(a.convert("L").filter(ImageFilter.GaussianBlur(3)), dtype=np.float32)
+    db = np.asarray(b.convert("L").filter(ImageFilter.GaussianBlur(3)), dtype=np.float32)
+    return float((np.abs(da - db) > 30).mean() * 100)
+
+
 def generate_stages(out):
     os.makedirs(out, exist_ok=True)
-    base_path = os.path.join(out, "stage_00.png")
-    if not os.path.exists(base_path):
+    plate_path = os.path.join(out, "stage_00.png")
+    if not os.path.exists(plate_path):
         data = None
         for model in ("tongyi-mai/z-image-turbo", "flux"):
             try:
-                print(f"Endbild ueber Pollinations ({model}) ...", flush=True)
-                data = pollinations(BASE_PROMPT, model, 864, 1536)
+                print(f"Leerer Tisch ueber Pollinations ({model}) ...", flush=True)
+                data = pollinations(PLATE_PROMPT, model, 864, 1536)
                 break
             except Exception as e:  # noqa: BLE001
                 print(f"  {e}", flush=True)
         if data is None:
-            print("Endbild ueber Cloudflare Klein ...", flush=True)
-            data = cf_klein(BASE_PROMPT, GEN_W, GEN_H)
-        Image.open(io.BytesIO(data)).convert("RGB").save(base_path)
-    base = Image.open(base_path).convert("RGB")
-
-    # Leerer Tisch -> Bereich des Modells bestimmen. Alles ausserhalb bleibt in jeder Stufe
-    # pixelgenau das Endbild (kein Flackern, kein Abdriften von Tisch/Wand).
-    n_last = len(REMOVE_STEPS) + 1
-    empty_path = os.path.join(out, f"stage_{n_last:02d}.png")
-    print("Leerer Tisch ...", flush=True)
-    if os.path.exists(empty_path):
-        empty = Image.open(empty_path).convert("RGB")
-    else:
-        empty = color_match(klein_edit(EMPTY_PROMPT, base), base)
-    box = model_box(base, empty)
-    print(f"  Modellbereich: {box}", flush=True)
-    if not os.path.exists(empty_path):
-        empty = paste_back(base, color_match(empty.crop(box), base.crop(box)), box)
-        empty.save(empty_path)
-
-    ref_crop = base.crop(box)
+            print("Leerer Tisch ueber Cloudflare Klein ...", flush=True)
+            data = cf_klein(PLATE_PROMPT, GEN_W, GEN_H)
+        Image.open(io.BytesIO(data)).convert("RGB").save(plate_path)
+    plate = Image.open(plate_path).convert("RGB")
+    bw, bh = plate.size
+    box = (int(bw * BUILD_BOX[0]), int(bh * BUILD_BOX[1]), int(bw * BUILD_BOX[2]), int(bh * BUILD_BOX[3]))
+    ref_crop = plate.crop(box)
     prev_crop = ref_crop
-    for i, step in enumerate(REMOVE_STEPS, start=1):
+    log = []
+    for i, step in enumerate(BUILD_STEPS, start=1):
         path = os.path.join(out, f"stage_{i:02d}.png")
         if os.path.exists(path):
             prev_crop = Image.open(path).convert("RGB").crop(box)
             continue
-        print(f"Stufe {i}/{len(REMOVE_STEPS)}: {step[:70]}", flush=True)
-        edited = klein_edit(step + KEEP, prev_crop)
+        print(f"Stufe {i}/{len(BUILD_STEPS)}: {step[:70]}", flush=True)
+        edited, used = klein_edit(step + KEEP, prev_crop), KLEIN
+        # Hat das kleine Modell (fast) nichts veraendert, einmal mit dem grossen versuchen.
+        if edited is None or changed(edited, prev_crop) < 0.7:
+            print("  kaum Aenderung -> Klein 9B", flush=True)
+            big = klein_edit(step + KEEP, prev_crop, model=KLEIN_BIG)
+            if big is not None:
+                edited, used = big, KLEIN_BIG
         if edited is None:
             print("  Stufe uebersprungen.", flush=True)
             continue
+        diff = changed(edited, prev_crop)
+        print(f"  Aenderung {diff:.1f} ({used.split('/')[-1]})", flush=True)
+        log.append({"stage": i, "model": used, "change": round(diff, 1)})
         edited = color_match(edited, ref_crop)
-        paste_back(base, edited, box).save(path)
+        paste_back(plate, edited, box).save(path)
         prev_crop = edited
+    with open(os.path.join(out, "stages_log.json"), "w") as f:
+        json.dump(log, f, indent=1)
 
 
 # --------------------------------------------------------------------------- Video
@@ -303,7 +314,7 @@ def jitter(img, rng, strength=1.0):
 
 def render(out, video_path, build_seconds=20.0, hold_seconds=6.0):
     files = sorted(f for f in os.listdir(out) if f.startswith("stage_") and f.endswith(".png"))
-    stages = [cover(Image.open(os.path.join(out, f)).convert("RGB")) for f in reversed(files)]
+    stages = [cover(Image.open(os.path.join(out, f)).convert("RGB")) for f in files]
     rng = np.random.default_rng(7)
     prng = random.Random(7)
 
@@ -372,7 +383,7 @@ def main():
         generate_stages(args.out)
     render(args.out, os.path.join(args.out, "matchstick_timelapse.mp4"))
     with open(os.path.join(args.out, "info.json"), "w") as f:
-        json.dump({"subject": SUBJECT, "base_prompt": BASE_PROMPT, "steps": REMOVE_STEPS}, f, indent=1)
+        json.dump({"subject": SUBJECT, "plate_prompt": PLATE_PROMPT, "steps": BUILD_STEPS}, f, indent=1)
 
 
 if __name__ == "__main__":

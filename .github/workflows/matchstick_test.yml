@@ -1,14 +1,14 @@
 name: Streichholz-Zeitraffer (Test)
 
 # Prototyp: erzeugt Stufenbilder + Video und legt sie auf dem Branch unter
-# experiments/matchstick/out_v2 ab. Postet nichts.
+# experiments/matchstick/out_v3 ab. Postet nichts.
 on:
   workflow_dispatch:
   push:
     branches: ["ccr-**"]
     paths:
-      - scripts/matchstick_timelapse.py
-      - .github/workflows/matchstick_test.yml
+      # Nur diese Datei startet einen Lauf (Code-Aenderungen allein verbrauchen kein Kontingent).
+      - experiments/matchstick/run.txt
 
 permissions:
   contents: write
@@ -33,13 +33,13 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           POLLI_TOKEN: ${{ secrets.POLLI_TOKEN }}
-        run: python scripts/matchstick_timelapse.py --out experiments/matchstick/out_v2
+        run: python scripts/matchstick_timelapse.py --out experiments/matchstick/out_v3
       - name: Ergebnis auf den Branch legen
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add experiments/matchstick/out_v2 || true
+          git add experiments/matchstick/out_v3 || true
           git commit -m "Streichholz-Zeitraffer: Testlauf" || exit 0
           git pull --rebase -q || true
           git push
