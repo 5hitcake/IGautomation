@@ -1612,6 +1612,47 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Disappearance_of_Dorothy_Arnold",
       "generated": "2026-11-25"
+    },
+    {
+      "id": "eastern_air_lines_flug_401",
+      "hook": {
+        "text": "Ein Flugzeug stürzt in den Everglades. 101 Tote.",
+        "image": "crash site in the florida everglades at night with rescue teams and lights"
+      },
+      "scenes": [
+        {
+          "text": "29. Dezember 1972. Eastern Air Lines Flug 401 startet in New York.",
+          "image": "lockheed l-1011 tristar taking off from jfk airport at night"
+        },
+        {
+          "text": "Kurz vor Mitternacht bemerken die Piloten ein Problem mit dem *Landing-Gear-Indicator*.",
+          "image": "cockpit of a lockheed l-1011 tristar with pilots and instruments"
+        },
+        {
+          "text": "Die Piloten sind abgelenkt und bemerken nicht, dass der *Autopilot* ausgeschaltet ist.",
+          "image": "autopilot system in a lockheed l-1011 tristar cockpit"
+        },
+        {
+          "text": "Das Flugzeug beginnt, *unbemerkt* zu sinken und stürzt in den Everglades.",
+          "image": "lockheed l-1011 tristar crashing into the everglades at night"
+        },
+        {
+          "text": "75 Menschen überleben den Absturz. Viele sind *schwer verletzt*.",
+          "image": "rescue teams and survivors in the everglades at night"
+        },
+        {
+          "text": "Der Absturz wird zu einem der schwersten Flugzeugunglücke in der US-Geschichte.",
+          "image": "wreckage of the lockheed l-1011 tristar in the everglades"
+        }
+      ],
+      "question": "War es ein Pilotenfehler?",
+      "tags": [
+        "#Flugzeugabsturz",
+        "#EasternAirLines",
+        "#Flug401"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Eastern_Air_Lines_Flight_401",
+      "generated": "2026-11-26"
     }
   ]
 }
