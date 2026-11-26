@@ -19,7 +19,8 @@
     28,
     47,
     53,
-    94
+    94,
+    76
   ],
   "posted_reel_ids": [
     5,
@@ -32,11 +33,11 @@
     1
   ],
   "recent_backgrounds": [
-    "bg_01_mountain_dawn.png",
     "bg_14_snow_peak.png",
     "bg_12_rain_window.png",
     "bg_13_cliff_sunset.png",
-    "bg_10_abstract_smoke.png"
+    "bg_10_abstract_smoke.png",
+    "bg_15_night_road.png"
   ],
   "recent_bg_videos": [
     "reel_03_city_timelapse.mp4",
