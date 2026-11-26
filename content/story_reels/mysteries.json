@@ -1587,6 +1587,47 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Gro%C3%9Fe_Sphinx_von_Gizeh",
       "generated": "2026-11-25"
+    },
+    {
+      "id": "plain_of_jars",
+      "hook": {
+        "text": "Tausende *steinernen Gefäße* liegen in Laos verstreut.",
+        "image": "vast landscape of stone jars in the laos countryside, sunny day"
+      },
+      "scenes": [
+        {
+          "text": "Die Plain of Jars in Laos ist ein einzigartiges archäologisches Gebiet.",
+          "image": "hilly landscape with stone jars in the distance, misty morning"
+        },
+        {
+          "text": "Die Gefäße sind in Gruppen von 1 bis 400 Stück angeordnet.",
+          "image": "cluster of stone jars in a field, cloudy sky"
+        },
+        {
+          "text": "Forscher vermuten, dass sie mit *Bestattungsriten* zusammenhängen.",
+          "image": "archaeologist excavating a stone jar, dusty terrain"
+        },
+        {
+          "text": "Die Gefäße sind zwischen 1240 und 660 v. Chr. entstanden.",
+          "image": "stone jar with intricate carvings, close-up view"
+        },
+        {
+          "text": "Einige Gefäße enthalten *menschliche Überreste* und Grabbeigaben.",
+          "image": "human remains and artifacts inside a stone jar, dim lighting"
+        },
+        {
+          "text": "Die Funktion der Gefäße ist noch nicht vollständig geklärt.",
+          "image": "mysterious stone jar in a field, sunset"
+        }
+      ],
+      "question": "Bestattungsriten oder etwas anderes?",
+      "tags": [
+        "#plain_of_jars",
+        "#laos",
+        "#archäologie"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Plain_of_Jars",
+      "generated": "2026-11-26"
     }
   ]
 }
