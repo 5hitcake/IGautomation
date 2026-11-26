@@ -1,18 +1,6 @@
 {
-  "count": 67,
+  "count": 68,
   "recent": [
-    {
-      "gender": "man",
-      "age_range": [
-        70,
-        85
-      ],
-      "heritage": [
-        "Central Asian",
-        "central_asian"
-      ],
-      "setting": "in a home kitchen"
-    },
     {
       "gender": "man",
       "age_range": [
@@ -720,6 +708,18 @@
         "mixed"
       ],
       "setting": "in a sunflower field"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "German",
+        "german"
+      ],
+      "setting": "at an outdoor market"
     }
   ],
   "reserve_used": [
