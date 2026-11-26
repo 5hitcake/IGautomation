@@ -87,7 +87,11 @@ def _decode(resp):
     return base64.b64decode(img)
 
 
-def cf_klein(prompt, width, height, input_png=None, retries=3):
+class Flagged(RuntimeError):
+    pass
+
+
+def cf_klein(prompt, width, height, input_png=None, retries=3, seed=SEED):
     acc = os.environ["CLOUDFLARE_ACCOUNT_ID"]
     tok = os.environ["CLOUDFLARE_API_TOKEN"]
     url = f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/{KLEIN}"
@@ -96,7 +100,7 @@ def cf_klein(prompt, width, height, input_png=None, retries=3):
             "prompt": (None, prompt),
             "width": (None, str(width)),
             "height": (None, str(height)),
-            "seed": (None, str(SEED)),
+            "seed": (None, str(seed)),
         }
         if input_png is not None:
             files["input_image_0"] = ("in.png", input_png, "image/png")
@@ -104,6 +108,8 @@ def cf_klein(prompt, width, height, input_png=None, retries=3):
         if resp.ok:
             return _decode(resp)
         print(f"  Cloudflare HTTP {resp.status_code}: {resp.text[:300]}", flush=True)
+        if "flagged" in resp.text:
+            raise Flagged(resp.text[:200])
         if resp.status_code in (429, 500, 502, 503, 504) and attempt < retries - 1:
             time.sleep(10 * (attempt + 1))
             continue
@@ -152,7 +158,16 @@ def generate_stages(out):
             prev = Image.open(path).convert("RGB")
             continue
         print(f"Stufe {i}/{len(REMOVE_STEPS)}: {step[:70]}", flush=True)
-        data = cf_klein(step + KEEP, GEN_W, GEN_H, input_png=png_small(prev))
+        data = None
+        for seed in (SEED, SEED + 1, SEED + 2):
+            try:
+                data = cf_klein(step + KEEP, GEN_W, GEN_H, input_png=png_small(prev), seed=seed)
+                break
+            except Flagged:
+                print("  Filter-Fehlalarm, neuer Seed ...", flush=True)
+        if data is None:
+            print("  Stufe uebersprungen.", flush=True)
+            continue
         img = Image.open(io.BytesIO(data)).convert("RGB")
         img.save(path)
         prev = img
