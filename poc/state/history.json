@@ -8,9 +8,10 @@
  "stories": [
   "Daniel 6",
   "Johannes 13,1-17",
-  "Hesekiel 37"
+  "Hesekiel 37",
+  "Johannes 20,24-29"
  ],
- "story_count": 3,
+ "story_count": 4,
  "posts": [
   {
    "time": "2026-11-23T06:55+01:00",
@@ -46,6 +47,11 @@
    "time": "2026-11-26T07:02+01:00",
    "kind": "verse",
    "id": "Galater 6,2"
+  },
+  {
+   "time": "2026-11-26T16:28+01:00",
+   "kind": "story",
+   "id": "Johannes 20,24-29"
   }
  ]
 }
