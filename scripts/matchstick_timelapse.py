@@ -39,38 +39,40 @@ SEED = 4242
 KLEIN = "@cf/black-forest-labs/flux-2-klein-4b"
 
 SUBJECT = "Neuschwanstein castle"
+MATERIAL = (
+    "every wall, tower and roof is made of clearly visible individual raw unpainted wooden "
+    "matchsticks glued side by side, natural light wood color, the red match heads form the roof "
+    "edges and decorations, no paint, no plaster"
+)
 BASE_PROMPT = (
-    f"Photorealistic photo of an extremely detailed miniature model of {SUBJECT} built entirely "
-    "from thousands of glued wooden matchsticks with red match heads visible, standing on a plain "
-    "light oak workbench, an open matchbox and a few loose matchsticks lying on the table nearby, "
-    "warm soft window light from the left, fixed tripod camera at a slight high angle, the model is "
-    "centered and fully visible with free space around it, vertical composition, sharp focus, "
-    "realistic hobby craftsmanship, no people, no hands"
+    f"Photorealistic close-up photo of a detailed handmade miniature model of {SUBJECT}, {MATERIAL}. "
+    "The model stands in the center of a plain light oak workbench, an open matchbox and a few loose "
+    "matchsticks lie on the table in the lower left corner, plain light grey wall in the background, "
+    "warm soft window light from the left, seen from slightly above, the whole model is fully "
+    "visible with free table space around it, vertical composition, sharp focus, no people, no hands"
 )
 KEEP = (
-    " Everything else stays exactly identical: same camera position and framing, same wooden table, "
-    "same lighting, same matchbox, same colors. Photorealistic."
+    " Keep the camera angle, framing, table, lighting and colors exactly the same. The model is made "
+    "of raw unpainted wooden matchsticks. Photorealistic."
 )
-# Von "fertig" rueckwaerts bis "leerer Tisch".
+EMPTY_PROMPT = (
+    "Remove the matchstick model completely. Show only the empty wooden table surface where it stood, "
+    "with a neat pile of loose matchsticks lying in the middle." + KEEP
+)
+# Von "fertig" rueckwaerts bis kurz vor "leerer Tisch" (jeder Schritt baut auf dem vorherigen auf).
 REMOVE_STEPS = [
-    "Remove the small flags and the thin spires on top of the towers of the matchstick castle.",
-    "Remove the pointed roofs of all towers of the matchstick castle, the towers are now open at the top.",
-    "Remove the upper third of every tower of the matchstick castle.",
-    "Remove the main roof of the matchstick castle, the top of the walls is now open and unfinished.",
-    "Remove the top floor of the matchstick castle walls and the remaining upper parts of the towers.",
-    "Make the matchstick castle lower: remove another floor from all walls and towers.",
-    "Remove the gatehouse and the front entrance wall of the matchstick castle.",
-    "The matchstick walls are now only half as high, unfinished at the top.",
-    "The matchstick walls are now only a third as high, unfinished at the top.",
-    "Only low matchstick walls a few matchsticks high remain, showing the floor plan of the castle.",
-    "Only a flat base platform made of matchsticks laid side by side remains, with a few first "
-    "matchsticks of the walls standing on it.",
-    "Only the flat base platform made of matchsticks laid side by side remains, nothing on it.",
-    "Only half of the flat matchstick base platform remains, the other half is missing.",
-    "The model is gone. Only a short row of a few matchsticks lies where the base started, next to "
-    "a big pile of loose matchsticks and a tube of wood glue.",
-    "An empty wooden table with a big neat pile of loose matchsticks, the open matchbox and a tube "
-    "of wood glue. No model at all.",
+    "Remove the pointed roofs and spires from all towers of the matchstick castle; the towers end "
+    "with an open unfinished top.",
+    "Remove the main roofs of the matchstick castle; the top of the walls is open and unfinished.",
+    "Make all walls and towers of the matchstick castle one floor lower, with unfinished tops.",
+    "Make all walls and towers of the matchstick castle one more floor lower, with unfinished tops.",
+    "Remove the smaller side towers of the matchstick castle completely.",
+    "The matchstick walls are now only half as high as before, unfinished at the top.",
+    "The matchstick walls are now only a few matchsticks high, showing the floor plan of the castle.",
+    "Only the flat base plate made of matchsticks laid side by side remains, with a few single "
+    "matchsticks standing upright on it.",
+    "Only the flat base plate made of matchsticks laid side by side remains.",
+    "Only a few matchsticks laid side by side in a row remain where the base plate was started.",
 ]
 
 
@@ -128,10 +130,80 @@ def pollinations(prompt, model, width, height):
     raise RuntimeError(f"Pollinations {model} HTTP {resp.status_code}: {resp.text[:200]}")
 
 
-def png_small(img):
+def png_fit(img, max_side=512):
+    """Eingabebild fuer Klein (max. 512 px Kantenlaenge)."""
+    k = min(1.0, max_side / max(img.size))
     buf = io.BytesIO()
-    img.convert("RGB").resize((IN_W, IN_H), Image.LANCZOS).save(buf, "PNG")
+    img.convert("RGB").resize((round(img.width * k), round(img.height * k)), Image.LANCZOS).save(buf, "PNG")
     return buf.getvalue()
+
+
+def out_size(w, h, max_side=1024):
+    k = max_side / max(w, h)
+    return max(256, round(w * k / 16) * 16), max(256, round(h * k / 16) * 16)
+
+
+def klein_edit(prompt, img, max_side=1024):
+    """Bearbeitet `img` mit Klein (Seed-Wechsel bei Filter-Fehlalarm) und liefert es in Originalgroesse."""
+    ow, oh = out_size(img.width, img.height, max_side)
+    for seed in (SEED, SEED + 1, SEED + 2):
+        try:
+            data = cf_klein(prompt, ow, oh, input_png=png_fit(img), seed=seed)
+            return Image.open(io.BytesIO(data)).convert("RGB").resize(img.size, Image.LANCZOS)
+        except Flagged:
+            print("  Filter-Fehlalarm, neuer Seed ...", flush=True)
+    return None
+
+
+def model_box(base, empty):
+    """Bereich des Modells = deutlichster Unterschied zwischen Endbild und leerem Tisch (+ Rand).
+    Ist das unplausibel (fast das ganze Bild), gilt die Bildmitte, wo das Modell laut Prompt steht."""
+    bw, bh = base.size
+    fallback = (int(bw * 0.06), int(bh * 0.18), int(bw * 0.94), int(bh * 0.76))
+    da = np.asarray(base.convert("L").filter(ImageFilter.GaussianBlur(8)), dtype=np.float32)
+    db = np.asarray(empty.convert("L").filter(ImageFilter.GaussianBlur(8)), dtype=np.float32)
+    diff = np.abs(da - db)
+    m = diff > max(30.0, np.percentile(diff, 85))
+    m_img = Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(9))
+    m = np.asarray(m_img.filter(ImageFilter.MaxFilter(9))) > 0
+    ys, xs = np.nonzero(m)
+    if len(xs) < 2000:
+        return fallback
+    x0, x1 = np.percentile(xs, [2, 98])
+    y0, y1 = np.percentile(ys, [2, 98])
+    px, py = (x1 - x0) * 0.12 + 20, (y1 - y0) * 0.12 + 20
+    box = (max(0, int(x0 - px)), max(0, int(y0 - py)), min(bw, int(x1 + px)), min(bh, int(y1 + py)))
+    if (box[2] - box[0]) * (box[3] - box[1]) > 0.7 * bw * bh:
+        return fallback
+    return box
+
+
+def color_match(img, ref, border=24):
+    """Farben/Helligkeit an `ref` angleichen, gemessen am Rand (dort ist nur Tisch/Wand)."""
+    a = np.asarray(img, dtype=np.float32)
+    r = np.asarray(ref, dtype=np.float32)
+    mask = np.zeros(a.shape[:2], bool)
+    mask[:border, :] = mask[-border:, :] = True
+    mask[:, :border] = mask[:, -border:] = True
+    out = a.copy()
+    for c in range(3):
+        am, asd = a[..., c][mask].mean(), a[..., c][mask].std() + 1e-3
+        rm, rsd = r[..., c][mask].mean(), r[..., c][mask].std() + 1e-3
+        out[..., c] = (a[..., c] - am) * (rsd / asd) + rm
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+
+
+def paste_back(base, crop_img, box):
+    """Bearbeiteten Ausschnitt mit weicher Kante ins (unveraenderte) Endbild setzen."""
+    w, h = box[2] - box[0], box[3] - box[1]
+    feather = max(8, min(w, h) // 12)
+    mask = Image.new("L", (w, h), 0)
+    inner = Image.new("L", (w - 2 * feather, h - 2 * feather), 255)
+    mask.paste(inner, (feather, feather))
+    mask = mask.filter(ImageFilter.GaussianBlur(feather / 2))
+    out = base.copy()
+    out.paste(crop_img, box[:2], mask)
+    return out
 
 
 def generate_stages(out):
@@ -150,27 +222,38 @@ def generate_stages(out):
             print("Endbild ueber Cloudflare Klein ...", flush=True)
             data = cf_klein(BASE_PROMPT, GEN_W, GEN_H)
         Image.open(io.BytesIO(data)).convert("RGB").save(base_path)
+    base = Image.open(base_path).convert("RGB")
 
-    prev = Image.open(base_path).convert("RGB")
+    # Leerer Tisch -> Bereich des Modells bestimmen. Alles ausserhalb bleibt in jeder Stufe
+    # pixelgenau das Endbild (kein Flackern, kein Abdriften von Tisch/Wand).
+    n_last = len(REMOVE_STEPS) + 1
+    empty_path = os.path.join(out, f"stage_{n_last:02d}.png")
+    print("Leerer Tisch ...", flush=True)
+    if os.path.exists(empty_path):
+        empty = Image.open(empty_path).convert("RGB")
+    else:
+        empty = color_match(klein_edit(EMPTY_PROMPT, base), base)
+    box = model_box(base, empty)
+    print(f"  Modellbereich: {box}", flush=True)
+    if not os.path.exists(empty_path):
+        empty = paste_back(base, color_match(empty.crop(box), base.crop(box)), box)
+        empty.save(empty_path)
+
+    ref_crop = base.crop(box)
+    prev_crop = ref_crop
     for i, step in enumerate(REMOVE_STEPS, start=1):
         path = os.path.join(out, f"stage_{i:02d}.png")
         if os.path.exists(path):
-            prev = Image.open(path).convert("RGB")
+            prev_crop = Image.open(path).convert("RGB").crop(box)
             continue
         print(f"Stufe {i}/{len(REMOVE_STEPS)}: {step[:70]}", flush=True)
-        data = None
-        for seed in (SEED, SEED + 1, SEED + 2):
-            try:
-                data = cf_klein(step + KEEP, GEN_W, GEN_H, input_png=png_small(prev), seed=seed)
-                break
-            except Flagged:
-                print("  Filter-Fehlalarm, neuer Seed ...", flush=True)
-        if data is None:
+        edited = klein_edit(step + KEEP, prev_crop)
+        if edited is None:
             print("  Stufe uebersprungen.", flush=True)
             continue
-        img = Image.open(io.BytesIO(data)).convert("RGB")
-        img.save(path)
-        prev = img
+        edited = color_match(edited, ref_crop)
+        paste_back(base, edited, box).save(path)
+        prev_crop = edited
 
 
 # --------------------------------------------------------------------------- Video
