@@ -1,18 +1,6 @@
 {
-  "count": 66,
+  "count": 67,
   "recent": [
-    {
-      "gender": "woman",
-      "age_range": [
-        70,
-        85
-      ],
-      "heritage": [
-        "Dutch",
-        "dutch"
-      ],
-      "setting": "on a rainy sidewalk"
-    },
     {
       "gender": "man",
       "age_range": [
@@ -720,6 +708,18 @@
         "irish"
       ],
       "setting": "on a busy city street"
+    },
+    {
+      "gender": "man",
+      "age_range": [
+        50,
+        59
+      ],
+      "heritage": [
+        "mixed-race",
+        "mixed"
+      ],
+      "setting": "in a sunflower field"
     }
   ],
   "reserve_used": [
