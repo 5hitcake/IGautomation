@@ -12,7 +12,8 @@
     "klopapier",
     "wein",
     "tomaten",
-    "zucker"
+    "zucker",
+    "diesel"
   ],
   "inflation_index": 2,
   "history": [
@@ -90,6 +91,11 @@
       "date": "2026-11-25",
       "kind": "product",
       "what": "zucker"
+    },
+    {
+      "date": "2026-11-26",
+      "kind": "product",
+      "what": "diesel"
     }
   ]
 }
