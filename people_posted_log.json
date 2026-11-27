@@ -1,18 +1,6 @@
 {
-  "count": 69,
+  "count": 70,
   "recent": [
-    {
-      "gender": "woman",
-      "age_range": [
-        20,
-        29
-      ],
-      "heritage": [
-        "Southeast Asian",
-        "southeast_asian"
-      ],
-      "setting": "on a mountain trail"
-    },
     {
       "gender": "man",
       "age_range": [
@@ -720,6 +708,18 @@
         "british"
       ],
       "setting": "in a library"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        20,
+        29
+      ],
+      "heritage": [
+        "Turkish",
+        "turkish"
+      ],
+      "setting": "on a mountain trail"
     }
   ],
   "reserve_used": [
