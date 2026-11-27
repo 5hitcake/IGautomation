@@ -20,6 +20,8 @@ const DEFAULTS = {
   heavenBest: 0, // bester Himmelreich-Direktstart (Etagen über dem Tor)
   settings: { sound: true, vibration: true, control: 'touch' }, // control: 'touch' | 'tilt'
   tutorialSeen: false,
+  reviewAsks: 0, // wie oft um eine Bewertung gebeten wurde
+  reviewAskedAt: 0, // wann zuletzt (ms)
 };
 
 let data = load();

@@ -151,6 +151,13 @@ export const POWERUPS = {
 // In Test-Versionen ersetzt eine 3-s-Test-Werbung die echte, wenn es keine gibt (Browser).
 export const REVIVE = { max: 3, free: 1, fakeAdSeconds: 3 };
 
+// Play-Store-Seite (zum Teilen)
+export const STORE_URL = 'https://play.google.com/store/apps/details?id=de.wolki.skyclimber';
+
+// Bewertung im Spiel erbitten: erst nach ein paar Runden, nach einem schönen Moment
+// (Rekord oder Himmelstor), mit Abstand und nicht zu oft. Google begrenzt zusätzlich selbst.
+export const REVIEW = { minRuns: 5, gapDays: 21, maxAsks: 3, delayMs: 1600 };
+
 // Google AdMob (nur Android-App). Die IDs sind nicht geheim, sie stehen in jeder App.
 export const ADS = {
   appId: 'ca-app-pub-6235633578293475~9791759258', // auch in AndroidManifest.xml

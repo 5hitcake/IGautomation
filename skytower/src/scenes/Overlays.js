@@ -3,7 +3,8 @@ import { W, VIEW_H, ZOOM, setupCamera, txt, button } from '../view.js';
 import { sfx } from '../services/audio.js';
 import { skinKey } from '../systems/skinTextures.js';
 import { save } from '../services/storage.js';
-import { TEST_TOOLS, REVIVE } from '../config.js';
+import { TEST_TOOLS, REVIVE, REVIEW } from '../config.js';
+import { shareResult, shouldAskForReview, askForReview } from '../services/social.js';
 import { adsSupported, showRewardedAd } from '../services/ads.js';
 import { tr, num } from '../i18n.js';
 import { skinById } from '../systems/progress.js';
@@ -113,11 +114,25 @@ export class GameOverScene extends Phaser.Scene {
       this.scene.stop();
       this.scene.get('Game').scene.restart({ mode: heaven ? 'heaven' : 'normal' });
     });
-    button(this, W / 2, y + 686, tr('Menü', 'Menu'), () => {
+    const toMenu = () => {
       sfx.click();
       this.scene.stop('Game');
       this.scene.start('Menu');
-    }, { fill: 0xbfe6ff, h: 88, size: 38 });
+    };
+    if (record || won) {
+      // Nach einem Rekord: Menü und Teilen nebeneinander
+      button(this, W / 2 - 140, y + 686, tr('Menü', 'Menu'), toMenu, { fill: 0xbfe6ff, w: 260, h: 88, size: 38 });
+      button(this, W / 2 + 140, y + 686, tr('Teilen', 'Share'), async () => {
+        sfx.click();
+        const res = await shareResult({ score, floor, won, heaven });
+        if (res === 'copied') this.toast(tr('Text kopiert – jetzt einfügen und teilen!', 'Copied – paste it anywhere to share!'));
+        else if (res === 'failed') this.toast(tr('Teilen hat nicht geklappt', 'Sharing did not work'));
+      }, { fill: 0xffc2e0, w: 260, h: 88, size: 38 });
+      // Schöner Moment: ggf. um eine Bewertung im Play Store bitten
+      if (shouldAskForReview()) this.time.delayedCall(REVIEW.delayMs, () => { if (this.scene.isActive()) askForReview(); });
+    } else {
+      button(this, W / 2, y + 686, tr('Menü', 'Menu'), toMenu, { fill: 0xbfe6ff, h: 88, size: 38 });
+    }
 
     // Weiterspielen: ein Regenschirm fängt Wolki auf und die Runde geht an derselben
     // Stelle weiter (das erste Mal gratis, danach per belohnter Werbung – siehe REVIVE)

@@ -6,20 +6,22 @@ Alles, was in der Play Console eingetragen wird. Grafiken liegen in diesem Ordne
 |---|---|
 | `icon-512.png` | App-Symbol (512 × 512) |
 | `feature-graphic-1024x500.png` | Grafik für Funktionen (1024 × 500) |
-| `screenshot-de-1…5.png` | Smartphone-Screenshots, Sprache Deutsch (1080 × 1920) |
-| `screenshot-en-1…5.png` | Smartphone-Screenshots, Sprache Englisch (1080 × 1920) |
+| `screenshot-de-text-1…5.png` | Smartphone-Screenshots mit Überschrift, Deutsch (1080 × 1920), in dieser Reihenfolge |
+| `screenshot-en-text-1…5.png` | Smartphone-Screenshots mit Überschrift, Englisch (1080 × 1920) |
+| `screenshot-de-1…5.png`, `screenshot-en-1…5.png` | Rohbilder ohne Text (Quelle für `scripts/make-store-screenshots.mjs`) |
+| YouTube-Video | Promo-Video (Hochformat, 30 s) auf YouTube hochladen, Link unter „Video“ eintragen |
 
-Neu erzeugen: `PLAYWRIGHT=… node scripts/make-store-assets.mjs` (Icon und Titelbild).
+Neu erzeugen: `node scripts/make-store-assets.mjs` (Icon und Titelbild), `node scripts/make-store-screenshots.mjs` (Screenshots mit Überschrift).
 
 ---
 
 ## Deutsch (de-DE)
 
 **App-Name** (max. 30 Zeichen)
-Wolki: Sky Climber
+Wolki: Sky Climber — Hüpfspiel
 
 **Kurzbeschreibung** (max. 80 Zeichen)
-Hüpf mit Wolki durch 10 Himmelszonen zum Himmelstor — schaffst du Etage 1000?
+Spring von Plattform zu Plattform bis Etage 1000 — Arcade-Spaß mit Wolki!
 
 **Vollständige Beschreibung** (max. 4000 Zeichen)
 
@@ -59,10 +61,10 @@ Die Hintergrundmusik wird mit jeder Stufe schneller und voller und klingt in jed
 ## English (en-US)
 
 **App name** (max. 30 characters)
-Wolki: Sky Climber
+Wolki: Sky Climber — Jump Game
 
 **Short description** (max. 80 characters)
-Hop with Wolki through 10 sky zones to the Heaven Gate — reach floor 1000!
+Jump from platform to platform up to floor 1000 — arcade fun with Wolki!
 
 **Full description** (max. 4000 characters)
 
