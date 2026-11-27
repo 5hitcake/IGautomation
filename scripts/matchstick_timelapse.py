@@ -267,6 +267,156 @@ def generate_stages(out):
         json.dump(log, f, indent=1)
 
 
+# --------------------------------------------------------------------------- v4: Pollinations
+
+POLLI_BASE = "https://gen.pollinations.ai"
+# Starke Bearbeitungsmodelle (Pollen-Guthaben). Reihenfolge = Vorzug; per POLLI_EDIT_MODEL ueberschreibbar.
+EDIT_MODEL_PREFS = [
+    "google/gemini-2.5-flash-image",
+    "bytedance/seedream-4.5",
+    "black-forest-labs/flux.1-kontext-pro",
+    "openai/gpt-image-1.5",
+]
+TARGET_PROMPT = (
+    "Add a complete, highly detailed miniature model of the Eiffel Tower in the center of the table, "
+    "built entirely from raw unpainted wooden matchsticks glued together: four curved lattice legs "
+    "with crossed matchstick bracing, a wide arch between the legs, two square platforms and a "
+    "slender lattice top with a small spire, all clearly made of individual matchsticks, a few red "
+    "match heads as decoration. The model stands on a flat base plate made of matchsticks laid side "
+    "by side. Keep the table, wall, lighting, camera angle, matchbox, glue and loose matchsticks "
+    "exactly the same. Photorealistic photo."
+)
+STEP_TEMPLATE = (
+    "Image 1 shows the current building progress, image 2 shows the finished matchstick model. "
+    "Edit image 1: {step} Build it exactly in the shape and style of the finished model in image 2, "
+    "but ONLY this step - nothing above it exists yet. Keep everything already built in image 1 "
+    "exactly as it is. Same camera angle, framing, table, wall and lighting as image 1. Raw unpainted "
+    "wooden matchsticks. Photorealistic photo."
+)
+FORWARD_STEPS = BUILD_STEPS[:8]  # danach folgt das Zielbild als letzte Stufe
+
+
+def polli_headers():
+    return {"Authorization": f"Bearer {os.environ.get('POLLI_TOKEN', '').strip()}"}
+
+
+def polli_models(out):
+    """Modell-/Preisliste speichern und Bearbeitungsmodelle mit Bildeingabe zurueckgeben."""
+    try:
+        resp = requests.get(f"{POLLI_BASE}/image/models", headers=polli_headers(), timeout=60)
+        data = resp.json()
+    except Exception as e:  # noqa: BLE001
+        print(f"Modellliste nicht abrufbar: {e}", flush=True)
+        return None
+    with open(os.path.join(out, "polli_models.json"), "w") as f:
+        json.dump(data, f, indent=1)
+    items = data if isinstance(data, list) else data.get("data") or data.get("models") or []
+    can_edit = set()
+    for m in items:
+        if not isinstance(m, dict):
+            continue
+        mid = m.get("id") or m.get("name")
+        if "image" in (m.get("input_modalities") or []):
+            can_edit.add(mid)
+        if mid in EDIT_MODEL_PREFS:
+            print(f"  {mid}: input={m.get('input_modalities')} preis={m.get('pricing')}", flush=True)
+    return can_edit
+
+
+def pick_edit_model(out):
+    forced = os.environ.get("POLLI_EDIT_MODEL", "").strip()
+    if forced:
+        return [forced]
+    can_edit = polli_models(out)
+    prefs = [m for m in EDIT_MODEL_PREFS if not can_edit or m in can_edit]
+    print(f"Bearbeitungsmodelle (in Reihenfolge): {prefs}", flush=True)
+    return prefs or EDIT_MODEL_PREFS
+
+
+def polli_edit(prompt, images, models, size, retries=2):
+    """POST /v1/images/edits mit hochgeladenen Bildern; probiert die Modelle der Reihe nach."""
+    w, h = size
+    last = None
+    for model in models:
+        for attempt in range(retries):
+            files = []
+            for k, img in enumerate(images):
+                buf = io.BytesIO()
+                img.convert("RGB").save(buf, "PNG")
+                files.append(("image", (f"img{k}.png", buf.getvalue(), "image/png")))
+            data = {"prompt": prompt, "model": model, "size": f"{w}x{h}", "response_format": "b64_json"}
+            try:
+                resp = requests.post(f"{POLLI_BASE}/v1/images/edits", headers=polli_headers(),
+                                     data=data, files=files, timeout=300)
+            except requests.RequestException as e:
+                last = str(e)
+                continue
+            if resp.ok:
+                try:
+                    item = resp.json()["data"][0]
+                    raw = (base64.b64decode(item["b64_json"]) if item.get("b64_json")
+                           else requests.get(item["url"], timeout=120).content)
+                    return Image.open(io.BytesIO(raw)).convert("RGB"), model
+                except Exception as e:  # noqa: BLE001
+                    last = f"{model}: unerwartete Antwort {resp.text[:200]} ({e})"
+            else:
+                last = f"{model}: HTTP {resp.status_code} {resp.text[:300]}"
+                if resp.status_code in (400, 401, 402, 403, 404, 422):
+                    break  # naechstes Modell
+            print(f"  {last}", flush=True)
+            time.sleep(8)
+        print(f"  {model} fehlgeschlagen: {last}", flush=True)
+    raise RuntimeError(f"Kein Bearbeitungsmodell erfolgreich: {last}")
+
+
+def generate_stages_polli(out):
+    os.makedirs(out, exist_ok=True)
+    models = pick_edit_model(out)
+    log = []
+    plate_path = os.path.join(out, "stage_00.png")
+    if not os.path.exists(plate_path):
+        print("Leerer Tisch (z-image-turbo) ...", flush=True)
+        Image.open(io.BytesIO(pollinations(PLATE_PROMPT, "tongyi-mai/z-image-turbo", 864, 1536))) \
+            .convert("RGB").save(plate_path)
+    plate = Image.open(plate_path).convert("RGB")
+    bw, bh = plate.size
+    box = (int(bw * BUILD_BOX[0]), int(bh * BUILD_BOX[1]), int(bw * BUILD_BOX[2]), int(bh * BUILD_BOX[3]))
+    ref_crop = plate.crop(box)
+    size = out_size(*ref_crop.size, max_side=1536)
+
+    n_final = len(FORWARD_STEPS) + 1
+    final_path = os.path.join(out, f"stage_{n_final:02d}.png")
+    if not os.path.exists(final_path):
+        print("Zielbild (fertiges Modell) ...", flush=True)
+        target, used = polli_edit(TARGET_PROMPT, [ref_crop], models, size)
+        target = color_match(target.resize(ref_crop.size, Image.LANCZOS), ref_crop)
+        paste_back(plate, target, box).save(final_path)
+        log.append({"stage": n_final, "model": used})
+        models = [used] + [m for m in models if m != used]  # beim funktionierenden Modell bleiben
+    target_crop = Image.open(final_path).convert("RGB").crop(box)
+
+    prev_crop = ref_crop
+    for i, step in enumerate(FORWARD_STEPS, start=1):
+        path = os.path.join(out, f"stage_{i:02d}.png")
+        if os.path.exists(path):
+            prev_crop = Image.open(path).convert("RGB").crop(box)
+            continue
+        print(f"Stufe {i}/{len(FORWARD_STEPS)}: {step[:70]}", flush=True)
+        try:
+            edited, used = polli_edit(STEP_TEMPLATE.format(step=step), [prev_crop, target_crop], models, size)
+        except RuntimeError as e:
+            print(f"  uebersprungen: {e}", flush=True)
+            continue
+        edited = color_match(edited.resize(ref_crop.size, Image.LANCZOS), ref_crop)
+        diff = changed(edited, prev_crop)
+        print(f"  Aenderung {diff:.1f} % ({used})", flush=True)
+        log.append({"stage": i, "model": used, "change": round(diff, 1)})
+        paste_back(plate, edited, box).save(path)
+        prev_crop = edited
+    with open(os.path.join(out, "stages_log.json"), "w") as f:
+        json.dump(log, f, indent=1)
+
+
 # --------------------------------------------------------------------------- Video
 
 
@@ -378,9 +528,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="experiments/matchstick/out")
     ap.add_argument("--render-only", action="store_true")
+    ap.add_argument("--engine", choices=["cloudflare", "pollinations"], default="cloudflare")
     args = ap.parse_args()
     if not args.render_only:
-        generate_stages(args.out)
+        (generate_stages_polli if args.engine == "pollinations" else generate_stages)(args.out)
     render(args.out, os.path.join(args.out, "matchstick_timelapse.mp4"))
     with open(os.path.join(args.out, "info.json"), "w") as f:
         json.dump({"subject": SUBJECT, "plate_prompt": PLATE_PROMPT, "steps": BUILD_STEPS}, f, indent=1)
