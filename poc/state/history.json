@@ -10,9 +10,10 @@
   "Daniel 6",
   "Johannes 13,1-17",
   "Hesekiel 37",
-  "Johannes 20,24-29"
+  "Johannes 20,24-29",
+  "Henoch 72-75"
  ],
- "story_count": 4,
+ "story_count": 5,
  "posts": [
   {
    "time": "2026-11-23T06:55+01:00",
@@ -58,6 +59,11 @@
    "time": "2026-11-27T06:54+01:00",
    "kind": "verse",
    "id": "Epheser 4,26"
+  },
+  {
+   "time": "2026-11-27T16:28+01:00",
+   "kind": "story",
+   "id": "Henoch 72-75"
   }
  ]
 }
