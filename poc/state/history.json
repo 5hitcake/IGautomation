@@ -3,7 +3,8 @@
   "Matthäus 5,14",
   "Psalm 73,26",
   "Jesaja 26,3",
-  "Galater 6,2"
+  "Galater 6,2",
+  "Epheser 4,26"
  ],
  "stories": [
   "Daniel 6",
@@ -52,6 +53,11 @@
    "time": "2026-11-26T16:28+01:00",
    "kind": "story",
    "id": "Johannes 20,24-29"
+  },
+  {
+   "time": "2026-11-27T06:54+01:00",
+   "kind": "verse",
+   "id": "Epheser 4,26"
   }
  ]
 }
