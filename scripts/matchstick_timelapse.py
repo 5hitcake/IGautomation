@@ -417,6 +417,69 @@ def generate_stages_polli(out):
         json.dump(log, f, indent=1)
 
 
+# v5: mit dem starken Modell vom fertigen Modell aus RUECKWAERTS abbauen (Entfernen klappt dort gut).
+REMOVE_TEMPLATE = (
+    "Edit this photo of a matchstick model of the Eiffel Tower: {step} Everything else stays exactly "
+    "identical, including all remaining parts of the model, the table, the wall, the lighting and "
+    "the camera angle. The new top edge looks unfinished, with a few single matchsticks sticking "
+    "out, as if the model is still under construction. Photorealistic photo."
+)
+REVERSE_STEPS = [
+    "Remove the pointed spire and the small top platform.",
+    "Remove the upper slender part of the tower above the second platform.",
+    "Remove the second platform.",
+    "Remove the middle section of the tower between the first and the second platform.",
+    "Remove the first platform; only the four curved lower legs with the arches remain, open at the top.",
+    "Make the four curved legs only half as tall; the arches are not finished yet.",
+    "Leave only four short feet, a few matchsticks high, at the corners of the base plate.",
+    "Remove the four feet completely; only the flat base plate made of matchsticks laid side by side remains.",
+    "Remove the front half of the flat matchstick base plate; only the back half has been laid so far.",
+]
+
+
+def generate_stages_polli_reverse(out, reuse=None):
+    """stage_00 = leerer Tisch, stage_NN = fertiges Modell; dazwischen rueckwaerts abgebaut."""
+    os.makedirs(out, exist_ok=True)
+    n_final = len(REVERSE_STEPS) + 1
+    plate_path = os.path.join(out, "stage_00.png")
+    final_path = os.path.join(out, f"stage_{n_final:02d}.png")
+    if reuse:  # Tisch + Endbild eines frueheren Laufs uebernehmen (spart Pollen)
+        files = sorted(f for f in os.listdir(reuse) if f.startswith("stage_"))
+        for src, dst in ((files[0], plate_path), (files[-1], final_path)):
+            if not os.path.exists(dst):
+                Image.open(os.path.join(reuse, src)).save(dst)
+    models = pick_edit_model(out)
+    if not os.path.exists(final_path):
+        generate_stages_polli(out)  # erzeugt Tisch + Zielbild (und Vorwaerts-Stufen) - Notfall
+    plate = Image.open(plate_path).convert("RGB")
+    bw, bh = plate.size
+    box = (int(bw * BUILD_BOX[0]), int(bh * BUILD_BOX[1]), int(bw * BUILD_BOX[2]), int(bh * BUILD_BOX[3]))
+    ref_crop = plate.crop(box)
+    size = out_size(*ref_crop.size, max_side=1536)
+    prev_crop = Image.open(final_path).convert("RGB").crop(box)
+    log = []
+    for k, step in enumerate(REVERSE_STEPS, start=1):
+        path = os.path.join(out, f"stage_{n_final - k:02d}.png")
+        if os.path.exists(path):
+            prev_crop = Image.open(path).convert("RGB").crop(box)
+            continue
+        print(f"Abbau {k}/{len(REVERSE_STEPS)}: {step[:70]}", flush=True)
+        try:
+            edited, used = polli_edit(REMOVE_TEMPLATE.format(step=step), [prev_crop], models, size)
+        except RuntimeError as e:
+            print(f"  uebersprungen: {e}", flush=True)
+            continue
+        models = [used] + [m for m in models if m != used]
+        edited = color_match(edited.resize(ref_crop.size, Image.LANCZOS), ref_crop)
+        diff = changed(edited, prev_crop)
+        print(f"  Aenderung {diff:.1f} % ({used})", flush=True)
+        log.append({"stage": n_final - k, "model": used, "change": round(diff, 1)})
+        paste_back(plate, edited, box).save(path)
+        prev_crop = edited
+    with open(os.path.join(out, "stages_log.json"), "w") as f:
+        json.dump(log, f, indent=1)
+
+
 # --------------------------------------------------------------------------- Video
 
 
@@ -528,10 +591,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="experiments/matchstick/out")
     ap.add_argument("--render-only", action="store_true")
-    ap.add_argument("--engine", choices=["cloudflare", "pollinations"], default="cloudflare")
+    ap.add_argument("--engine", choices=["cloudflare", "pollinations", "pollinations-reverse"],
+                    default="cloudflare")
+    ap.add_argument("--reuse", help="Ordner eines frueheren Laufs (Tisch + Endbild uebernehmen)")
     args = ap.parse_args()
     if not args.render_only:
-        (generate_stages_polli if args.engine == "pollinations" else generate_stages)(args.out)
+        if args.engine == "pollinations-reverse":
+            generate_stages_polli_reverse(args.out, reuse=args.reuse)
+        elif args.engine == "pollinations":
+            generate_stages_polli(args.out)
+        else:
+            generate_stages(args.out)
     render(args.out, os.path.join(args.out, "matchstick_timelapse.mp4"))
     with open(os.path.join(args.out, "info.json"), "w") as f:
         json.dump({"subject": SUBJECT, "plate_prompt": PLATE_PROMPT, "steps": BUILD_STEPS}, f, indent=1)
