@@ -1,18 +1,6 @@
 {
-  "count": 68,
+  "count": 69,
   "recent": [
-    {
-      "gender": "man",
-      "age_range": [
-        30,
-        39
-      ],
-      "heritage": [
-        "Persian",
-        "persian"
-      ],
-      "setting": "at a beach at dusk"
-    },
     {
       "gender": "woman",
       "age_range": [
@@ -720,6 +708,18 @@
         "german"
       ],
       "setting": "at an outdoor market"
+    },
+    {
+      "gender": "woman",
+      "age_range": [
+        30,
+        39
+      ],
+      "heritage": [
+        "British",
+        "british"
+      ],
+      "setting": "in a library"
     }
   ],
   "reserve_used": [
