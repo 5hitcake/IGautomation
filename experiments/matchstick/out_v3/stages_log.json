@@ -1,0 +1,52 @@
+[
+ {
+  "stage": 1,
+  "model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "change": 14.3
+ },
+ {
+  "stage": 2,
+  "model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "change": 3.4
+ },
+ {
+  "stage": 3,
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "change": 1.6
+ },
+ {
+  "stage": 4,
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "change": 2.4
+ },
+ {
+  "stage": 5,
+  "model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "change": 1.5
+ },
+ {
+  "stage": 6,
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "change": 3.8
+ },
+ {
+  "stage": 7,
+  "model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "change": 1.9
+ },
+ {
+  "stage": 8,
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "change": 0.4
+ },
+ {
+  "stage": 9,
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "change": 0.0
+ },
+ {
+  "stage": 10,
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "change": 0.0
+ }
+]

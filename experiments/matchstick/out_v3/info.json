@@ -1,0 +1,16 @@
+{
+ "subject": "Eiffel Tower",
+ "plate_prompt": "Photorealistic photo of a plain light oak workbench seen from slightly above, the center of the table is completely empty, a neat pile of loose wooden matchsticks with red heads, an open matchbox and a small tube of wood glue lie in the lower left corner of the table, plain light grey wall in the background, warm soft window light from the left, vertical composition, sharp focus, no people, no hands, no model, no objects in the center",
+ "steps": [
+  "In the center of the table, add a flat square base plate made of wooden matchsticks laid side by side.",
+  "On the matchstick base plate, add the four short feet of a tower at the four corners, each foot is a small lattice of crossed wooden matchsticks.",
+  "Make the four matchstick legs taller, leaning inward toward each other, built as a lattice of crossed matchsticks.",
+  "Connect the four matchstick legs with a first square platform made of matchsticks, with a wide arch below it.",
+  "On top of the first platform, add the next section of the matchstick lattice tower, narrowing upward.",
+  "Add a second, smaller square platform made of matchsticks on top of the tower.",
+  "Above the second platform, continue the tower upward as a tall, slender lattice of matchsticks.",
+  "Make the slender matchstick lattice tower even taller and narrower toward the top.",
+  "Add a small top platform and a pointed spire made of matchsticks at the very top. It is now a complete Eiffel Tower model made of wooden matchsticks.",
+  "Add fine details to the matchstick Eiffel Tower: more crossed matchstick bracing in the lattice and small red match heads as decoration along the platform edges."
+ ]
+}
