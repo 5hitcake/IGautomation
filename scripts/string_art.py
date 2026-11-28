@@ -120,9 +120,16 @@ def shape_mask(shape):
     return ((xx > lo) & (xx < hi) & (yy > lo) & (yy < hi)).astype(np.float32)
 
 
-def style_portrait(path, shape="circle", invert=False, center=(0.5, 0.45), scale=0.92, preset="ultra"):
+def style_portrait(path, shape="circle", invert=False, center=(0.5, 0.45), scale=0.92, preset="ultra",
+                   bg_penalty=0.0):
     cfg = PORTRAIT_PRESETS[preset]
     target = portrait_target(path, shape, center, scale, invert, preset)
+    if bg_penalty:
+        # Freigestellter (rein weisser) Hintergrund: Faeden dorthin lohnen sich nicht -> weniger Schleier
+        src = np.asarray(_square_crop(Image.open(path).convert("L"), center, scale), np.float32)
+        white = Image.fromarray((src > 245).astype(np.uint8) * 255).filter(ImageFilter.MinFilter(9))
+        white = np.asarray(white)
+        target = np.where(white > 0, -bg_penalty, target) * shape_mask(shape)
     n = cfg["nails"] if shape == "circle" else (cfg["nails"] // 4) * 4
     pts, side = frame_nails(shape, n)
     seq = _solve(target, pts, side, max_lines=cfg["lines"], line_dark=cfg["dark"])

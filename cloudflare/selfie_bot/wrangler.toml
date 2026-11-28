@@ -1,0 +1,10 @@
+# Telegram-Webhook fuer den Selfie-Bot (personalisierte Fadenbilder).
+# Deploy + Webhook-Anmeldung: .github/workflows/selfie_bot_deploy.yml
+name = "selfie-bot"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[vars]
+GH_REPO = "5hitcake/IGautomation"
+GH_REF = "main"

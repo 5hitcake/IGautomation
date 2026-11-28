@@ -1,0 +1,82 @@
+name: Selfie-Fadenbild (Auftrag)
+
+# Gestartet vom Selfie-Bot (cloudflare/selfie_bot), sobald du ihm ein Foto schickst.
+# Foto abholen -> Fadenbild rendern -> Reel + Bild mit Tisch + Bild nur Platte zurueck per Telegram.
+# Datenschutz: Foto und Ergebnisse bleiben nur auf dem Runner (keine Artifacts, kein Commit) und
+# werden am Ende geloescht.
+on:
+  workflow_dispatch:
+    inputs:
+      file_id:
+        description: "Telegram file_id des Fotos (setzt der Bot)"
+        required: true
+      options:
+        description: "kreis | quadrat und weiss | natur"
+        default: ""
+      message_id:
+        description: "Telegram-Nachricht, auf die geantwortet wird"
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selfie-art
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SELFIE_TELEGRAM_BOT_TOKEN: ${{ secrets.SELFIE_TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      WORK: ${{ runner.temp }}/auftrag
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Freistell-Modell aus dem Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.rembg
+          key: rembg-u2net-human-seg-v1
+
+      - name: Install dependencies
+        run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          pip install -q requests Pillow numpy scipy shapely "rembg[cpu]"
+          pip install -q "opencv-python-headless<5"   # Gesichtserkennung (Haar) gibt es nur bis 4.x
+
+      # Eingaben nur ueber Umgebungsvariablen (nie direkt in Shell-Befehle einsetzen)
+      - name: Foto abholen
+        env:
+          FILE_ID: ${{ github.event.inputs.file_id }}
+        run: |
+          mkdir -p "$WORK"
+          python scripts/selfie_telegram.py fetch --file-id "$FILE_ID" --to "$WORK/foto.jpg"
+
+      - name: Fadenbild rendern
+        env:
+          OPTIONS: ${{ github.event.inputs.options }}
+        run: python scripts/selfie_art.py --photo "$WORK/foto.jpg" --out "$WORK/out" --options "$OPTIONS"
+
+      - name: Ergebnis per Telegram schicken
+        env:
+          REPLY_TO: ${{ github.event.inputs.message_id }}
+        run: python scripts/selfie_telegram.py deliver --dir "$WORK/out" --reply-to "$REPLY_TO"
+
+      - name: Fehler melden
+        if: failure()
+        env:
+          REPLY_TO: ${{ github.event.inputs.message_id }}
+        run: |
+          python scripts/selfie_telegram.py error --reply-to "$REPLY_TO" \
+            --text "⚠️ Das Fadenbild konnte nicht erstellt werden. Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
+
+      - name: Foto und Ergebnisse löschen
+        if: always()
+        run: rm -rf "$WORK"

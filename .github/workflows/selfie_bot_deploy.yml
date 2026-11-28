@@ -1,0 +1,59 @@
+name: Selfie-Bot deploy (Cloudflare + Telegram-Webhook)
+
+# Legt den Cloudflare-Worker fuer den Selfie-Bot an und meldet ihn bei Telegram als Webhook an.
+# Braucht die Secrets CF_WORKERS_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, GH_DISPATCH_TOKEN,
+# TELEGRAM_CHAT_ID und SELFIE_TELEGRAM_BOT_TOKEN (neuer Bot von @BotFather - NICHT einen der
+# bestehenden Bots nehmen: ein Webhook wuerde deren Abfrage per getUpdates abschalten).
+on:
+  push:
+    branches: [main]
+    paths: ["cloudflare/selfie_bot/**", ".github/workflows/selfie_bot_deploy.yml"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pruefen, ob Secrets gesetzt sind
+        id: gate
+        env:
+          HAS: ${{ secrets.CF_WORKERS_API_TOKEN != '' && secrets.GH_DISPATCH_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' && secrets.SELFIE_TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        run: |
+          if [ "$HAS" != "true" ]; then
+            echo "::warning::SELFIE_TELEGRAM_BOT_TOKEN (oder ein anderes Secret) fehlt - Selfie-Bot wird noch nicht eingerichtet."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: cloudflare/wrangler-action@v3
+        id: wrangler
+        if: steps.gate.outputs.run == 'true'
+        with:
+          apiToken: ${{ secrets.CF_WORKERS_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cloudflare/selfie_bot
+          secrets: |
+            GH_DISPATCH_TOKEN
+            SELFIE_TELEGRAM_BOT_TOKEN
+            TELEGRAM_CHAT_ID
+        env:
+          GH_DISPATCH_TOKEN: ${{ secrets.GH_DISPATCH_TOKEN }}
+          SELFIE_TELEGRAM_BOT_TOKEN: ${{ secrets.SELFIE_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Webhook bei Telegram anmelden
+        if: steps.gate.outputs.run == 'true'
+        env:
+          TOKEN: ${{ secrets.SELFIE_TELEGRAM_BOT_TOKEN }}
+          URL: ${{ steps.wrangler.outputs.deployment-url }}
+        run: |
+          if [ -z "$URL" ]; then echo "::error::Worker-URL unbekannt"; exit 1; fi
+          secret=$(printf 'selfie-bot:%s' "$TOKEN" | sha256sum | cut -c1-48)
+          curl -sf "https://api.telegram.org/bot${TOKEN}/setWebhook" \
+            --data-urlencode "url=${URL}" \
+            --data-urlencode "secret_token=${secret}" \
+            --data-urlencode 'allowed_updates=["message"]' > /dev/null
+          curl -sf "https://api.telegram.org/bot${TOKEN}/setMyCommands" \
+            --data-urlencode 'commands=[{"command":"start","description":"Anleitung"}]' > /dev/null || true
+          echo "Webhook gesetzt: $URL"
