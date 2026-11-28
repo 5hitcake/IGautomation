@@ -1,3 +1,4 @@
 -r requirements.txt
 pytest==8.3.3
 ruff==0.7.4
+opencv-python-headless>=4.8,<5  # Gesichtserkennung (Haar-Kaskaden) fuer selfie_art-Tests
