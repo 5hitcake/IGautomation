@@ -50,7 +50,7 @@ def test_caption_has_hook_counts_and_hashtags():
     m = {"id": "batman", "kind": "superhero", "title": "Batman", "tags": ["batman", "dc"]}
     spec = {"nails": [0] * 360, "segs": [0] * 5000}
     cap = sp.caption_for(m, spec)
-    assert "360 Nägel" in cap and "5000" in cap
+    assert "360 nails" in cap and "5000" in cap
     assert "#stringart" in cap and "#batman" in cap
     assert len(cap) < 2200
 

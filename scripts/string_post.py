@@ -138,13 +138,13 @@ illness or scandal, minors, private persons, events, lists, countries, abstract 
 For each pick give a short English visual description of the subject's typical look (hair, beard,
 glasses, costume...) without inventing details you are unsure about.
 Answer ONLY with JSON: {{"picks": [{{"title": "...", "kind": "person|character|animal|building",
-"subject_en": "...", "title_de": "..."}}]}}"""
+"subject_en": "...", "title_en": "..."}}]}}"""
 
 
 def trending_motifs(avoid):
     titles = []
     day = datetime.now(timezone.utc) - timedelta(days=1)
-    for lang in ("de", "en"):
+    for lang in ("en", "de"):
         url = (f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/{lang}.wikipedia/all-access/"
                f"{day:%Y/%m/%d}")
         try:
@@ -169,7 +169,7 @@ def trending_motifs(avoid):
         if not p.get("subject_en") or mid in avoid:
             continue
         kind = {"animal": "animal", "building": "building"}.get(p.get("kind"), "trending")
-        out.append({"id": mid, "kind": kind, "trend": True, "title": p.get("title_de") or p["title"],
+        out.append({"id": mid, "kind": kind, "trend": True, "title": p.get("title_en") or p["title"],
                     "subject": p["subject_en"], "tags": [re.sub(r"\W+", "", p["title"].lower())]})
     return out
 
@@ -280,21 +280,21 @@ def build_spec(m, template, rng):
 def caption_for(m, spec):
     n_nails, n_threads = len(spec["nails"]), len(spec["segs"])
     hook = rng_choice([
-        f"{m['title']} – nur aus Nägeln und einem einzigen Faden 🧵",
-        f"{n_nails} Nägel. {n_threads} Fäden. Erkennst du, wer es ist? 👀",
-        f"Faden für Faden entsteht … {m['title']} 🧵",
-        f"Wer hätte gedacht, dass das nur Faden ist? {m['title']} 🔨🧵",
+        f"{m['title']} – made from nails and a single thread 🧵",
+        f"{n_nails} nails. {n_threads} lines of thread. Can you tell who it is? 👀",
+        f"Thread by thread … {m['title']} appears 🧵",
+        f"Hard to believe this is just thread. {m['title']} 🔨🧵",
     ])
     if m["kind"] == "illusion":
-        hook = rng_choice(["Nur gerade Fäden – und trotzdem sieht dein Gehirn 3D 🤯",
-                           f"{n_threads} gerade Linien. Keine einzige Kurve. 🌀"])
-    tags = ["#stringart", "#fadenbild", "#fadenkunst", "#nagelbild", "#satisfying", "#diy", "#art",
-            "#threadart", "#oddlysatisfying", "#kunst"] + [f"#{t}" for t in m.get("tags", [])]
+        hook = rng_choice(["Only straight threads – and your brain still sees 3D 🤯",
+                           f"{n_threads} straight lines. Not a single curve. 🌀"])
+    tags = ["#stringart", "#threadart", "#nailart", "#satisfying", "#oddlysatisfying", "#art", "#diy",
+            "#artwork", "#portrait", "#asmr"] + [f"#{t}" for t in m.get("tags", [])]
     from common import support_line
 
     support = support_line("string_art")
-    return (f"{hook}\n\n{n_nails} Nägel · {n_threads} Fadenlinien · berechnet Linie für Linie.\n\n"
-            f"Wen oder was soll ich als Nächstes machen? Schreib's in die Kommentare 👇\n\n"
+    return (f"{hook}\n\n{n_nails} nails · {n_threads} lines of thread · calculated line by line.\n\n"
+            f"Who or what should I make next? Tell me in the comments 👇\n\n"
             + (f"{support}\n\n" if support else "")
             + " ".join(dict.fromkeys(tags)))
 
