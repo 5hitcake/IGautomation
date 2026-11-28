@@ -9,7 +9,7 @@
     "game": 1,
     "animal": 2,
     "icon": 2,
-    "building": 1,
+    "building": 0,
     "illusion": 1
   },
   "motifs": [
