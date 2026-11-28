@@ -18,3 +18,7 @@ assets/kaufkraft_generated/*.mp4
 poc/out/
 poc/output/
 experiments/matchstick/*/_frames/
+
+# Fadenbild-Reels: Videos liegen auf dem Medien-Branch
+assets/string_art/out/*
+!assets/string_art/out/next_post.json

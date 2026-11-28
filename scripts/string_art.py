@@ -390,7 +390,7 @@ def ease_out(t, p=3.0):
 
 
 def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, seconds_thread=18.0,
-           seconds_hold=5.0, thread_rgb=(22, 20, 20)):
+           seconds_hold=5.0, thread_rgb=(22, 20, 20), audio=True):
     os.makedirs(out, exist_ok=True)
     t0 = time.time()
     table = load_table(table_name)
@@ -404,15 +404,22 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
         return ((x - ART_X) * SS, (y - ART_Y) * SS)
 
     video = os.path.join(out, f"{name}.mp4")
+    silent = os.path.join(out, f".{name}_silent.mp4") if audio else video
     ff = subprocess.Popen(
         ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
          "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "19",
-         "-movflags", "+faststart", video],
+         "-movflags", "+faststart", silent],
         stdin=subprocess.PIPE,
     )
     shake_left = [0]
+    frame_no = [0]
+    events = []  # (Zeit in s, Art, Staerke) fuer die Tonspur
+
+    def now():
+        return frame_no[0] / FPS
 
     def emit(img):
+        frame_no[0] += 1
         if shake_left[0] > 0:  # Hammerschlag: Bild ruckt kurz um 1-2 px
             shake_left[0] -= 1
             dy = 2 if shake_left[0] % 2 else -1
@@ -426,6 +433,7 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
     for f in range(n):
         t = ease_out((f + 1) / n)
         emit(scene(table, panel, lift=1 - t, alpha=min(1.0, 0.25 + 1.5 * t)))
+    events.append((now(), "nail", 1.4))  # Platte setzt auf
     base = scene(table, panel)
     for _ in range(int(0.4 * FPS)):
         emit(base)
@@ -439,8 +447,13 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
         for i in order[shown:upto]:
             x, y = nails[i]
             nail_layer.alpha_composite(sprite, (int(round(x - scx)), int(round(y - scy))))
-        if 0 < upto - shown <= 2:
+        new = upto - shown
+        if 0 < new <= 2:
             shake_left[0] = 2
+            for k in range(new):
+                events.append((now() + k * 0.5 / FPS, "nail", 1.0))
+        elif new > 2:  # schnell: ein leiserer Schlag pro Bild
+            events.append((now(), "nail", 0.45))
         shown = upto
         frame = base.copy()
         frame.alpha_composite(nail_layer)
@@ -460,6 +473,7 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
             t = g / 5
             emit(compose(((p0, (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t)), c)))
         canvas.add([(p0, p1, c)])
+        events.append((now(), "pluck", 1.0))
     rest = segs[intro:]
     n_frames = int((seconds_thread - intro * 5 / FPS) * FPS)
     done = 0
@@ -467,12 +481,15 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
     for f in range(n_frames):
         upto = int(len(rest) * ease_in((f + 1) / n_frames))
         canvas.add([(to_art(a), to_art(b), c) for a, b, c in rest[done:upto]])
+        if upto > done and f % 2 == 0:
+            events.append((now(), "fast", min(1.0, 0.15 + (upto - done) / 40)))
         done = upto
         frame = compose()
         emit(frame)
     final = frame
 
     # 3) Fertiges Bild halten, langsam heranzoomen
+    events.append((now(), "reveal", 1.0))
     n_frames = int(seconds_hold * FPS)
     cx, cy = ART_X + ART / 2, ART_Y + ART / 2
     for f in range(n_frames):
@@ -483,9 +500,18 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
         emit(big.crop((x, y, x + W, y + H)))
     ff.stdin.close()
     ff.wait()
+    if audio:
+        from string_audio import build_audio
+
+        wav = os.path.join(out, f".{name}.wav")
+        build_audio(events, now(), wav)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-i", wav, "-c:v", "copy",
+                        "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", video], check=True)
+        os.remove(silent)
+        os.remove(wav)
     final.convert("RGB").save(os.path.join(out, f"{name}.jpg"), quality=92)
     info = {"name": name, "table": table_name, "panel": panel_name, "shape": shape,
-            "nails": len(nails), "threads": len(segs)}
+            "nails": len(nails), "threads": len(segs), "seconds": round(now(), 1)}
     with open(os.path.join(out, f"{name}.json"), "w") as f:
         json.dump(info, f, indent=1)
     print(f"{name}: {len(nails)} Naegel, {len(segs)} Faeden, {time.time() - t0:.0f} s -> {video}", flush=True)
