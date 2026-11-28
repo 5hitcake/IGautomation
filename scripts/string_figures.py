@@ -224,7 +224,8 @@ def _faces_for(name):
         proj = [(n, [iso(p) for p in poly]) for n, poly in box_faces(0, 1, 0, 1, 0, 1)]
     else:  # penrose
         L = 5.0
-        order = [box_faces(L - 1, L, L - 1, L, 0, L), box_faces(L - 1, L, 0, L, 0, 1), box_faces(0, L, 0, 1, 0, 1)]
+        order = [box_faces(L - 1, L, L - 1, L, 0, L), box_faces(L - 1, L, 0, L, 0, 1),
+                 box_faces(0, L, 0, 1, 0, 1)]
         proj = [(n, [iso(p) for p in poly]) for faces in order for n, poly in faces]
         proj = [(n, [(y, -x) for x, y in poly]) for n, poly in proj]
     pad = 0.24 if name == "cube" else 0.20  # Figur muss in den Kreis passen

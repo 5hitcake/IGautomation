@@ -24,13 +24,11 @@ import argparse
 import base64
 import io
 import json
-import math
 import os
 import random
 import re
 import secrets
 import sys
-import time
 import urllib.parse
 from datetime import datetime, timedelta, timezone
 
@@ -154,12 +152,14 @@ def trending_motifs(avoid):
         except Exception as e:  # noqa: BLE001
             print(f"Trends ({lang}) nicht abrufbar: {e}")
             continue
-        skip = re.compile(r"^(Spezial|Special|Wikipedia|Datei|File|Hauptseite|Main_Page|Portal|Liste|List_of)", re.I)
+        skip = re.compile(
+            r"^(Spezial|Special|Wikipedia|Datei|File|Hauptseite|Main_Page|Portal|Liste|List_of)", re.I)
         titles += [a["article"].replace("_", " ") for a in arts[:60] if not skip.match(a["article"])]
     if not titles:
         return []
     try:
-        data = json.loads(re.search(r"\{.*\}", cf_chat(TREND_PROMPT.format(titles="\n".join(titles))), re.S).group(0))
+        answer = cf_chat(TREND_PROMPT.format(titles="\n".join(titles)))
+        data = json.loads(re.search(r"\{.*\}", answer, re.S).group(0))
     except Exception as e:  # noqa: BLE001
         print(f"Trend-Auswahl per KI fehlgeschlagen: {e}")
         return []
@@ -219,7 +219,8 @@ def gen_pollinations(prompt, model, seed):
 def gen_cloudflare(prompt, seed):
     acc, tok = os.environ["CLOUDFLARE_ACCOUNT_ID"], os.environ["CLOUDFLARE_API_TOKEN"]
     url = f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/@cf/black-forest-labs/flux-2-klein-4b"
-    files = {k: (None, str(v)) for k, v in {"prompt": prompt, "width": 1024, "height": 1024, "seed": seed}.items()}
+    form = {"prompt": prompt, "width": 1024, "height": 1024, "seed": seed}
+    files = {k: (None, str(v)) for k, v in form.items()}
     r = requests.post(url, headers={"Authorization": f"Bearer {tok}"}, files=files, timeout=180)
     r.raise_for_status()
     if r.headers.get("content-type", "").startswith("image/"):
@@ -234,7 +235,8 @@ def make_template(m, path, rng):
     # Zuerst Cloudflare (Gratis-Kontingent), Pollinations (Pollen-Guthaben) nur als Ersatz
     for name, fn in (("cloudflare:klein", lambda: gen_cloudflare(prompt, seed)),
                      ("pollinations:flux", lambda: gen_pollinations(prompt, "flux", seed)),
-                     ("pollinations:z-image", lambda: gen_pollinations(prompt, "tongyi-mai/z-image-turbo", seed))):
+                     ("pollinations:z-image",
+                      lambda: gen_pollinations(prompt, "tongyi-mai/z-image-turbo", seed))):
         try:
             data = fn()
             Image.open(io.BytesIO(data)).convert("RGB").save(path)
@@ -334,7 +336,8 @@ def produce(m, rng, workdir):
 def telegram():
     import people_review as pr
 
-    token = (os.environ.get("STRINGART_TELEGRAM_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
+    token = (os.environ.get("STRINGART_TELEGRAM_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN")
+             or "").strip()
     chat = (os.environ.get("TELEGRAM_CHAT_ID") or "").strip()
     if not token or not chat:
         return None
@@ -404,7 +407,8 @@ def main():
             json.dump(post, f, ensure_ascii=False, indent=2)
         if args.preview:
             if tg:
-                tg.send_video(video, f"🧵 Vorschau (wird nicht gepostet): {m['title']}\n\n{post['caption']}", "x")
+                text = f"🧵 Vorschau (wird nicht gepostet): {m['title']}\n\n{post['caption']}"
+                tg.send_video(video, text, "x")
             write_output(publish="false", motif=m["id"])
             return
         decision = pr.APPROVE
@@ -417,7 +421,8 @@ def main():
             tg.set_status(msg, {pr.APPROVE: "✅ Wird gepostet", pr.REROLL: "🔄 Anderes Motiv kommt",
                                 pr.REJECT: "❌ Ausgelassen"}[decision])
         if decision == pr.APPROVE:
-            log["posts"].append({"id": m["id"], "date": now.isoformat(timespec="seconds"), "title": m["title"]})
+            log["posts"].append({"id": m["id"], "date": now.isoformat(timespec="seconds"),
+                                 "title": m["title"]})
             with open(LOG, "w", encoding="utf-8") as f:
                 json.dump(log, f, ensure_ascii=False, indent=1)
             write_output(publish="true", motif=m["id"], video=os.path.relpath(video, ROOT))

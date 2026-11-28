@@ -14,7 +14,8 @@ Stile:
             Spiral-Tunnel.
 
 Nutzung:
-  python scripts/string_art.py --style portrait --image assets/string_art/motifs/old_man_beard.png --shape circle
+  python scripts/string_art.py --style portrait --shape circle \
+      --image assets/string_art/motifs/old_man_beard.png
   python scripts/string_art.py --style portrait --image ... --shape square --panel panel_natural
   python scripts/string_art.py --style pattern --pattern mandala --shape circle
   python scripts/string_art.py --style pattern --pattern curves --shape square
@@ -115,7 +116,8 @@ def shape_mask(shape):
     yy, xx = np.mgrid[0:WORK, 0:WORK].astype(np.float32)
     if shape == "circle":
         return (np.sqrt((xx - WORK / 2) ** 2 + (yy - WORK / 2) ** 2) / (WORK / 2) < 0.97).astype(np.float32)
-    return ((xx > WORK * 0.02) & (xx < WORK * 0.98) & (yy > WORK * 0.02) & (yy < WORK * 0.98)).astype(np.float32)
+    lo, hi = WORK * 0.02, WORK * 0.98
+    return ((xx > lo) & (xx < hi) & (yy > lo) & (yy < hi)).astype(np.float32)
 
 
 def style_portrait(path, shape="circle", invert=False, center=(0.5, 0.45), scale=0.92, preset="ultra"):
@@ -506,7 +508,8 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
         wav = os.path.join(out, f".{name}.wav")
         build_audio(events, now(), wav)
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-i", wav, "-c:v", "copy",
-                        "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", video], check=True)
+                        "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", video],
+                       check=True)
         os.remove(silent)
         os.remove(wav)
     final.convert("RGB").save(os.path.join(out, f"{name}.jpg"), quality=92)
