@@ -121,9 +121,13 @@ def shape_mask(shape):
 
 
 def style_portrait(path, shape="circle", invert=False, center=(0.5, 0.45), scale=0.92, preset="ultra",
-                   bg_penalty=0.0):
+                   bg_penalty=0.0, weight=None):
     cfg = PORTRAIT_PRESETS[preset]
     target = portrait_target(path, shape, center, scale, invert, preset)
+    if weight is not None:  # Gewichtung (Gesicht wichtiger, Kleidung unwichtiger), Groesse wie Bild
+        w = Image.fromarray((np.clip(weight, 0, 2) * 127).astype(np.uint8))
+        w = np.asarray(_square_crop(w, center, scale), np.float32) / 127.0
+        target = np.clip(target * w, 0, 1)
     if bg_penalty:
         # Freigestellter (rein weisser) Hintergrund: Faeden dorthin lohnen sich nicht -> weniger Schleier
         src = np.asarray(_square_crop(Image.open(path).convert("L"), center, scale), np.float32)
