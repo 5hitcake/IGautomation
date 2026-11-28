@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String Art Studio</title>
+<meta name="description" content="Turn your photo into a string art portrait made of nails and a single thread.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23f3efe8' stroke='%235b3a24' stroke-width='6'/><path d='M50 6L88 70L12 70Z M12 30L88 30L50 94Z' fill='none' stroke='%23222' stroke-width='3'/></svg>">
+<link rel="stylesheet" href="studio.css">
+</head>
+<body>
+<div id="intro" aria-hidden="true">
+  <canvas id="intro-canvas"></canvas>
+  <button id="skip" class="ghost" data-i18n="skip">Skip intro</button>
+</div>
+
+<header class="top">
+  <a class="brand" href="./">🧵 String Art Studio</a>
+  <label class="lang"><span class="sr">Language</span>
+    <select id="lang">
+      <option value="en">English</option><option value="de">Deutsch</option>
+      <option value="es">Español</option><option value="fr">Français</option>
+    </select>
+  </label>
+</header>
+
+<main>
+  <section class="hero board">
+    <h1 data-i18n="title">Your portrait in nails &amp; thread</h1>
+    <p data-i18n="tagline"></p>
+  </section>
+
+  <ol class="steps">
+    <li class="board step" id="step1">
+      <h2><span class="num">1</span><span data-i18n="s1"></span></h2>
+      <p data-i18n="s1_text"></p>
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept="image/*" hidden>
+        <span class="btn" data-i18n="s1_btn"></span>
+        <span class="muted" data-i18n="s1_drop"></span>
+      </label>
+      <details class="tips">
+        <summary data-i18n="tips_title"></summary>
+        <ul><li data-i18n="tip1"></li><li data-i18n="tip2"></li><li data-i18n="tip3"></li><li data-i18n="tip4"></li></ul>
+      </details>
+    </li>
+
+    <li class="board step locked" id="step2">
+      <h2><span class="num">2</span><span data-i18n="s2"></span></h2>
+      <div class="check">
+        <img id="thumb" alt="">
+        <div><p id="check-head"></p><ul id="check-list"></ul>
+          <button class="ghost" id="again" type="button" data-i18n="check_other"></button></div>
+      </div>
+    </li>
+
+    <li class="board step locked" id="step3">
+      <h2><span class="num">3</span><span data-i18n="s3"></span></h2>
+      <div class="options">
+        <fieldset><legend data-i18n="shape"></legend>
+          <label class="opt"><input type="radio" name="shape" value="circle" checked><span class="sw sw-round"></span><span data-i18n="round"></span></label>
+          <label class="opt"><input type="radio" name="shape" value="square"><span class="sw sw-square"></span><span data-i18n="square"></span></label>
+        </fieldset>
+        <fieldset><legend data-i18n="wood"></legend>
+          <label class="opt"><input type="radio" name="panel" value="white" checked><span class="sw sw-white"></span><span data-i18n="white"></span></label>
+          <label class="opt"><input type="radio" name="panel" value="natural"><span class="sw sw-natural"></span><span data-i18n="natural"></span></label>
+        </fieldset>
+      </div>
+    </li>
+
+    <li class="board step locked" id="step4">
+      <h2><span class="num">4</span><span data-i18n="s4"></span></h2>
+      <div class="preview"><canvas id="preview" width="720" height="720"></canvas></div>
+      <button class="btn" id="make-preview" type="button" data-i18n="s4_btn"></button>
+      <p class="muted small" id="preview-status" data-i18n="s4_note"></p>
+    </li>
+
+    <li class="board step locked" id="step5">
+      <h2><span class="num">5</span><span data-i18n="s5"></span></h2>
+      <p data-i18n="s5_text"></p>
+      <form id="order" novalidate>
+        <label class="field"><span data-i18n="email"></span>
+          <input type="email" id="email" autocomplete="email" required></label>
+        <p class="error" id="email-error" hidden data-i18n="email_bad"></p>
+        <label class="consent"><input type="checkbox" id="consent" required> <span id="consent-text"></span></label>
+        <input type="text" name="website" id="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+        <button class="btn" id="order-btn" type="submit" data-i18n="order_btn"></button>
+        <p class="muted small" id="closed" hidden data-i18n="closed"></p>
+      </form>
+      <div id="done" hidden><p id="done-text"></p><a class="btn" id="pay" target="_blank" rel="noopener" data-i18n="pay_btn"></a></div>
+    </li>
+  </ol>
+</main>
+
+<footer>
+  <p data-i18n="footer"></p>
+  <p><a href="privacy.html" data-i18n="privacy"></a> · <a href="imprint.html" data-i18n="imprint"></a> ·
+     <a href="https://instagram.com/stringart.daily" target="_blank" rel="noopener">@stringart.daily</a></p>
+</footer>
+
+<script src="config.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
