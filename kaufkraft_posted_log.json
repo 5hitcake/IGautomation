@@ -14,7 +14,8 @@
     "tomaten",
     "zucker",
     "diesel",
-    "schnitzel"
+    "schnitzel",
+    "kartoffeln"
   ],
   "inflation_index": 2,
   "history": [
@@ -102,6 +103,11 @@
       "date": "2026-11-27",
       "kind": "product",
       "what": "schnitzel"
+    },
+    {
+      "date": "2026-11-28",
+      "kind": "product",
+      "what": "kartoffeln"
     }
   ]
 }
