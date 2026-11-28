@@ -17,7 +17,6 @@ assets/kaufkraft_generated/*.mp4
 # Power of Christ: gebaute Reels liegen auf den Branches poc-media-*
 poc/out/
 poc/output/
-experiments/matchstick/*/_frames/
 
 # Fadenbild-Reels: Videos liegen auf dem Medien-Branch
 assets/string_art/out/*
