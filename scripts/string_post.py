@@ -290,8 +290,12 @@ def caption_for(m, spec):
                            f"{n_threads} gerade Linien. Keine einzige Kurve. 🌀"])
     tags = ["#stringart", "#fadenbild", "#fadenkunst", "#nagelbild", "#satisfying", "#diy", "#art",
             "#threadart", "#oddlysatisfying", "#kunst"] + [f"#{t}" for t in m.get("tags", [])]
+    from common import support_line
+
+    support = support_line("string_art")
     return (f"{hook}\n\n{n_nails} Nägel · {n_threads} Fadenlinien · berechnet Linie für Linie.\n\n"
             f"Wen oder was soll ich als Nächstes machen? Schreib's in die Kommentare 👇\n\n"
+            + (f"{support}\n\n" if support else "")
             + " ".join(dict.fromkeys(tags)))
 
 
