@@ -10,7 +10,7 @@ Motive (content/string_art/motifs.json), gewichtet gemischt:
   illusion   Wurmloch / 3D-Kugel (ohne Vorlage, aus Kreis-Sehnen)
 
 Die Vorlage wird als kontrastreiches Schwarz-Weiss-Portraet vor hellem Studio-Hintergrund erzeugt
-(Pollinations, Reserve Cloudflare FLUX-2 Klein) - so wird das Fadenbild am deutlichsten.
+(Cloudflare FLUX-2 Klein, Ersatz Pollinations) - so wird das Fadenbild am deutlichsten.
 
 Nutzung:
   python scripts/string_post.py --target 11:07            (Termin UTC; Freigabe bis dahin)
@@ -93,6 +93,27 @@ def recent_ids(log, days=NO_REPEAT_DAYS):
 
 
 def cf_chat(prompt):
+    """KI-Text: Cloudflare Workers AI, bei Fehler/erschoepftem Kontingent Pollinations."""
+    try:
+        return _cf_chat(prompt)
+    except Exception as e:  # noqa: BLE001
+        print(f"Cloudflare-Text nicht verfuegbar ({e}) - Pollinations als Ersatz.")
+    token = os.environ.get("POLLI_TOKEN", "").strip()
+    last = None
+    for model in ("openai", "mistral"):
+        try:
+            r = requests.post("https://gen.pollinations.ai/v1/chat/completions", timeout=120,
+                              headers={"Authorization": f"Bearer {token}"} if token else {},
+                              json={"model": model, "messages": [{"role": "user", "content": prompt}],
+                                    "temperature": 0.3})
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"]
+        except Exception as e:  # noqa: BLE001
+            last = e
+    raise RuntimeError(f"Kein KI-Text verfuegbar: {last}")
+
+
+def _cf_chat(prompt):
     acc, tok = os.environ.get("CLOUDFLARE_ACCOUNT_ID"), os.environ.get("CLOUDFLARE_API_TOKEN")
     if not acc or not tok:
         raise RuntimeError("Cloudflare-Zugang fehlt")
@@ -210,9 +231,10 @@ def make_template(m, path, rng):
     prompt = prompt_for(m)
     seed = rng.randint(1, 2**31 - 1)
     errors = []
-    for name, fn in (("pollinations:flux", lambda: gen_pollinations(prompt, "flux", seed)),
-                     ("pollinations:z-image", lambda: gen_pollinations(prompt, "tongyi-mai/z-image-turbo", seed)),
-                     ("cloudflare:klein", lambda: gen_cloudflare(prompt, seed))):
+    # Zuerst Cloudflare (Gratis-Kontingent), Pollinations (Pollen-Guthaben) nur als Ersatz
+    for name, fn in (("cloudflare:klein", lambda: gen_cloudflare(prompt, seed)),
+                     ("pollinations:flux", lambda: gen_pollinations(prompt, "flux", seed)),
+                     ("pollinations:z-image", lambda: gen_pollinations(prompt, "tongyi-mai/z-image-turbo", seed))):
         try:
             data = fn()
             Image.open(io.BytesIO(data)).convert("RGB").save(path)
