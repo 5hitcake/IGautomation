@@ -72,8 +72,68 @@ async function dispatch(env, inputs) {
   });
 }
 
+// ---------------------------------------------------------------- Bestellungen von der Studio-Seite
+export const ORDER_ORIGIN = "https://5hitcake.github.io";
+const CORS = {
+  "Access-Control-Allow-Origin": ORDER_ORIGIN,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Max-Age": "86400",
+};
+const MAX_PHOTO = 6 * 1024 * 1024;
+const SHAPES = ["circle", "square"];
+const PANELS = ["white", "natural"];
+const LANGS = ["en", "de", "es", "fr"];
+
+export function orderCode() {
+  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  return [...bytes].map((b) => abc[b % abc.length]).join("");
+}
+
+export function validateOrder(f) {
+  const email = String(f.get("email") || "").trim();
+  if (String(f.get("website") || "")) return "spam";          // Honigtopf-Feld ist fuer Menschen unsichtbar
+  if (!/^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/.test(email)) return "email";
+  const photo = f.get("photo");
+  if (!photo || typeof photo === "string" || !/^image\//.test(photo.type) || photo.size > MAX_PHOTO) return "photo";
+  if (!SHAPES.includes(f.get("shape")) || !PANELS.includes(f.get("panel"))) return "options";
+  if (!LANGS.includes(f.get("lang"))) return "lang";
+  return null;
+}
+
+const json = (data, status = 200) =>
+  new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", ...CORS } });
+
+async function handleOrder(request, env) {
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
+  if (request.method !== "POST") return json({ error: "method" }, 405);
+  const form = await request.formData().catch(() => null);
+  if (!form) return json({ error: "form" }, 400);
+  const problem = validateOrder(form);
+  if (problem === "spam") return json({ code: orderCode() });   // Bots nichts verraten
+  if (problem) return json({ error: problem }, 400);
+  const code = orderCode();
+  const shape = form.get("shape"), panel = form.get("panel");
+  // Optionen zuerst: Foto einfach an den Bot weiterleiten -> er liest "circle white" usw.
+  const caption =
+    `${shape} ${panel}\n🛒 Bestellung #${code}\n📧 ${form.get("email").trim()}\n` +
+    `🌐 ${form.get("lang")} · Foto-Check: ${form.get("check") || "ok"}\n\n` +
+    "➡️ Foto an den Bot weiterleiten, um das Fadenbild zu erstellen.";
+  const tgForm = new FormData();
+  tgForm.append("chat_id", env.TELEGRAM_CHAT_ID);
+  tgForm.append("caption", caption);
+  tgForm.append("document", form.get("photo"), `bestellung_${code}.jpg`);
+  const res = await fetch(`https://api.telegram.org/bot${env.SELFIE_TELEGRAM_BOT_TOKEN}/sendDocument`, {
+    method: "POST", body: tgForm,
+  });
+  if (!res.ok) return json({ error: "deliver" }, 502);
+  return json({ code });
+}
+
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname === "/order") return handleOrder(request, env);
     if (request.method !== "POST") return new Response("ok");
     const secret = await webhookSecret(env.SELFIE_TELEGRAM_BOT_TOKEN || "");
     if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== secret) {
