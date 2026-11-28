@@ -1,24 +1,21 @@
 """Fadenbild-Videos ("String Art": Naegel + Faden), komplett per Code animiert.
 
-Stile:
-  circle   Portraet: Naegel im Kreis, Tausende Sehnen (klassischer Greedy-Algorithmus).
-           Auf dunklem Brett mit hellem Faden (--invert), auf hellem Brett mit dunklem Faden.
-  lowpoly  Geometrisch wie die bekannten Loewen-Bilder: Naegel an Eckpunkten, der Faden laeuft
-           die Kanten eines Dreiecksnetzes entlang, das den Linien des Motivs folgt.
-  fill     Silhouette: Naegel entlang des Umrisses, Faden kreuz und quer im Inneren (Farbe aus
-           dem Motiv), zum Schluss einmal rundherum.
-  pattern  Mathematische Muster ohne Vorlage (Kardioide, Nephroide, Mandala in mehreren Farben).
+Szene (Draufsicht): Ein Holztisch ist der Hintergrund. Zuerst sieht man nur den Tisch, dann wird
+eine helle Arbeitsplatte (weiss lackiert oder naturfarben, rund oder quadratisch) hingelegt. Danach
+stecken die Naegel schlagartig in der Platte (bei den ersten Schlaegen ruckt das Bild kurz) und der
+Faden wird gespannt - anfangs einzeln, dann immer schneller. Am Ende langsamer Zoom aufs Ergebnis.
 
-Hintergrund ist ein echtes (KI-)Foto eines Bretts in Draufsicht (assets/string_art/boards).
-Naegel stecken schlagartig im Brett (jeder Schlag: kurzer Ruck), danach wird der Faden gespannt -
-anfangs einzeln, dann immer schneller. Am Ende bleibt das Bild mit langsamem Zoom stehen.
+Stile:
+  portrait  Naegel am Rand (Kreis oder Quadrat), Tausende Sehnen; ein Greedy-Algorithmus waehlt
+            immer die Sehne, die das Motiv am meisten verbessert. Braucht kontrastreiche Vorlagen
+            (dramatisches Licht, heller Hintergrund).
+  pattern   Mathematische Muster ohne Vorlage (Kreis: Mandala, Kardioide ...; Quadrat: Kurvensterne).
 
 Nutzung:
-  python scripts/string_art.py --style circle  --image assets/string_art/motifs/real_face_woman.jpg
-  python scripts/string_art.py --style circle  --image .../anime_girl.png --board dark_walnut --invert
-  python scripts/string_art.py --style lowpoly --image .../brandenburg_gate.png
-  python scripts/string_art.py --style fill    --image .../comic_cat_red.png
-  python scripts/string_art.py --style pattern --pattern mandala --board dark_walnut
+  python scripts/string_art.py --style portrait --image assets/string_art/motifs/old_man_beard.png --shape circle
+  python scripts/string_art.py --style portrait --image ... --shape square --panel panel_natural
+  python scripts/string_art.py --style pattern --pattern mandala --shape circle
+  python scripts/string_art.py --style pattern --pattern curves --shape square
 """
 
 import argparse
@@ -36,16 +33,41 @@ BOARDS = os.path.join(ROOT, "assets", "string_art", "boards")
 
 W, H = 1080, 1920
 FPS = 30
-ART = 920  # Kantenlaenge des Bildbereichs (Quadrat)
-ART_X, ART_Y = (W - ART) // 2, 420
+ART = 900  # Kantenlaenge des Faden-Bereichs (Quadrat)
+ART_X, ART_Y = (W - ART) // 2, 440
+MARGIN = 48  # Rand der Arbeitsplatte um den Faden-Bereich
 SS = 2  # Supersampling der Fadenebene
-WORK = 420  # Arbeitsaufloesung fuer den Kreis-Algorithmus
+WORK = 420  # Arbeitsaufloesung fuer den Algorithmus
 
 
-# =========================================================================== Motive / Stile
+# =========================================================================== Naegel-Rahmen
 
 
-def _square(img, center=(0.5, 0.5), scale=1.0, size=WORK):
+def frame_nails(shape, n):
+    """Naegel in Arbeitskoordinaten (0..WORK) + Seiten-Nummer je Nagel (Quadrat; Kreis: -1)."""
+    if shape == "circle":
+        ang = np.linspace(-math.pi / 2, 1.5 * math.pi, n, endpoint=False)
+        rad = WORK / 2 * 0.985
+        pts = np.stack([WORK / 2 + rad * np.cos(ang), WORK / 2 + rad * np.sin(ang)], 1)
+        return pts, np.full(n, -1)
+    per = n // 4
+    lo, hi = WORK * 0.01, WORK * 0.99
+    t = np.linspace(lo, hi, per, endpoint=False)
+    sides = [np.stack([t, np.full(per, lo)], 1),               # oben, links -> rechts
+             np.stack([np.full(per, hi), t], 1),               # rechts, oben -> unten
+             np.stack([hi - (t - lo), np.full(per, hi)], 1),   # unten, rechts -> links
+             np.stack([np.full(per, lo), hi - (t - lo)], 1)]   # links, unten -> oben
+    return np.concatenate(sides), np.repeat(np.arange(4), per)
+
+
+def to_screen(pts):
+    return [(ART_X + x / WORK * ART, ART_Y + y / WORK * ART) for x, y in pts]
+
+
+# =========================================================================== Stile
+
+
+def _square_crop(img, center=(0.5, 0.45), scale=0.92, size=WORK):
     side = int(min(img.size) * scale)
     cx, cy = int(img.width * center[0]), int(img.height * center[1])
     x0 = max(0, min(img.width - side, cx - side // 2))
@@ -53,32 +75,36 @@ def _square(img, center=(0.5, 0.5), scale=1.0, size=WORK):
     return img.crop((x0, y0, x0 + side, y0 + side)).resize((size, size), Image.LANCZOS)
 
 
-def style_circle(path, invert=False, center=(0.5, 0.45), scale=0.9, n_nails=280, max_lines=4500):
-    img = _square(Image.open(path).convert("L"), center, scale)
-    img = ImageOps.equalize(ImageOps.autocontrast(img, cutoff=1))
+def style_portrait(path, shape="circle", invert=False, n_nails=None, max_lines=5000,
+                   center=(0.5, 0.45), scale=0.92):
+    import cv2
+
+    img = _square_crop(Image.open(path).convert("L"), center, scale)
+    g = np.asarray(img, np.uint8)
+    g = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(6, 6)).apply(g)  # lokaler Kontrast
+    img = ImageOps.autocontrast(Image.fromarray(g), cutoff=1)
     val = np.asarray(img, np.float32) / 255.0
-    dark = val if invert else 1.0 - val  # wo Faden hin soll
+    dark = val if invert else 1.0 - val
     edges = np.asarray(img.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(1)),
                        np.float32) / 255.0
-    t = np.clip((dark - 0.24) * 1.4, 0, 1) ** 1.3 + 0.6 * edges
+    t = np.clip((dark - 0.20) * 1.45, 0, 1) ** 1.25 + 0.5 * edges
     yy, xx = np.mgrid[0:WORK, 0:WORK].astype(np.float32)
-    r = np.sqrt((xx - WORK / 2) ** 2 + (yy - WORK / 2) ** 2) / (WORK / 2)
-    target = np.clip(t, 0, 1) * (r < 0.97)
-
-    ang = np.linspace(-math.pi / 2, 1.5 * math.pi, n_nails, endpoint=False)
-    rad = WORK / 2 * 0.985
-    nails_w = np.stack([WORK / 2 + rad * np.cos(ang), WORK / 2 + rad * np.sin(ang)], 1)
-    seq = _solve_circle(target, nails_w, max_lines=max_lines)
-    nails = [(ART_X + x / WORK * ART, ART_Y + y / WORK * ART) for x, y in nails_w]
-    return {
-        "nails": nails, "order": list(range(n_nails)), "segs": [(a, b, 0) for a, b in seq],
-        "colors": [None], "alpha": 0.45, "width": 1.0,
-    }
+    if shape == "circle":
+        inside = np.sqrt((xx - WORK / 2) ** 2 + (yy - WORK / 2) ** 2) / (WORK / 2) < 0.97
+    else:
+        inside = (xx > WORK * 0.02) & (xx < WORK * 0.98) & (yy > WORK * 0.02) & (yy < WORK * 0.98)
+    target = np.clip(t, 0, 1) * inside
+    n = n_nails or (280 if shape == "circle" else 300)
+    pts, side = frame_nails(shape, n)
+    seq = _solve(target, pts, side, max_lines=max_lines)
+    return {"nails": to_screen(pts), "order": list(range(n)), "segs": [(a, b, 0) for a, b in seq],
+            "colors": [None], "alpha": 0.45, "width": 1.0}
 
 
-def _solve_circle(target, nails, max_lines=4500, min_skip=18, line_dark=0.13):
-    """Klassischer Greedy-Fadenalgorithmus: vom aktuellen Nagel immer zur Sehne mit dem groessten
-    mittleren Rest-Dunkel; die Linie wird danach vom Rest abgezogen."""
+def _solve(target, nails, side, max_lines=5000, min_skip=18, line_dark=0.13):
+    """Greedy-Fadenalgorithmus: vom aktuellen Nagel immer zur Sehne mit dem groessten mittleren
+    Rest-Dunkel; die Linie wird danach vom Rest abgezogen. Beim Quadrat keine Sehnen entlang
+    derselben Seite (die laegen auf dem Rand)."""
     n = len(nails)
     per_nail = []
     for i in range(n):
@@ -86,6 +112,8 @@ def _solve_circle(target, nails, max_lines=4500, min_skip=18, line_dark=0.13):
         pos = 0
         for j in range(n):
             if min((i - j) % n, (j - i) % n) < min_skip:
+                continue
+            if side[i] >= 0 and side[i] == side[j]:
                 continue
             (x0, y0), (x1, y1) = nails[i], nails[j]
             steps = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
@@ -115,166 +143,111 @@ def _solve_circle(target, nails, max_lines=4500, min_skip=18, line_dark=0.13):
     return seq
 
 
-def _walk_edges(edges, pts):
-    """Kanten in eine Faden-Reihenfolge bringen: vom aktuellen Nagel immer zu einer noch nicht
-    gespannten Kante; gibt es keine, zum naechsten Nagel mit offenen Kanten springen."""
-    adj = {}
-    for a, b in edges:
-        adj.setdefault(a, set()).add(b)
-        adj.setdefault(b, set()).add(a)
-    remaining = {tuple(sorted(e)) for e in edges}
-    cur = min(adj, key=lambda i: (pts[i][1], pts[i][0]))
-    seq = []
-    while remaining:
-        nxt = [b for b in adj.get(cur, ()) if tuple(sorted((cur, b))) in remaining]
-        if not nxt:
-            open_nodes = {a for e in remaining for a in e}
-            cx, cy = pts[cur]
-            cur = min(open_nodes, key=lambda i: (pts[i][0] - cx) ** 2 + (pts[i][1] - cy) ** 2)
-            continue
-        b = min(nxt, key=lambda j: pts[j][1])
-        remaining.discard(tuple(sorted((cur, b))))
-        seq.append((cur, b))
-        cur = b
-    return seq
-
-
-def style_lowpoly(path, n_points=260, keep=0.55):
-    """Geometrisches Linienbild: Punkte auf den Kanten des Motivs, Delaunay-Dreiecksnetz; behalten
-    werden nur Netzkanten, die einer Bildkante folgen."""
-    import cv2
-    from scipy.spatial import Delaunay
-
-    size = 600
-    img = _square(Image.open(path).convert("L"), (0.5, 0.5), 1.0, size=size)
-    g = cv2.GaussianBlur(np.asarray(img, np.uint8), (5, 5), 0)
-    edges = cv2.Canny(g, 60, 150)
-    edges_d = cv2.dilate(edges, np.ones((5, 5), np.uint8))
-    rng = np.random.default_rng(4)
-    ys, xs = np.nonzero(edges)
-    pts = []
-    min_d2 = (size * 0.03) ** 2
-    for k in rng.permutation(len(xs)):
-        p = (float(xs[k]), float(ys[k]))
-        if all((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 >= min_d2 for q in pts):
-            pts.append(p)
-            if len(pts) >= n_points:
-                break
-    pts = np.array(pts)
-    tri = Delaunay(pts)
-    cand = set()
-    for s in tri.simplices:
-        for a, b in ((s[0], s[1]), (s[1], s[2]), (s[0], s[2])):
-            cand.add((min(a, b), max(a, b)))
-    kept = []
-    max_len = size * 0.22
-    for a, b in cand:
-        (x0, y0), (x1, y1) = pts[a], pts[b]
-        if math.hypot(x1 - x0, y1 - y0) > max_len:
-            continue
-        t = np.linspace(0, 1, 24)
-        xs_ = np.clip((x0 + (x1 - x0) * t).astype(int), 0, size - 1)
-        ys_ = np.clip((y0 + (y1 - y0) * t).astype(int), 0, size - 1)
-        if (edges_d[ys_, xs_] > 0).mean() >= keep:
-            kept.append((int(a), int(b)))
-    used = sorted({i for e in kept for i in e})
-    remap = {old: new for new, old in enumerate(used)}
-    kept = [(remap[a], remap[b]) for a, b in kept]
-    nails = [(ART_X + x / size * ART, ART_Y + y / size * ART) for x, y in pts[used]]
-    seq = _walk_edges(kept, nails)
-    order = sorted(range(len(nails)), key=lambda i: (nails[i][1] // 60, nails[i][0]))
-    return {"nails": nails, "order": order, "segs": [(a, b, 0) for a, b in seq],
-            "colors": [None], "alpha": 0.85, "width": 1.6}
-
-
-def style_fill(path, n_chords=1400, spacing=15):
-    """Silhouette fuellen: Naegel am Umriss, Faden kreuz und quer innen, Farbe aus dem Motiv."""
-    import cv2
-
-    size = 600
-    rgb = np.asarray(_square(Image.open(path).convert("RGB"), (0.5, 0.5), 1.0, size=size), np.float32)
-    bg = np.median(np.concatenate([rgb[:8].reshape(-1, 3), rgb[-8:].reshape(-1, 3)]), axis=0)
-    mask = (np.abs(rgb - bg).sum(-1) > 90).astype(np.uint8) * 255
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((7, 7), np.uint8))  # Schnurrhaare o.ae. weg
-    cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    cnt = max(cnts, key=cv2.contourArea)[:, 0, :].astype(np.float32)
-    color = tuple(int(c) for c in np.median(rgb[mask > 0], axis=0))
-    d = np.sqrt(((np.roll(cnt, -1, 0) - cnt) ** 2).sum(1))
-    cum = np.concatenate([[0], np.cumsum(d)])
-    n = max(24, int(cum[-1] / spacing))
-    pos = np.linspace(0, cum[-1], n, endpoint=False)
-    pts = np.stack([np.interp(pos, cum, np.concatenate([cnt[:, 0], cnt[:1, 0]])),
-                    np.interp(pos, cum, np.concatenate([cnt[:, 1], cnt[:1, 1]]))], 1)
-    inside = cv2.dilate(mask, np.ones((5, 5), np.uint8)) > 0
-
-    def ok(a, b):
-        (x0, y0), (x1, y1) = pts[a], pts[b]
-        t = np.linspace(0.04, 0.96, 40)
-        xs = np.clip((x0 + (x1 - x0) * t).astype(int), 0, size - 1)
-        ys = np.clip((y0 + (y1 - y0) * t).astype(int), 0, size - 1)
-        return inside[ys, xs].mean() > 0.97
-
-    rng = np.random.default_rng(8)
-    valid = {i: [j for j in range(n) if 3 < abs(i - j) < n - 3 and ok(i, j)] for i in range(n)}
-    seq, cur, used = [], 0, {}
-    for _ in range(n_chords):
-        opts = valid[cur]
-        if not opts:
-            cur = int(rng.integers(n))
-            continue
-        w = np.array([1.0 / (1 + used.get((min(cur, j), max(cur, j)), 0) * 3) for j in opts])
-        j = int(rng.choice(opts, p=w / w.sum()))
-        key = (min(cur, j), max(cur, j))
-        used[key] = used.get(key, 0) + 1
-        seq.append((cur, j, 0))
-        cur = j
-    seq += [(i, (i + 1) % n, 0) for i in range(n)]  # zum Schluss einmal rundherum
-    nails = [(ART_X + x / size * ART, ART_Y + y / size * ART) for x, y in pts]
-    return {"nails": nails, "order": list(range(n)), "segs": seq, "colors": [color],
-            "alpha": 0.55, "width": 1.3}
-
-
 PATTERNS = {
-    # ("mul", k, Farbe): Faden von Nagel i zu Nagel (k*i mod n)  -> Kardioide, Nephroide ...
-    # ("step", d, Farbe): Faden von Nagel i zu Nagel (i+d)        -> Sternpolygon / Ring
-    "cardioid": [("mul", 2, (235, 70, 60))],
-    "nephroid": [("mul", 3, (40, 120, 220))],
-    "mandala": [("step", 90, (245, 240, 230)), ("step", 70, (235, 180, 60)),
-                ("step", 50, (225, 85, 70)), ("step", 30, (80, 170, 230))],
-    "sunset": [("mul", 2, (250, 200, 70)), ("mul", 2, (235, 90, 60))],
+    # Kreis.  ("mul", k): Nagel i -> k*i (Kardioide usw.);  ("step", d): Nagel i -> i+d (Ringe)
+    "cardioid": ("circle", [("mul", 2, (200, 40, 40))]),
+    "nephroid": ("circle", [("mul", 3, (30, 80, 170))]),
+    "mandala": ("circle", [("step", 90, (40, 40, 45)), ("step", 70, (215, 150, 30)),
+                           ("step", 50, (200, 55, 45)), ("step", 30, (40, 120, 190))]),
+    "sunset": ("circle", [("mul", 2, (230, 160, 40)), ("mul", 2, (200, 60, 50))]),
+    # Quadrat.  ("corner", c): an Ecke c Nagel i der einen Seite -> Nagel (per-i) der Nachbarseite
+    #           (klassische "Fadenkurven"); ("step", d): Nagel i -> i+d
+    "curves": ("square", [("corner", 0, (200, 55, 45)), ("corner", 1, (40, 120, 190)),
+                          ("corner", 2, (215, 150, 30)), ("corner", 3, (40, 150, 90))]),
+    "star": ("square", [("step", 150, (40, 40, 45)), ("step", 110, (200, 55, 45)),
+                        ("step", 75, (40, 120, 190))]),
 }
 
 
-def style_pattern(name="mandala", n=200):
-    ang = np.linspace(-math.pi / 2, 1.5 * math.pi, n, endpoint=False)
-    rad = ART / 2 * 0.96
-    nails = [(ART_X + ART / 2 + rad * math.cos(a), ART_Y + ART / 2 + rad * math.sin(a)) for a in ang]
-    layers = PATTERNS[name]
+def style_pattern(name="mandala"):
+    shape, layers = PATTERNS[name]
+    n = 200 if shape == "circle" else 240
+    pts, _ = frame_nails(shape, n)
+    per = n // 4
     segs = []
     for c, (kind, k, _) in enumerate(layers):
         if kind == "mul":
-            off = c * n // (2 * len(layers))  # weitere Lagen leicht gedreht
+            off = c * n // (2 * len(layers))
             segs += [((i + off) % n, (k * i + off) % n, c) for i in range(n) if (k * i) % n != i]
-        else:
+        elif kind == "step":
             segs += [(i, (i + k) % n, c) for i in range(n)]
-    return {"nails": nails, "order": list(range(n)), "segs": segs,
+        else:  # corner: Seite k und k+1 treffen sich an einer Ecke
+            a0, b0 = k * per, ((k + 1) % 4) * per
+            segs += [(a0 + i, b0 + i, c) for i in range(per)]
+    return {"nails": to_screen(pts), "order": list(range(n)), "segs": segs, "shape": shape,
             "colors": [col for _, _, col in layers], "alpha": 0.75, "width": 1.3}
 
 
-# =========================================================================== Zeichnen
+# =========================================================================== Szene
 
 
-def load_board(name):
-    path = name if os.path.exists(name) else os.path.join(BOARDS, f"{name}.jpg")
-    img = Image.open(path).convert("RGB")
-    s = max(W / img.width, H / img.height)
+def _cover(img, w, h):
+    s = max(w / img.width, h / img.height)
     img = img.resize((math.ceil(img.width * s), math.ceil(img.height * s)), Image.LANCZOS)
-    x, y = (img.width - W) // 2, (img.height - H) // 2
-    img = img.crop((x, y, x + W, y + H))
+    x, y = (img.width - w) // 2, (img.height - h) // 2
+    return img.crop((x, y, x + w, y + h))
+
+
+def load_table(name):
+    path = name if os.path.exists(name) else os.path.join(BOARDS, f"{name}.jpg")
+    img = _cover(Image.open(path).convert("RGB"), W, H)
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     r = np.sqrt(((xx - W / 2) / W) ** 2 + ((yy - H / 2) / H) ** 2)
-    light = (1.04 - 0.10 * xx / W - 0.06 * yy / H) * (1 - 0.35 * r ** 2)  # Licht oben links + Vignette
+    light = (1.04 - 0.10 * xx / W - 0.06 * yy / H) * (1 - 0.45 * r ** 2)  # Licht oben links + Vignette
     return Image.fromarray((np.asarray(img, np.float32) * light[..., None]).clip(0, 255).astype(np.uint8))
+
+
+def make_panel(name, shape):
+    """Arbeitsplatte als RGBA-Sprite (Groesse ART + 2*MARGIN) mit leicht dunklerer Kante."""
+    size = ART + 2 * MARGIN
+    path = name if os.path.exists(name) else os.path.join(BOARDS, f"{name}.jpg")
+    tex = np.asarray(_cover(Image.open(path).convert("RGB"), size, size), np.float32)
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+    tex = tex * (1.03 - 0.06 * (xx + yy) / (2 * size))[..., None]
+    mask = Image.new("L", (size * 4, size * 4), 0)
+    d = ImageDraw.Draw(mask)
+    if shape == "circle":
+        d.ellipse((0, 0, size * 4 - 1, size * 4 - 1), fill=255)
+    else:
+        d.rounded_rectangle((0, 0, size * 4 - 1, size * 4 - 1), radius=24, fill=255)
+    mask = mask.resize((size, size), Image.LANCZOS)
+    # Kante: aussen 3 px etwas dunkler (Plattenrand), Licht kommt von oben links
+    m = np.asarray(mask, np.float32) / 255.0
+    inner = np.asarray(mask.filter(ImageFilter.MinFilter(7)), np.float32) / 255.0
+    rim = np.clip(m - inner, 0, 1)
+    shade = 1 - rim * (0.10 + 0.12 * (xx + yy) / (2 * size))
+    tex = tex * shade[..., None]
+    return Image.fromarray(np.dstack([tex.clip(0, 255), m * 255]).astype(np.uint8), "RGBA")
+
+
+def panel_shadow(panel, lift):
+    """Weicher Schlagschatten; je hoeher die Platte (lift 0..1), desto weiter und weicher."""
+    a = panel.getchannel("A")
+    pad = 80
+    sh = Image.new("L", (a.width + 2 * pad, a.height + 2 * pad), 0)
+    sh.paste(a, (pad, pad))
+    sh = sh.filter(ImageFilter.GaussianBlur(10 + 22 * lift))
+    sh = sh.point(lambda v: int(v * (0.55 - 0.25 * lift)))
+    out = Image.new("RGBA", sh.size, (12, 8, 5, 0))
+    out.putalpha(sh)
+    return out, (pad - int(8 + 26 * lift), pad - int(12 + 34 * lift))
+
+
+def scene(table, panel, lift=0.0, alpha=1.0):
+    """Tisch + Platte; lift > 0 = Platte schwebt noch (groesser, Schatten weiter weg)."""
+    frame = table.copy().convert("RGBA")
+    s = 1 + 0.05 * lift
+    p = panel.resize((int(panel.width * s), int(panel.height * s)), Image.LANCZOS) if lift else panel
+    if alpha < 1:
+        p = p.copy()
+        p.putalpha(p.getchannel("A").point(lambda v: int(v * alpha)))
+    cx, cy = ART_X + ART / 2, ART_Y + ART / 2 - 60 * lift
+    sh, (ox, oy) = panel_shadow(p, lift)
+    if alpha < 1:
+        sh.putalpha(sh.getchannel("A").point(lambda v: int(v * alpha)))
+    frame.alpha_composite(sh, (int(cx - p.width / 2 - ox), int(cy - p.height / 2 - oy)))
+    frame.alpha_composite(p, (int(cx - p.width / 2), int(cy - p.height / 2)))
+    return frame
 
 
 def nail_sprite(r=3.3):
@@ -361,11 +334,16 @@ def ease_in(t, p=2.2):
     return t ** p
 
 
-def render(spec, board_name, out, name, seconds_nails=5.5, seconds_thread=18.0, seconds_hold=5.0,
-           thread_rgb=(24, 22, 22)):
+def ease_out(t, p=3.0):
+    return 1 - (1 - t) ** p
+
+
+def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, seconds_thread=18.0,
+           seconds_hold=5.0, thread_rgb=(22, 20, 20)):
     os.makedirs(out, exist_ok=True)
     t0 = time.time()
-    board = load_board(board_name).convert("RGBA")
+    table = load_table(table_name)
+    panel = make_panel(panel_name, shape)
     sprite, (scx, scy) = nail_sprite()
     nails, order, segs = spec["nails"], spec["order"], spec["segs"]
     canvas = ThreadCanvas(spec["colors"], spec["alpha"], spec["width"], thread_rgb)
@@ -390,7 +368,18 @@ def render(spec, board_name, out, name, seconds_nails=5.5, seconds_thread=18.0, 
             img = img.transform(img.size, Image.AFFINE, (1, 0, 0, 0, 1, dy), resample=Image.BILINEAR)
         ff.stdin.write(img.convert("RGB").tobytes())
 
-    # 1) Naegel: stecken schlagartig im Brett; anfangs einzeln (mit Ruck), dann schneller
+    # 0) nur der Tisch, dann wird die Arbeitsplatte hingelegt
+    for _ in range(int(0.9 * FPS)):
+        emit(table)
+    n = int(0.8 * FPS)
+    for f in range(n):
+        t = ease_out((f + 1) / n)
+        emit(scene(table, panel, lift=1 - t, alpha=min(1.0, 0.25 + 1.5 * t)))
+    base = scene(table, panel)
+    for _ in range(int(0.4 * FPS)):
+        emit(base)
+
+    # 1) Naegel: stecken schlagartig in der Platte; anfangs einzeln (mit Ruck), dann schneller
     nail_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     n_frames = int(seconds_nails * FPS)
     shown = 0
@@ -402,12 +391,12 @@ def render(spec, board_name, out, name, seconds_nails=5.5, seconds_thread=18.0, 
         if 0 < upto - shown <= 2:
             shake_left[0] = 2
         shown = upto
-        frame = board.copy()
+        frame = base.copy()
         frame.alpha_composite(nail_layer)
         emit(frame)
 
     def compose(extra=None):
-        frame = board.copy()
+        frame = base.copy()
         frame.alpha_composite(canvas.layer(extra), (ART_X, ART_Y))
         frame.alpha_composite(nail_layer)
         return frame
@@ -444,8 +433,8 @@ def render(spec, board_name, out, name, seconds_nails=5.5, seconds_thread=18.0, 
     ff.stdin.close()
     ff.wait()
     final.convert("RGB").save(os.path.join(out, f"{name}.jpg"), quality=92)
-    info = {"name": name, "board": board_name, "nails": len(nails), "threads": len(segs),
-            "seconds": seconds_nails + seconds_thread + seconds_hold}
+    info = {"name": name, "table": table_name, "panel": panel_name, "shape": shape,
+            "nails": len(nails), "threads": len(segs)}
     with open(os.path.join(out, f"{name}.json"), "w") as f:
         json.dump(info, f, indent=1)
     print(f"{name}: {len(nails)} Naegel, {len(segs)} Faeden, {time.time() - t0:.0f} s -> {video}", flush=True)
@@ -454,28 +443,26 @@ def render(spec, board_name, out, name, seconds_nails=5.5, seconds_thread=18.0, 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--style", choices=["circle", "lowpoly", "fill", "pattern"], required=True)
+    ap.add_argument("--style", choices=["portrait", "pattern"], required=True)
     ap.add_argument("--image")
+    ap.add_argument("--shape", choices=["circle", "square"], default="circle")
     ap.add_argument("--pattern", default="mandala", choices=sorted(PATTERNS))
-    ap.add_argument("--board", default="birch_plywood")
-    ap.add_argument("--invert", action="store_true", help="heller Faden auf dunklem Brett")
-    ap.add_argument("--thread", default=None, help="Fadenfarbe r,g,b (Standard: dunkel bzw. hell bei --invert)")
+    ap.add_argument("--table", default="dark_walnut")
+    ap.add_argument("--panel", default="panel_white")
     ap.add_argument("--out", default="experiments/string_art")
     ap.add_argument("--name", default=None)
+    ap.add_argument("--crop", default="0.5,0.45,0.92", help="Bildausschnitt: Mitte x,y und Groesse (Anteile)")
     args = ap.parse_args()
+    cx, cy, sc = (float(v) for v in args.crop.split(","))
 
-    if args.style == "circle":
-        spec = style_circle(args.image, invert=args.invert)
-    elif args.style == "lowpoly":
-        spec = style_lowpoly(args.image)
-    elif args.style == "fill":
-        spec = style_fill(args.image)
+    if args.style == "portrait":
+        spec = style_portrait(args.image, shape=args.shape, center=(cx, cy), scale=sc)
+        shape = args.shape
     else:
         spec = style_pattern(args.pattern)
-    thread = (tuple(int(v) for v in args.thread.split(",")) if args.thread
-              else (240, 236, 228) if args.invert else (24, 22, 22))
+        shape = spec["shape"]
     base = os.path.splitext(os.path.basename(args.image))[0] if args.image else args.pattern
-    render(spec, args.board, args.out, args.name or f"{args.style}_{base}", thread_rgb=thread)
+    render(spec, args.table, args.panel, shape, args.out, args.name or f"{args.style}_{shape}_{base}")
 
 
 if __name__ == "__main__":
