@@ -4,7 +4,8 @@
   "Psalm 73,26",
   "Jesaja 26,3",
   "Galater 6,2",
-  "Epheser 4,26"
+  "Epheser 4,26",
+  "Sprüche 16,3"
  ],
  "stories": [
   "Daniel 6",
@@ -64,6 +65,11 @@
    "time": "2026-11-27T16:28+01:00",
    "kind": "story",
    "id": "Henoch 72-75"
+  },
+  {
+   "time": "2026-11-28T06:54+01:00",
+   "kind": "verse",
+   "id": "Sprüche 16,3"
   }
  ]
 }
