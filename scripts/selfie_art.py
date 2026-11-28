@@ -105,11 +105,74 @@ def remove_background(img):
     return white.convert("RGB")
 
 
+def check_photo(img, face=None):
+    """Foto-Check vor dem Rendern. Liefert (Hinweise, Messwerte); leere Hinweise = alles gut.
+    Grenzwerte grob nach Erfahrung mit Handyfotos: Fadenbilder leben von dunklen Stellen
+    (Augen, Brauen, Schatten) - flache, helle oder kleine Gesichter werden schwer erkennbar."""
+    import cv2
+
+    tips = []
+    W, H = img.size
+    gray = np.asarray(img.convert("L"))
+    m = {"aufloesung": min(W, H)}
+    if min(W, H) < 600:
+        tips.append("📏 Geringe Auflösung – ein größeres Originalfoto wird schärfer.")
+    face = face if face is not None else find_face(img)
+    if face is None:
+        tips.append("🙂 Kein frontales Gesicht erkannt – Kopf gerade zur Kamera drehen.")
+        return tips, m
+    x, y, w, h = (int(v) for v in face)
+    f = gray[max(0, y):y + h, max(0, x):x + w]
+    m["gesicht_anteil"] = round(h / min(W, H), 2)
+    m["helligkeit"] = round(float(f.mean()))
+    m["kontrast"] = round(float(f.std()))
+    small = cv2.resize(f, (256, 256))
+    m["schaerfe"] = round(float(cv2.Laplacian(small, cv2.CV_64F).var()))
+    around = np.concatenate([gray[:, :max(1, x)].ravel(), gray[:, min(W - 1, x + w):].ravel()])
+    m["umgebung"] = round(float(around.mean()))
+    if m["gesicht_anteil"] < 0.25:
+        tips.append("🔍 Gesicht ist klein im Bild – näher ran, das Gesicht sollte das Foto füllen.")
+    if m["helligkeit"] < 70:
+        tips.append("🌙 Gesicht zu dunkel – bei Tageslicht oder mit Licht von vorn fotografieren.")
+    elif m["helligkeit"] > 205:
+        tips.append("☀️ Gesicht überbelichtet – weniger direktes Licht.")
+    if m["umgebung"] - m["helligkeit"] > 45:
+        tips.append("🌅 Gegenlicht – Licht sollte von vorn oder von der Seite kommen, nicht von hinten.")
+    if m["kontrast"] < 45:
+        tips.append("🌫️ Gesicht wirkt flach/kontrastarm – seitliches Licht gibt mehr Tiefe.")
+    if m["schaerfe"] < 150:
+        tips.append("📷 Foto ist unscharf – Kamera ruhig halten, auf das Gesicht scharfstellen.")
+    eyes = cv2.CascadeClassifier(os.path.join(cv2.data.haarcascades, "haarcascade_eye.xml"))
+    upper = cv2.equalizeHist(cv2.resize(f[: int(h * 0.6)], (256, 154)))
+    found = eyes.detectMultiScale(upper, 1.1, 6, minSize=(18, 18))
+    m["augen"] = int(len(found))
+    if m["augen"] < 2:
+        tips.append("👀 Augen schlecht erkennbar (geschlossen, Sonnenbrille, Schatten?) – "
+                    "Augen offen, in die Kamera.")
+    else:
+        # Kopf gedreht? Dann liegt die Mitte zwischen den Augen deutlich neben der Gesichtsmitte.
+        two = sorted(found, key=lambda e: e[2] * e[3], reverse=True)[:2]
+        mid = np.mean([ex + ew / 2 for ex, ey, ew, eh in two]) / 256
+        m["augen_versatz"] = round(float(abs(mid - 0.5)), 2)
+        if m["augen_versatz"] > 0.08:
+            tips.append("↪️ Kopf ist zur Seite gedreht – frontal in die Kamera schauen wirkt deutlich besser.")
+    return tips, m
+
+
+def check_text(tips):
+    if not tips:
+        return "📋 Foto-Check: ✅ Gut geeignet."
+    return "📋 Foto-Check: das Ergebnis kann schwächer werden:\n" + "\n".join(f"• {t}" for t in tips)
+
+
 def prepare(photo_path, out_path):
     import cv2
 
     img = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
     face = find_face(img)
+    tips, metrics = check_photo(img, face)
+    with open(os.path.join(os.path.dirname(out_path), "check.json"), "w") as f:
+        json.dump({"tips": tips, "metrics": metrics, "text": check_text(tips)}, f, ensure_ascii=False)
     crop = crop_square(img, face)
     box = None
     if face is not None:  # Gesicht in Koordinaten des (auf 1024 skalierten) Ausschnitts
@@ -181,7 +244,16 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--options", default="", help="z.B. 'kreis weiss' oder 'quadrat natur'")
     ap.add_argument("--name", default="fadenbild")
+    ap.add_argument("--check-only", action="store_true", help="nur Foto-Check ausgeben")
     args = ap.parse_args()
+    if args.check_only:
+        os.makedirs(args.out, exist_ok=True)
+        img = ImageOps.exif_transpose(Image.open(args.photo)).convert("RGB")
+        tips, metrics = check_photo(img)
+        with open(os.path.join(args.out, "check.json"), "w") as f:
+            json.dump({"tips": tips, "metrics": metrics, "text": check_text(tips)}, f, ensure_ascii=False)
+        print(check_text(tips), metrics)
+        return
     shape, panel = parse_options(args.options)
     res = make(args.photo, args.out, shape, panel, args.name)
     with open(os.path.join(args.out, "ergebnis.json"), "w") as f:

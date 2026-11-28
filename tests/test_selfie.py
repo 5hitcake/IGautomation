@@ -61,3 +61,28 @@ def test_workflow_never_uploads_or_commits_photos():
         wf = f.read()
     assert "upload-artifact" not in wf and "git push" not in wf and "git commit" not in wf
     assert re.search(r"if: always\(\)\s+run: rm -rf", wf)
+
+
+def test_check_photo_without_face_asks_for_frontal_photo():
+    tips, _ = sa.check_photo(Image.new("RGB", (1200, 1600), (128, 128, 128)))
+    assert any("frontal" in t for t in tips)
+
+
+def test_check_photo_flags_dark_small_blurry_face():
+    img = Image.new("RGB", (1200, 1600), (200, 200, 200))
+    tips, m = sa.check_photo(img, face=(500, 600, 150, 150))  # kleines, flaches Feld
+    text = " ".join(tips)
+    assert "klein" in text and "unscharf" in text and "flach" in text
+    assert m["gesicht_anteil"] < 0.25
+
+
+def test_check_text():
+    assert "✅" in sa.check_text([])
+    assert "• a" in sa.check_text(["a"])
+
+
+def test_guide_text_in_bot_and_file():
+    with open(os.path.join(ROOT, "cloudflare", "selfie_bot", "src", "index.js"), encoding="utf-8") as f:
+        js = f.read()
+    assert "export const GUIDE" in js and "Face the camera" in js
+    assert os.path.exists(os.path.join(ROOT, "content", "string_art", "foto_anleitung.md"))

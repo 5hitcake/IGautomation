@@ -3,6 +3,7 @@
   python scripts/selfie_telegram.py fetch   --file-id ID --to foto.jpg
   python scripts/selfie_telegram.py deliver --dir OUT --reply-to MSG_ID
   python scripts/selfie_telegram.py error   --text "..." --reply-to MSG_ID
+  python scripts/selfie_telegram.py check   --dir OUT --reply-to MSG_ID   (Foto-Check-Ergebnis senden)
 
 Braucht SELFIE_TELEGRAM_BOT_TOKEN und TELEGRAM_CHAT_ID.
 """
@@ -62,7 +63,7 @@ def error(text, reply_to):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["fetch", "deliver", "error"])
+    ap.add_argument("cmd", choices=["fetch", "deliver", "error", "check"])
     ap.add_argument("--file-id")
     ap.add_argument("--to")
     ap.add_argument("--dir")
@@ -71,6 +72,10 @@ def main():
     a = ap.parse_args()
     if a.cmd == "fetch":
         fetch(a.file_id, a.to)
+    elif a.cmd == "check":
+        with open(os.path.join(a.dir, "check.json"), encoding="utf-8") as f:
+            text = json.load(f)["text"]
+        error(text + "\n\n⏳ Fadenbild wird trotzdem erstellt …", a.reply_to)
     elif a.cmd == "deliver":
         deliver(a.dir, a.reply_to)
     else:

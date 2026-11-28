@@ -62,6 +62,14 @@ jobs:
           mkdir -p "$WORK"
           python scripts/selfie_telegram.py fetch --file-id "$FILE_ID" --to "$WORK/foto.jpg"
 
+      - name: Foto-Check (Ergebnis sofort per Telegram)
+        continue-on-error: true
+        env:
+          REPLY_TO: ${{ github.event.inputs.message_id }}
+        run: |
+          python scripts/selfie_art.py --check-only --photo "$WORK/foto.jpg" --out "$WORK/check"
+          python scripts/selfie_telegram.py check --dir "$WORK/check" --reply-to "$REPLY_TO"
+
       - name: Fadenbild rendern
         env:
           OPTIONS: ${{ github.event.inputs.options }}

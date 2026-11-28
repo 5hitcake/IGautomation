@@ -10,7 +10,28 @@ const HELP =
   "📸 Schick mir ein Foto (am besten als Datei für volle Qualität).\n" +
   "Bildunterschrift wählt die Platte: kreis | quadrat und weiss | natur\n" +
   "Beispiel: „quadrat natur“. Ohne Angabe: Kreis, weiß.\n" +
-  "Nach ~6 Minuten kommen Reel, Bild mit Tisch und Bild nur mit Platte zurück.";
+  "Nach ~6 Minuten kommen Reel, Bild mit Tisch und Bild nur mit Platte zurück.\n" +
+  "„anleitung“ schickt die Foto-Anleitung für Kunden (Deutsch + Englisch) zum Weiterleiten.";
+
+export const GUIDE =
+  "📸 So wird dein Fadenbild am schönsten:\n" +
+  "1. Frontal – gerade in die Kamera schauen\n" +
+  "2. Kamera auf Augenhöhe, nicht von unten\n" +
+  "3. Licht von vorn oder seitlich (z. B. vor einem Fenster) – kein Gegenlicht, keine Nachtaufnahme\n" +
+  "4. Gesicht füllt das Bild – Kopf und Schultern reichen\n" +
+  "5. Augen offen, keine Sonnenbrille\n" +
+  "6. Scharfes Originalfoto, kein Screenshot\n\n" +
+  "📸 How to get the best string art portrait:\n" +
+  "1. Face the camera – look straight into the lens\n" +
+  "2. Camera at eye level, not from below\n" +
+  "3. Light from the front or side (e.g. facing a window) – no backlight, no night shots\n" +
+  "4. Fill the frame – head and shoulders are enough\n" +
+  "5. Eyes open, no sunglasses\n" +
+  "6. Sharp original photo, not a screenshot";
+
+export function isGuideRequest(text) {
+  return /^\/?(anleitung|guide|tipps?)\b/i.test((text || "").trim());
+}
 
 export async function webhookSecret(token) {
   const data = new TextEncoder().encode(`selfie-bot:${token}`);
@@ -64,7 +85,8 @@ export default {
 
     const image = pickImage(msg);
     if (!image) {
-      await tg(env, "sendMessage", { chat_id: msg.chat.id, text: HELP });
+      const text = isGuideRequest(msg.text) ? GUIDE : HELP;
+      await tg(env, "sendMessage", { chat_id: msg.chat.id, text });
       return new Response("ok");
     }
     const options = (msg.caption || "").slice(0, 60);
