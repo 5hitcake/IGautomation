@@ -3,6 +3,7 @@
     "instagram_username": "stringart.daily",
     "language": "en"
   },
+  "start_queue": ["batman", "gta6_lucia", "lion", "spiderman", "eagle"],
   "weights": {
     "trending": 3,
     "superhero": 3,
@@ -32,7 +33,7 @@
     {"id": "gta6_jason", "kind": "game", "title": "Jason (GTA 6)", "subject": "a rugged man with short hair and stubble, tank top, Florida criminal vibe, like Jason from GTA 6", "tags": ["gta6", "gtavi", "jason", "vicecity"]},
     {"id": "lion", "kind": "animal", "title": "Lion", "subject": "a male lion with a full dark mane, facing the camera", "tags": ["lion", "lionking", "animals"]},
     {"id": "wolf", "kind": "animal", "title": "Wolf", "subject": "a grey wolf with piercing eyes, facing the camera", "tags": ["wolf", "animals"]},
-    {"id": "eagle", "kind": "animal", "title": "Bald Eagle", "subject": "a bald eagle head in profile with a sharp beak and intense eye", "tags": ["eagle", "birdsofprey", "birds"]},
+    {"id": "eagle", "kind": "animal", "title": "Bald Eagle", "subject": "a bald eagle head in side profile, bold white head feathers against a dark body, large hooked yellow beak and intense eye, strong clear silhouette, the head fills the frame", "tags": ["eagle", "birdsofprey", "birds"]},
     {"id": "tiger", "kind": "animal", "title": "Tiger", "subject": "a tiger head with bold stripes, facing the camera", "tags": ["tiger", "animals"]},
     {"id": "owl", "kind": "animal", "title": "Eagle Owl", "subject": "an eagle owl with big round eyes and feather tufts, facing the camera", "tags": ["owl", "owls", "birds"]},
     {"id": "gorilla", "kind": "animal", "title": "Gorilla", "subject": "a silverback gorilla face, wise and calm, facing the camera", "tags": ["gorilla", "animals"]},

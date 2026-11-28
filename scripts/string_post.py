@@ -10,7 +10,7 @@ Motive (content/string_art/motifs.json), gewichtet gemischt:
   illusion   Wurmloch / 3D-Kugel (ohne Vorlage, aus Kreis-Sehnen)
 
 Die Vorlage wird als kontrastreiches Schwarz-Weiss-Portraet vor hellem Studio-Hintergrund erzeugt
-(Cloudflare FLUX-2 Klein, Ersatz Pollinations) - so wird das Fadenbild am deutlichsten.
+(Pollinations FLUX, Ersatz Cloudflare FLUX-2 Klein) - so wird das Fadenbild am deutlichsten.
 
 Nutzung:
   python scripts/string_post.py --target 11:07            (Termin UTC; Freigabe bis dahin)
@@ -179,6 +179,11 @@ def pick_motif(cfg, log, rng, kind=None, motif_id=None, exclude=()):
     motifs = cfg["motifs"]
     if motif_id:
         return next(m for m in motifs if m["id"] == motif_id)
+    # Feste Startreihenfolge (bewaehrte Motive), danach der gewichtete Mix
+    posted = {e["id"] for e in log.get("posts", [])}
+    for qid in cfg.get("start_queue", []):
+        if qid not in posted and qid not in exclude:
+            return next(m for m in motifs if m["id"] == qid)
     weights = dict(cfg["weights"])
     for _ in range(6):
         k = kind or rng.choices(list(weights), weights=list(weights.values()))[0]
@@ -232,11 +237,12 @@ def make_template(m, path, rng):
     prompt = prompt_for(m)
     seed = rng.randint(1, 2**31 - 1)
     errors = []
-    # Zuerst Cloudflare (Gratis-Kontingent), Pollinations (Pollen-Guthaben) nur als Ersatz
-    for name, fn in (("cloudflare:klein", lambda: gen_cloudflare(prompt, seed)),
-                     ("pollinations:flux", lambda: gen_pollinations(prompt, "flux", seed)),
+    # Pollinations FLUX zuerst: deutlich klarere, kontrastreichere Vorlagen als Cloudflare Klein 4B
+    # (Kosten: Bruchteile eines Pollen pro Bild). Cloudflare nur als Ersatz.
+    for name, fn in (("pollinations:flux", lambda: gen_pollinations(prompt, "flux", seed)),
                      ("pollinations:z-image",
-                      lambda: gen_pollinations(prompt, "tongyi-mai/z-image-turbo", seed))):
+                      lambda: gen_pollinations(prompt, "tongyi-mai/z-image-turbo", seed)),
+                     ("cloudflare:klein", lambda: gen_cloudflare(prompt, seed))):
         try:
             data = fn()
             Image.open(io.BytesIO(data)).convert("RGB").save(path)

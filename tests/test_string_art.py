@@ -28,7 +28,8 @@ def test_pick_motif_avoids_recent_posts():
     cfg = _cfg()
     now = datetime.now(timezone.utc).isoformat()
     supers = [m["id"] for m in cfg["motifs"] if m["kind"] == "superhero"]
-    log = {"posts": [{"id": i, "date": now} for i in supers[:-1]], "skipped": []}
+    done = set(supers[:-1]) | set(cfg.get("start_queue", []))
+    log = {"posts": [{"id": i, "date": now} for i in done], "skipped": []}
     m = sp.pick_motif(cfg, log, random.Random(1), kind="superhero")
     assert m["id"] == supers[-1]
 
@@ -69,3 +70,12 @@ def test_worker_string_slots_match_workflow_and_cron():
         h, mnt = hhmm.split(":")
         assert str(int(h)) in hours and mnt in minutes, hhmm
         assert f'"{slot}")' in wf, slot  # Workflow kennt den Termin
+
+
+def test_start_queue_comes_first_then_mix():
+    cfg = _cfg()
+    q = cfg["start_queue"]
+    assert sp.pick_motif(cfg, {"posts": []}, random.Random(1))["id"] == q[0]
+    now = datetime.now(timezone.utc).isoformat()
+    done = {"posts": [{"id": i, "date": now} for i in q]}
+    assert sp.pick_motif(cfg, done, random.Random(1), kind="animal")["id"] not in q
