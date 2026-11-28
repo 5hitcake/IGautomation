@@ -31,9 +31,12 @@ jobs:
     env:
       SELFIE_TELEGRAM_BOT_TOKEN: ${{ secrets.SELFIE_TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      WORK: ${{ runner.temp }}/auftrag
     steps:
       - uses: actions/checkout@v4
+
+      # Arbeitsordner ausserhalb des Repos ("runner"-Kontext ist im Job-env nicht erlaubt)
+      - name: Arbeitsordner festlegen
+        run: echo "WORK=$RUNNER_TEMP/auftrag" >> "$GITHUB_ENV"
 
       - uses: actions/setup-python@v5
         with:
