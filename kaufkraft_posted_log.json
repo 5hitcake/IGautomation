@@ -13,7 +13,9 @@
     "wein",
     "tomaten",
     "zucker",
-    "diesel"
+    "diesel",
+    "schnitzel",
+    "kartoffeln"
   ],
   "inflation_index": 2,
   "history": [
@@ -96,6 +98,16 @@
       "date": "2026-11-26",
       "kind": "product",
       "what": "diesel"
+    },
+    {
+      "date": "2026-11-27",
+      "kind": "product",
+      "what": "schnitzel"
+    },
+    {
+      "date": "2026-11-28",
+      "kind": "product",
+      "what": "kartoffeln"
     }
   ]
 }

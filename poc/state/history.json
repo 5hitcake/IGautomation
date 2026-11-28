@@ -3,15 +3,18 @@
   "Matthäus 5,14",
   "Psalm 73,26",
   "Jesaja 26,3",
-  "Galater 6,2"
+  "Galater 6,2",
+  "Epheser 4,26",
+  "Sprüche 16,3"
  ],
  "stories": [
   "Daniel 6",
   "Johannes 13,1-17",
   "Hesekiel 37",
-  "Johannes 20,24-29"
+  "Johannes 20,24-29",
+  "Henoch 72-75"
  ],
- "story_count": 4,
+ "story_count": 5,
  "posts": [
   {
    "time": "2026-11-23T06:55+01:00",
@@ -52,6 +55,21 @@
    "time": "2026-11-26T16:28+01:00",
    "kind": "story",
    "id": "Johannes 20,24-29"
+  },
+  {
+   "time": "2026-11-27T06:54+01:00",
+   "kind": "verse",
+   "id": "Epheser 4,26"
+  },
+  {
+   "time": "2026-11-27T16:28+01:00",
+   "kind": "story",
+   "id": "Henoch 72-75"
+  },
+  {
+   "time": "2026-11-28T06:54+01:00",
+   "kind": "verse",
+   "id": "Sprüche 16,3"
   }
  ]
 }

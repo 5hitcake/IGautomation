@@ -32,7 +32,10 @@
       "karl_denke",
       "overtoun_bruecke",
       "insula_de_las_munecas",
-      "spuk_von_rosenheim"
+      "spuk_von_rosenheim",
+      "bridgewater_triangle",
+      "dorothy_arnold",
+      "eastern_air_lines_flug_401"
     ],
     "recent_music": [
       "theme.mp3"
@@ -87,7 +90,40 @@
       "en:Disappearance of Dorothy Arnold",
       "Amityville-Horror",
       "en:Eastern Air Lines Flight 401",
-      "Eastern-Air-Lines-Flug 401"
+      "Eastern-Air-Lines-Flug 401",
+      "Winchester Mystery House",
+      "Winchester House",
+      "en:Winchester Mystery House",
+      "Waverly Hills Sanatorium",
+      "Beelitz-Heilstätten",
+      "Eastern State Penitentiary",
+      "en:Eastern State Penitentiary",
+      "Poveglia",
+      "en:Poveglia",
+      "Aokigahara",
+      "en:Aokigahara",
+      "Katakomben von Paris",
+      "en:Catacombs of Paris",
+      "Mothman",
+      "en:Mothman",
+      "Carroll A. Deering",
+      "en:Carroll A. Deering",
+      "Wunder von Lengede",
+      "Grubenunglück von Courrières",
+      "en:Courrières mine disaster",
+      "Untergang der Titanic",
+      "Der Untergang der Titanic",
+      "en:Titanic (1953 film)",
+      "RMS Lusitania",
+      "Lusitania (Schiff, 1907)",
+      "en:RMS Lusitania",
+      "Wilhelm Gustloff (Schiff)",
+      "en:MV Wilhelm Gustloff",
+      "Estonia (Schiff)",
+      "LZ 129 Hindenburg",
+      "LZ 129",
+      "en:LZ 129 Hindenburg",
+      "Explosion von Halifax"
     ]
   },
   "mysteries": {
@@ -122,7 +158,10 @@
       "baigong_pfeifen",
       "himmelsscheibe_nebra",
       "nan_madol",
-      "baalbek"
+      "baalbek",
+      "longyou_hoehlen",
+      "sphinx_von_gizeh",
+      "plain_of_jars"
     ],
     "recent_music": [
       "theme.mp3"
@@ -167,7 +206,37 @@
       "Große Sphinx von Gizeh",
       "en:Great Sphinx of Giza",
       "en:Plain of Jars",
-      "Ebene der Steinkrüge"
+      "Ebene der Steinkrüge",
+      "Kristallschädel",
+      "en:Crystal skull",
+      "en:Stone spheres of Costa Rica",
+      "Steinkugeln von Costa Rica",
+      "Diskos von Phaistos",
+      "en:Phaistos Disc",
+      "en:Vela incident",
+      "Vela-Zwischenfall",
+      "Rongorongo",
+      "en:Rongorongo",
+      "en:Westall UFO",
+      "Linear A",
+      "Linearschrift A",
+      "en:Linear A",
+      "en:Kecksburg UFO incident",
+      "Kensington-Runenstein",
+      "en:Shag Harbour UFO incident",
+      "Roswell-Zwischenfall",
+      "en:Roswell incident",
+      "en:Bloop",
+      "Bloop",
+      "Area 51",
+      "en:Area 51",
+      "en:Lost Cosmonauts",
+      "Verschollene Kosmonauten",
+      "Rendlesham-Forest-Zwischenfall",
+      "en:Rendlesham Forest incident",
+      "en:Stanley Meyer's water fuel cell",
+      "en:Water fuel cell",
+      "Phoenix Lights"
     ]
   }
 }

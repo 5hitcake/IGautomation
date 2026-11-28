@@ -1653,6 +1653,46 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Eastern_Air_Lines_Flight_401",
       "generated": "2026-11-26"
+    },
+    {
+      "id": "winchester_house",
+      "hook": {
+        "text": "Eine Witwe baute ein Haus mit 161 Räumen, um *Geistern* zu entkommen.",
+        "image": "a labyrinthine house with many windows and doors, eerie lighting"
+      },
+      "scenes": [
+        {
+          "text": "Sarah Winchester, Witwe des Gewehrfabrikanten William Wirt Winchester, kaufte das Haus 1884.",
+          "image": "a old farmhouse with 8 rooms and 161 acres of land, sunny day"
+        },
+        {
+          "text": "Die Bauarbeiten begannen 1884 und endeten erst mit ihrem Tod 1922.",
+          "image": "construction site with workers building a large house, busy atmosphere"
+        },
+        {
+          "text": "Das Haus hat 40 Schlafzimmer, 47 Kamine und 10.000 Fenster, aber keinen einheitlichen Bauplan.",
+          "image": "a grand staircase with many doors and windows, ornate decorations"
+        },
+        {
+          "text": "Einige Türen führen in den Abgrund, andere in Wände, ein Labyrinth zum Verirren.",
+          "image": "a door opening into a brick wall, confusing architecture"
+        },
+        {
+          "text": "Sarah Winchester glaubte, von den Geistern der mit Winchester-Gewehren Getöteten heimgesucht zu werden.",
+          "image": "a dark and spooky room with cobwebs, eerie atmosphere"
+        },
+        {
+          "text": "Ihre Motive für den Bau des Hauses bleiben unklar, Theorien reichen von Wahnsinn bis zu okkulten Zusammenhängen.",
+          "image": "a old newspaper clipping with a headline about the Winchester House, mysterious background"
+        }
+      ],
+      "question": "War sie geisteskrank oder clever?",
+      "tags": [
+        "#winchesterhouse",
+        "#gruselgeschichte"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Winchester_House",
+      "generated": "2026-11-26"
     }
   ]
 }

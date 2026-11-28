@@ -1628,6 +1628,47 @@
       ],
       "source": "https://en.wikipedia.org/wiki/Plain_of_Jars",
       "generated": "2026-11-26"
+    },
+    {
+      "id": "kristallschaedel",
+      "hook": {
+        "text": "Ein 5,3 kg schwerer *Kristallschädel* entdeckt.",
+        "image": "large crystal skull on a black background, dim lighting"
+      },
+      "scenes": [
+        {
+          "text": "Der Schädel stammt angeblich aus *Mittelamerika*, aus der Zeit der Maya.",
+          "image": "mysterious jungle temple at dusk, ancient ruins"
+        },
+        {
+          "text": "Seine Herkunft ist jedoch *umstritten*, viele Fragen bleiben offen.",
+          "image": "expert examining the crystal skull with a magnifying glass, skeptical expression"
+        },
+        {
+          "text": "Einige Wissenschaftler glauben, er sei eine *Fälschung* aus dem 19. Jahrhundert.",
+          "image": "workshop with crystal cutting tools, 19th century setting"
+        },
+        {
+          "text": "Die Bearbeitung von Bergkristall ist *nicht so schwierig*, wie man denkt.",
+          "image": "crystal cutter at work, sparks flying, modern machinery"
+        },
+        {
+          "text": "Ein Team entdeckte Spuren von *modernen Schleifwerkzeugen*, ein wichtiger Hinweis.",
+          "image": "electron microscope image of crystal surface, scratches visible"
+        },
+        {
+          "text": "Der Kristallschädel bleibt ein *Rätsel*, seine Geschichte ungelöst.",
+          "image": "mysterious crystal skull on a pedestal, foggy atmosphere"
+        }
+      ],
+      "question": "Fälschung oder Artefakt?",
+      "tags": [
+        "#kristallschädel",
+        "#archäologie",
+        "#fälschung"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Kristallsch%C3%A4del",
+      "generated": "2026-11-26"
     }
   ]
 }

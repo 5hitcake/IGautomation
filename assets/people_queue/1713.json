@@ -1,0 +1,36 @@
+{
+  "slot": "17:13",
+  "rejected": false,
+  "persona": {
+    "gender": "woman",
+    "age": 38,
+    "age_range": [
+      30,
+      39
+    ],
+    "heritage": [
+      "German",
+      "german"
+    ],
+    "name": "Mareike",
+    "hair": "shoulder-length wavy hair",
+    "facial_hair": null,
+    "detail": "thick eyebrows",
+    "clothing": "a chunky knit sweater",
+    "setting": "in a snowy street",
+    "lighting": "warm evening light",
+    "camera": "shot on Canon EOS R5, 85mm f/1.4",
+    "framing": "close-up headshot",
+    "expression": "a confident gaze into the camera",
+    "attractive": "beautiful",
+    "traits": [
+      "classic winged eyeliner",
+      "several small ear piercings"
+    ],
+    "bold": false
+  },
+  "prompt": "Close-up headshot photo of a beautiful 38-year-old German woman with shoulder-length wavy hair, classic winged eyeliner, several small ear piercings and thick eyebrows, wearing a chunky knit sweater, a confident gaze into the camera, in a snowy street, warm evening light, shot on Canon EOS R5, 85mm f/1.4, looks exactly 38 years old, age-accurate face, photorealistic, real photograph, natural skin texture with visible pores, unretouched, authentic everyday person, subtle film grain, sharp focus on the eyes, shallow depth of field, no fresh wounds, no cuts, no blood, no injuries, no text, no watermark",
+  "model": "@cf/black-forest-labs/flux-2-klein-9b",
+  "reserve": null,
+  "caption": "Nobody has ever met this person. Nobody ever will.\n\nPerson No. 0073 · \"Mareike\", 38\n\nKnow someone who looks just like them? Tag their real-life doppelgänger 👇\n\n100% AI-generated. Any resemblance to real people is purely coincidental.\n\n🎨 Enjoying the portraits? Support the project – link in bio\n\n#thispersondoesnotexist #aiportrait #aigenerated #doppelganger #fakeface #digitalhuman #artificialintelligence #notreal #streetportrait #aiart"
+}
