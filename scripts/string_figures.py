@@ -197,3 +197,146 @@ def style_figure(name):
     order = sorted(range(len(nails)), key=lambda i: (round(nails[i][1] / 40), nails[i][0]))
     return {"nails": nails, "order": order, "segs": b.segs, "colors": colors,
             "alpha": 0.9, "width": 2.0, "shape": "square"}
+
+
+# =========================================================================== Im Nagelkreis
+# Alles nur mit Naegeln auf einem Kreis: jede Flaeche der Figur ist eine eigene Fadenfarbe, ihre
+# Sehnen sucht derselbe Greedy-Algorithmus wie bei den Portraets (string_art._solve). Weil die
+# Kanten der Figuren gerade sind, liegen viele Sehnen genau auf den Kanten -> klare Formen.
+
+
+def _visible_faces(faces):
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+
+    polys = [Polygon(p).buffer(0) for _, p in faces]
+    out = []
+    for i, (name, _) in enumerate(faces):
+        front = unary_union(polys[i + 1:]) if i + 1 < len(polys) else None
+        vis = polys[i].difference(front) if front is not None else polys[i]
+        if vis.area > 50:
+            out.append((name, vis))
+    return out
+
+
+def _faces_for(name):
+    if name == "cube":
+        proj = [(n, [iso(p) for p in poly]) for n, poly in box_faces(0, 1, 0, 1, 0, 1)]
+    else:  # penrose
+        L = 5.0
+        order = [box_faces(L - 1, L, L - 1, L, 0, L), box_faces(L - 1, L, 0, L, 0, 1), box_faces(0, L, 0, 1, 0, 1)]
+        proj = [(n, [iso(p) for p in poly]) for faces in order for n, poly in faces]
+        proj = [(n, [(y, -x) for x, y in poly]) for n, poly in proj]
+    pad = 0.24 if name == "cube" else 0.20  # Figur muss in den Kreis passen
+    f = fit_to_art([p for _, p in proj], pad=pad)
+    return _visible_faces([(n, [f(p) for p in poly]) for n, poly in proj])
+
+
+def _raster(region, work):
+    """shapely-Region (Bildschirm) -> Maske in Arbeitskoordinaten."""
+    from PIL import Image, ImageDraw
+
+    m = Image.new("L", (work, work), 0)
+    d = ImageDraw.Draw(m)
+    for poly in getattr(region, "geoms", [region]):
+        pts = [((x - ART_X) / ART * work, (y - ART_Y) / ART * work) for x, y in poly.exterior.coords]
+        d.polygon(pts, fill=255)
+    return np.asarray(m, np.float32) / 255.0
+
+
+FACE_SHADE = {"top": 0.42, "x": 0.72, "y": 1.0}  # Dunkelheit je Flaeche (Licht von oben)
+
+
+def circle_figure(name, n_nails=360, max_lines=9000, line_dark=0.05):
+    """Figur als schattiertes Graustufen-Ziel; derselbe Algorithmus wie bei den Portraets baut sie
+    aus Tausenden feinen Sehnen nach (eine Fadenfarbe)."""
+    import cv2
+    import string_art as sa
+
+    work = sa.WORK
+    faces = _faces_for(name)
+    target = np.zeros((work, work), np.float32)
+    for fname, region in faces:
+        target = np.maximum(target, _raster(region, work) * FACE_SHADE[fname])
+    edges = np.zeros_like(target)
+    for _, region in faces:
+        e = cv2.Canny((_raster(region, work) * 255).astype(np.uint8), 50, 150).astype(np.float32) / 255.0
+        edges = np.maximum(edges, e)
+    edges = cv2.GaussianBlur(cv2.dilate(edges, np.ones((2, 2), np.uint8)), (3, 3), 0)
+    fig = np.clip(target + 0.6 * edges, 0, 1)
+    inside = cv2.dilate((target > 0).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+    # Hintergrund negativ: Sehnen, die viel Leere kreuzen, lohnen sich nicht -> weniger Schleier
+    target = np.where(inside, fig, -0.22) * sa.shape_mask("circle")
+    pts, side = sa.frame_nails("circle", n_nails)
+    seq = sa._solve(target, pts, side, max_lines=max_lines, line_dark=line_dark)
+    cover = 1 / (sa.ART * sa.SS / work)
+    return {"nails": sa.to_screen(pts), "order": list(range(n_nails)), "segs": [(a, b, 0) for a, b in seq],
+            "colors": [None], "alpha": min(0.9, line_dark / cover), "width": 0.5, "shape": "circle"}
+
+
+def circle_wormhole(n_nails=240, layers=None):
+    """Wurmloch: Sehnen, die jeweils einen inneren Kreis beruehren. Wandert dieser Kreis von Lage
+    zu Lage zur Seite und wird kleiner, entsteht eine gebogene Roehre in die Tiefe."""
+    import string_art as sa
+
+    work = sa.WORK
+    pts, _ = sa.frame_nails("circle", n_nails)
+    R = work / 2 * 0.985
+    cx = cy = work / 2
+    layers = layers or [
+        # (Mittelpunkt-Versatz x, y als Anteil von R, Radius-Anteil, Farbe)
+        (0.00, 0.00, 0.62, (20, 20, 25)),
+        (0.08, -0.05, 0.48, (40, 110, 180)),
+        (0.17, -0.10, 0.35, (20, 20, 25)),
+        (0.26, -0.15, 0.23, (200, 60, 45)),
+        (0.33, -0.19, 0.12, (20, 20, 25)),
+    ]
+    segs, colors = [], []
+    for k, (ox, oy, rr, col) in enumerate(layers):
+        mx, my, r = cx + ox * R, cy + oy * R, rr * R
+        colors.append(col)
+        for i in range(n_nails):
+            px, py = pts[i]
+            dx, dy = mx - px, my - py
+            dist = math.hypot(dx, dy)
+            if dist <= r:
+                continue
+            # Tangente von P an den inneren Kreis (eine Seite), dann zweiter Schnitt mit dem Aussenkreis
+            a = math.atan2(dy, dx) + math.asin(r / dist)
+            ux, uy = math.cos(a), math.sin(a)
+            # P + t*u auf dem Aussenkreis: |P - C + t u|^2 = R^2
+            qx, qy = px - cx, py - cy
+            t = -2 * (qx * ux + qy * uy)
+            ex, ey = px + t * ux, py + t * uy
+            ang = math.atan2(ey - cy, ex - cx)
+            j = int(round(((ang + math.pi / 2) % (2 * math.pi)) / (2 * math.pi) * n_nails)) % n_nails
+            if j != i:
+                segs.append((i, j, k))
+    return {"nails": sa.to_screen(pts), "order": list(range(n_nails)), "segs": segs,
+            "colors": colors, "alpha": 0.75, "width": 1.0, "shape": "circle"}
+
+
+def circle_vortex(n_nails=240, steps=11):
+    """Strudel: der innere Beruehrungskreis wandert auf einer Spirale nach innen und wird kleiner."""
+    layers = []
+    for k in range(steps):
+        t = k / (steps - 1)
+        ang = t * 2.4 * math.pi
+        off = 0.30 * t
+        col = (20, 20, 25) if k % 2 == 0 else (int(40 + 160 * t), int(110 - 50 * t), int(180 - 135 * t))
+        layers.append((off * math.cos(ang), off * math.sin(ang), 0.70 * (1 - t) + 0.06, col))
+    return circle_wormhole(n_nails, layers)
+
+
+def circle_sphere(n_nails=240, steps=9):
+    """Kugel: Beruehrungskreise schrumpfen und wandern nach oben links (Lichtpunkt) -> Woelbung."""
+    layers = []
+    for k in range(steps):
+        t = k / (steps - 1)
+        col = (20, 20, 25) if k < steps - 3 else (200, 60, 45)
+        layers.append((-0.28 * t, -0.30 * t, 0.80 * (1 - t) + 0.05, col))
+    return circle_wormhole(n_nails, layers)
+
+
+CIRCLE_FIGURES = {"cube": lambda: circle_figure("cube"), "penrose": lambda: circle_figure("penrose"),
+                  "wormhole": circle_wormhole, "vortex": circle_vortex, "sphere": circle_sphere}

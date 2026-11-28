@@ -40,7 +40,7 @@ ART = 900  # Kantenlaenge des Faden-Bereichs (Quadrat)
 ART_X, ART_Y = (W - ART) // 2, 440
 MARGIN = 48  # Rand der Arbeitsplatte um den Faden-Bereich
 SS = 2  # Supersampling der Fadenebene
-WORK = 420  # Arbeitsaufloesung fuer den Algorithmus
+WORK = 560  # Arbeitsaufloesung fuer den Algorithmus
 
 
 # =========================================================================== Naegel-Rahmen
@@ -70,7 +70,8 @@ def to_screen(pts):
 # =========================================================================== Stile
 
 
-def _square_crop(img, center=(0.5, 0.45), scale=0.92, size=WORK):
+def _square_crop(img, center=(0.5, 0.45), scale=0.92, size=None):
+    size = size or WORK
     side = int(min(img.size) * scale)
     cx, cy = int(img.width * center[0]), int(img.height * center[1])
     x0 = max(0, min(img.width - side, cx - side // 2))
@@ -78,30 +79,58 @@ def _square_crop(img, center=(0.5, 0.45), scale=0.92, size=WORK):
     return img.crop((x0, y0, x0 + side, y0 + side)).resize((size, size), Image.LANCZOS)
 
 
-def style_portrait(path, shape="circle", invert=False, n_nails=None, max_lines=6500,
-                   center=(0.5, 0.45), scale=0.92):
-    import cv2
+PORTRAIT_PRESETS = {
+    # pre: Bildvorbereitung, lo/gain/gamma/edge: Zielbild, dark: Dunkel pro Faden im Algorithmus,
+    # alpha/width: Darstellung des Fadens
+    "bold":   dict(pre="equalize", lo=0.24, gain=1.4, gamma=1.3, edge=0.6, dark=0.13, alpha=0.45,
+                   width=1.0, nails=280, lines=4500),
+    "detail": dict(pre="equalize", lo=0.20, gain=1.35, gamma=1.2, edge=0.7, dark=0.085, alpha=0.30,
+                   width=1.0, nails=320, lines=6000),
+    "sharp":  dict(pre="sharpen", lo=0.20, gain=1.4, gamma=1.2, edge=0.9, dark=0.085, alpha=0.30,
+                   width=1.0, nails=320, lines=6000),
+    "ultra":  dict(pre="sharpen", lo=0.16, gain=1.25, gamma=1.1, edge=0.5, dark=0.05, alpha=0.20,
+                   width=0.5, nails=360, lines=11000, calibrate=True),
+    "fine":   dict(pre="sharpen", lo=0.20, gain=1.4, gamma=1.2, edge=0.8, dark=0.07, alpha=0.24,
+                   width=0.5, nails=340, lines=8000, calibrate=True),
+    "dense":  dict(pre="sharpen", lo=0.18, gain=1.35, gamma=1.15, edge=0.8, dark=0.06, alpha=0.24,
+                   width=1.0, nails=360, lines=8000),
+}
 
+
+def portrait_target(path, shape="circle", center=(0.5, 0.45), scale=0.92, invert=False, preset="detail"):
+    cfg = PORTRAIT_PRESETS[preset]
     img = _square_crop(Image.open(path).convert("L"), center, scale)
-    g = np.asarray(img, np.uint8)
-    g = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(6, 6)).apply(g)  # lokaler Kontrast
-    img = ImageOps.autocontrast(Image.fromarray(g), cutoff=1)
+    if cfg["pre"] == "sharpen":
+        img = img.filter(ImageFilter.UnsharpMask(radius=3, percent=160, threshold=2))
+    img = ImageOps.equalize(ImageOps.autocontrast(img, cutoff=1))
     val = np.asarray(img, np.float32) / 255.0
     dark = val if invert else 1.0 - val
     edges = np.asarray(img.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(1)),
                        np.float32) / 255.0
-    t = np.clip((dark - 0.26) * 1.9, 0, 1) ** 1.1 + 0.45 * edges  # helle Stellen frei, dunkle satt
+    t = np.clip((dark - cfg["lo"]) * cfg["gain"], 0, 1) ** cfg["gamma"] + cfg["edge"] * edges
+    return np.clip(t, 0, 1) * shape_mask(shape)
+
+
+def shape_mask(shape):
     yy, xx = np.mgrid[0:WORK, 0:WORK].astype(np.float32)
     if shape == "circle":
-        inside = np.sqrt((xx - WORK / 2) ** 2 + (yy - WORK / 2) ** 2) / (WORK / 2) < 0.97
-    else:
-        inside = (xx > WORK * 0.02) & (xx < WORK * 0.98) & (yy > WORK * 0.02) & (yy < WORK * 0.98)
-    target = np.clip(t, 0, 1) * inside
-    n = n_nails or (280 if shape == "circle" else 300)
+        return (np.sqrt((xx - WORK / 2) ** 2 + (yy - WORK / 2) ** 2) / (WORK / 2) < 0.97).astype(np.float32)
+    return ((xx > WORK * 0.02) & (xx < WORK * 0.98) & (yy > WORK * 0.02) & (yy < WORK * 0.98)).astype(np.float32)
+
+
+def style_portrait(path, shape="circle", invert=False, center=(0.5, 0.45), scale=0.92, preset="ultra"):
+    cfg = PORTRAIT_PRESETS[preset]
+    target = portrait_target(path, shape, center, scale, invert, preset)
+    n = cfg["nails"] if shape == "circle" else (cfg["nails"] // 4) * 4
     pts, side = frame_nails(shape, n)
-    seq = _solve(target, pts, side, max_lines=max_lines)
+    seq = _solve(target, pts, side, max_lines=cfg["lines"], line_dark=cfg["dark"])
+    # Darstellung passend zur Rechnung: ein Faden deckt ein Arbeitspixel zu Anteil (Fadenbreite /
+    # Pixelbreite) ab - so dunkel, wie der Algorithmus es angenommen hat.
+    width = cfg.get("width", 0.5)
+    cover = max(1, round(width * SS)) / (ART * SS / WORK)
+    alpha = min(0.9, cfg["dark"] / cover) if cfg.get("calibrate") else cfg["alpha"]
     return {"nails": to_screen(pts), "order": list(range(n)), "segs": [(a, b, 0) for a, b in seq],
-            "colors": [None], "alpha": 0.6, "width": 0.5}
+            "colors": [None], "alpha": alpha, "width": width}
 
 
 def _solve(target, nails, side, max_lines=6500, min_skip=18, line_dark=0.13):
@@ -466,7 +495,8 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--style", choices=["portrait", "pattern", "figure"], required=True)
-    ap.add_argument("--figure", default="penrose", choices=["cube", "penrose", "tunnel"])
+    ap.add_argument("--figure", default="wormhole",
+                    choices=["wormhole", "sphere", "vortex", "cube", "penrose", "tunnel"])
     ap.add_argument("--image")
     ap.add_argument("--shape", choices=["circle", "square"], default="circle")
     ap.add_argument("--pattern", default="mandala", choices=sorted(PATTERNS))
@@ -474,18 +504,23 @@ def main():
     ap.add_argument("--panel", default="panel_white")
     ap.add_argument("--out", default="experiments/string_art")
     ap.add_argument("--name", default=None)
+    ap.add_argument("--preset", default="ultra", choices=sorted(PORTRAIT_PRESETS))
     ap.add_argument("--crop", default="0.5,0.45,0.92", help="Bildausschnitt: Mitte x,y und Groesse (Anteile)")
     args = ap.parse_args()
     cx, cy, sc = (float(v) for v in args.crop.split(","))
 
     if args.style == "portrait":
-        spec = style_portrait(args.image, shape=args.shape, center=(cx, cy), scale=sc)
+        spec = style_portrait(args.image, shape=args.shape, center=(cx, cy), scale=sc, preset=args.preset)
         shape = args.shape
     elif args.style == "figure":
-        from string_figures import style_figure
+        from string_figures import CIRCLE_FIGURES, style_figure
 
-        spec = style_figure(args.figure)
-        shape = "square"
+        if args.figure in ("wormhole", "sphere", "vortex"):  # im Nagelkreis
+            spec = CIRCLE_FIGURES[args.figure]()
+            shape = "circle"
+        else:  # vorgenagelte Flaechen-Figuren (Quadrat)
+            spec = style_figure(args.figure)
+            shape = "square"
     else:
         spec = style_pattern(args.pattern)
         shape = spec["shape"]
