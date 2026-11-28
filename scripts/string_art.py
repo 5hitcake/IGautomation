@@ -10,12 +10,15 @@ Stile:
             immer die Sehne, die das Motiv am meisten verbessert. Braucht kontrastreiche Vorlagen
             (dramatisches Licht, heller Hintergrund).
   pattern   Mathematische Muster ohne Vorlage (Kreis: Mandala, Kardioide ...; Quadrat: Kurvensterne).
+  figure    3D-Figuren / optische Taeuschungen (string_figures.py): Wuerfel, unmoegliches Dreieck,
+            Spiral-Tunnel.
 
 Nutzung:
   python scripts/string_art.py --style portrait --image assets/string_art/motifs/old_man_beard.png --shape circle
   python scripts/string_art.py --style portrait --image ... --shape square --panel panel_natural
   python scripts/string_art.py --style pattern --pattern mandala --shape circle
   python scripts/string_art.py --style pattern --pattern curves --shape square
+  python scripts/string_art.py --style figure --figure penrose     (cube, penrose, tunnel)
 """
 
 import argparse
@@ -75,7 +78,7 @@ def _square_crop(img, center=(0.5, 0.45), scale=0.92, size=WORK):
     return img.crop((x0, y0, x0 + side, y0 + side)).resize((size, size), Image.LANCZOS)
 
 
-def style_portrait(path, shape="circle", invert=False, n_nails=None, max_lines=5000,
+def style_portrait(path, shape="circle", invert=False, n_nails=None, max_lines=6500,
                    center=(0.5, 0.45), scale=0.92):
     import cv2
 
@@ -87,7 +90,7 @@ def style_portrait(path, shape="circle", invert=False, n_nails=None, max_lines=5
     dark = val if invert else 1.0 - val
     edges = np.asarray(img.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(1)),
                        np.float32) / 255.0
-    t = np.clip((dark - 0.20) * 1.45, 0, 1) ** 1.25 + 0.5 * edges
+    t = np.clip((dark - 0.26) * 1.9, 0, 1) ** 1.1 + 0.45 * edges  # helle Stellen frei, dunkle satt
     yy, xx = np.mgrid[0:WORK, 0:WORK].astype(np.float32)
     if shape == "circle":
         inside = np.sqrt((xx - WORK / 2) ** 2 + (yy - WORK / 2) ** 2) / (WORK / 2) < 0.97
@@ -98,10 +101,10 @@ def style_portrait(path, shape="circle", invert=False, n_nails=None, max_lines=5
     pts, side = frame_nails(shape, n)
     seq = _solve(target, pts, side, max_lines=max_lines)
     return {"nails": to_screen(pts), "order": list(range(n)), "segs": [(a, b, 0) for a, b in seq],
-            "colors": [None], "alpha": 0.45, "width": 1.0}
+            "colors": [None], "alpha": 0.6, "width": 0.5}
 
 
-def _solve(target, nails, side, max_lines=5000, min_skip=18, line_dark=0.13):
+def _solve(target, nails, side, max_lines=6500, min_skip=18, line_dark=0.13):
     """Greedy-Fadenalgorithmus: vom aktuellen Nagel immer zur Sehne mit dem groessten mittleren
     Rest-Dunkel; die Linie wird danach vom Rest abgezogen. Beim Quadrat keine Sehnen entlang
     derselben Seite (die laegen auf dem Rand)."""
@@ -294,25 +297,44 @@ class ThreadCanvas:
         self.colors = [np.array(c if c else default_rgb, np.float32) for c in colors]
         self.alpha, self.width = alpha, max(1, round(width * SS))
 
+    def _count(self, lines, width, off=(0.0, 0.0)):
+        """Wie oft jedes Pixel von den Linien getroffen wird (Kreuzungen zaehlen mehrfach)."""
+        n = ART * SS
+        cnt = np.zeros(n * n, np.float32)
+        idx_all = []
+        for p0, p1 in lines:
+            x0, y0 = p0[0] + off[0], p0[1] + off[1]
+            x1, y1 = p1[0] + off[0], p1[1] + off[1]
+            length = math.hypot(x1 - x0, y1 - y0)
+            k = max(2, int(length * 1.5))
+            t = np.linspace(0, 1, k, dtype=np.float32)
+            xs, ys = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+            nx, ny = (-(y1 - y0) / max(length, 1e-6), (x1 - x0) / max(length, 1e-6))
+            pix = []
+            for w in np.arange(width) - (width - 1) / 2:
+                xi = np.clip(np.round(xs + nx * w).astype(np.int32), 0, n - 1)
+                yi = np.clip(np.round(ys + ny * w).astype(np.int32), 0, n - 1)
+                pix.append(yi * n + xi)
+            idx_all.append(np.unique(np.concatenate(pix)))  # je Linie jedes Pixel nur einmal
+        if idx_all:
+            np.add.at(cnt, np.concatenate(idx_all), 1)
+        return cnt.reshape(n, n)
+
     def add(self, segs):
         if not segs:
             return
-        n = ART * SS
         by_color = {}
         for p0, p1, c in segs:
             by_color.setdefault(c, []).append((p0, p1))
-        ms = Image.new("L", (n, n), 0)
-        ds = ImageDraw.Draw(ms)
+        all_lines = []
         for c, lines in by_color.items():
-            m = Image.new("L", (n, n), 0)
-            d = ImageDraw.Draw(m)
-            for p0, p1 in lines:
-                d.line((p0, p1), fill=255, width=self.width)
-                ds.line((p0[0] + 6, p0[1] + 8, p1[0] + 6, p1[1] + 8), fill=255, width=self.width * 2 + 1)
-            a = self.alpha * np.asarray(m, np.float32) / 255.0
+            cnt = self._count(lines, self.width)
+            a = 1 - (1 - self.alpha) ** cnt
             self.C = self.C * (1 - a[..., None]) + self.colors[c][None, None, :] * a[..., None]
             self.A = self.A * (1 - a) + a
-        self.S = 1 - (1 - self.S) * (1 - 0.10 * np.asarray(ms, np.float32) / 255.0)
+            all_lines += lines
+        cs = self._count(all_lines, self.width * 2 + 1, off=(6, 8))
+        self.S = 1 - (1 - self.S) * (1 - 0.10) ** cs
 
     def layer(self, extra=None):
         C, A = self.C, self.A
@@ -443,7 +465,8 @@ def render(spec, table_name, panel_name, shape, out, name, seconds_nails=5.5, se
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--style", choices=["portrait", "pattern"], required=True)
+    ap.add_argument("--style", choices=["portrait", "pattern", "figure"], required=True)
+    ap.add_argument("--figure", default="penrose", choices=["cube", "penrose", "tunnel"])
     ap.add_argument("--image")
     ap.add_argument("--shape", choices=["circle", "square"], default="circle")
     ap.add_argument("--pattern", default="mandala", choices=sorted(PATTERNS))
@@ -458,10 +481,16 @@ def main():
     if args.style == "portrait":
         spec = style_portrait(args.image, shape=args.shape, center=(cx, cy), scale=sc)
         shape = args.shape
+    elif args.style == "figure":
+        from string_figures import style_figure
+
+        spec = style_figure(args.figure)
+        shape = "square"
     else:
         spec = style_pattern(args.pattern)
         shape = spec["shape"]
-    base = os.path.splitext(os.path.basename(args.image))[0] if args.image else args.pattern
+    base = (os.path.splitext(os.path.basename(args.image))[0] if args.image
+            else args.figure if args.style == "figure" else args.pattern)
     render(spec, args.table, args.panel, shape, args.out, args.name or f"{args.style}_{shape}_{base}")
 
 
