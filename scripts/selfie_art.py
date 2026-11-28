@@ -58,6 +58,25 @@ def find_face(img):
     return x / scale, y / scale, w / scale, h / scale
 
 
+CROP_FACTOR = 2.25
+
+
+def face_weight(size, face_box):
+    """Gewichtung im Ausschnitt: Gesicht (Augen, Nase, Mund) wichtiger, Kleidung unten unwichtiger."""
+    n = size
+    yy, xx = np.mgrid[0:n, 0:n].astype(np.float32)
+    w = np.ones((n, n), np.float32)
+    if face_box is None:
+        return w
+    fx, fy, fw, fh = face_box
+    cx, cy = fx + fw / 2, fy + fh * 0.5
+    g = np.exp(-(((xx - cx) / (fw * 0.55)) ** 2 + ((yy - cy) / (fh * 0.6)) ** 2))
+    w += 0.45 * g
+    chin = fy + fh * 1.35  # unterhalb von Kinn/Bartansatz langsam ausblenden
+    fade = np.clip(1 - (yy - chin) / (n * 0.35), 0.35, 1)
+    return w * np.where(yy > chin, fade, 1)
+
+
 def crop_square(img, face):
     W, H = img.size
     if face is None:  # kein Gesicht gefunden: mittiges Quadrat, etwas oberhalb der Mitte
@@ -65,12 +84,14 @@ def crop_square(img, face):
         cx, cy = W / 2, H * 0.45
     else:
         x, y, w, h = face
-        side = min(max(W, H), h * 2.7)  # Kopf, Haare/Muetze und Bart/Schultern
-        cx, cy = x + w / 2, y + h * 0.62
+        side = min(max(W, H), h * CROP_FACTOR)  # Kopf, Haare und Bart; wenig Kleidung
+        cx, cy = x + w / 2, y + h * 0.58
     side = min(side, W, H)
     x0 = int(max(0, min(W - side, cx - side / 2)))
     y0 = int(max(0, min(H - side, cy - side / 2)))
-    return img.crop((x0, y0, x0 + int(side), y0 + int(side)))
+    out = img.crop((x0, y0, x0 + int(side), y0 + int(side)))
+    out.info["offset"] = (x0, y0)
+    return out
 
 
 def remove_background(img):
@@ -84,12 +105,81 @@ def remove_background(img):
     return white.convert("RGB")
 
 
+def check_photo(img, face=None):
+    """Foto-Check vor dem Rendern. Liefert (Hinweise, Messwerte); leere Hinweise = alles gut.
+    Grenzwerte grob nach Erfahrung mit Handyfotos: Fadenbilder leben von dunklen Stellen
+    (Augen, Brauen, Schatten) - flache, helle oder kleine Gesichter werden schwer erkennbar."""
+    import cv2
+
+    tips = []
+    W, H = img.size
+    gray = np.asarray(img.convert("L"))
+    m = {"aufloesung": min(W, H)}
+    if min(W, H) < 600:
+        tips.append("📏 Geringe Auflösung – ein größeres Originalfoto wird schärfer.")
+    face = face if face is not None else find_face(img)
+    if face is None:
+        tips.append("🙂 Kein frontales Gesicht erkannt – Kopf gerade zur Kamera drehen.")
+        return tips, m
+    x, y, w, h = (int(v) for v in face)
+    f = gray[max(0, y):y + h, max(0, x):x + w]
+    m["gesicht_anteil"] = round(h / min(W, H), 2)
+    m["helligkeit"] = round(float(f.mean()))
+    m["kontrast"] = round(float(f.std()))
+    small = cv2.resize(f, (256, 256))
+    m["schaerfe"] = round(float(cv2.Laplacian(small, cv2.CV_64F).var()))
+    around = np.concatenate([gray[:, :max(1, x)].ravel(), gray[:, min(W - 1, x + w):].ravel()])
+    m["umgebung"] = round(float(around.mean()))
+    if m["gesicht_anteil"] < 0.25:
+        tips.append("🔍 Gesicht ist klein im Bild – näher ran, das Gesicht sollte das Foto füllen.")
+    if m["helligkeit"] < 70:
+        tips.append("🌙 Gesicht zu dunkel – bei Tageslicht oder mit Licht von vorn fotografieren.")
+    elif m["helligkeit"] > 205:
+        tips.append("☀️ Gesicht überbelichtet – weniger direktes Licht.")
+    if m["umgebung"] - m["helligkeit"] > 45:
+        tips.append("🌅 Gegenlicht – Licht sollte von vorn oder von der Seite kommen, nicht von hinten.")
+    if m["kontrast"] < 45:
+        tips.append("🌫️ Gesicht wirkt flach/kontrastarm – seitliches Licht gibt mehr Tiefe.")
+    if m["schaerfe"] < 150:
+        tips.append("📷 Foto ist unscharf – Kamera ruhig halten, auf das Gesicht scharfstellen.")
+    eyes = cv2.CascadeClassifier(os.path.join(cv2.data.haarcascades, "haarcascade_eye.xml"))
+    upper = cv2.equalizeHist(cv2.resize(f[: int(h * 0.6)], (256, 154)))
+    found = eyes.detectMultiScale(upper, 1.1, 6, minSize=(18, 18))
+    m["augen"] = int(len(found))
+    if m["augen"] < 2:
+        tips.append("👀 Augen schlecht erkennbar (geschlossen, Sonnenbrille, Schatten?) – "
+                    "Augen offen, in die Kamera.")
+    else:
+        # Kopf gedreht? Dann liegt die Mitte zwischen den Augen deutlich neben der Gesichtsmitte.
+        two = sorted(found, key=lambda e: e[2] * e[3], reverse=True)[:2]
+        mid = np.mean([ex + ew / 2 for ex, ey, ew, eh in two]) / 256
+        m["augen_versatz"] = round(float(abs(mid - 0.5)), 2)
+        if m["augen_versatz"] > 0.08:
+            tips.append("↪️ Kopf ist zur Seite gedreht – frontal in die Kamera schauen wirkt deutlich besser.")
+    return tips, m
+
+
+def check_text(tips):
+    if not tips:
+        return "📋 Foto-Check: ✅ Gut geeignet."
+    return "📋 Foto-Check: das Ergebnis kann schwächer werden:\n" + "\n".join(f"• {t}" for t in tips)
+
+
 def prepare(photo_path, out_path):
     import cv2
 
     img = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
     face = find_face(img)
-    crop = crop_square(img, face).resize((1024, 1024), Image.LANCZOS)
+    tips, metrics = check_photo(img, face)
+    with open(os.path.join(os.path.dirname(out_path), "check.json"), "w") as f:
+        json.dump({"tips": tips, "metrics": metrics, "text": check_text(tips)}, f, ensure_ascii=False)
+    crop = crop_square(img, face)
+    box = None
+    if face is not None:  # Gesicht in Koordinaten des (auf 1024 skalierten) Ausschnitts
+        x0, y0 = crop.info.get("offset", (0, 0))
+        k = 1024 / crop.width
+        box = ((face[0] - x0) * k, (face[1] - y0) * k, face[2] * k, face[3] * k)
+    crop = crop.resize((1024, 1024), Image.LANCZOS)
     try:
         crop = remove_background(crop)
     except Exception as e:  # noqa: BLE001 - ohne Freistellen geht es trotzdem weiter
@@ -97,6 +187,7 @@ def prepare(photo_path, out_path):
     g = cv2.cvtColor(np.asarray(crop), cv2.COLOR_RGB2GRAY)
     g = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(g)
     Image.fromarray(g).save(out_path)
+    np.save(os.path.splitext(out_path)[0] + "_gewicht.npy", face_weight(1024, box))
     return face is not None
 
 
@@ -136,8 +227,9 @@ def make(photo, out, shape="circle", panel="panel_white", name="fadenbild"):
     os.makedirs(out, exist_ok=True)
     template = os.path.join(out, "vorlage.png")
     face_found = prepare(photo, template)
+    weight = np.load(os.path.splitext(template)[0] + "_gewicht.npy")
     spec = sa.style_portrait(template, shape=shape, center=(0.5, 0.5), scale=1.0, preset="ultra",
-                             bg_penalty=0.08)
+                             bg_penalty=0.08, weight=weight)
     video = sa.render(spec, "dark_walnut", panel, shape, out, name)
     table_jpg(os.path.join(out, f"{name}.jpg"), os.path.join(out, f"{name}_tisch.jpg"))
     board_png(spec, panel, shape, os.path.join(out, f"{name}_platte.png"))
@@ -152,7 +244,16 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--options", default="", help="z.B. 'kreis weiss' oder 'quadrat natur'")
     ap.add_argument("--name", default="fadenbild")
+    ap.add_argument("--check-only", action="store_true", help="nur Foto-Check ausgeben")
     args = ap.parse_args()
+    if args.check_only:
+        os.makedirs(args.out, exist_ok=True)
+        img = ImageOps.exif_transpose(Image.open(args.photo)).convert("RGB")
+        tips, metrics = check_photo(img)
+        with open(os.path.join(args.out, "check.json"), "w") as f:
+            json.dump({"tips": tips, "metrics": metrics, "text": check_text(tips)}, f, ensure_ascii=False)
+        print(check_text(tips), metrics)
+        return
     shape, panel = parse_options(args.options)
     res = make(args.photo, args.out, shape, panel, args.name)
     with open(os.path.join(args.out, "ergebnis.json"), "w") as f:
