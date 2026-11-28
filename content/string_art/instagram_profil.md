@@ -19,7 +19,7 @@ Drei Vorschläge in `assets/string_art/profile/` (1080 × 1080, Instagram schnei
 
 ## Benutzername (Vorschläge, Verfügbarkeit in der App prüfen)
 
-`@stringart.daily` · `@nails.and.thread` · `@threadportraits` · `@one.thread.art`
+**`@stringart.daily`** (festgelegt – in der App umbenennen; im Repo bereits eingetragen)
 
 **Wichtig:** Wenn sich der Benutzername ändert, muss er auch in
 `content/string_art/motifs.json` → `account.instagram_username` angepasst werden. Das Posting

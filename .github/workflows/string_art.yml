@@ -35,7 +35,7 @@ permissions:
 
 env:
   # Automatisches Posten nach Zeitplan erst einschalten, wenn alles passt ("true").
-  STRINGART_ENABLED: "false"
+  STRINGART_ENABLED: "true"
 
 concurrency:
   group: string-art
@@ -171,6 +171,7 @@ jobs:
           sleep 20  # raw.githubusercontent.com braucht einen Moment
 
       - name: Auf Instagram veröffentlichen
+        id: publish
         if: steps.make.outputs.publish == 'true'
         env:
           IG_ACCESS_TOKEN: ${{ secrets.STRINGART_IG_ACCESS_TOKEN || secrets.JOTALABS_IG_ACCESS_TOKEN }}
@@ -187,3 +188,19 @@ jobs:
             echo "::warning::Instagram konnte das Video nicht verarbeiten - neuer Versuch in 90 s."
             sleep 90
           done
+
+      - name: Zusätzlich als Story posten
+        if: steps.publish.outcome == 'success'
+        continue-on-error: true
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.STRINGART_IG_ACCESS_TOKEN || secrets.JOTALABS_IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.STRINGART_IG_ACCOUNT_ID || secrets.JOTALABS_IG_ACCOUNT_ID }}
+        run: |
+          python - <<'PY'
+          import json
+          p = json.load(open("assets/string_art/out/next_post.json"))
+          json.dump({"type": "story", "file": p["file"], "branch": p["branch"]},
+                    open("assets/string_art/out/story_post.json", "w"))
+          PY
+          expected=$(python -c "import json;print(json.load(open('content/string_art/motifs.json'))['account']['instagram_username'])")
+          python scripts/publish.py --post-file assets/string_art/out/story_post.json --expect-username "$expected"
