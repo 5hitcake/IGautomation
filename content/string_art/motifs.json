@@ -1,0 +1,53 @@
+{
+  "account": {
+    "instagram_username": "stringart.daily",
+    "language": "en"
+  },
+  "weights": {
+    "trending": 3,
+    "superhero": 3,
+    "game": 1,
+    "animal": 2,
+    "icon": 2,
+    "building": 0,
+    "illusion": 1
+  },
+  "motifs": [
+    {"id": "spiderman", "kind": "superhero", "title": "Spider-Man", "subject": "Spider-Man in his iconic red and blue mask with web pattern and big white eyes", "tags": ["spiderman", "marvel"]},
+    {"id": "batman", "kind": "superhero", "title": "Batman", "subject": "Batman wearing his black cowl with pointed ears, intense eyes, gritty", "tags": ["batman", "dc"]},
+    {"id": "joker", "kind": "superhero", "title": "Joker", "subject": "the Joker with messy green hair, pale face paint and an unsettling smile", "tags": ["joker", "dc"]},
+    {"id": "ironman", "kind": "superhero", "title": "Iron Man", "subject": "Iron Man helmet with glowing eyes, metallic armor reflections", "tags": ["ironman", "marvel"]},
+    {"id": "wolverine", "kind": "superhero", "title": "Wolverine", "subject": "Wolverine with wild hair, sideburns and a fierce expression", "tags": ["wolverine", "marvel", "xmen"]},
+    {"id": "thor", "kind": "superhero", "title": "Thor", "subject": "Thor the god of thunder with long hair, beard and a winged helmet", "tags": ["thor", "marvel"]},
+    {"id": "wonderwoman", "kind": "superhero", "title": "Wonder Woman", "subject": "Wonder Woman with long dark hair and her golden tiara with a star", "tags": ["wonderwoman", "dc"]},
+    {"id": "superman", "kind": "superhero", "title": "Superman", "subject": "Superman with his iconic hair curl and the S emblem on his chest", "tags": ["superman", "dc"]},
+    {"id": "blackpanther", "kind": "superhero", "title": "Black Panther", "subject": "Black Panther in his sleek black panther mask with silver details", "tags": ["blackpanther", "marvel", "wakanda"]},
+    {"id": "deadpool", "kind": "superhero", "title": "Deadpool", "subject": "Deadpool in his mask with large white eyes outlined in black", "tags": ["deadpool", "marvel"]},
+    {"id": "harleyquinn", "kind": "superhero", "title": "Harley Quinn", "subject": "Harley Quinn with pigtails, smudged makeup and a mischievous grin", "tags": ["harleyquinn", "dc"]},
+    {"id": "captainamerica", "kind": "superhero", "title": "Captain America", "subject": "Captain America in his helmet with the A and wings, determined look", "tags": ["captainamerica", "marvel"]},
+    {"id": "venom", "kind": "superhero", "title": "Venom", "subject": "Venom with huge white eyes, sharp teeth and a long tongue", "tags": ["venom", "marvel"]},
+    {"id": "hulk", "kind": "superhero", "title": "Hulk", "subject": "the Hulk with an angry face, heavy brow and messy hair, muscular", "tags": ["hulk", "marvel"]},
+    {"id": "darthvader", "kind": "superhero", "title": "Darth Vader", "subject": "Darth Vader helmet and mask, glossy black", "tags": ["darthvader", "starwars"]},
+    {"id": "gta6_lucia", "kind": "game", "title": "Lucia (GTA 6)", "subject": "a confident Latina woman with dark hair tied back, small hoop earrings, tough streetwise look, Vice City style, like Lucia from GTA 6", "tags": ["gta6", "gtavi", "lucia", "vicecity"]},
+    {"id": "gta6_jason", "kind": "game", "title": "Jason (GTA 6)", "subject": "a rugged man with short hair and stubble, tank top, Florida criminal vibe, like Jason from GTA 6", "tags": ["gta6", "gtavi", "jason", "vicecity"]},
+    {"id": "lion", "kind": "animal", "title": "Lion", "subject": "a male lion with a full dark mane, facing the camera", "tags": ["lion", "lionking", "animals"]},
+    {"id": "wolf", "kind": "animal", "title": "Wolf", "subject": "a grey wolf with piercing eyes, facing the camera", "tags": ["wolf", "animals"]},
+    {"id": "eagle", "kind": "animal", "title": "Bald Eagle", "subject": "a bald eagle head in profile with a sharp beak and intense eye", "tags": ["eagle", "birdsofprey", "birds"]},
+    {"id": "tiger", "kind": "animal", "title": "Tiger", "subject": "a tiger head with bold stripes, facing the camera", "tags": ["tiger", "animals"]},
+    {"id": "owl", "kind": "animal", "title": "Eagle Owl", "subject": "an eagle owl with big round eyes and feather tufts, facing the camera", "tags": ["owl", "owls", "birds"]},
+    {"id": "gorilla", "kind": "animal", "title": "Gorilla", "subject": "a silverback gorilla face, wise and calm, facing the camera", "tags": ["gorilla", "animals"]},
+    {"id": "husky", "kind": "animal", "title": "Husky", "subject": "a siberian husky with light eyes, facing the camera", "tags": ["husky", "dog", "dogsofinstagram"]},
+    {"id": "einstein", "kind": "icon", "title": "Albert Einstein", "subject": "Albert Einstein with his wild white hair and moustache", "tags": ["einstein", "genius"]},
+    {"id": "monalisa", "kind": "icon", "title": "Mona Lisa", "subject": "the Mona Lisa by Leonardo da Vinci, her face and mysterious smile", "tags": ["monalisa", "davinci", "art"]},
+    {"id": "pearlearring", "kind": "icon", "title": "Girl with a Pearl Earring", "subject": "the Girl with a Pearl Earring by Vermeer, looking over her shoulder", "tags": ["vermeer", "art"]},
+    {"id": "bruce_lee", "kind": "icon", "title": "Bruce Lee", "subject": "Bruce Lee with an intense focused look", "tags": ["brucelee", "martialarts"]},
+    {"id": "marilyn", "kind": "icon", "title": "Marilyn Monroe", "subject": "Marilyn Monroe with her iconic curled blonde hair and beauty mark", "tags": ["marilynmonroe", "hollywood"]},
+    {"id": "bob_marley", "kind": "icon", "title": "Bob Marley", "subject": "Bob Marley with dreadlocks and a gentle smile", "tags": ["bobmarley", "reggae"]},
+    {"id": "eiffel", "kind": "building", "title": "Eiffel Tower", "subject": "the Eiffel Tower seen from below, full tower in frame", "tags": ["eiffeltower", "paris"]},
+    {"id": "colosseum", "kind": "building", "title": "Colosseum", "subject": "the Colosseum in Rome, front view, full building in frame", "tags": ["colosseum", "rome"]},
+    {"id": "liberty", "kind": "building", "title": "Statue of Liberty", "subject": "the head and crown of the Statue of Liberty", "tags": ["statueofliberty", "newyork"]},
+    {"id": "tajmahal", "kind": "building", "title": "Taj Mahal", "subject": "the Taj Mahal, front view, full building in frame", "tags": ["tajmahal", "india"]},
+    {"id": "wormhole", "kind": "illusion", "title": "Wormhole", "figure": "wormhole", "tags": ["illusion", "opticalillusion", "3d"]},
+    {"id": "sphere", "kind": "illusion", "title": "3D Sphere", "figure": "sphere", "tags": ["illusion", "opticalillusion", "3d"]}
+  ]
+}

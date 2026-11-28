@@ -1,0 +1,206 @@
+name: Fadenbild-Reels (String Art)
+
+# Zwei Reels pro Tag. Jeder Lauf startet 75 Minuten vor dem Termin:
+#   1. Motiv waehlen (Trends, Superhelden, GTA 6, Tiere, Ikonen, Bauwerke, Illusionen)
+#   2. Vorlage erzeugen (Pollinations), Fadenbild-Video mit Ton rendern
+#   3. Vorschau per Telegram (✅ / 🔄 anderes Motiv / ❌), ohne Antwort zum Termin automatisch posten
+# Termine (UTC, Winter: DE = UTC+1):  11:07 und 17:07 UTC  (12:07 + 18:07 DE)
+# Gestartet vom Cloudflare-Zeitgeber (cloudflare/people_scheduler) per workflow_dispatch mit "slot".
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Posten? (nein = nur Vorschau per Telegram + Download unter Artifacts)"
+        type: boolean
+        default: false
+      motif:
+        description: "Optional: bestimmtes Motiv (ID aus content/string_art/motifs.json)"
+        default: ""
+      kind:
+        description: "Optional: Kategorie (trending, superhero, game, animal, icon, building, illusion)"
+        default: ""
+      wait_minutes:
+        description: "Nur beim Posten ohne Termin: Minuten Bedenkzeit per Telegram"
+        default: "20"
+      slot:
+        description: "Nur für den Zeitgeber - leer lassen"
+        default: ""
+  push:
+    # Testlaeufe auf Feature-Branches: nur Vorschau, postet nie
+    branches: ["ccr-**"]
+    paths: ["experiments/string_art/run.txt"]
+
+permissions:
+  contents: write
+
+env:
+  # Automatisches Posten nach Zeitplan erst einschalten, wenn alles passt ("true").
+  STRINGART_ENABLED: "true"
+
+concurrency:
+  group: string-art
+  cancel-in-progress: false
+
+jobs:
+  reel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Modus bestimmen
+        id: mode
+        env:
+          SLOT: ${{ github.event.inputs.slot }}
+        run: |
+          target=""
+          case "$SLOT" in
+            "52 9 * * *")  target=11:07 ;;
+            "52 15 * * *") target=17:07 ;;
+          esac
+          publish="${{ github.event.inputs.publish }}"
+          [ "${{ github.event_name }}" = "push" ] && publish=false
+          run=true
+          if [ -n "$target" ]; then
+            publish=true
+            if [ "$STRINGART_ENABLED" != "true" ]; then
+              run=false; echo "Zeitplan ist noch ausgeschaltet (STRINGART_ENABLED)."
+            fi
+            last=$(git log -1 --grep="Fadenbild-Reel:" --format=%ct || true)
+            if [ -n "$last" ] && [ $(( $(date +%s) - last )) -lt 14400 ]; then
+              run=false; echo "Letztes Fadenbild-Reel ist weniger als 4 Stunden her."
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "run=$run publish=$publish target=${target:-sofort}"
+
+      - uses: actions/setup-python@v5
+        if: steps.mode.outputs.run == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        if: steps.mode.outputs.run == 'true'
+        run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          pip install -q requests Pillow numpy scipy opencv-python-headless shapely
+
+      - name: Reel erstellen (+ Freigabe per Telegram)
+        id: make
+        if: steps.mode.outputs.run == 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POLLI_TOKEN: ${{ secrets.POLLI_TOKEN }}
+          STRINGART_TELEGRAM_BOT_TOKEN: ${{ secrets.STRINGART_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.STORY_TELEGRAM_BOT_TOKEN || secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          args=""
+          [ -n "${{ github.event.inputs.motif }}" ] && args="$args --motif ${{ github.event.inputs.motif }}"
+          [ -n "${{ github.event.inputs.kind }}" ] && args="$args --kind ${{ github.event.inputs.kind }}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # Testlauf: run.txt enthaelt z.B. "batman kind:trending eiffel" - je Eintrag eine Vorschau
+            for item in $(grep -v '^#' experiments/string_art/run.txt); do
+              case "$item" in
+                kind:*) python scripts/string_post.py --preview --kind "${item#kind:}" --out "assets/string_art/out/${item#kind:}" || true ;;
+                *)      python scripts/string_post.py --preview --motif "$item" --out "assets/string_art/out/$item" || true ;;
+              esac
+            done
+          elif [ "${{ steps.mode.outputs.publish }}" != "true" ]; then
+            python scripts/string_post.py --preview $args
+          elif [ -n "${{ steps.mode.outputs.target }}" ]; then
+            python scripts/string_post.py --target ${{ steps.mode.outputs.target }} $args
+          else
+            python scripts/string_post.py --wait-minutes ${{ github.event.inputs.wait_minutes || '20' }} $args
+          fi
+
+      - name: Video als Download bereitstellen
+        if: steps.mode.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fadenbild-reel
+          path: |
+            assets/string_art/out/**/*.mp4
+            assets/string_art/out/**/*.jpg
+            assets/string_art/out/**/vorlage_*.png
+            assets/string_art/out/**/next_post.json
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Testergebnisse auf den Branch legen (nur Testlauf)
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p experiments/string_art/autotest
+          for d in assets/string_art/out/*/; do
+            n=$(basename "$d")
+            cp "$d"/reel_*.mp4 "experiments/string_art/autotest/$n.mp4" 2>/dev/null || true
+            cp "$d"/reel_*.jpg "experiments/string_art/autotest/$n.jpg" 2>/dev/null || true
+            cp "$d"/vorlage_*.png "experiments/string_art/autotest/${n}_vorlage.png" 2>/dev/null || true
+            cp "$d"/next_post.json "experiments/string_art/autotest/${n}.json" 2>/dev/null || true
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add experiments/string_art/autotest
+          git commit -qm "Fadenbild-Testlauf (Vorschau)" || exit 0
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Log und next_post.json committen
+        if: steps.make.outputs.publish == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add string_art_posted_log.json assets/string_art/out/next_post.json
+          git commit -m "Fadenbild-Reel: ${{ steps.make.outputs.motif }} $(date -u +'%Y-%m-%d %H:%M')" || exit 0
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: Video auf den Medien-Branch legen (hält main klein)
+        if: steps.make.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tmp=$(mktemp -d)
+          cp assets/string_art/out/reel_*.mp4 "$tmp/"
+          cd "$tmp"
+          git init -q -b string-art-media
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -qm "Aktuelles Fadenbild-Reel"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" string-art-media
+          sleep 20  # raw.githubusercontent.com braucht einen Moment
+
+      - name: Auf Instagram veröffentlichen
+        id: publish
+        if: steps.make.outputs.publish == 'true'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.STRINGART_IG_ACCESS_TOKEN || secrets.JOTALABS_IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.STRINGART_IG_ACCOUNT_ID || secrets.JOTALABS_IG_ACCOUNT_ID }}
+        run: |
+          expected=$(python -c "import json;print(json.load(open('content/string_art/motifs.json'))['account']['instagram_username'])")
+          set -o pipefail
+          for attempt in 1 2; do
+            if python scripts/publish.py --post-file assets/string_art/out/next_post.json --expect-username "$expected" 2>&1 | tee publish.log; then
+              exit 0
+            fi
+            grep -q "Media-Verarbeitung fehlgeschlagen" publish.log || exit 1
+            [ "$attempt" = 2 ] && exit 1
+            echo "::warning::Instagram konnte das Video nicht verarbeiten - neuer Versuch in 90 s."
+            sleep 90
+          done
+
+      - name: Zusätzlich als Story posten
+        if: steps.publish.outcome == 'success'
+        continue-on-error: true
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.STRINGART_IG_ACCESS_TOKEN || secrets.JOTALABS_IG_ACCESS_TOKEN }}
+          IG_ACCOUNT_ID: ${{ secrets.STRINGART_IG_ACCOUNT_ID || secrets.JOTALABS_IG_ACCOUNT_ID }}
+        run: |
+          python - <<'PY'
+          import json
+          p = json.load(open("assets/string_art/out/next_post.json"))
+          json.dump({"type": "story", "file": p["file"], "branch": p["branch"]},
+                    open("assets/string_art/out/story_post.json", "w"))
+          PY
+          expected=$(python -c "import json;print(json.load(open('content/string_art/motifs.json'))['account']['instagram_username'])")
+          python scripts/publish.py --post-file assets/string_art/out/story_post.json --expect-username "$expected"

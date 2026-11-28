@@ -108,9 +108,12 @@ def create_media_container(ig_account_id, access_token, post, dry_run):
         if post.get("thumb_offset") is not None:
             params["thumb_offset"] = str(post["thumb_offset"])
     elif post["type"] == "story":
-        # Stories haben keine Caption; die API nimmt Bilder nur als JPEG an.
+        # Stories haben keine Caption; Bilder nimmt die API nur als JPEG an, Videos als MP4.
         params["media_type"] = "STORIES"
-        params["image_url"] = asset_url
+        if post["file"].lower().endswith(".mp4"):
+            params["video_url"] = asset_url
+        else:
+            params["image_url"] = asset_url
     else:
         params["image_url"] = asset_url
     if post["type"] != "story":

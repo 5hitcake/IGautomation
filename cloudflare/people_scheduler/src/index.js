@@ -24,6 +24,20 @@ export const STORY_SLOTS = {
   "19:22": { slot: "22 19 * * *", account: "mysteries" },
 };
 
+// Fadenbild-Reels (string_art.yml): Vorschau 75 Min. vor dem Termin, Termine 11:07 + 17:07 UTC.
+// Fenster 09:52-11:07 und 15:52-17:07 ueberschneiden sich nicht mit den Story-Reel-Freigaben.
+export const STRING_WORKFLOW = "string_art.yml";
+export const STRING_SLOTS = {
+  "09:52": "52 9 * * *",
+  "15:52": "52 15 * * *",
+};
+
+export function stringSlot(scheduledTime) {
+  const d = new Date(scheduledTime);
+  const hhmm = `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  return STRING_SLOTS[hhmm] || null;
+}
+
 // Kaufkraft-Check: deutsche Top-Zeiten (Europe/Berlin, Sommer-/Winterzeit automatisch).
 export const KAUFKRAFT_WORKFLOW = "kaufkraft_post.yml";
 export const KAUFKRAFT_SLOTS = {
@@ -122,6 +136,14 @@ export function jobsFor(cron, scheduledTime) {
         label: `Story-Reel ${slot.account} (${slot.slot})`,
         inputs: { account: slot.account, publish: "true", slot: slot.slot },
         workflow: STORY_WORKFLOW,
+      });
+    }
+    const stringSlotCron = stringSlot(scheduledTime);
+    if (stringSlotCron) {
+      jobs.push({
+        label: `Fadenbild-Reel (${stringSlotCron})`,
+        inputs: { publish: "true", slot: stringSlotCron },
+        workflow: STRING_WORKFLOW,
       });
     }
     if (kaufkraftDue(scheduledTime)) {
