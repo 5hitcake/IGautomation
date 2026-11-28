@@ -1693,6 +1693,87 @@
       ],
       "source": "https://de.wikipedia.org/wiki/Winchester_House",
       "generated": "2026-11-26"
+    },
+    {
+      "id": "melassekatastrophe_boston",
+      "hook": {
+        "text": "Ein Tank platzt, eine Stadt versinkt in *Melasse*.",
+        "image": "industrial area with large tank and cityscape in the background, dark clouds"
+      },
+      "scenes": [
+        {
+          "text": "Boston, 1919: Ein Tank mit 9.000 m³ Melasse steht im Stadtteil North End.",
+          "image": "industrial tank in a city neighborhood, workers in the background"
+        },
+        {
+          "text": "Der Tank ist alt und hat bauliche Mängel, aber niemand repariert ihn.",
+          "image": "close-up of rusty tank with leaks and cracks, warning signs"
+        },
+        {
+          "text": "Am 15. Januar 1919 bricht der Tank und eine *Sirupwelle* ergießt sich.",
+          "image": "destruction and chaos in the city streets, people running away from the wave"
+        },
+        {
+          "text": "21 Menschen sterben, 150 werden verletzt, und die Stadt ist in *Melasse* ertrunken.",
+          "image": "rescue teams and horses struggling in the sticky mess, cityscape in the background"
+        },
+        {
+          "text": "Die Rettungsarbeiten sind schwierig, die Stadt braucht sechs Monate zum *Reinigen*.",
+          "image": "clean-up efforts with water hoses and workers in protective gear, city streets"
+        },
+        {
+          "text": "Die Firma zahlt eine Million Dollar an die Geschädigten, aber die Frage bleibt: *Warum*?",
+          "image": "courtroom with judge and lawyers, documents and evidence on the table"
+        }
+      ],
+      "question": "War es ein Unfall oder Fahrlässigkeit?",
+      "tags": [
+        "#Melassekatastrophe",
+        "#Boston"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Melassekatastrophe_von_Boston",
+      "generated": "2026-11-28"
+    },
+    {
+      "id": "smog_katastrophe_london_1952",
+      "hook": {
+        "text": "Ein kalter Wintermorgen in London. Die Luft ist plötzlich *giftig*.",
+        "image": "foggy london street at dawn with smokestacks in the background"
+      },
+      "scenes": [
+        {
+          "text": "1952: Eine kalte Wetterperiode und ein Hochdruckgebiet über London.",
+          "image": "weather map of london with high pressure system"
+        },
+        {
+          "text": "Der Smog wird immer dichter, die Sichtweite geht auf wenige Meter zurück.",
+          "image": "london street with people walking in thick fog"
+        },
+        {
+          "text": "Tausende Menschen bekommen Atemprobleme, viele sterben an den Folgen.",
+          "image": "hospital room with patients wearing oxygen masks"
+        },
+        {
+          "text": "Der Smog dringt in Gebäude ein, Kino- und Theatervorführungen werden abgesagt.",
+          "image": "empty movie theater with fog outside"
+        },
+        {
+          "text": "Die Stadt kommt zum Stillstand, der öffentliche Verkehr wird eingestellt.",
+          "image": "abandoned bus on a london street"
+        },
+        {
+          "text": "Nach 4 Tagen hebt sich der Smog, die Bilanz ist verheerend: zwischen 4.000 und 12.000 Tote.",
+          "image": "london street with people cleaning up after the smog"
+        }
+      ],
+      "question": "Hättest du den Smog überlebt?",
+      "tags": [
+        "#smogkatastrophe",
+        "#london1952",
+        "#umweltkatastrophe"
+      ],
+      "source": "https://de.wikipedia.org/wiki/Smog-Katastrophe_in_London_1952",
+      "generated": "2026-11-28"
     }
   ]
 }
