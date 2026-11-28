@@ -27,7 +27,11 @@ def test_crop_square_keeps_face_and_beard_inside():
     face = (700, 800, 600, 600)
     crop = sa.crop_square(img, face)
     assert crop.width == crop.height
-    assert crop.width >= 600 * 2.5 or crop.width == 2000
+    assert crop.width == int(600 * sa.CROP_FACTOR)
+    x0, y0 = crop.info["offset"]
+    fx, fy, fw, fh = face
+    assert x0 <= fx and y0 <= fy  # ganzes Gesicht im Ausschnitt
+    assert fx + fw <= x0 + crop.width and fy + fh <= y0 + crop.height
 
 
 def test_crop_square_without_face_is_centered_square():
