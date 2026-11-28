@@ -1,8 +1,8 @@
 name: Daily Jota Labs Story
 
+# Gestoppt: der Account wird zur Fadenbild-Seite umgebaut (string_art.yml).
+# Kein Zeitplan mehr - nur noch manuell startbar.
 on:
-  schedule:
-    - cron: "7 23 * * *"  # ~20:07 Uhr Buenos Aires (UTC-3, keine Sommerzeit)
   workflow_dispatch: {}
 
 permissions:
